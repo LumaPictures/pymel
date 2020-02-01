@@ -1,6 +1,13 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import sys
 import os
 import unittest
@@ -99,7 +106,7 @@ class testCase_attribs(unittest.TestCase):
         pm.delete(self.sphere1)
 
     def test_newAttrsExists(self):
-        for attrName, attr in self.newAttrs.iteritems():
+        for attrName, attr in self.newAttrs.items():
 #            print "Testing existence of:", attr.name()
             if attrName.startswith('multiCompound_'):
                 self.assertFalse(attr.exists(), 'attr %r existed' % attr)
@@ -171,7 +178,7 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(self.newAttrs['angle'].getAllParents(arrays=True), [])
 
     def test_comparison(self):
-        for attr in self.newAttrs.itervalues():
+        for attr in self.newAttrs.values():
             self.assertEqual(attr, pm.PyNode(attr.name()))
 
     def test_comparisonOtherObject(self):
@@ -196,7 +203,7 @@ class testCase_attribs(unittest.TestCase):
     def test_iter_independence(self):
         iter1 = iter(self.newAttrs['multiByte'])
         iter2 = iter(self.newAttrs['multiByte'])
-        zipped = zip(iter1, iter2)
+        zipped = list(zip(iter1, iter2))
         self.assertEqual(zipped, [ (self.newAttrs['multiByte'][i],
                                     self.newAttrs['multiByte'][i])
                                    for i in self.setIndices ])
@@ -217,7 +224,7 @@ class testCase_attribs(unittest.TestCase):
                 self.assertTrue(child.isSettable(), '%s was unlocked - should be settable' % attr)
                 self.assertTrue(attr.isSettable(), '%s had unlocked child - should be settable' % attr)
 
-        for attr in self.newAttrs.itervalues():
+        for attr in self.newAttrs.values():
             if not attr.exists():
                 continue
 
@@ -234,7 +241,7 @@ class testCase_attribs(unittest.TestCase):
                 testLockUnlock(attr, attr.children()[0])
 
     def test_attr_type(self):
-        for attrName, attrType in self.attrTypes.iteritems():
+        for attrName, attrType in self.attrTypes.items():
             self.assertEqual(self.newAttrs[attrName].type(), attrType)
         self.assertEqual(self.newAttrs['multiCompound'].numElements(), 0)
         self.assertEqual(self.newAttrs['multiByte'].numElements(), len(self.setIndices))
@@ -312,7 +319,7 @@ class testCase_attrSpec(unittest.TestCase):
 
     def test_index(self):
         objGroups = None
-        for i in xrange(self.persp.attributeCount()):
+        for i in range(self.persp.attributeCount()):
             # make sure we get a valid obj for all indices
             attrSpec = self.persp.attrSpec(i)
             self.assertIsInstance(attrSpec, pm.AttributeSpec)
@@ -358,7 +365,7 @@ class testCase_attrSpec(unittest.TestCase):
 
     def test_cls_index(self):
         objGroups = None
-        for i in xrange(om.MNodeClass('transform').attributeCount()):
+        for i in range(om.MNodeClass('transform').attributeCount()):
             # make sure we get a valid obj for all indices
             attrSpec = pm.nt.Transform.attrSpec(i)
             self.assertIsInstance(attrSpec, pm.AttributeSpec)
@@ -404,7 +411,7 @@ class testCase_attrSpec(unittest.TestCase):
         # both by creating an attr with the same name on two different nodes
         # of the same type, and by recreating attrs with the exact same specs
         # multiple times, after doing a newFile
-        for i in xrange(3):
+        for i in range(3):
             pm.newFile(f=1)
             persp = pm.PyNode('persp')
             top = pm.PyNode('top')
@@ -446,7 +453,7 @@ class testCase_attrSpec(unittest.TestCase):
 def pytest_generate_tests(metafunc):
     if hasattr(metafunc.cls, 'ARGS'):
         argnames = metafunc.cls.ARGS.split(', ')
-        ids, argvalues = zip(*list(metafunc.cls.getParameters()))
+        ids, argvalues = list(zip(*list(metafunc.cls.getParameters())))
         metafunc.parametrize(argnames, argvalues, ids=ids)
 
 
@@ -675,7 +682,7 @@ class TestInvertibles(object):
                     elif isinstance(newVal, (tuple, list, arrays.Array)):
                         assert len(newVal) == len(oldVal)
                         # self.fail('oldVal %r != to newVal %r - unequal lengths' % (oldVal, newVal))
-                        for i in xrange(len(newVal)):
+                        for i in range(len(newVal)):
                             # msg = 'index %d of oldVal %r not equal to newVal %r' % (i, oldVal, newVal)
                             if isinstance(newVal[i], float):
                                 assert oldVal[i] == pytest.approx(newVal[i], abs=1e-12)
@@ -756,7 +763,7 @@ class ComponentData(object):
             # yield partial indices as well...
             for index in itertools.chain(self.indices, self.pythonIndices):
                 if len(index.index):
-                    for partialIndexLen in xrange(1, len(index.index)):
+                    for partialIndexLen in range(1, len(index.index)):
                         yield self.pyUnindexedComp() + self._makeIndicesString(IndexData(*index.index[:partialIndexLen]))
                 yield self.pyUnindexedComp() + self._makeIndicesString(index)
 
@@ -828,7 +835,7 @@ def makeComponentCreationTests(evalStringCreator, funcName=None):
     def test_makeComponents(self):
         successfulComps = []
         failedComps = []
-        for componentData in self.compData.itervalues():
+        for componentData in self.compData.values():
             evalStrings = evalStringCreator(self, componentData)
             for evalString in evalStrings:
                 if VERBOSE:
@@ -1057,7 +1064,7 @@ class testCase_components(unittest.TestCase):
 
         self.nodes['negUSurf'] = cmds.surface(name='periodicSurf', du=3, dv=1,
                                               fu='periodic', fv='open',
-                                              ku=range(-13, 0, 1), kv=(0, 1),
+                                              ku=list(range(-13, 0, 1)), kv=(0, 1),
                                               pw=[(4, -4, 0, 1), (4, -4, -2.5, 1),
                                                   (5.5, 0, 0, 1), (5.5, 0, -2.5, 1),
                                                   (4, 4, 0, 1), (4, 4, -2.5, 1),
@@ -1097,7 +1104,7 @@ class testCase_components(unittest.TestCase):
 #            edgeIt.next()
 
     def tearDown(self):
-        for node in self.nodes.itervalues():
+        for node in self.nodes.values():
             if cmds.objExists(node):
                 cmds.delete(node)
                 #pass
@@ -1110,12 +1117,12 @@ class testCase_components(unittest.TestCase):
                           )
         compTypesDict = factories.getComponentTypes()
         flatCompTypes = set()
-        for typesList in compTypesDict.itervalues():
+        for typesList in compTypesDict.values():
             flatCompTypes.update(typesList)
         flatCompTypes = flatCompTypes - set([factories.apiTypesToApiEnums[x] for x in unableToCreate])
 
         notFoundCompTypes = set(flatCompTypes)
-        for compDatum in self.compData.itervalues():
+        for compDatum in self.compData.values():
             testedType = compDatum.typeEnum()
             self.assert_(testedType in flatCompTypes)
             notFoundCompTypes.discard(testedType)
@@ -1317,9 +1324,9 @@ class testCase_components(unittest.TestCase):
             if not comp1: return False
             if not comp2: return False
         pm.select(comp1)
-        comp1 = cmds.filterExpand(sm=tuple(x for x in xrange(74)))
+        comp1 = cmds.filterExpand(sm=tuple(x for x in range(74)))
         pm.select(comp2)
-        comp2 = cmds.filterExpand(sm=tuple(x for x in xrange(74)))
+        comp2 = cmds.filterExpand(sm=tuple(x for x in range(74)))
 
         # first, filter out components whose strings are identical
         only1, both, only2 = setCompare(comp1, comp2)
@@ -1407,7 +1414,7 @@ class testCase_components(unittest.TestCase):
         successfulComps = []
         crashAvoidComps = []
         failedComps = []
-        for componentData in self.compData.itervalues():
+        for componentData in self.compData.values():
             for compString in self.object_evalStrings(componentData):
                 try:
                     pymelObj = self._pyCompFromString(compString)
@@ -1448,9 +1455,9 @@ class testCase_components(unittest.TestCase):
             (evalString, compData)
         """
         if evalStringFuncs is None:
-            evalStringFuncs = getEvalStringFunctions(self.__class__).values()
+            evalStringFuncs = list(getEvalStringFunctions(self.__class__).values())
         componentStrings = set()
-        for componentData in self.compData.itervalues():
+        for componentData in self.compData.values():
             for evalStringFunc in evalStringFuncs:
                 newStrings = evalStringFunc(self, componentData)
                 if returnCompData:
@@ -1565,13 +1572,13 @@ class testCase_components(unittest.TestCase):
                     except Exception:
                         failedSelections.append(iterationString)
                     else:
-                        iterSel = pm.filterExpand(sm=(x for x in xrange(74)))
+                        iterSel = pm.filterExpand(sm=(x for x in range(74)))
                         try:
                             pm.select(pymelObj)
                         except Exception:
                             failedSelections.append(compString)
                         else:
-                            compSel = pm.filterExpand(sm=(x for x in xrange(74)))
+                            compSel = pm.filterExpand(sm=(x for x in range(74)))
                             if not self.compsEqual(iterSel, compSel, compData):
                                 iterationUnequal.append(compString)
                             if VERBOSE:
@@ -1802,7 +1809,7 @@ class testCase_components(unittest.TestCase):
         failedCreation  = []
         failedDuringCompare = []
         failedComparison = []
-        for componentData in self.compData.itervalues():
+        for componentData in self.compData.values():
             evalStringPairs = itertools.chain(unindexedPairedStrings(self, componentData),
                                               indexedPairedStrings(self, componentData))
             for melString, pyString in evalStringPairs:
@@ -2026,7 +2033,7 @@ class testCase_components(unittest.TestCase):
             self.assertEqual(node.listComp(), comps)
 
 
-        for typeName, nodeClass in nodeTypes.iteritems():
+        for typeName, nodeClass in nodeTypes.items():
             print(typeName, nodeClass)
             trans = pm.PyNode(self.nodes[typeName])
             assertListCompForNodeClass(trans, pm.nt.Transform)
@@ -2108,7 +2115,7 @@ class testCase_components(unittest.TestCase):
 
 
 for propName, evalStringFunc in \
-        getEvalStringFunctions(testCase_components).iteritems():
+        getEvalStringFunctions(testCase_components).items():
     evalStringId = '_evalStrings'
     if propName.endswith(evalStringId):
         baseName = propName[:-len(evalStringId)].capitalize()
@@ -2336,7 +2343,7 @@ class testCase_nurbsSurface(TestCaseExtended):
     def setUp(self):
         self.negUSurf = pm.PyNode(pm.surface(name='periodicSurf', du=3, dv=1,
                                        fu='periodic', fv='open',
-                                       ku=range(-13, 0, 1), kv=(0, 1),
+                                       ku=list(range(-13, 0, 1)), kv=(0, 1),
                                        pw=[(4, -4, 0, 1), (4, -4, -2.5, 1),
                                            (5.5, 0, 0, 1), (5.5, 0, -2.5, 1),
                                            (4, 4, 0, 1), (4, 4, -2.5, 1),
@@ -3100,7 +3107,7 @@ class testCase_AnimCurve(TestCaseExtended):
             self.assertEqual(numKeys, curve.numKeys())
             times = []
             vals = []
-            for i in xrange(numKeys):
+            for i in range(numKeys):
                 times.append(curve.getTime(i))
                 vals.append(curve.getValue(i))
             self.assertEqual(times, expectedTimes)

@@ -5,7 +5,17 @@ These utility functions can be used by other util modules and are imported in ut
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from __future__ import unicode_literals
 
+from future import standard_library
+import numbers
+import collections.abc
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 from collections import deque as _deque
 import sys
 import operator
@@ -52,7 +62,7 @@ def isScalar(obj):
     -------
     bool
     """
-    return operator.isNumberType(obj) and not isinstance(obj, complex)
+    return isinstance(obj, numbers.Number) and not isinstance(obj, complex)
 
 # TODO : this is unneeded as operator provides it, can call directly to operator methods
 
@@ -66,7 +76,7 @@ def isNumeric(obj):
     -------
     bool
     """
-    return operator.isNumberType(obj)
+    return isinstance(obj, numbers.Number)
 
 
 def isSequence(obj):
@@ -78,7 +88,7 @@ def isSequence(obj):
     -------
     bool
     """
-    return operator.isSequenceType(obj)
+    return isinstance(obj, collections.abc.Sequence)
 
 
 def isMapping(obj):
@@ -92,7 +102,7 @@ def isMapping(obj):
     -------
     bool
     """
-    return operator.isMappingType(obj)
+    return isinstance(obj, collections.abc.Mapping)
 
 clsname = lambda x: type(x).__name__
 
@@ -416,7 +426,7 @@ def pairIter(sequence):
     If sequence has an odd number of items, the last item will not be returned in a pair.
     '''
     theIter = iter(sequence)
-    return itertools.izip(theIter, theIter)
+    return zip(theIter, theIter)
 
 
 def reorder(x, indexList=[], indexDict={}):
@@ -580,7 +590,7 @@ def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
         differences.update(RemovedKey(key) for key in only1)
     else:
         recurseTypes = (dict, list, tuple, set)
-        strUnicode = set([str, unicode])
+        strUnicode = set([str, str])
         if useAddedKeys:
             differences = dict((key, AddedKey(dict2[key])) for key in only2)
         else:
@@ -616,7 +626,7 @@ def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
                     elif encoding is None:
                         equal = (val1 == val2)
                     else:
-                        if type(val1) == unicode:
+                        if type(val1) == str:
                             strVal = val2
                             unicodeVal = val1
                         else:
@@ -669,7 +679,7 @@ def mergeCascadingDicts(from_dict, to_dict, allowDictToListMerging=False,
     else:
         contains = lambda key: key in to_dict
 
-    for key, from_val in from_dict.iteritems():
+    for key, from_val in from_dict.items():
         # print key, from_val
         if contains(key):
             if isinstance(from_val, RemovedKey):
@@ -811,7 +821,7 @@ def izip_longest(*args, **kwds):
     fillers = itertools.repeat(fillvalue)
     iters = [itertools.chain(it, sentinel(), fillers) for it in args]
     try:
-        for tup in itertools.izip(*iters):
+        for tup in zip(*iters):
             yield tup
     except IndexError:
         pass

@@ -5,7 +5,11 @@ as well as the name parsing classes `DependNodeName`, `DagNodeName`, and `Attrib
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+from builtins import str
+from builtins import map
+from builtins import *
 import re
 import inspect
 
@@ -21,7 +25,7 @@ else:
 # Object Wrapper Classes
 # -------------------------
 
-class NameParser(unicode):
+class NameParser(str):
     PARENT_SEP = '|'
 
     def __new__(cls, strObj):
@@ -31,7 +35,7 @@ class NameParser(unicode):
         Use this function if you are unsure which class is the right one to use
         for your object.
         """
-        strObj = unicode(strObj)
+        strObj = str(strObj)
         # the if statement was failing for some types (ex: pymel.node.Vertex),
         # so forcing into unicode string:
         if cls is not NameParser:
@@ -152,7 +156,7 @@ class NameParser(unicode):
         if name.startswith('|'):
             name = name[1:]
             leadingSlash = True
-        name = self.__class__('|'.join(map(lambda x: prefix + x, name.split('|'))))
+        name = self.__class__('|'.join([prefix + x for x in name.split('|')]))
         if leadingSlash:
             name = '|' + name
         return self.__class__(name)
@@ -179,7 +183,7 @@ class AttributeName(NameParser):
     #    return "AttributeName('%s')" % self
 
     def __init__(self, attrName):
-        attrName = unicode(attrName)
+        attrName = str(attrName)
         if '.' not in attrName:
             raise TypeError("%s: AttributeNames must include the node and the "
                             "AttributeName. e.g. "
@@ -213,7 +217,7 @@ class AttributeName(NameParser):
         DependNodeName(u'foo:bar')
 
         """
-        return NameParser(unicode(self).split('.')[0])
+        return NameParser(str(self).split('.')[0])
 
     node = plugNode
 
@@ -224,7 +228,7 @@ class AttributeName(NameParser):
         u'spangle.banner'
 
         """
-        return '.'.join(unicode(self).split('.')[1:])
+        return '.'.join(str(self).split('.')[1:])
 
     def lastPlugAttr(self):
         """
@@ -242,9 +246,9 @@ class AttributeName(NameParser):
         try:
             item = AttributeName.attrItemReg.search(self).group(1)
             if asString:
-                return "[%s]" % unicode(item)
+                return "[%s]" % str(item)
             val = item.split(":")
-            val = map(int, val)
+            val = list(map(int, val))
             if len(val) > 1:
                 return asSlice and slice(*val) or val
             return val[0]
@@ -348,7 +352,7 @@ class DependNodeName(NameParser):
         try:
             return DependNodeName._numPartReg.split(self)[0]
         except IndexError:
-            return unicode(self)
+            return str(self)
 
     def extractNum(self):
         """
@@ -385,7 +389,7 @@ class DependNodeName(NameParser):
         groups = DependNodeName._numPartReg.split(self)
         if len(groups) > 1:
             num = groups[1]
-            formatStr = '%s%0' + unicode(len(num)) + 'd'
+            formatStr = '%s%0' + str(len(num)) + 'd'
             return self.__class__(formatStr % (groups[0], (int(num) + 1)))
         else:
             raise ValueError("could not find trailing numbers to increment on "
@@ -396,7 +400,7 @@ class DependNodeName(NameParser):
         groups = DependNodeName._numPartReg.split(self)
         if len(groups) > 1:
             num = groups[1]
-            formatStr = '%s%0' + unicode(len(num)) + 'd'
+            formatStr = '%s%0' + str(len(num)) + 'd'
             return self.__class__(formatStr % (groups[0], (int(num) - 1)))
         else:
             raise ValueError("could not find trailing numbers to decrement on "
@@ -502,7 +506,7 @@ def _getParserClass(strObj):
         else:
             newcls = DependNodeName
     else:
-        strObj = unicode(strObj)
+        strObj = str(strObj)
 
         if '.' in strObj:
             newcls = AttributeName

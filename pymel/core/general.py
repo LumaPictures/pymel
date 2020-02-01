@@ -9,6 +9,15 @@ and `Attribute <pymel.core.nodetypes.Attribute>`, see :mod:`pymel.core.nodetypes
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from __future__ import unicode_literals
+from builtins import next
+from builtins import zip
+from builtins import map
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import sys
 import os
 import re
@@ -26,6 +35,7 @@ import pymel.core.datatypes as datatypes
 from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
 from pymel.util.enum import Enum
+from future.utils import with_metaclass
 
 if False:
     from typing import *
@@ -243,7 +253,7 @@ def connectAttr(source, destination, **kwargs):
         try:
             cmds.connectAttr(source, destination, **kwargs)
         except RuntimeError as e:
-            if unicode(e) != 'Maya command error':
+            if str(e) != 'Maya command error':
                 # we only want to pass on a certain connection error.  all others we re-raise
                 raise e
     else:
@@ -326,7 +336,7 @@ def getAttr(attr, default=None, **kwargs):
     if isinstance(attr, Attribute):
         attr = attr.name(placeHolderIndices=False)
     else:
-        attr = unicode(attr)
+        attr = str(attr)
 
     try:
         res = cmds.getAttr(attr, **kwargs)
@@ -595,7 +605,7 @@ def setAttr(attr, *args, **kwargs):
                         kwargs['type'] = 'string'
 
     # stringify fix
-    attr = unicode(attr)
+    attr = str(attr)
 
     try:
         # print args, kwargs
@@ -704,14 +714,14 @@ def addAttr(*args, **kwargs):
                 bool: 'bool',
                 datatypes.Vector: 'double3',
                 str: 'string',
-                unicode: 'string'
+                str: 'string'
             }[at]
         except KeyError:
             pass
         kwargs['at'] = at
 
     if kwargs.get('e', kwargs.get('edit', False)):
-        for editArg, value in kwargs.iteritems():
+        for editArg, value in kwargs.items():
             if editArg not in ('e', 'edit') and value:
                 break
         if editArg in ('hasMinValue', 'hnv', 'hasMaxValue', 'hxv',
@@ -736,7 +746,7 @@ def addAttr(*args, **kwargs):
         # When addAttr is queried, and has multiple other query flags - ie,
         #   addAttr('joint1.sweetpea', q=1, parent=1, dataType=1)
         # ... it seems to ignore every kwarg but the 'first'
-        for queriedArg, value in kwargs.iteritems():
+        for queriedArg, value in kwargs.items():
             if queriedArg not in ('q', 'query') and value:
                 break
         if queriedArg in ('dt', 'dataType'):
@@ -795,7 +805,7 @@ def addAttr(*args, **kwargs):
                 childKwargs['attributeType'] = baseType
                 childKwargs['parent'] = baseLongName
 
-                for i in xrange(num):
+                for i in range(num):
                     suffix = childSuffixes[i]
                     childKwargs['longName'] = baseLongName + suffix
                     if baseShortName:
@@ -867,12 +877,12 @@ def hasAttr(pyObj, attr, checkShape=True):
 
 def _toEnumStr(enums):
     if isinstance(enums, dict):
-        firstKey = next(enums.iterkeys())
-        firstVal = next(enums.itervalues())
+        firstKey = next(iter(enums.keys()))
+        firstVal = next(iter(enums.values()))
         if isinstance(firstKey, basestring) and isinstance(firstVal, int):
-            enums = ['%s=%s' % (key, val) for key, val in enums.iteritems()]
+            enums = ['%s=%s' % (key, val) for key, val in enums.items()]
         elif isinstance(firstKey, int) and isinstance(firstVal, basestring):
-            enums = ['%s=%s' % (val, key) for key, val in enums.iteritems()]
+            enums = ['%s=%s' % (val, key) for key, val in enums.items()]
         else:
             raise ValueError('dict must map from strings to ints, or vice-versa')
     if isinstance(enums, basestring):
@@ -917,7 +927,7 @@ def getEnums(attr):
         attrName = attr.attrName()
         node = attr.node().name()
     else:
-        node, attrName = unicode(attr).rsplit('.', 1)
+        node, attrName = str(attr).rsplit('.', 1)
     enum_list = cmds.attributeQuery(attrName, node=node,
                                     listEnum=True)[0].split(':')
 
@@ -1019,7 +1029,7 @@ def listConnections(*args, **kwargs):
             return makePairs(cmds.listConnections(*args, **kwargs))
 
         else:
-            return map(CastObj, _util.listForNone(cmds.listConnections(*args, **kwargs)))
+            return list(map(CastObj, _util.listForNone(cmds.listConnections(*args, **kwargs))))
 
     # if passed a list of types, concatenate the resutls
     # NOTE: there may be duplicate results if a leaf type and it's parent are
@@ -1125,7 +1135,7 @@ def listRelatives(*args, **kwargs):
         else:
             results = ls(res, shapes=1)
     else:
-        results = map(PyNode, _util.listForNone(cmds.listRelatives(*args, **kwargs)))
+        results = list(map(PyNode, _util.listForNone(cmds.listRelatives(*args, **kwargs))))
     # Fix that noIntermediate doesn't seem to work in list relatives
     if kwargs.get('noIntermediate', kwargs.get('ni', False)):
         return [result for result in results if not result.intermediateObject.get()]
@@ -1231,11 +1241,11 @@ def ls(*args, **kwargs):
         kwargs.pop('ro', True)
         roNodes = _util.listForNone(cmds.ls(*args, **kwargs))
         # faster way?
-        return map(PyNode, filter(lambda x: x not in roNodes, res))
+        return list(map(PyNode, [x for x in res if x not in roNodes]))
 
     if kwargs.get('readOnly', kwargs.get('ro', False)):
         # when readOnly is provided showType is ignored
-        return map(PyNode, res)
+        return list(map(PyNode, res))
 
     if kwargs.get('showType', kwargs.get('st', False)):
         tmp = res
@@ -1259,7 +1269,7 @@ def ls(*args, **kwargs):
         return [system.Namespace(item) if i % 2 else PyNode(item)
                 for i, item in enumerate(res)]
 
-    return map(PyNode, res)
+    return list(map(PyNode, res))
 
 
 #    showType = kwargs.get( 'showType', kwargs.get('st', False) )
@@ -1354,7 +1364,7 @@ def nodeType(node, **kwargs):
     """
     # still don't know how to do inherited via _api
     if kwargs.get('inherited', kwargs.get('i', False)):
-        return cmds.nodeType(unicode(node), **kwargs)
+        return cmds.nodeType(str(node), **kwargs)
 
 #    obj = None
 #    objName = None
@@ -1509,7 +1519,7 @@ def parent(*args, **kwargs):
             foundDag = None
 
             # Look for an instance whose parent is the parent we reparented to
-            for i in xrange(dags.length()):
+            for i in range(dags.length()):
                 dag = dags[i]
                 parentDag = _api.MDagPath(dag)
                 parentDag.pop()
@@ -1979,7 +1989,7 @@ Modifications
     #    must be converted to:
     #        sets(forceElement='myShadingGroup')
 
-    for flag, value in kwargs.items():
+    for flag, value in list(kwargs.items()):
         if flag in setSetFlags:
             kwargs[flag] = args[0]
 
@@ -2006,10 +2016,10 @@ Modifications
     # Just get the result, then check if it's a list, rather than trying to
     # parse the kwargs...
     result = cmds.sets(*args, **kwargs)
-    if isinstance(result, (bool, int, long, float)):
+    if isinstance(result, (bool, int, int, float)):
         return result
     if _util.isIterable(result):
-        return map(PyNode, _util.listForNone(result))
+        return list(map(PyNode, _util.listForNone(result)))
     elif result is None:
         return []
     else:
@@ -2141,7 +2151,7 @@ def instancer(*args, **kwargs):
       - name of newly created instancer was not returned
     """
     # instancer does not like PyNode objects
-    args = map(unicode, args)
+    args = list(map(str, args))
     if kwargs.get('query', kwargs.get('q', False)):
         return cmds.instancer(*args, **kwargs)
     if kwargs.get('edit', kwargs.get('e', False)):
@@ -2160,7 +2170,7 @@ class MayaObjectError(TypeError):
     _objectDescription = 'Object'
 
     def __init__(self, node=None):
-        self.node = unicode(node)
+        self.node = str(node)
 
     def __str__(self):
         msg = "Maya %s does not exist (or is not unique):" % (
@@ -2371,7 +2381,7 @@ class PyNode(_util.ProxyUnicode):
                     # didn't match any known types. treat as a string
                     # convert to string then to _api objects.
                     try:
-                        name = unicode(argObj)
+                        name = str(argObj)
                     except Exception:
                         raise MayaNodeError
                     else:
@@ -2696,7 +2706,7 @@ class PyNode(_util.ProxyUnicode):
         # != does not work for MDagPath (maybe others) iff MDagPaths are equal (returns True)
         return not self == other
 
-    def __nonzero__(self):
+    def __bool__(self):
         # type: () -> bool
         """
         Returns
@@ -2707,25 +2717,25 @@ class PyNode(_util.ProxyUnicode):
 
     def __lt__(self, other):
         if isinstance(other, (basestring, PyNode)):
-            return self.name().__lt__(unicode(other))
+            return self.name().__lt__(str(other))
         else:
             return NotImplemented
 
     def __gt__(self, other):
         if isinstance(other, (basestring, PyNode)):
-            return self.name().__gt__(unicode(other))
+            return self.name().__gt__(str(other))
         else:
             return NotImplemented
 
     def __le__(self, other):
         if isinstance(other, (basestring, PyNode)):
-            return self.name().__le__(unicode(other))
+            return self.name().__le__(str(other))
         else:
             return NotImplemented
 
     def __ge__(self, other):
         if isinstance(other, (basestring, PyNode)):
-            return self.name().__ge__(unicode(other))
+            return self.name().__ge__(str(other))
         else:
             return NotImplemented
     # ----------------------------------------
@@ -2915,7 +2925,7 @@ def _getParent(getter, obj, generations):
             return allParents[generations]
 
 
-class Attribute(PyNode):
+class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
     """Attribute class
 
@@ -3060,7 +3070,6 @@ class Attribute(PyNode):
     """
     __slots__ = ()
     __apicls__ = _api.MPlug
-    __metaclass__ = _factories.MetaMayaTypeRegistry
     attrItemReg = re.compile('\[(\d+)\]$')
 
 #    def __init__(self, *args, **kwargs ):
@@ -3138,7 +3147,7 @@ class Attribute(PyNode):
                 # plug indices are sparse, so we don't bother using
                 # slice.indices(len), since all that does is potentially truncate
                 # the indices we get back
-                indices = xrange(index.start, index.stop, index.step)
+                indices = range(index.start, index.stop, index.step)
             elif isinstance(index, int):
                 indices = [index]
             else:
@@ -3882,7 +3891,7 @@ class Attribute(PyNode):
 
             # traverse, starting from upper-most parent, as we may need to
             # replace children with 'real' ones as we go down
-            for i in xrange(len(self.chain)):
+            for i in range(len(self.chain)):
                 # print 'processing:', i
                 elem = self.chain[i]
                 if self.toDelete:
@@ -4829,13 +4838,12 @@ class HashableSlice(ProxySlice):
         return self._slice.step
 
 
-class Component(PyNode):
+class Component(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
     """
     Abstract base class for pymel components.
     """
     __slots__ = ()
-    __metaclass__ = _factories.MetaMayaTypeRegistry
     _mfncompclass = _api.MFnComponent
     _apienum__ = _api.MFn.kComponent
     _ComponentLabel__ = None  # type: str
@@ -4935,12 +4943,12 @@ class Component(PyNode):
                 oldCompLabel = set((self._ComponentLabel__,))
             if isinstance(self._indices, dict):
                 if len(self._indices) > 1:
-                    assert set(self._indices.iterkeys()).issubset(oldCompLabel)
-                    self._ComponentLabel__ = self._indices.keys()
+                    assert set(self._indices.keys()).issubset(oldCompLabel)
+                    self._ComponentLabel__ = list(self._indices.keys())
                 else:
                     # dict only has length 1..
-                    self._ComponentLabel__ = self._indices.keys()[0]
-                    self._indices = self._indices.values()[0]
+                    self._ComponentLabel__ = list(self._indices.keys())[0]
+                    self._indices = list(self._indices.values())[0]
             if isinstance(self._indices, ComponentIndex) and self._indices.label:
                 assert self._indices.label in oldCompLabel
                 self._ComponentLabel__ = self._indices.label
@@ -4992,7 +5000,7 @@ class Component(PyNode):
             return False
         return self.__apicomponent__().isEqual(other.__apicomponent__().object())
 
-    def __nonzero__(self):
+    def __bool__(self):
         # type: () -> bool
         """
         Returns
@@ -5310,7 +5318,7 @@ class DimensionedComponent(Component):
         elif isinstance(indexObjs, dict):
             # Dicts are used to specify component labels for a group of
             # indices at once...
-            for dictLabel, dictIndices in indexObjs.iteritems():
+            for dictLabel, dictIndices in indexObjs.items():
                 if label and label != dictLabel:
                     raise IndexError('ComponentIndex object had a different '
                                      'label than desired (wanted %s, found %s)'
@@ -5379,7 +5387,7 @@ class DimensionedComponent(Component):
                 for indice in self._sliceToIndices(dimIndex,
                                                    partialIndex=oldPartial):
                     yield indice
-            elif isinstance(dimIndex, (float, int, long)) and dimIndex < 0:
+            elif isinstance(dimIndex, (float, int, int)) and dimIndex < 0:
                 yield partialIndex + \
                     (self._translateNegativeIndice(dimIndex, partialIndex),)
             else:
@@ -5565,10 +5573,10 @@ def validComponentIndexType(argObj, allowDicts=True, componentIndexTypes=None):
     _dimLength
     """
     if not componentIndexTypes:
-        componentIndexTypes = (int, long, float, slice, HashableSlice, ComponentIndex)
+        componentIndexTypes = (int, int, float, slice, HashableSlice, ComponentIndex)
 
     if allowDicts and isinstance(argObj, dict):
-        for value in argObj.itervalues():
+        for value in argObj.values():
             if not validComponentIndexType(value, allowDicts=False):
                 return False
         return True
@@ -5598,7 +5606,7 @@ class DiscreteComponent(DimensionedComponent):
     _dimLength
     """
     __slots__ = ()
-    VALID_SINGLE_INDEX_TYPES = (int, long, slice, HashableSlice)
+    VALID_SINGLE_INDEX_TYPES = (int, int, slice, HashableSlice)
 
     def __init__(self, *args, **kwargs):
         self.reset()
@@ -5661,7 +5669,7 @@ class DiscreteComponent(DimensionedComponent):
 
         # Made this return a normal list for easier debugging...
         # ... can always make it back to a generator if need it for speed
-        for rawIndex in xrange(start, stop, step):
+        for rawIndex in range(start, stop, step):
             yield ComponentIndex(partialIndex + (rawIndex,))
 #        return [ComponentIndex(partialIndex + (rawIndex,))
 #                for rawIndex in xrange(start, stop, step)]
@@ -5760,10 +5768,10 @@ class DiscreteComponent(DimensionedComponent):
 
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
-        for _ in xrange(self.dimensions):
+        for _ in range(self.dimensions):
             dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
-        for flatIndex in xrange(len(self)):
+        for flatIndex in range(len(self)):
             mfncomp.getElement(flatIndex, *[x() for x in dimensionIndicePtrs])
             yield ComponentIndex([x.get() for x in dimensionIndicePtrs])
 
@@ -5789,7 +5797,7 @@ class DiscreteComponent(DimensionedComponent):
             return 0
         totalSize = 1
         partialIndex = ComponentIndex()
-        for _ in xrange(self.dimensions):
+        for _ in range(self.dimensions):
             totalSize *= self._dimLength(partialIndex)
             partialIndex += (0,)
         return totalSize
@@ -5815,7 +5823,7 @@ class DiscreteComponent(DimensionedComponent):
 
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
-        for _ in xrange(self.dimensions):
+        for _ in range(self.dimensions):
             dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
         mfncomp.getElement(self._currentFlatIndex,
@@ -5837,7 +5845,7 @@ class DiscreteComponent(DimensionedComponent):
         # Again, duplicates some code in currentItem/_flatIter for speed
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
-        for _ in xrange(self.dimensions):
+        for _ in range(self.dimensions):
             dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
         mfncomp.getElement(self._currentFlatIndex,
@@ -5847,7 +5855,7 @@ class DiscreteComponent(DimensionedComponent):
         else:
             return ComponentIndex([x.get() for x in dimensionIndicePtrs])
 
-    def next(self):
+    def __next__(self):
         if self._stopIteration:
             raise StopIteration
         elif not self:
@@ -5880,7 +5888,7 @@ class ContinuousComponent(DimensionedComponent):
     _dimRange
     """
     __slots__ = ()
-    VALID_SINGLE_INDEX_TYPES = (int, long, float, slice, HashableSlice)
+    VALID_SINGLE_INDEX_TYPES = (int, int, float, slice, HashableSlice)
 
     def _standardizeIndices(self, indexObjs, **kwargs):
         return super(ContinuousComponent, self)._standardizeIndices(
@@ -5971,7 +5979,7 @@ class Component1D(DiscreteComponent):
         # _flatIter won't work!
         # Just as well, we get a more efficient iterator for 1D comps...
         mfncomp = self.__apicomponent__()
-        for flatIndex in xrange(len(self)):
+        for flatIndex in range(len(self)):
             yield ComponentIndex((mfncomp.element(flatIndex),))
 
     def currentItem(self):
@@ -6116,7 +6124,10 @@ class Component1D64(DiscreteComponent):
         # The ContinuousComponent version works fine for us - just
         # make sure we grab the original function object, not the method
         # object, since we don't inherit from ContinuousComponent
-        _sliceToIndices = ContinuousComponent._sliceToIndices.__func__
+        if sys.version_info[0] < 3:
+            _sliceToIndices = ContinuousComponent._sliceToIndices.__func__
+        else:
+            _sliceToIndices = ContinuousComponent._sliceToIndices
 
         # We're basically having to fall back on strings here, so revert 'back'
         # to the string implementation of various methods...
@@ -7019,7 +7030,7 @@ class MeshVertexFace(Component2D):
             mIt.setIndex(partialIndex[0], intPtr())
             intArray = _api.MIntArray()
             mIt.getConnectedFaces(intArray)
-            for i in xrange(intArray.length()):
+            for i in range(intArray.length()):
                 yield partialIndex + (intArray[i],)
 
     def _validateGetItemIndice(self, item, allowIterables=True):
@@ -7642,7 +7653,7 @@ class ParticleComponent(Component1D):
 #        return rotate( self, *args, **kwargs )
 
 
-class AttributeSpec(PyNode):
+class AttributeSpec(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     '''Represents a specification for the type of an attribute.
 
     This is different from an Attribute, which is a particular instance of
@@ -7659,7 +7670,6 @@ class AttributeSpec(PyNode):
     '''
     __slots__ = ()
     __apicls__ = _api.MFnAttribute
-    __metaclass__ = _factories.MetaMayaTypeRegistry
 
     def __new__(cls, *args, **kwargs):
         if len(args) == 1:
@@ -8108,7 +8118,7 @@ AttributeDefaults = AttributeSpec
 #  Scene Class
 # ----------------------------------------------
 
-class Scene(object):
+class Scene(with_metaclass(_util.Singleton, object)):
 
     """
     The Scene class provides an attribute-based method for retrieving `PyNode` instances of
@@ -8122,7 +8132,6 @@ class Scene(object):
 
     An instance of this class is provided for you with the name `SCENE`.
     """
-    __metaclass__ = _util.Singleton
 
     def __getattr__(self, obj):
         if obj.startswith('__') and obj.endswith('__'):

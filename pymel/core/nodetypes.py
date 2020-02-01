@@ -4,6 +4,12 @@ Contains classes corresponding to the Maya type hierarchy, including `DependNode
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import map
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
 import sys
 import os
 import re
@@ -39,6 +45,7 @@ from pymel.core import windows
 from pymel.core.animation import listAnimatable as _listAnimatable
 from pymel.core.system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 from pymel.util.enum import Enum
+from future.utils import with_metaclass
 
 if False:
     from typing import *
@@ -96,7 +103,7 @@ class NodetypesLazyLoadModule(_util.LazyLoadModule):
                 cache._buildMayaToApiInfo(reservedOnly=True)
                 # and update the cache in use with these results...
                 # ...now update with any that were missing...
-                for mayaType, apiType in cache.mayaTypesToApiTypes.iteritems():
+                for mayaType, apiType in cache.mayaTypesToApiTypes.items():
                     if mayaType not in _factories._apiCacheInst.mayaTypesToApiTypes:
                         _factories._apiCacheInst.mayaTypesToApiTypes[mayaType] = apiType
                         _factories._apiCacheInst.mayaTypesToApiEnums[mayaType] = cache.mayaTypesToApiEnums[mayaType]
@@ -160,9 +167,8 @@ def _addTypeNames():
     return NodetypesLazyLoadModule(__name__, globals())
 
 
-class DependNode(general.PyNode):
+class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)):
     __apicls__ = _api.MFnDependencyNode
-    __metaclass__ = _factories.MetaMayaTypeRegistry
 
     # ------------------------------
     #    Name Info and Manipulation
@@ -685,11 +691,11 @@ class DependNode(general.PyNode):
                             # and we're trying to get the next plug, 'lightDirection', then we need a dummy index.
                             # the following line will reuslt in 'defaultLightList1.lightDataArray[-1].lightDirection'
                             if result.isArray():
-                                result = self.__apimfn__().findPlug(unicode(token))
+                                result = self.__apimfn__().findPlug(str(token))
                             else:
-                                result = result.child(self.__apimfn__().attribute(unicode(token)))
+                                result = result.child(self.__apimfn__().attribute(str(token)))
                         else:  # Node
-                            result = self.__apimfn__().findPlug(unicode(token))
+                            result = self.__apimfn__().findPlug(str(token))
 #                                # search children for the attribute to simulate  cam.focalLength --> perspShape.focalLength
 #                                except TypeError:
 #                                    for i in range(fn.childCount()):
@@ -761,7 +767,7 @@ class DependNode(general.PyNode):
         # for now, using strings is better, because there is no MPlug support
         assert 'longName' not in kwargs and 'ln' not in kwargs
         kwargs['longName'] = attr
-        return general.addAttr(unicode(self), **kwargs)
+        return general.addAttr(str(self), **kwargs)
 
     @_factories.addMelDocs('deleteAttr')
     def deleteAttr(self, attr, *args, **kwargs):
@@ -1888,7 +1894,7 @@ class DagNode(Entity):
         # should too...
         allPaths = _api.MDagPathArray()
         thisMFn.getAllPaths(allPaths)
-        for i in xrange(allPaths.length()):
+        for i in range(allPaths.length()):
             path = allPaths[i]
             pathCount = path.pathCount()
             if pathCount <= 1:
@@ -1961,7 +1967,7 @@ class DagNode(Entity):
         dagArray = _api.MDagPathArray()
         _api.MDagPath.getAllPathsTo(parentMObj, dagArray)
         allParentLevels = set()
-        for i in xrange(dagArray.length()):
+        for i in range(dagArray.length()):
             parentMDag = dagArray[i]
             allParentLevels.add(parentMDag.pathCount())
         # we only get one parentMFn, but this should be fine as (aside from
@@ -1971,7 +1977,7 @@ class DagNode(Entity):
 
         dagArray.clear()
         thisMFn.getAllPaths(dagArray)
-        for i in xrange(dagArray.length()):
+        for i in range(dagArray.length()):
             childMDag = dagArray[i]
             childPathLevels = childMDag.pathCount()
             if childPathLevels <= 1:
@@ -5273,7 +5279,7 @@ class RenderLayer(DependNode):
 
     def listMembers(self, fullNames=True):
         if fullNames:
-            return map(general.PyNode, _util.listForNone(cmds.editRenderLayerMembers(self, q=1, fullNames=True)))
+            return list(map(general.PyNode, _util.listForNone(cmds.editRenderLayerMembers(self, q=1, fullNames=True))))
         else:
             return _util.listForNone(cmds.editRenderLayerMembers(self, q=1, fullNames=False))
 
@@ -5284,7 +5290,7 @@ class RenderLayer(DependNode):
         cmds.editRenderLayerMembers(self, members, remove=True)
 
     def listAdjustments(self):
-        return map(general.PyNode, _util.listForNone(cmds.editRenderLayerAdjustment(self, layer=1, q=1)))
+        return list(map(general.PyNode, _util.listForNone(cmds.editRenderLayerAdjustment(self, layer=1, q=1))))
 
     def addAdjustments(self, members):
         return cmds.editRenderLayerAdjustment(members, layer=self)
@@ -5409,7 +5415,7 @@ class DisplayLayer(DependNode):
 
     def listMembers(self, fullNames=True):
         if fullNames:
-            return map(general.PyNode, _util.listForNone(cmds.editDisplayLayerMembers(self, q=1, fullNames=True)))
+            return list(map(general.PyNode, _util.listForNone(cmds.editDisplayLayerMembers(self, q=1, fullNames=True))))
         else:
             return _util.listForNone(cmds.editDisplayLayerMembers(self, q=1, fullNames=False))
 
@@ -8637,8 +8643,7 @@ class Particle(DeformableShape):
 # ------ Do not edit above this line --------
 
 
-class SelectionSet(_api.MSelectionList):
-    __metaclass__ = _factories.MetaMayaTypeRegistry
+class SelectionSet(with_metaclass(_factories.MetaMayaTypeRegistry, _api.MSelectionList)):
     apicls = _api.MSelectionList
 
     def __init__(self, objs):
@@ -10509,7 +10514,7 @@ class SkinCluster(GeometryFilter):
             self.__apimfn__().getWeights(geometry.__apimdagpath__(), components, weights, index())
             index = index.get()
             args = [iter(weights)] * index
-            return itertools.izip(*args)
+            return zip(*args)
 
     def setWeights(self, geometry, influnces, weights, normalize=True):
         if not isinstance(geometry, general.PyNode):

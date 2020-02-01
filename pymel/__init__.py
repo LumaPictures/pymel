@@ -24,8 +24,13 @@ Attitude Studio, and ImageMovers Digital.
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+from future import standard_library
+standard_library.install_aliases()
 
+from builtins import str
+from builtins import *
 __versiontuple__ = (1, 1, 0)
 __version__ = '.'.join(str(x) for x in __versiontuple__)
 __authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowitch']

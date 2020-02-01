@@ -1,17 +1,25 @@
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import unicode_literals
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import re
 import os.path
 import platform
 from abc import ABCMeta, abstractmethod
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 import xml.etree.cElementTree as ET
 
 import pymel.util as util
 import pymel.versions as versions
 from . import plogging
 from pymel.mayautils import getMayaLocation
+from future.utils import with_metaclass
 
 try:
     from pymel.util.external.BeautifulSoup import BeautifulSoup, NavigableString
@@ -207,7 +215,7 @@ class CommandDocParser(HTMLParser):
         # Arguments
         elif self.iData == 1:
             typemap = {
-                'string': unicode,
+                'string': str,
                 'float': float,
                 'double': float,
                 'linear': float,
@@ -326,7 +334,7 @@ class CommandDocParser(HTMLParser):
     def handle_entityref(self, name):
         if self.active == 'examples':
             result = self.unescape("&" + name + ";")
-            if isinstance(result, unicode):
+            if isinstance(result, str):
                 try:
                     result = result.encode("ascii")
                 except UnicodeEncodeError:
@@ -492,9 +500,7 @@ class CommandModuleDocParser(HTMLParser):
             return
 
 
-class ApiDocParser(object):
-    __metaclass__ = ABCMeta
-
+class ApiDocParser(with_metaclass(ABCMeta, object)):
     NO_PYTHON_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated', 'Obsolete -']
 
@@ -648,7 +654,7 @@ class ApiDocParser(object):
     def _apiEnumNamesToPymelEnumNames(self, apiEnumNames):
         """remove all common prefixes from list of enum values"""
         if isinstance(apiEnumNames, util.Enum):
-            apiEnumNames = apiEnumNames._keys.keys()
+            apiEnumNames = list(apiEnumNames._keys.keys())
         if len(apiEnumNames) > 1:
             # We first aim to remove all similar 'camel-case-group' prefixes, ie:
             # if our enums look like:
@@ -663,7 +669,7 @@ class ApiDocParser(object):
 
             # [['k', 'Invalid'], ['k', 'Pre', 'Transform']]
             #     => [('k', 'k'), ('Foo', 'Foo'), ('Some', 'Bar')]
-            splitZip = zip(*splitEnums)
+            splitZip = list(zip(*splitEnums))
             for partList in splitZip:
                 if tuple([partList[0]] * len(partList)) == partList:
                     [x.pop(0) for x in splitEnums]
@@ -696,7 +702,7 @@ class ApiDocParser(object):
             apiToPymelNames = self._apiEnumNamesToPymelEnumNames(apiEnum)
         pymelKeyDict = {}
         docs = dict(apiEnum._docs)
-        for apiName, val in apiEnum._keys.iteritems():
+        for apiName, val in apiEnum._keys.items():
             # want to include docs, so make dict (key, doc) => val
             pymelKeyDict[apiName] = val
             pymelName = apiToPymelNames[apiName]
@@ -857,7 +863,7 @@ class ApiDocParser(object):
             apiToPymelNames = self._apiEnumNamesToPymelEnumNames(apiEnum)
             pymelEnum = self._apiEnumToPymelEnum(apiEnum,
                                                  apiToPymelNames=apiToPymelNames)
-            for apiName, pymelName in apiToPymelNames.iteritems():
+            for apiName, pymelName in apiToPymelNames.items():
                 apiDoc = enumDocs.get(apiName)
                 if apiDoc is not None:
                     enumDocs[pymelName] = apiDoc
@@ -1193,7 +1199,7 @@ class XmlApiDocParser(ApiDocParser):
 
         if self._anonymousEnumRe.match(enumName):
             # for an example of an anonymous enum, see MFnDagNode.kNextPos
-            for key, value in enumValues.viewitems():
+            for key, value in enumValues.items():
                 self.constants[key] = value
             return
 
@@ -1340,7 +1346,7 @@ class XmlApiDocParser(ApiDocParser):
             parsedTags = self.parseBackslashTags(text)
             foundSomething = False
             if parsedTags:
-                for paramName, paramInfo in parsedTags['params'].iteritems():
+                for paramName, paramInfo in parsedTags['params'].items():
                     if paramName not in docs:
                         docs[paramName] = paramInfo['doc']
                         directions[paramName] = paramInfo['direction']
@@ -1393,7 +1399,7 @@ class XmlApiDocParser(ApiDocParser):
             # same positions of "names", then just use "names" to fill in
             # the remaining names
             uniquesMatch = True
-            for name, i in foundParamNameOnce.iteritems():
+            for name, i in foundParamNameOnce.items():
                 if names[i] != name:
                     uniquesMatch = False
                     break
@@ -1445,7 +1451,7 @@ class XmlApiDocParser(ApiDocParser):
                     ", ".join(sorted(missingParamDocs)))
                 raise ValueError(self.formatMsg(msg))
 
-        for name, dir in directions.iteritems():
+        for name, dir in directions.items():
             doc = docs.get(name, '')
             if dir == 'in':
                 # attempt to correct bad in/out docs
@@ -1600,7 +1606,7 @@ class HtmlApiDocParser(ApiDocParser):
             # do we want to feed the docstrings to the Enum object itself
             # (which seems to have support for docstrings)? Currently, we're
             # not...
-            docItem = em.next.next.next.next.next
+            docItem = em.next.next.next.next.__next__
 
             if isinstance(docItem, NavigableString):
                 enumDocs[enumKey] = str(docItem).strip()
@@ -1803,7 +1809,7 @@ class HtmlApiDocParser(ApiDocParser):
 
     def getDoxygenVersion(self, soup):
         doxyComment = soup.find(text=self.DOXYGEN_VER_RE)
-        match = self.DOXYGEN_VER_RE.search(unicode(doxyComment))
+        match = self.DOXYGEN_VER_RE.search(str(doxyComment))
         verStr = match.group(1)
         return tuple(int(x) for x in verStr.split('.'))
 

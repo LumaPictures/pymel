@@ -5,7 +5,14 @@ Written for transitioning to doxygen-xml docs, so we can compare to old results'
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import argparse
 import inspect
 import os
@@ -235,14 +242,14 @@ def parse(parsers=None, classes=None, baseDir=None, verbose=False,
         print("...Finished building classInfo: {}".format(parserName))
 
     #
-    for parserType, apiClassInfo in classInfoByType.iteritems():
+    for parserType, apiClassInfo in classInfoByType.items():
         dirName = parserType
         if isOld:
             dirName += 'Old'
         outputDir = os.path.join(baseDir, dirName)
         if not os.path.isdir(outputDir):
             os.makedirs(outputDir)
-        for className, classData in apiClassInfo.iteritems():
+        for className, classData in apiClassInfo.items():
             classFile = os.path.join(outputDir, className + '.py')
             print("writing: {}".format(classFile))
             writeClassInfo(classData, classFile)
@@ -311,11 +318,11 @@ class RemoveEmptyEnumDocs(Transform):
         enums = self.classInfo.get('enums')
         if not enums:
             return
-        for enumInfo in enums.itervalues():
+        for enumInfo in enums.values():
             valueDocs = enumInfo.get('valueDocs')
             if not valueDocs:
                 continue
-            toDel = [key for key, val in valueDocs.iteritems() if val == '']
+            toDel = [key for key, val in valueDocs.items() if val == '']
             for k in toDel:
                 del valueDocs[k]
             if not valueDocs:
@@ -347,7 +354,7 @@ class MethodTransform(Transform):
             if isinstance(self.overrides, dict):
                 indices = list(self.overrides.keys())
             elif isinstance(self.overrides, list):
-                indices = range(len(self.overrides))
+                indices = list(range(len(self.overrides)))
                 indices.reverse()
             else:
                 continue
@@ -379,7 +386,7 @@ class FixFloatDefaultStrings(MethodTransform):
         defaults = self.methodInfo.get('defaults')
         if not isinstance(defaults, dict):
             return
-        for varname, defVal in defaults.iteritems():
+        for varname, defVal in defaults.items():
             if isinstance(defVal, basestring) and defVal[-1] == 'f':
                 try:
                     floatVal = float(defVal[:-1])
@@ -491,7 +498,7 @@ class DiffProcessor(Processor):
         added = 0
         removed = 0
         changed = 0
-        for val in diffDict.itervalues():
+        for val in diffDict.values():
             if isinstance(val, dict):
                 subAdded, subRemoved, subChanged = cls.countChanges(val)
                 added += subAdded
@@ -540,7 +547,7 @@ class IgnoreKnownNew2019Funcs(Transform):
         allMethodChanges = self.classInfo.get('methods', {})
         if not allMethodChanges:
             return
-        for methodName, overrides in newClassMethods.iteritems():
+        for methodName, overrides in newClassMethods.items():
             methodChanges = allMethodChanges.get(methodName)
             if methodChanges is None:
                 continue
@@ -627,7 +634,7 @@ def compare(dir1, dir2, classes=None, baseDir=None, skipPreprocess=False,
 
     if allDiffs:
         print("Following {} items had differences:".format(len(allDiffs)))
-        for name, diffs in allDiffs.iteritems():
+        for name, diffs in allDiffs.items():
             changeCounts = DiffProcessor.countChanges(diffs)
             print('  {0} ({1[0]} added, {1[1]} removed, {1[2]} changed)'.format(
                 name, changeCounts))

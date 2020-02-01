@@ -44,16 +44,25 @@ We do NOT recommend using it in external code...
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 # Python implementation inspired from Gonzalo Rodrigues "Trees and more trees" in ASPN cookbook
 
 # removed as it's 2.5 only
 # import functools as ftools
+from past.builtins import cmp
+from builtins import str
+from builtins import map
+from builtins import next
+from builtins import range
+from builtins import *
+from builtins import object
 from collections import *
 import inspect
 import warnings
 import weakref as weak
 from copy import *
 from functools import reduce
+from future.utils import with_metaclass
 
 #import logging
 #_logger = logging.getLogger(__name__)
@@ -108,7 +117,7 @@ class MetaTree(type):
 
     """ This metaclass defines the type of all 'tree' classes """
 
-    class PyTree:
+    class PyTree(object):
 
         """Core methods for pure python trees implementation"""
         # these are the methods depending on implementation
@@ -130,7 +139,7 @@ class MetaTree(type):
                 return None
         _toSubtree = classmethod(_toSubtree)
 
-        def __nonzero__(self):
+        def __bool__(self):
             try:
                 return (self._value is not None or self._subtrees is not None)
             except:
@@ -299,7 +308,7 @@ class MetaTree(type):
                 return iter(self.__class__.TreeType())
             else:
                 cseq = tuple(parent.childs())
-                for i in xrange(len(cseq)):
+                for i in range(len(cseq)):
                     if cseq[i] is self:  # not ==
                         return iter(cseq[i + 1:] + cseq[:i])
                 # self should be in it's parents subtrees
@@ -341,7 +350,7 @@ class MetaTree(type):
                 elif len(self) != len(other):
                     return False
                 else:
-                    return reduce(lambda x, y: x and y, map(lambda c1, c2: c1 == c2, self.childs(), other.childs()), True)
+                    return reduce(lambda x, y: x and y, list(map(lambda c1, c2: c1 == c2, self.childs(), other.childs())), True)
             # Both trees empty.
             elif not self and not other:
                 return True
@@ -731,7 +740,7 @@ class MetaTree(type):
             for sub in self.childs():
                 sub._pRef = weak.ref(self)
 
-    class IndexedPyTree:
+    class IndexedPyTree(object):
 
         """ Additionnal methods for pure python indexed trees implementation, elements must have unique values
             or Tree class must define a key method that provides a unique key for each element """
@@ -858,12 +867,12 @@ class MetaTree(type):
             else:
                 return tuple(result)
 
-    class NxTree:
+    class NxTree(object):
 
         """ Core methods for trees based on the networkx library, these trees are indexed by implementation (name of an element must be unique) """
 
     # now the methods for an immutable tree, not depending on implementation
-    class ImTree:
+    class ImTree(object):
 
         """The methods for an immutable Tree class."""
 
@@ -1148,7 +1157,7 @@ class MetaTree(type):
             res = u""
             value = self.value
             if value:
-                res = u"'%s'" % unicode(value)
+                res = u"'%s'" % str(value)
             temp = [sub._unicodeIter() for sub in self.childs()]
             if temp:
                 if res:
@@ -1247,7 +1256,7 @@ class MetaTree(type):
                 pvalue = None
                 if parent:
                     pvalue = parent.value
-                next = self.next
+                next = self.__next__
                 nvalue = None
                 if next:
                     nvalue = next.value
@@ -1283,7 +1292,7 @@ class MetaTree(type):
         # TODO : isParent (tree, other), isChild(tree, other), inter, union, substraction ?
 
     # now the methods for an mutable tree, not depending on implementation
-    class MuTree:
+    class MuTree(object):
 
         """Additionnal methods for a Mutable Tree class."""
 
@@ -1380,7 +1389,7 @@ class MetaTree(type):
                 BaseCoreClass = [MetaTree.PyTree, MetaTree.IndexedPyTree]
         # build core directory form the core base class methods
         for c in BaseCoreClass:
-            for k in c.__dict__.keys():
+            for k in list(c.__dict__.keys()):
                 # drawback of organising methods in "fake" classes is we get an unneeded entries, like __module__
                 if k not in ('__module__'):
                     coredict[k] = c.__dict__[k]
@@ -1448,26 +1457,22 @@ class MetaTree(type):
 # derive from one of these as needed
 
 
-class FrozenTree(object):
-    __metaclass__ = MetaTree
+class FrozenTree(with_metaclass(MetaTree, object)):
     mutable = False
     indexed = False
 
 
-class Tree(object):
-    __metaclass__ = MetaTree
+class Tree(with_metaclass(MetaTree, object)):
     mutable = True
     indexed = False
 
 
-class IndexedFrozenTree(object):
-    __metaclass__ = MetaTree
+class IndexedFrozenTree(with_metaclass(MetaTree, object)):
     mutable = False
     indexed = True
 
 
-class IndexedTree(object):
-    __metaclass__ = MetaTree
+class IndexedTree(with_metaclass(MetaTree, object)):
     mutable = True
     indexed = True
 
@@ -1483,7 +1488,7 @@ def treeFromDict(childToParentDict):
         def isChildFn(c, p):
             return childToParentDict.get(c, None) == p
         s = set(childToParentDict)
-        s.update(childToParentDict.itervalues())
+        s.update(iter(childToParentDict.values()))
         return treeFromChildLink(isChildFn, *s)
     else:
         raise ValueError("%r is not a dictionnary" % childToParentDict)
@@ -1533,7 +1538,7 @@ def treeFromChildLink(isExactChildFn, *args):
         c = deq.popleft()
         hasParent = False
         for p in list(deq) + lst:
-            pars = filter(lambda x: isExactChildFn(c.top().value, x.value), p.preorder())
+            pars = [x for x in p.preorder() if isExactChildFn(c.top().value, x.value)]
             for pr in pars:
                 # print "%s is child of %s" % (c, pr)
                 if not hasParent:

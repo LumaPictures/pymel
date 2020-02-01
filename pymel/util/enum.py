@@ -49,7 +49,16 @@ original arguments used to create the enumeration:
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from __future__ import unicode_literals
 
+from past.builtins import cmp
+from future import standard_library
+import collections.abc
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 __author_name__ = "Ben Finney"
 __author_email__ = "ben+python@benfinney.id.au"
 #__author__ = "%s <%s>" % (__author_name__, __author_email__) # confuses epydoc
@@ -252,8 +261,8 @@ class Enum(object):
         extraKeys = {}
         pairs = None
 
-        if operator.isMappingType(keys):
-            pairs = keys.items()
+        if isinstance(keys, collections.abc.Mapping):
+            pairs = list(keys.items())
         else:
             # could be an iterable of keys - in which case the "value" is it's
             # index - or it could be an iterable of pairs, (key, value).
@@ -278,7 +287,7 @@ class Enum(object):
                 reverse = dict()
                 for key, val in pairs:
                     reverse.setdefault(val, []).append(key)
-                for val, keyList in reverse.iteritems():
+                for val, keyList in reverse.items():
                     if len(keyList) == 1:
                         defaultKey = keyList[0]
                     else:
@@ -308,13 +317,13 @@ class Enum(object):
             except TypeError as e:
                 raise EnumBadKeyError(key)
 
-        for key, val in extraKeys.iteritems():
+        for key, val in extraKeys.items():
             # throw away any docs for the extra keys
             keyDict[key] = val
 
         # always store values as an OrderedDict, to provide unified behavior,
         # regardless of how it's constructed
-        if not operator.isMappingType(values):
+        if not isinstance(values, collections.abc.Mapping):
             values = OrderedDict(enumerate(values))
         elif not isinstance(values, OrderedDict):
             values = OrderedDict((key, values[key]) for key in sorted(values))
@@ -330,7 +339,7 @@ class Enum(object):
 
     def _valTuples(self):
         return tuple((key, val._asTuple())
-            for (key, val) in self._values.iteritems())
+            for (key, val) in self._values.items())
 
     def __eq__(self, other):
         if not isinstance(other, Enum):
@@ -355,7 +364,7 @@ class Enum(object):
             # multiKeys
             indexDict = {}
             defaults = {}
-            for key, index in self._keys.iteritems():
+            for key, index in self._keys.items():
                 keysForIndex = indexDict.setdefault(index, [])
                 if len(keysForIndex) == 1:
                     defaults[index] = self._values[index].key
@@ -367,7 +376,7 @@ class Enum(object):
             def sortKey(enumName):
                 return (0 if enumName == default else 1, enumName)
 
-            for enumValue in self.itervalues():
+            for enumValue in self.values():
                 default = defaults.get(enumValue.index)
                 for key in sorted(indexDict[enumValue.index], key=sortKey):
                     keysFlat.append((key, enumValue.index))
@@ -375,7 +384,7 @@ class Enum(object):
                         for key, index in keysFlat]
             keysRepr = '[{}], multiKeys=True'.format(', '.join(keysFlat))
         else:
-            keysFlat = [(ev.key, ev.index) for ev in self.itervalues()]
+            keysFlat = [(ev.key, ev.index) for ev in self.values()]
             keysFlat = ['{!r}: {!r}'.format(key, index)
                         for key, index in keysFlat]
             keysRepr = '{' + ', '.join(keysFlat) + '}'
@@ -384,7 +393,7 @@ class Enum(object):
             self.__class__.__name__, self.name, keysRepr)
 
     def __str__(self):
-        return '%s%s' % (self.__class__.__name__, self.keys())
+        return '%s%s' % (self.__class__.__name__, list(self.keys()))
 
     def __setattr__(self, name, value):
         raise EnumImmutableError(name)
@@ -496,12 +505,12 @@ class Enum(object):
 
     def itervalues(self):
         "iterator over EnumValue objects"
-        return self._values.itervalues()
+        return iter(self._values.values())
 
     def keys(self):
         "return a list of keys as strings"
         if not hasattr(self, '_keyStrings'):
-            keyStrings = tuple(v.key for v in self._values.itervalues())
+            keyStrings = tuple(v.key for v in self._values.values())
             super(Enum, self).__setattr__('_keyStrings', keyStrings)
         return self._keyStrings
 
@@ -557,8 +566,8 @@ class EnumDict(utilitytypes.EquivalencePairs):
         if not keys:
             raise EnumEmptyError()
 
-        if operator.isMappingType(keys):
-            items = keys.items()
+        if isinstance(keys, collections.abc.Mapping):
+            items = list(keys.items())
             if isinstance(items[0][0], int):
                 byKey = dict((k, v) for v, k in items)
             else:

@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 # -----------------------------------------------------------------------------
 # ply: lex.py
 #
@@ -34,6 +35,12 @@ from __future__ import absolute_import
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # -----------------------------------------------------------------------------
 
+from past.builtins import cmp
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import *
+from builtins import object
 __version__    = "3.3"
 __tabversion__ = "3.2"       # Version of table file used
 
@@ -114,7 +121,7 @@ class NullLogger(object):
 #    lexpos           -  Current position in the input string
 # -----------------------------------------------------------------------------
 
-class Lexer:
+class Lexer(object):
     def __init__(self):
         self.lexre = None             # Master regular expression. This is a list of
                                       # tuples (re,findex) where re is a compiled
@@ -150,7 +157,7 @@ class Lexer:
 
         if object:
             newtab = { }
-            for key, ritem in self.lexstatere.items():
+            for key, ritem in list(self.lexstatere.items()):
                 newre = []
                 for cre, findex in ritem:
                      newfindex = []
@@ -163,7 +170,7 @@ class Lexer:
                 newtab[key] = newre
             c.lexstatere = newtab
             c.lexstateerrorf = { }
-            for key, ef in self.lexstateerrorf.items():
+            for key, ef in list(self.lexstateerrorf.items()):
                 c.lexstateerrorf[key] = getattr(object,ef.__name__)
             c.lexmodule = object
         return c
@@ -193,7 +200,7 @@ class Lexer:
                 if f and f[0]:
                     initialfuncs.append(f)
 
-        for key, lre in self.lexstatere.items():
+        for key, lre in list(self.lexstatere.items()):
              titem = []
              for i in range(len(lre)):
                   titem.append((self.lexstateretext[key][i],_funcs_to_names(lre[i][1],self.lexstaterenames[key][i])))
@@ -203,7 +210,7 @@ class Lexer:
         tf.write("_lexstateignore = %s\n" % repr(self.lexstateignore))
 
         taberr = { }
-        for key, ef in self.lexstateerrorf.items():
+        for key, ef in list(self.lexstateerrorf.items()):
              if ef:
                   taberr[key] = ef.__name__
              else:
@@ -235,7 +242,7 @@ class Lexer:
         self.lexstateignore = lextab._lexstateignore
         self.lexstatere     = { }
         self.lexstateretext = { }
-        for key,lre in lextab._lexstatere.items():
+        for key,lre in list(lextab._lexstatere.items()):
              titem = []
              txtitem = []
              for i in range(len(lre)):
@@ -244,7 +251,7 @@ class Lexer:
              self.lexstatere[key] = titem
              self.lexstateretext[key] = txtitem
         self.lexstateerrorf = { }
-        for key,ef in lextab._lexstateerrorf.items():
+        for key,ef in list(lextab._lexstateerrorf.items()):
              self.lexstateerrorf[key] = fdict[ef]
         self.begin('INITIAL')
 
@@ -404,7 +411,7 @@ class Lexer:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         t = self.token()
         if t is None:
             raise StopIteration
@@ -492,7 +499,7 @@ def _form_master_re(relist,reflags,ldict,toknames):
         lexindexfunc = [ None ] * (max(lexre.groupindex.values())+1)
         lexindexnames = lexindexfunc[:]
 
-        for f,i in lexre.groupindex.items():
+        for f,i in list(lexre.groupindex.items()):
             handle = ldict.get(f,None)
             if type(handle) in (types.FunctionType, types.MethodType):
                 lexindexfunc[i] = (handle,toknames[f])
@@ -707,7 +714,7 @@ class LexerReflect(object):
                 self.error = 1
 
         # Sort the functions by line number
-        for f in self.funcsym.values():
+        for f in list(self.funcsym.values()):
             if sys.version_info[0] < 3:
                 f.sort(lambda x,y: cmp(func_code(x[1]).co_firstlineno,func_code(y[1]).co_firstlineno))
             else:
@@ -715,7 +722,7 @@ class LexerReflect(object):
                 f.sort(key=lambda x: func_code(x[1]).co_firstlineno)
 
         # Sort the strings by regular expression length
-        for s in self.strsym.values():
+        for s in list(self.strsym.values()):
             if sys.version_info[0] < 3:
                 s.sort(lambda x,y: (len(x[1]) < len(y[1])) - (len(x[1]) > len(y[1])))
             else:
@@ -963,7 +970,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
                 debuglog.info("lex: state '%s' : regex[%d] = '%s'",state, i, re_text[i])
 
     # For inclusive states, we need to add the regular expressions from the INITIAL state
-    for state,stype in stateinfo.items():
+    for state,stype in list(stateinfo.items()):
         if state != "INITIAL" and stype == 'inclusive':
              lexobj.lexstatere[state].extend(lexobj.lexstatere['INITIAL'])
              lexobj.lexstateretext[state].extend(lexobj.lexstateretext['INITIAL'])
@@ -985,7 +992,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
         errorlog.warning("No t_error rule is defined")
 
     # Check state information for ignore and error rules
-    for s,stype in stateinfo.items():
+    for s,stype in list(stateinfo.items()):
         if stype == 'exclusive':
               if not s in linfo.errorf:
                    errorlog.warning("No error rule is defined for exclusive state '%s'", s)

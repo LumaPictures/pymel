@@ -1,6 +1,12 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import next
+from builtins import str
+from builtins import range
+from builtins import *
+from builtins import object
 import weakref
 
 import pymel.util as util
@@ -462,7 +468,7 @@ def MObjectName(obj):
         # return obj.fullPathName()
         return obj.partialPathName()
     else:
-        return unicode(obj)
+        return str(obj)
 
 
 # names to MObjects function (expected to be faster to share one selectionList)

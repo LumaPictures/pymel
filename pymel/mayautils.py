@@ -4,7 +4,13 @@ These do not require initialization of maya.standalone"""
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+from past.builtins import execfile
+from builtins import str
+from builtins import next
+from past.builtins import basestring
+from builtins import *
 import os
 import sys
 import re
@@ -36,7 +42,7 @@ def source(file, searchPath=None, recurse=False):
     recurse : bool
         whether to recurse into directories in ``searchPath``
     """
-    filepath = unicode(file)
+    filepath = str(file)
     filename = os.path.basename(filepath)
     dirname = os.path.dirname(filepath)
 

@@ -3,9 +3,15 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import map
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
 from pydoc import *         #@UnusedWildImport
 import pydoc, sys, pprint   #@Reimport
-import __builtin__
+import builtins
 import os                   #@Reimport
 import pkgutil              #@Reimport
 import collections
@@ -24,7 +30,7 @@ NAMES = 3
 PYTHON_OBJECT_RE = re.compile(
     '^[a-zA-Z_][a-zA-Z_0-9]*(?:\.[a-zA-Z_][a-zA-Z_0-9]*)*(?:\(.*\))?$')
 
-builtins = set(__builtin__.__dict__.values())
+builtins = set(builtins.__dict__.values())
 
 # some basic data types which may not exist...
 if 'bytes' not in globals():
@@ -193,7 +199,7 @@ def has_default_constructor(cls):
         return False
 
     safe_methods = set()
-    for safe_cls in (object, list, dict, tuple, set, frozenset, str, unicode):
+    for safe_cls in (object, list, dict, tuple, set, frozenset, str, str):
         safe_methods.add(safe_cls.__init__)
         safe_methods.add(safe_cls.__new__)
 
@@ -369,11 +375,11 @@ def have_id_name(id_to_data, id_obj, name):
 
 def get_importall_modules(id_to_data, other_module_names):
     importall_modules = []
-    for other_mod, other_id_names in other_module_names.iteritems():
+    for other_mod, other_id_names in other_module_names.items():
         other_all = getattr(other_mod, '__all__', None)
         visible_other = 0
         in_this = []
-        for id_obj, other_names in other_id_names.iteritems():
+        for id_obj, other_names in other_id_names.items():
             for other_name in other_names:
                 if not visiblename(other_name, other_all):
                     continue
@@ -446,7 +452,7 @@ class StubDoc(Doc):
         'ctypes': set(['WinError']),
     }
 
-    SIMPLE_TYPES = (basestring, bytes, bool, int, long, float, complex)
+    SIMPLE_TYPES = (basestring, bytes, bool, int, int, float, complex)
     PASS = 'pass'
     UNKNOWN_SIGNATURE = '(*args, **kwargs)'
 
@@ -482,7 +488,7 @@ class StubDoc(Doc):
         if not text:
             return ''
         lines = split(text, '\n')
-        lines = map(lambda line, prefix=prefix: prefix + line, lines)
+        lines = list(map(lambda line, prefix=prefix: prefix + line, lines))
         if lines:
             lines[-1] = rstrip(lines[-1])
         return join(lines, '\n')
@@ -502,7 +508,7 @@ class StubDoc(Doc):
                 c, bases = entry
                 result = result + prefix + self.classname(c, modname)
                 if bases and bases != (parent,):
-                    parents = map(lambda c, m=modname: self.classname(c, m), bases)
+                    parents = list(map(lambda c, m=modname: self.classname(c, m), bases))
                     result = result + '(%s)' % join(parents, ', ')
                 result = result + '\n'
             elif type(entry) is type([]):
@@ -545,7 +551,7 @@ class StubDoc(Doc):
         # find their base classes, and make sure they are also defined, or
         # imported
         untraversed_classes = list(obj for (obj, objtype, source_module, names)
-                                   in id_to_data.itervalues()
+                                   in id_to_data.values()
                                    if objtype == 'class'
                                    and source_module == this_module
                                    and id(obj) not in class_parents)
@@ -733,7 +739,7 @@ class StubDoc(Doc):
         def find_import_data():
             unknown_import_objs = list(
                 (obj, source_module) for (obj, objtype, source_module, names)
-                in id_to_data.itervalues() if
+                in id_to_data.values() if
                 objtype != 'module' and source_module != this_module
                 and id(obj) not in import_other_name)
             new_to_this_module = 0
@@ -794,7 +800,7 @@ class StubDoc(Doc):
             'func': funcs,
             'data': data
         }
-        for id_obj, (obj, objtype, source_module, names) in id_to_data.iteritems():
+        for id_obj, (obj, objtype, source_module, names) in id_to_data.items():
             if source_module == this_module or objtype == 'module':
                 bins[objtype].append((obj, names))
             else:
@@ -815,7 +821,7 @@ class StubDoc(Doc):
 
         # eventually, might want to replace module_map and id_map
         # with id_to_data...
-        for id_obj, (obj, objtype, source_module, names) in id_to_data.iteritems():
+        for id_obj, (obj, objtype, source_module, names) in id_to_data.items():
             if objtype == 'module':
                 continue
             self.id_map[id_obj] = names[0]
@@ -1030,7 +1036,7 @@ class StubDoc(Doc):
                             continue
                         else:
                             # print '\t', m, mod
-                            if klass in mod.__dict__.values():
+                            if klass in list(mod.__dict__.values()):
                                 # print '\tfound'
                                 newmodname = self.module_map[m]
                                 break
@@ -1161,13 +1167,12 @@ class StubDoc(Doc):
                                        name, full_name, maxlen=70, doc=doc) + '\n')
             return attrs
 
-        attrs = filter(lambda data: visiblename(data[0]),
-                       inspect.classify_class_attrs(object))
+        attrs = [data for data in inspect.classify_class_attrs(object) if visiblename(data[0])]
 
         thisclass = object
         attrs, inherited = pydoc._split_list(attrs, lambda t: t[2] is thisclass)
 
-        if thisclass is not __builtin__.object:
+        if thisclass is not builtins.object:
             if attrs:
                 # Sort attrs by name.
                 attrs.sort()
@@ -1206,7 +1211,7 @@ class StubDoc(Doc):
         if isEnviron:
             objRepr = repr({'PROXY_FOR': 'os.environ'})
         else:
-            if isinstance(object, unicode):
+            if isinstance(object, str):
                 # pydev can't handle unicode literals - ie, u'stuff' - so
                 # convert to normal strings
                 object = str(object)
@@ -1539,7 +1544,7 @@ class PEP484StubDoc(StubDoc):
 
     def docmodule_get_missing_modules(self, this_module):
         missing = StubDoc.docmodule_get_missing_modules(self, this_module)
-        return missing + self.maybe_modules.values()
+        return missing + list(self.maybe_modules.values())
 
     def docmodule(self, *args, **kwargs):
         result = StubDoc.docmodule(self, *args, **kwargs)
@@ -1807,7 +1812,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
             #   my
             #   my.long
             #   my.long.sub
-            for i in xrange(1, len(parts)):
+            for i in range(1, len(parts)):
                 parent_package = '.'.join(parts[:i])
                 parent_file = get_python_file(parent_package, extension, True)
                 parent_dir = os.path.dirname(parent_file)

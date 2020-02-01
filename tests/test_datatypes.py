@@ -1,8 +1,11 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-#! /usr/autodesk/maya2008-x64/bin/mayapy
+from __future__ import unicode_literals
 
+from builtins import str
+from builtins import range
+from builtins import *
 import sys, os, inspect, unittest
 import pymel.core as pm
 import maya.cmds as cmds
@@ -938,7 +941,7 @@ class test_PMTypes(unittest.TestCase):
 
     def testMatrix_False_Instances(self) :
         def Matrix_fromRange_Test():
-            self.m = pm.datatypes.Matrix(range(20)) # TODO should fail
+            self.m = pm.datatypes.Matrix(list(range(20))) # TODO should fail
             self.m.formated()
         #   cannot initialize a Matrix of shape (4, 4) from list of 20,
         #   would cause truncation errors, use an explicit resize or trim"
@@ -979,16 +982,16 @@ class test_PMTypes(unittest.TestCase):
         self.assert_("<maya.OpenMaya.MMatrix; proxy of <Swig Object of type 'MMatrix *' at" in repr(self.m)) #TODO -
 
         # Make MAtrix instance from range()
-        self.m = pm.datatypes.Matrix(range(16))
+        self.m = pm.datatypes.Matrix(list(range(16)))
         self.assertEquals(self.m.formated(), '[[0.0, 1.0, 2.0, 3.0],\n [4.0, 5.0, 6.0, 7.0],\n [8.0, 9.0, 10.0, 11.0],\n [12.0, 13.0, 14.0, 15.0]]')
 
         # Make Matrix instance from Array from range()
-        self.M = pm.datatypes.Array(range(16), shape=(8, 2))
+        self.M = pm.datatypes.Array(list(range(16)), shape=(8, 2))
         self.m = pm.datatypes.Matrix(self.M)
         self.assertEquals(self.m.formated(), '[[0.0, 1.0, 2.0, 3.0],\n [4.0, 5.0, 6.0, 7.0],\n [8.0, 9.0, 10.0, 11.0],\n [12.0, 13.0, 14.0, 15.0]]')
 
         # Make Matrix instance from MatrixN from range()
-        self.M = pm.datatypes.MatrixN(range(9), shape=(3, 3))
+        self.M = pm.datatypes.MatrixN(list(range(9)), shape=(3, 3))
         self.m = pm.datatypes.Matrix(self.M)
         self.assertEquals(self.m.formated(),'[[0.0, 1.0, 2.0, 0.0],\n [3.0, 4.0, 5.0, 0.0],\n [6.0, 7.0, 8.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
 
@@ -1044,15 +1047,15 @@ class test_PMTypes(unittest.TestCase):
         self.assertEquals(list(self.m.col), [pm.datatypes.Array([1.0, 0.0, 0.0, 0.0]), pm.datatypes.Array([0.0, 1.0, 0.0, 0.0]), pm.datatypes.Array([0.0, 0.0, 1.0, 0.0]), pm.datatypes.Array([0.0, 0.0, 0.0, 1.0])] )
 
     def testMMatrix_fromTrimmedMatrixN(self):
-        self.m  = pm.datatypes.Matrix(pm.datatypes.MatrixN(range(9), shape=(3,3)).trimmed(shape=(4,4), value=10))
+        self.m  = pm.datatypes.Matrix(pm.datatypes.MatrixN(list(range(9)), shape=(3,3)).trimmed(shape=(4,4), value=10))
         self.assertEquals(self.m.formated(), '[[0.0, 1.0, 2.0, 10.0],\n [3.0, 4.0, 5.0, 10.0],\n [6.0, 7.0, 8.0, 10.0],\n [10.0, 10.0, 10.0, 10.0]]')
 
     def testMMatrix_getAccess(self):
-        self.m = pm.datatypes.Matrix(pm.datatypes.MatrixN(range(9), shape=(3,3)).trimmed(shape=(4,4), value=10))
+        self.m = pm.datatypes.Matrix(pm.datatypes.MatrixN(list(range(9)), shape=(3,3)).trimmed(shape=(4,4), value=10))
         self.assertEquals(self.m.get(), ((0.0, 1.0, 2.0, 10.0), (3.0, 4.0, 5.0, 10.0), (6.0, 7.0, 8.0, 10.0), (10.0, 10.0, 10.0, 10.0)))
 
     def testMMatrix_indexAccess(self):
-        self.m = pm.datatypes.Matrix(pm.datatypes.MatrixN(range(9), shape=(3,3)).trimmed(shape=(4,4), value=10))
+        self.m = pm.datatypes.Matrix(pm.datatypes.MatrixN(list(range(9)), shape=(3,3)).trimmed(shape=(4,4), value=10))
         self.assertEquals(self.m[0], pm.datatypes.Array([0.0, 1.0, 2.0, 10.0]))
 
         self.m[0] = 10
@@ -1132,11 +1135,11 @@ class test_PMTypes(unittest.TestCase):
         self.assertRaises(ValueError, VectorN_test)
 
         # element wise multiplication
-        self.m = pm.datatypes.Matrix(range(1, 17))
+        self.m = pm.datatypes.Matrix(list(range(1, 17)))
         self.assertEquals(self.m.formated(), '[[1.0, 2.0, 3.0, 4.0],\n [5.0, 6.0, 7.0, 8.0],\n [9.0, 10.0, 11.0, 12.0],\n [13.0, 14.0, 15.0, 16.0]]')
         self.assertEquals(([1, 10, 100] * self.m), pm.datatypes.Matrix([[1.0, 20.0, 300.0, 0.0], [5.0, 60.0, 700.0, 0.0], [9.0, 100.0, 1100.0, 0.0], [13.0, 140.0, 1500.0, 0.0]]) )
 
-        self.M = pm.datatypes.MatrixN(range(1, 21), shape=(4, 5))
+        self.M = pm.datatypes.MatrixN(list(range(1, 21)), shape=(4, 5))
         self.assertEquals(self.M.formated(), '[[1, 2, 3, 4, 5],\n [6, 7, 8, 9, 10],\n [11, 12, 13, 14, 15],\n [16, 17, 18, 19, 20]]')
 
         self.n = self.m * self.M
@@ -1714,7 +1717,7 @@ def _testMVector():
     v = Vector.yAxis
     print(Vector.xAxis)
     print(str(Vector.xAxis))
-    print(unicode(Vector.xAxis))
+    print(str(Vector.xAxis))
     print(repr(Vector.xAxis))
 
     print("u = Vector.xAxis:")
@@ -2449,20 +2452,20 @@ def _testMMatrix():
     print(repr(n))
 
     # inits
-    m = Matrix(range(16))
+    m = Matrix(list(range(16)))
     print(m.formated())
     #[[0.0, 1.0, 2.0, 3.0],
     # [4.0, 5.0, 6.0, 7.0],
     # [8.0, 9.0, 10.0, 11.0],
     # [12.0, 13.0, 14.0, 15.0]]
-    M = Array(range(16), shape=(8, 2))
+    M = Array(list(range(16)), shape=(8, 2))
     m = Matrix(M)
     print(m.formated())
     #[[0.0, 1.0, 2.0, 3.0],
     # [4.0, 5.0, 6.0, 7.0],
     # [8.0, 9.0, 10.0, 11.0],
     # [12.0, 13.0, 14.0, 15.0]]
-    M = MatrixN(range(9), shape=(3, 3))
+    M = MatrixN(list(range(9)), shape=(3, 3))
     m = Matrix(M)
     print(m.formated())
     #[[0.0, 1.0, 2.0, 0.0],
@@ -2499,7 +2502,7 @@ def _testMMatrix():
     # should fail
     print("Matrix(range(20)")
     try:
-        m = Matrix(range(20))
+        m = Matrix(list(range(20)))
         print(m.formated())
     except:
         print("will raise ValueError: cannot initialize a Matrix of shape (4, 4) from (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19), some information would be lost, use an explicit resize or trim")
@@ -2531,7 +2534,7 @@ def _testMMatrix():
     print(list(m.col))
     # [Array([1.0, 0.0, 0.0, 0.0]), Array([0.0, 1.0, 0.0, 0.0]), Array([0.0, 0.0, 1.0, 0.0]), Array([0.0, 0.0, 0.0, 1.0])]
 
-    m = Matrix(MatrixN(range(9), shape=(3, 3)).trimmed(shape=(4, 4), value=10))
+    m = Matrix(MatrixN(list(range(9)), shape=(3, 3)).trimmed(shape=(4, 4), value=10))
     print(m.formated())
     #[[0.0, 1.0, 2.0, 10.0],
     # [3.0, 4.0, 5.0, 10.0],
@@ -2559,7 +2562,7 @@ def _testMMatrix():
     v = Vector.yAxis
     print(Vector.xAxis)
     print(str(Vector.xAxis))
-    print(unicode(Vector.xAxis))
+    print(str(Vector.xAxis))
     print(repr(Vector.xAxis))
 
     print("u = Vector.xAxis:")
@@ -2617,7 +2620,7 @@ def _testMMatrix():
     # herited
 
     print("m = Matrix(range(1, 17))")
-    m = Matrix(range(1, 17))
+    m = Matrix(list(range(1, 17)))
     print(m.formated())
     #[[1.0, 2.0, 3.0, 4.0],
     # [5.0, 6.0, 7.0, 8.0],
@@ -2628,7 +2631,7 @@ def _testMMatrix():
     print(repr([1, 10, 100] * m))
     # Matrix([[1.0, 20.0, 300.0, 0.0], [5.0, 60.0, 700.0, 0.0], [9.0, 100.0, 1100.0, 0.0], [13.0, 140.0, 1500.0, 0.0]])
     print("M = MatrixN(range(20), shape=(4, 5))")
-    M = MatrixN(range(1, 21), shape=(4, 5))
+    M = MatrixN(list(range(1, 21)), shape=(4, 5))
     print(M.formated())
     #[[1, 2, 3, 4, 5],
     # [6, 7, 8, 9, 10],

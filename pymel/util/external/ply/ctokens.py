@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 # ----------------------------------------------------------------------
 # ctokens.py
 #
@@ -10,6 +11,7 @@ from __future__ import absolute_import
 
 # Reserved words
 
+from builtins import *
 tokens = [
     # Literals (identifier, integer constant, float constant, string constant, char const)
     'ID', 'TYPEID', 'ICONST', 'FCONST', 'SCONST', 'CCONST',

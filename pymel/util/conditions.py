@@ -1,11 +1,15 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 #------------------------------------------------------------------------------
 # Condition objects - used for chaining together tests that yield True/False results
 #------------------------------------------------------------------------------
 
 
+from builtins import str
+from builtins import *
+from builtins import object
 class NO_DATA(Exception):
     pass
 
@@ -37,7 +41,7 @@ class Condition(object):
     def __invert__(self):
         return Inverse(self)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.eval()
 
     def __str__(self):

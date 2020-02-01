@@ -1,6 +1,9 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import range
+from builtins import *
 import pymel.core as pm
 
 s = pm.polySphere()[0]  # second in list is the history node, if construction history is on

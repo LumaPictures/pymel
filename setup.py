@@ -1,7 +1,9 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 #!/usr/bin/env mayapy
+from builtins import *
 import sys
 import re
 import os
@@ -238,7 +240,7 @@ Operating System :: MacOS
               url='http://code.google.com/p/pymel/',
               platforms = ['any'],
               license='http://www.opensource.org/licenses/bsd-license.php',
-              classifiers=filter(None, classifiers.split("\n")),
+              classifiers=[_f for _f in classifiers.split("\n") if _f],
               keywords=['maya', 'mel', '3d', 'graphics', 'games', 'VFX', 'CG', 'animation'],
 
               packages=['pymel','pymel.api', 'pymel.core', 'pymel.internal', 'pymel.tools', 'pymel.tools.mel2py', 'pymel.util',

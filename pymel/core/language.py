@@ -4,6 +4,15 @@ Functions and classes related to scripting, including `MelGlobals` and `Mel`
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+
+from builtins import str
+from builtins import map
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
+
 import collections
 import collections.abc
 import sys
@@ -135,7 +144,7 @@ def pythonToMelCmd(command, *args, **kwargs):
             # they can use arg=None...
             flags = {}
             shortFlags = {}
-        for key, val in kwargs.iteritems():
+        for key, val in kwargs.items():
             flagInfo = None
             if key in flags:
                 flagInfo = flags[key]
@@ -618,7 +627,7 @@ class OptionVarList(tuple):
 
         if isinstance(val, basestring):
             return cmds.optionVar(stringValueAppend=[self.key, val])
-        if isinstance(val, (int, long)):
+        if isinstance(val, (int, int)):
             return cmds.optionVar(intValueAppend=[self.key, val])
         if isinstance(val, float):
             return cmds.optionVar(floatValueAppend=[self.key, val])
@@ -671,7 +680,7 @@ class OptionVarDict(collections.MutableMapping):
     def __setitem__(self, key, val):
         if isinstance(val, basestring):
             return cmds.optionVar(stringValue=[key, val])
-        if isinstance(val, (int, bool, long)):
+        if isinstance(val, (int, bool, int)):
             return cmds.optionVar(intValue=[key, int(val)])
         if isinstance(val, float):
             return cmds.optionVar(floatValue=[key, val])
@@ -681,7 +690,7 @@ class OptionVarDict(collections.MutableMapping):
             listType = type(val[0])
             if issubclass(listType, basestring):
                 flag = 'stringValue'
-            elif issubclass(listType, (int, long)):
+            elif issubclass(listType, (int, int)):
                 flag = 'intValue'
             elif issubclass(listType, float):
                 flag = 'floatValue'

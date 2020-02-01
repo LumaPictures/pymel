@@ -1,6 +1,10 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import range
+from past.builtins import basestring
+from builtins import *
 import sys
 import unittest
 import traceback
@@ -134,7 +138,7 @@ class TestTimeRange(testing.TestCaseExtended):
     def setUp(self):
         cmds.file(new=1, f=1)
         self.cube = cmds.polyCube()[0]
-        for i in xrange(1,21,2):
+        for i in range(1,21,2):
             cmds.currentTime(i)
             pm.setAttr(self.cube + '.tx', i)
             pm.setKeyframe(self.cube + '.tx')

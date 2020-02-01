@@ -31,6 +31,12 @@ Author: Chad Dombrova
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 from optparse import OptionParser
 try:
     import maya
@@ -208,7 +214,7 @@ def api_ls(args, dagOnly, long=False):
     # for now...
     results = []
     mfnDep = om.MFnDependencyNode()
-    for i in xrange(sel.length()):
+    for i in range(sel.length()):
         try:
             dagPath = sel.getDagPath(i)
         except TypeError:
@@ -238,7 +244,7 @@ def api_children(path):
     except TypeError:
         return []
     return [om.MFnDagNode(dagPath.child(i)).fullPathName()
-            for i in xrange(dagPath.childCount())]
+            for i in range(dagPath.childCount())]
 
 
 def api_listAttr(path, shortNames=False):
@@ -257,14 +263,14 @@ def api_listAttr(path, shortNames=False):
         except RuntimeWarning:
             return []
         attrs = [om.MFnAttribute(node.attribute(i))
-                 for i in xrange(node.attributeCount())]
+                 for i in range(node.attributeCount())]
         if shortNames:
             return [x.shortName for x in attrs]
         else:
             return [x.name for x in attrs]
     else:
         return [plug.child(i).partialName(useLongNames=not shortNames)
-                for i in xrange(plug.numChildren())]
+                for i in range(plug.numChildren())]
 
 
 def complete_node_with_attr(node, attr):
@@ -423,7 +429,7 @@ def pymel_python_completer(self, event):
     # print "complete"
     if isinstance(obj, (pm.nt.DependNode, pm.Attribute)):
         # print "isinstance"
-        node = unicode(obj)
+        node = str(obj)
         long_attrs = api_listAttr(node)
         short_attrs = api_listAttr(node, shortNames=1)
 
@@ -488,7 +494,7 @@ def open_completer(self, event):
     if '-b' in event.line:
         # return only bookmark completions
         bkms = self.db.get('bookmarks', {})
-        return bkms.keys()
+        return list(bkms.keys())
 
     if event.symbol == '-':
         width_dh = str(len(str(len(ip.user_ns['_sh']) + 1)))
