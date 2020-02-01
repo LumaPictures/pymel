@@ -28,6 +28,10 @@ import tempfile
 
 # Name mangling happens if we try to use __name inside a UnitTest class...
 from maya.app.commands import __makeStubFunc as _makeStubFunc
+
+# required to populate factories.cmdlist for tests
+factories.loadCmdCache()
+
 #
 #
 #
