@@ -3040,8 +3040,9 @@ class MelParser(object):
         self.lexer.parent_data = parentData
 
     def parse(self, data):
-        data = data.decode('utf-8', 'ignore')
-        #data = data.encode( 'utf-8', 'ignore')
+        if not isinstance(data, str):
+            # convert to unicode
+            data = data.decode('utf-8', 'ignore')
         data = data.replace('\r\n', '\n')
         data = data.replace('\r', '\n')
 
@@ -3126,8 +3127,9 @@ class MelScanner(object):
         self.lexer.global_vars = set([])
 
     def parse(self, data):
-        data = data.decode('utf-8', 'ignore')
-        #data = data.encode( 'utf-8', 'ignore')
+        if not isinstance(data, str):
+            # convert to unicode
+            data = data.decode('utf-8', 'ignore')
         data = data.replace('\r', '\n')
 
         scanner.parse(data, lexer=self.lexer)
