@@ -294,6 +294,35 @@ for x in ls( type='transform'):
 
 there's a reason why python is rapidly becoming the industry stanadard. with pymel, python and maya finally play well together.
 
+Installation
+------------
+
+To install, first install `pip` using the `mayapy` interpreter.
+
+On MacOS:
+
+```
+export PATH=$PATH:/Applications/Autodesk/maya2021/Maya.app/Contents/bin
+curl https://bootstrap.pypa.io/get-pip.py | mayapy
+mayapy -m pip install --pre pymel
+```
+
+On Linux:
+
+```
+export PATH=$PATH:/usr/autodesk/maya2021/bin
+curl https://bootstrap.pypa.io/get-pip.py | mayapy
+mayapy -m pip install --pre pymel
+```
+
+Unless your user account has write privileges to the Maya installation directory,
+`pip` should automatically install `pymel` into your user site-packages directory.
+To see where it was installed you can run:
+
+```
+mayapy -c "import pymel;print(pymel.__file__)"
+``` 
+
 ---
 
 Pymel is developed and maintained by [Luma Pictures](http://www.lumapictures.com).

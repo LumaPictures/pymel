@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "pymel"
+version = "1.2.0a1"
+description = "Python in Maya Done Right"
+authors = ['Chad Dombrova', 'Paul Molodowitch', 'Olivier Renouard']
+license = "BSD"
+readme = "README.md"
+
+repository = "https://github.com/Lumapictures/pymel"
+homepage = "https://github.com/Lumapictures/pymel"
+
+keywords=["maya", "mel", "3d", "graphics", "games", "VFX", "CG", "animation"]
+
+packages = [
+    { include = "pymel" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+beautifulsoup4 = "^4.8.2"
+pytest = "^5.3.5"
+sphinx = ">=1.2.3,<1.3"
+
+[tool.poetry.scripts]
+ipymel = "pymel.tools.ipymel:main"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
