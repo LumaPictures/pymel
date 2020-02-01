@@ -5,6 +5,11 @@ that maya is initialized in standalone mode.
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import unicode_literals
+from builtins import zip
+from builtins import str
+from builtins import *
+from builtins import object
 import os.path
 import sys
 import glob
@@ -32,7 +37,7 @@ from . import plogging
 
 _logger = plogging.getLogger(__name__)
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except:
     _logger.warning("using pickle instead of cPickle: load performance will be affected")
     import pickle
@@ -285,18 +290,19 @@ def initMEL():
                 if os.path.isabs(f) and not os.path.exists(f):
                     _logger.warning("Maya startup file %s does not exist" % f)
                 else:
-                    # need to encode backslashes (used for windows paths)
-                    if isinstance(f, unicode):
-                        encoding = 'unicode_escape'
-                    else:
-                        encoding = 'string_escape'
-                    #import pymel.core.language as lang
-                    #lang.mel.source( f.encode(encoding)  )
-
-                    maya.mel.eval('source "%s"' % f.encode(encoding))
+                    if sys.version_info[0] < 3:
+                        # need to encode backslashes (used for windows paths)
+                        if isinstance(f, str):
+                            encoding = 'unicode_escape'
+                        else:
+                            # bytes
+                            encoding = 'string_escape'
+                        f = f.encode(encoding)
+                    maya.mel.eval('source "%s"' % f)
 
     except Exception as e:
-        _logger.error("could not perform Maya initialization sequence: failed on %s: %s" % (f, e))
+        _logger.error("could not perform Maya initialization sequence: failed "
+                      "on %s: %s" % (f, e))
     finally:
         om.MMessage.removeCallbacks(callbacks)
 
@@ -875,7 +881,7 @@ class SubItemCache(PymelCache):
             cacheNames = self.cacheNames()
 
         if isinstance(obj, dict):
-            for key, val in obj.iteritems():
+            for key, val in obj.items():
                 setattr(self, key, val)
         elif isinstance(obj, (list, tuple)):
             if len(obj) != len(cacheNames):
@@ -926,7 +932,7 @@ def getConfigFile():
 
 
 def parsePymelConfig():
-    import ConfigParser
+    import configparser
 
     types = {
         'skip_mel_init': 'boolean',
@@ -945,7 +951,7 @@ def parsePymelConfig():
         'deleted_pynode_name_access': 'warn_deprecated',
     }
 
-    config = ConfigParser.ConfigParser(defaults)
+    config = configparser.ConfigParser(defaults)
     config.read(getConfigFile())
 
     d = {}

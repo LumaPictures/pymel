@@ -8,8 +8,15 @@ Created from the ansi c example included with ply, which is based on the grammar
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import unicode_literals
 
 
+from builtins import filter
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import sys
 import os
 import re
@@ -17,6 +24,7 @@ import os.path
 import tempfile
 import string
 from . import mellex
+from future.utils import with_metaclass
 
 try:
     from pymel.util.external.ply import *
@@ -706,7 +714,7 @@ def format_held_comments_and_docstring(t, funcname=''):
 
     if last[0].type == 'COMMENT' and rest:
         # we need to find other single-line-comments..
-        for i in xrange(-1, -len(rest) - 1, -1):
+        for i in range(-1, -len(rest) - 1, -1):
             if rest[i].type != 'COMMENT':
                 i += 1
                 break
@@ -723,7 +731,7 @@ def entabLines(line):
     #    if x.startswith(''):
     #        print 'startswith space!', x
 
-    res = '\n'.join(map(lambda x: '\t' + x, buf))
+    res = '\n'.join(['\t' + x for x in buf])
     if line.endswith('\n'):
         res += '\n'
     return res
@@ -1062,7 +1070,7 @@ class Token(str):
         return self
 
     def _getKwargs(self):
-        kwargs = dict((key, val) for key, val in self.__dict__.iteritems()
+        kwargs = dict((key, val) for key, val in self.__dict__.items()
                       if key not in ('val', 'type') and not key.startswith('__'))
         return kwargs
 
@@ -1089,9 +1097,7 @@ class ArrayToken(Token):
 #  BatchData -------------------------------------------------------------------
 
 
-class BatchData(object):
-    __metaclass__ = util.Singleton
-
+class BatchData(with_metaclass(util.Singleton, object)):
     def __init__(self, **kwargs):
         self.currentModules = TwoWayDict()
         self.proc_to_module = {}
@@ -1971,7 +1977,7 @@ def p_iteration_statement_2(t):
             try:
                 update_op = update_buf.pop(1)  # this might raise an indexError if the update expression followed the form:  $i = $i+1
                 # find the variables in the update statement, and find which were also present in conditional statement
-                update_vars = filter(var_reg.match, update_buf)
+                update_vars = list(filter(var_reg.match, update_buf))
                 iterator = list(cond_vars.intersection(update_vars))
                 # print cond_vars, tmp, iterator
             except IndexError:
@@ -2776,7 +2782,7 @@ def p_command_statement_input(t):
 
 def p_command_statement_input_2(t):
     '''command_statement_input     : object_list'''
-    t[0] = map(lambda x: "'%s'" % x, t[1])
+    t[0] = ["'%s'" % x for x in t[1]]
 
 
 def p_command_statement_input_3(t):
@@ -2827,7 +2833,7 @@ def p_command_input(t):
 
 def p_command_input_2(t):
     '''command_input     : object_list'''
-    t[0] = map(lambda x: "'%s'" % x, t[1])
+    t[0] = ["'%s'" % x for x in t[1]]
 
 
 def p_command_input_3(t):

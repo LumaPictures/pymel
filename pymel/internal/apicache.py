@@ -2,8 +2,14 @@
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import unicode_literals
 
 # They will be imported / redefined later in Pymel, but we temporarily need them here
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import inspect
 import os
 import re
@@ -539,7 +545,7 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
             # don't cache any of the parents
             return lineage
         # add not just this lineage, but all parent's lineages as well...
-        for i in xrange(len(lineage), 0, -1):
+        for i in range(len(lineage), 0, -1):
             thisLineage = lineage[:i]
             thisNode = thisLineage[-1]
             oldVal = _cachedInheritances.get(thisNode)
@@ -596,7 +602,7 @@ API_NAME_MODIFIERS = {
     '^th(custom)?': 'plugin',
 }
 API_NAME_MODIFIERS = [(re.compile(find), replace)
-                      for find, replace in API_NAME_MODIFIERS.iteritems()]
+                      for find, replace in API_NAME_MODIFIERS.items()]
 
 apiSuffixes = ['', 'node', 'shape', 'shapenode']
 
@@ -611,31 +617,31 @@ class BaseApiClassInfoCache(startup.SubItemCache):
     def _modifyEnums(self, data, predicate, converter):
         '''Convert between Enum reprs and actual Enum objects'''
         apiClassInfo = data[self.itemIndex(self.CLASSINFO_SUBCACHE_NAME)]
-        for classname, classInfo in apiClassInfo.viewitems():
+        for classname, classInfo in apiClassInfo.items():
             enums = classInfo.get('enums')
             if enums:
-                for enumdata in enums.viewvalues():
+                for enumdata in enums.values():
                     valdata = enumdata.get('values')
                     if predicate(valdata):
                         enumdata['values'] = converter(valdata)
             pymelEnums = classInfo.get('pymelEnums')
             if pymelEnums:
-                for name, enumdata in pymelEnums.viewitems():
+                for name, enumdata in pymelEnums.items():
                     if predicate(enumdata):
                         pymelEnums[name] = converter(enumdata)
 
     def _modifyApiEnums(self, data, predicate, converter):
         apiClassInfo = data[self.itemIndex(self.CLASSINFO_SUBCACHE_NAME)]
-        for classname, classInfo in apiClassInfo.viewitems():
+        for classname, classInfo in apiClassInfo.items():
             methods = classInfo.get('methods')
             if not methods:
                 continue
-            for overrides in methods.viewvalues():
+            for overrides in methods.values():
                 # if we have ApiCache.apiClassInfo, overrides will be a list,
                 # but if we have ApiMelBridgeCache.apiClassOverrides, it will
                 # be a dict (whose keys are indices into that list)
                 if isinstance(overrides, dict):
-                    methodInfos = overrides.viewvalues()
+                    methodInfos = overrides.values()
                 else:
                     methodInfos = overrides
                 for methodInfo in methodInfos:
@@ -649,7 +655,7 @@ class BaseApiClassInfoCache(startup.SubItemCache):
                         methodInfo['returnType'] = converter(returnType)
                     argInfo = methodInfo.get('argInfo')
                     if argInfo:
-                        for singleArgInfo in argInfo.viewvalues():
+                        for singleArgInfo in argInfo.values():
                             argType = singleArgInfo.get('type')
                             if argType and predicate(argType):
                                 singleArgInfo['type'] = converter(argType)
@@ -657,7 +663,7 @@ class BaseApiClassInfoCache(startup.SubItemCache):
                     if args:
                         # args may be list or dict, depending on which cache
                         if isinstance(args, dict):
-                            iteritems = args.viewitems()
+                            iteritems = args.items()
                         else:
                             iteritems = enumerate(args)
                         for i, arg in iteritems:
@@ -667,12 +673,12 @@ class BaseApiClassInfoCache(startup.SubItemCache):
                                 args[i] = tuple(arg)
                     defaults = methodInfo.get('defaults')
                     if defaults:
-                        for name, val in defaults.viewitems():
+                        for name, val in defaults.items():
                             if predicate(val):
                                 defaults[name] = converter(val)
                     types = methodInfo.get('types')
                     if types:
-                        for name, val in types.viewitems():
+                        for name, val in types.items():
                             if predicate(val):
                                 types[name] = converter(val)
 
@@ -739,7 +745,7 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
         linesRemoved = 0
         foundComments = False
         stripNewlines = False
-        for tok in tokenize.generate_tokens(iter(sourcelines).next):
+        for tok in tokenize.generate_tokens(iter(sourcelines).__next__):
             if tok[0] == tokenize.COMMENT:
                 foundComments = True
                 # if the comment was the only thing on the line - ie, it wasn't
@@ -1072,7 +1078,7 @@ class ApiCache(BaseApiClassInfoCache):
     def _modifyApiTypes(self, data, predicate, converter):
         '''convert apiTypesToApiClasses between class names and class objects'''
         enumsToTypes = data[self.itemIndex('apiTypesToApiClasses')]
-        for key, val in enumsToTypes.viewitems():
+        for key, val in enumsToTypes.items():
             if predicate(val):
                 enumsToTypes[key] = converter(val)
 
@@ -1088,7 +1094,7 @@ class ApiCache(BaseApiClassInfoCache):
         if any(isinstance(k, basestring) for k in apiEnumsToApiTypes):
             # want to modify the dict in place, so make a copy
             newDict = {int(key): val
-                       for key, val in apiEnumsToApiTypes.viewitems()}
+                       for key, val in apiEnumsToApiTypes.items()}
             apiEnumsToApiTypes.clear()
             apiEnumsToApiTypes.update(newDict)
 
@@ -1165,7 +1171,7 @@ class ApiCache(BaseApiClassInfoCache):
                 for node in toSet:
                     self.mayaTypesToApiTypes[node] = apiType
 
-        for mayaType, apiType in self.mayaTypesToApiTypes.iteritems():
+        for mayaType, apiType in self.mayaTypesToApiTypes.items():
             self.addMayaType(mayaType, apiType)
 
     def _buildApiTypesList(self):
@@ -1186,7 +1192,7 @@ class ApiCache(BaseApiClassInfoCache):
 
         # start with plugin types
         import pymel.api.plugins as plugins
-        for mpxName, mayaNode in plugins.mpxNamesToMayaNodes.iteritems():
+        for mpxName, mayaNode in plugins.mpxNamesToMayaNodes.items():
             reservedMayaTypes[mayaNode] = plugins.mpxNamesToApiEnumNames[mpxName]
 
         for mayaType in self.abstractMayaTypes:
@@ -1200,7 +1206,7 @@ class ApiCache(BaseApiClassInfoCache):
         reservedMayaTypes.update(self.CRASH_TYPES)
         # filter to make sure all these types exist in current version (some are Maya2008 only)
         reservedMayaTypes = dict((item[0], item[1])
-                                 for item in reservedMayaTypes.iteritems()
+                                 for item in reservedMayaTypes.items()
                                  if item[1] in self.apiTypesToApiEnums)
 
         return reservedMayaTypes
@@ -1245,7 +1251,7 @@ class ApiCache(BaseApiClassInfoCache):
                                  if find.search(lowerNode)]
 
         # find all possible combinations of all possible modifications
-        for modifyNum in xrange(len(possibleModifications) + 1):
+        for modifyNum in range(len(possibleModifications) + 1):
             for modifyCombo in itertools.combinations(possibleModifications, modifyNum):
                 baseName = lowerNode
                 for find, replace in modifyCombo:
@@ -1286,8 +1292,8 @@ class ApiCache(BaseApiClassInfoCache):
             longer = str2
             shorter = str1
         maxSize = len(shorter)
-        for strSize in xrange(maxSize, 0, -1):
-            for startPos in xrange(0, maxSize - strSize + 1):
+        for strSize in range(maxSize, 0, -1):
+            for startPos in range(0, maxSize - strSize + 1):
                 subStr = shorter[startPos:startPos + strSize]
                 if subStr in longer:
                     return subStr
@@ -1368,7 +1374,7 @@ class ApiCache(BaseApiClassInfoCache):
 
         # we do this by querying the maya hierarchy, and marching up it until
         # we find an entry that IS in apiTypesToApiClasses
-        for mayaType, apiType in self.mayaTypesToApiTypes.iteritems():
+        for mayaType, apiType in self.mayaTypesToApiTypes.items():
             if apiType not in self.apiTypesToApiClasses:
                 self._getOrSetApiClass(apiType, mayaType)
 

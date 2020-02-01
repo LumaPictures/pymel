@@ -1,6 +1,9 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
+from builtins import range
+from builtins import *
 import os
 import sys
 import inspect
@@ -19,7 +22,7 @@ except ImportError:
 def pytest_collection_modifyitems(session, config, items):
     # iterate in reverse order, so indices stay good even if removed...
     origlen = len(items)
-    for i in xrange(len(items) - 1 , -1 , -1):
+    for i in range(len(items) - 1 , -1 , -1):
         item = items[i]
         if item.name in pymel_test.EXCLUDE_TEST_NAMES:
             del items[i]

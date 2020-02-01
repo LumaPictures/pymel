@@ -2,7 +2,10 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from __future__ import unicode_literals
 
+from builtins import map
+from builtins import *
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.core.general as _general
@@ -48,7 +51,7 @@ def lsThroughFilter(*args, **kwargs):
       - returns an empty list when the result is None
       - returns wrapped classes
     """
-    return map(_general.PyNode, _util.listForNone(cmds.lsThroughFilter(*args, **kwargs)))
+    return list(map(_general.PyNode, _util.listForNone(cmds.lsThroughFilter(*args, **kwargs))))
 
 
 def pointLight(*args, **kwargs):

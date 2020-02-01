@@ -4,6 +4,7 @@ A generic n-dimensionnal Array class serving as base for arbitrary length Vector
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from __future__ import unicode_literals
 
 # NOTE: modified and added some methods that are closer to how Numpy works, as some people pointed out
 # they didn't want non-Python dependencies.
@@ -16,6 +17,14 @@ from __future__ import division
 
 # TODO : trim does preserve sub-element identity, should trimmed do a copy or deepcopy (currently deepcopy)?
 # resize / reshape should be checked and set to same behavior as well
+
+from builtins import str
+from builtins import zip
+from builtins import map
+from builtins import range
+from builtins import *
+from builtins import object
+from future.utils import with_metaclass
 
 import operator
 import itertools
@@ -33,12 +42,13 @@ from functools import reduce
 
 if False:
     from typing import *
+
 # 1.0/sys.maxint on 64-bit systems is too precise for maya to manage...
 eps = 1.0 / (2 ** 30)
-from __builtin__ import sum as _sum, min as _min, max as _max, abs as _abs
+from builtins import sum as _sum, min as _min, max as _max, abs as _abs
 # 2.5 only for any and all
 try:
-    from __builtin__ import all as _all, any as _any
+    from builtins import all as _all, any as _any
 except:
     def _all(iterable):
         """ Return True if all elements of the iterable are true """
@@ -122,7 +132,7 @@ def _patchfn(basefn):
             else:
                 args = list(args)
                 ln = len(args)
-                for i in xrange(ln):
+                for i in range(ln):
                     if hasattr(args[i], '__iter__'):
                         t = type(args[i])
                         args[i] = Array(args[i])
@@ -135,11 +145,11 @@ def _patchfn(basefn):
                                 maxtype = t
                 if maxsize > 0:
                     try:
-                        for i in xrange(ln):
+                        for i in range(ln):
                             maxarg, args[i] = coerce(maxarg, args[i])
                     except:
                         return NotImplemented
-                    allargs = zip(*args)
+                    allargs = list(zip(*args))
                     la = len(allargs)
                     # same for keyword arguments if applicable
                     for k in kwargs:
@@ -299,7 +309,7 @@ def any(a, axis=None):
         if subshape == ():
             return _any(it)
         else:
-            return Array(map(_any, zip(*it)), shape=subshape)
+            return Array(list(map(_any, list(zip(*it)))), shape=subshape)
     elif hasattr(a, '__iter__'):
         return _any(a)
     else:
@@ -332,7 +342,7 @@ def all(a, axis=None):
         if subshape == ():
             return _all(it)
         else:
-            return Array(map(_all, zip(*it)), shape=subshape)
+            return Array(list(map(_all, list(zip(*it)))), shape=subshape)
     elif hasattr(a, '__iter__'):
         return _all(a)
     else:
@@ -377,7 +387,7 @@ def min(*args, **kwargs):
         if subshape == ():
             return _min(it, **opt)
         else:
-            return Array(map(lambda x: _min(x, **opt), zip(*it)), shape=subshape)
+            return Array([_min(x, **opt) for x in zip(*it)], shape=subshape)
     elif hasattr(a, '__iter__'):
         return _min(a, **opt)
     else:
@@ -422,7 +432,7 @@ def max(*args, **kwargs):
         if subshape == ():
             return _max(it, **opt)
         else:
-            return Array(map(lambda x: _max(x, **opt), zip(*it)), shape=subshape)
+            return Array([_max(x, **opt) for x in zip(*it)], shape=subshape)
     elif hasattr(a, '__iter__'):
         return _max(a, **opt)
     else:
@@ -670,7 +680,7 @@ class ArrayIter(object):
                     size *= data.shape[x]
                     shape.append(data.shape[x])
             itemshape = []
-            for x in xrange(data.ndim):
+            for x in range(data.ndim):
                 if not x in axis:
                     itemshape.append(data.shape[x])
 
@@ -683,7 +693,7 @@ class ArrayIter(object):
             self.itemshape = tuple(itemshape)
             self.itemdim = len(itemshape)
             self.itemsize = reduce(operator.mul, itemshape, 1)
-            self.subsizes = [reduce(operator.mul, shape[i + 1:], 1) for i in xrange(ndim)]
+            self.subsizes = [reduce(operator.mul, shape[i + 1:], 1) for i in range(ndim)]
             # print "Base shape %s, Axis %s, Iter shape %s, iter dim %s, iter size %s, item shape %s, item dim %s, subsizes %s"\
             #         % (self.base.shape, self.axis, self.shape, self.ndim, self.size, self.itemshape, self.itemdim, self.subsizes)
         else:
@@ -698,7 +708,7 @@ class ArrayIter(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         """ it.next() -> the next value, or raise StopIteration """
         for i in range(len(self.axis) - 1, 0, -1):
             if self.coords[self.axis[i]] == self.shape[i]:
@@ -946,7 +956,7 @@ class ArrayIter(object):
             elif hasattr(value, '__iter__') and valueshape[1:] == self.itemshape:
                 lv = len(value)
                 lc = len(coords)
-                for i in xrange(lc):
+                for i in range(lc):
                     # repeat values if number of values < number of coords
                     self.base.__setitem__(coords[i], value[i % lv])
             else:
@@ -960,7 +970,7 @@ class ArrayIter(object):
 
 # A generic multi dimensional Array class
 # NOTE : Numpy Array class could be used instead, just implemented the bare minimum inspired from it
-class Array(object):
+class Array(with_metaclass(metaReadOnlyAttr, object)):
 
     """ A generic n-dimensional array class using nested lists for storage.
 
@@ -1117,8 +1127,6 @@ class Array(object):
         TypeError: cannot initialize a Array of shape (2, 2) from [1, 2, 3, 4, 5] of shape (5,),
         as it would truncate data or reduce the number of dimensions
      """
-
-    __metaclass__ = metaReadOnlyAttr
     __slots__ = ['_data', '_shape', '_ndim', '_size']
     __readonly__ = ('apicls', 'data', 'shape', 'ndim', 'size')
     # internal storage type, is expected to have __iter__, __len__,__getitem__, __setitem__, __delitem__ methods
@@ -1440,7 +1448,7 @@ class Array(object):
             assert len(index) <= ndim, "Array of shape %s has %s dimensions, cannot specify %s indices" % (shape, ndim, l)
             if default is not None:
                 index = index + [default] * (ndim - len(index))
-            for i in xrange(len(index)):
+            for i in range(len(index)):
                 ind = index[i]
                 if ind is None:
                     ind = default
@@ -1449,7 +1457,7 @@ class Array(object):
                         ind = []
                 elif isinstance(ind, slice):
                     if expand:
-                        ind = range(shape[i])[ind]
+                        ind = list(range(shape[i]))[ind]
                     else:
                         ind = slice(*ind.indices(shape[i]))
                 else:
@@ -1534,15 +1542,15 @@ class Array(object):
         if len(axis) == 0:
             if fill:
                 if reverse:
-                    axis = range(ndim - 1, -1, -1)
+                    axis = list(range(ndim - 1, -1, -1))
                 else:
-                    axis = range(0, ndim, 1)
+                    axis = list(range(0, ndim, 1))
         else:
             try:
                 if len(axis) == 1 and hasattr(axis[0], '__iter__'):
-                    axis = [range(ndim)[x] for x in axis[0]]
+                    axis = [list(range(ndim))[x] for x in axis[0]]
                 else:
-                    axis = [range(ndim)[x] for x in axis]
+                    axis = [list(range(ndim))[x] for x in axis]
             except IndexError:
                 raise ValueError("axis %s in axis list %s doesn't exist for an Array of shape %s" % (x, tuple(axis), shape))
             for x in axis:
@@ -1781,7 +1789,7 @@ class Array(object):
                             data = cls(shape=shape).filled(data)
                         else:
                             if size >= dsize and ndim >= dndim:
-                                if ndim == dndim and reduce(operator.and_, map(operator.ge, shape, dshape), True):
+                                if ndim == dndim and reduce(operator.and_, list(map(operator.ge, shape, dshape)), True):
                                     data = data.trimmed(shape=shape, value=self)
 #                                    if self.shape == shape :
 #                                        data = self.fitted(data)
@@ -1878,7 +1886,7 @@ class Array(object):
                                          "lost" % (vshape, cls.__name__, shape))
                 if vdim < ndim:
                     siter = new.subiter(vdim)
-                    for i in xrange(len(siter)):
+                    for i in range(len(siter)):
                         siter[i] = copy.deepcopy(value)
                 else:
                     new = cls(copy.deepcopy(value), shape=shape)
@@ -2108,7 +2116,7 @@ class Array(object):
         axis = int(axis)
         if axis < 0:
             axis += ndim
-        if axis not in range(ndim):
+        if axis not in list(range(ndim)):
             raise ValueError("cannot append on axis %s, axis does not exist "
                              "for %s of shape %s" %
                              (axis, clsname(self), shape))
@@ -2121,7 +2129,7 @@ class Array(object):
             other = Array(other)
         if size:
             if axis > 0:
-                staxis = range(axis, -1, -1) + range(axis + 1, ndim)
+                staxis = list(range(axis, -1, -1)) + list(range(axis + 1, ndim))
                 nself = self.transpose(staxis)
                 otaxis = staxis[1:]
                 for i, a in enumerate(otaxis):
@@ -2317,13 +2325,13 @@ class Array(object):
             axis = int(axis)
             if axis < 0:
                 axis += ndim
-            if axis not in range(ndim):
+            if axis not in list(range(ndim)):
                 raise ValueError("cannot stack on axis %s, axis does not exist for %s of shape %s" % (axis, clsname(self), shape))
             itself = self.axisiter(axis)
             itother = other.axisiter(axis)
             if itself.itemshape == itother.itemshape:
                 if axis > 0:
-                    taxis = range(axis, -1, -1) + range(axis + 1, ndim)
+                    taxis = list(range(axis, -1, -1)) + list(range(axis + 1, ndim))
                     nself = self.transpose(taxis)
                     nother = other.transpose(taxis)
                     new = Array(list(nself) + list(nother)).transpose(taxis)
@@ -2571,7 +2579,7 @@ class Array(object):
             flatIter = self.flat
             newIter = new.flat
             ln = min(len(flatIter), len(newIter))
-            for i in xrange(ln):
+            for i in range(ln):
                 newIter[i] = flatIter[i]
             # return new.deepcopy() not needed
             return new
@@ -2637,7 +2645,7 @@ class Array(object):
         flatIter = self.flat
         newIter = new.flat
         ln = min(len(flatIter), len(newIter))
-        for i in xrange(ln):
+        for i in range(ln):
             newIter[i] = flatIter[i]
         self.assign(new)
 
@@ -2648,7 +2656,7 @@ class Array(object):
         ndim = min(source.ndim, self.ndim)
 
         # copy when common shape, or recurse down
-        for i in xrange(lmin):
+        for i in range(lmin):
             if ndim == 1 or self[i].shape == source[i].shape:
                 self[i] = source[i]
             else:
@@ -2766,7 +2774,7 @@ class Array(object):
 
         # trim sub dimensions when common
         if ndim > 1:
-            for i in xrange(lmin):
+            for i in range(lmin):
                 self[i]._trimloop(source[i])
                 # lst = list(self)
         self._cacheshape()
@@ -2829,7 +2837,7 @@ class Array(object):
         if newndim != self.ndim:
             raise ValueError("can only trim using a new shape of same number of dimensions as Array")
         oldshape = self.shape
-        for i in xrange(newndim):
+        for i in range(newndim):
             if newshape[i] == -1 or newshape[i] is None:
                 newshape[i] = oldshape[i]
 
@@ -2883,7 +2891,7 @@ class Array(object):
         if newndim != self.ndim:
             raise ValueError("can only trim using a new shape of same number of dimensions as Array")
         oldshape = self.shape
-        for i in xrange(newndim):
+        for i in range(newndim):
             if newshape[i] == -1 or newshape[i] is None:
                 newshape[i] = oldshape[i]
 
@@ -2949,7 +2957,7 @@ class Array(object):
         return "[%s]" % ", ".join(map(str, self))
 
     def __unicode__(self):
-        return u"[%s]" % u", ".join(map(unicode, self))
+        return u"[%s]" % u", ".join(map(str, self))
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, str(self))
@@ -3094,19 +3102,19 @@ class Array(object):
         return self.__getitem__(slice(start, end))
 
     def _inject(self, index, value):
-        indices = range(self.shape[0])[index[0]]
+        indices = list(range(self.shape[0]))[index[0]]
         if not hasattr(indices, '__iter__'):
             indices = [indices]
             value = [value]
         ni = len(indices)
         if len(index) == 1:
             # single dimension index, assign to storage
-            for i in xrange(ni):
+            for i in range(ni):
                 self.apicls.__setitem__(self.data, indices[i], value[i])
         else:
             # multi dimension index
             nextindex = index[1:]
-            for i in xrange(ni):
+            for i in range(ni):
                 self[indices[i]]._inject(nextindex, value[i])
 
     def __setitem__(self, index, value):
@@ -3234,7 +3242,7 @@ class Array(object):
         li = len(index)
         if ls and li:
             next = li > 1
-            for i in xrange(ls - 1, -1, -1):
+            for i in range(ls - 1, -1, -1):
                 if i in index[0]:
                     self.apicls.__delitem__(self.data, i)
                     # self._cacheshape()
@@ -3407,7 +3415,7 @@ class Array(object):
         li = len(index)
         if ls and li:
             next = li > 1
-            for i in xrange(ls - 1, -1, -1):
+            for i in range(ls - 1, -1, -1):
                 if i in index[0]:
                     self.apicls.__delitem__(self.data, i)
                     # self._cacheshape()
@@ -3645,7 +3653,7 @@ class Array(object):
             dim = ndim - 1
         iter_ndim = ndim - dim
         if iter_ndim > 0:
-            axis = tuple(x for x in xrange(iter_ndim))
+            axis = tuple(x for x in range(iter_ndim))
             # print "subiter called on dim = %s, axis %s" % (dim, axis)
             return ArrayIter(self, axis)
         else:
@@ -4141,7 +4149,7 @@ class Array(object):
             return False
         if self.shape != other.shape:
             return False
-        return reduce(lambda x, y: x and y[0] == y[1], itertools.izip(self, other), True)
+        return reduce(lambda x, y: x and y[0] == y[1], zip(self, other), True)
 
     def __ne__(self, other):
         """ a.__ne__(b) <==> a != b
@@ -4266,7 +4274,7 @@ class Array(object):
         except:
             # returning NotImplemented on self.__oper__(other) defers to other.__roper__(self) UNLESS self and other are of the same type
             return NotImplemented
-        res = map(operator.add, nself, nother)
+        res = list(map(operator.add, nself, nother))
         return nself.__class__._convert(res)
 
     def __radd__(self, other):
@@ -4364,7 +4372,7 @@ class Array(object):
             nself, nother = coerce(self, other)
         except:
             return NotImplemented
-        res = map(operator.sub, nself, nother)
+        res = list(map(operator.sub, nself, nother))
         return self.__class__._convert(res)
 
     def __rsub__(self, other):
@@ -4375,7 +4383,7 @@ class Array(object):
             nself, nother = coerce(self, other)
         except:
             return NotImplemented
-        res = map(operator.sub, nother, nself)
+        res = list(map(operator.sub, nother, nself))
         return self.__class__._convert(res)
 
     def __isub__(self, other):
@@ -4391,7 +4399,7 @@ class Array(object):
             nself, nother = coerce(self, other)
         except:
             return NotImplemented
-        res = map(operator.mul, nself, nother)
+        res = list(map(operator.mul, nself, nother))
         return self.__class__._convert(res)
 
     def __rmul__(self, other):
@@ -4414,7 +4422,7 @@ class Array(object):
             nself, nother = coerce(self, other)
         except:
             return NotImplemented
-        res = map(lambda x, y: x.__pow__(y, modulo), nself, nother)
+        res = list(map(lambda x, y: x.__pow__(y, modulo), nself, nother))
         return self.__class__._convert(res)
 
     def __rpow__(self, other):
@@ -4426,7 +4434,7 @@ class Array(object):
             nself, nother = coerce(self, other)
         except:
             return NotImplemented
-        res = map(lambda x, y: x.__pow__(y, modulo), nother, nself)
+        res = list(map(lambda x, y: x.__pow__(y, modulo), nother, nself))
         return self.__class__._convert(res)
 
     def __ipow__(self, other, modulo=None):
@@ -4444,7 +4452,7 @@ class Array(object):
             nself, nother = coerce(self, other)
         except:
             return NotImplemented
-        res = map(operator.div, nself, nother)
+        res = list(map(operator.div, nself, nother))
         return self.__class__._convert(res)
 
     def __rdiv__(self, other):
@@ -4457,7 +4465,7 @@ class Array(object):
             nself, nother = coerce(self, other)
         except:
             return NotImplemented
-        res = map(operator.div, nother, nself)
+        res = list(map(operator.div, nother, nself))
         return self.__class__._convert(res)
 
     def __idiv__(self, other):
@@ -4709,7 +4717,7 @@ class Array(object):
         it = self.axisiter(*axis)
         subshape = it.itemshape
         if subshape == ():
-            return reduce(operator.add, map(lambda x: x * x, it))
+            return reduce(operator.add, [x * x for x in it])
         else:
             return Array(a.sqlength() for a in it)
 
@@ -5227,7 +5235,7 @@ class MatrixN(Array):
              [0.0, 0.0, 1.0, 0.0],
              [0.0, 0.0, 0.0, 1.0]]
         """
-        return cls([[float(i == j) for i in xrange(n)] for j in xrange(n)])
+        return cls([[float(i == j) for i in range(n)] for j in range(n)])
 
     @classmethod
     def basis(cls, u, v, normalize=False):
@@ -5596,10 +5604,10 @@ class MatrixN(Array):
         #it = self.axisiter(axis)
         # print self.transpose(axis).formated()
         if wrap:
-            return Array([self[i, (i + offset) % shape[1]] for i in xrange(shape[0])])
+            return Array([self[i, (i + offset) % shape[1]] for i in range(shape[0])])
         else:
             l = []
-            for i in xrange(shape[0]):
+            for i in range(shape[0]):
                 if (i + offset) < shape[1]:
                     l.append(self[i, (i + offset)])
             return Array(l)
@@ -5740,7 +5748,7 @@ class MatrixN(Array):
                                 [(self[1, 0] * self[2, 1] - self[1, 1] * self[2, 0]), -(self[0, 0] * self[2, 1] - self[0, 1] * self[2, 0]), (self[0, 0] * self[1, 1] - self[0, 1] * self[1, 0])]])
         else:
             # generic cofactor expansion method
-            a = self.__class__([[self.cofactor(j, i) for j in xrange(n)] for i in xrange(n)])
+            a = self.__class__([[self.cofactor(j, i) for j in range(n)] for i in range(n)])
 
         return a
 
@@ -5749,9 +5757,9 @@ class MatrixN(Array):
         assert nc >= nr, "MatrixN needs to have at least as much columns as rows to do a Gauss-Jordan elimination"
         m = self.deepcopy()
         nbperm = 0
-        for i in xrange(nr):
+        for i in range(nr):
             maxr = i
-            for j in xrange(i + 1, nr):
+            for j in range(i + 1, nr):
                 if abs(m[j, i]) > abs(m[maxr, i]):
                     maxr = j
             # swap rows
@@ -5761,11 +5769,11 @@ class MatrixN(Array):
             if abs(m[i, i]) < eps:
                 raise ZeroDivisionError("MatrixN is singular")
             d = float(m[i, i])
-            for j in xrange(i + 1, nr):
+            for j in range(i + 1, nr):
                 # eliminate lower rows
                 if abs(m[j, i]) >= eps:
                     f = m[j, i] / d
-                    for k in xrange(i, nc):
+                    for k in range(i, nc):
                         m[j, k] -= f * m[i, k]
                         # print m.formated()
                     # print m.formated()
@@ -5964,7 +5972,7 @@ class MatrixN(Array):
         elif n < 6:
             # cofactors, gets slower than Gauss-Jordan for sizes 6 and more
             d = 0
-            for j in xrange(n):
+            for j in range(n):
                 d += self[0, j] * self.cofactor(0, j)  # ((-1)**j)*self.minor(0,j).det()
         else:
             # Gauss-Jordan elimination
@@ -6071,7 +6079,7 @@ class MatrixN(Array):
                 # here calculate determinant from the adjugate matrix components to avoid computing cofactors twice
                 a = self.adjugate()  # [[self.cofactor(j, i) for j in xrange(n)] for i in xrange(n)]
                 d = 0.0
-                for j in xrange(n):
+                for j in range(n):
                     d += self[0, j] * a[j, 0]
                 i = a / float(d)
             else:
@@ -6543,7 +6551,7 @@ class VectorN(Array):
             assert len(nself) == len(nother)
         except:
             raise TypeError("%s not convertible to %s, dot product is only defined for two Vectors of identical size" % (clsname(other), clsname(self)))
-        return reduce(operator.add, map(operator.mul, nself, nother))
+        return reduce(operator.add, list(map(operator.mul, nself, nother)))
 
     def outer(self, other):
         """ u.outer(v) <==> outer(u, v)
@@ -6578,7 +6586,7 @@ class VectorN(Array):
             Returns the square length of u, ie u.dot(u).
 
         """
-        return reduce(operator.add, map(lambda x: x ** 2, self))
+        return reduce(operator.add, [x ** 2 for x in self])
 
     def length(self):
         # type: () -> float

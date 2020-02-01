@@ -1,8 +1,15 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 #from pymel.core import factories
 #from pymel.all import mayautils
+from builtins import input
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import pprint
 import os.path
 import re
@@ -19,7 +26,7 @@ import pymel.util as util
 def separateExampleCache():
     examples = {}
     succ = fail = 0
-    for cmdName, cmdInfo in factories.cmdlist.iteritems():
+    for cmdName, cmdInfo in factories.cmdlist.items():
         try:
             examples[cmdName] = cmdInfo.pop('example')
             succ += 1
@@ -43,19 +50,19 @@ def separateApiDocs():
     data = list(mayautils.loadCache('mayaApi',compressed=True))
     apiClassInfo = data[7]
     newApiDocs = {}
-    for mfn, mfnInfo in apiClassInfo.iteritems():
+    for mfn, mfnInfo in apiClassInfo.items():
         #print mfn, type(mfnInfo)
         if isinstance(mfnInfo, dict):
             #print mfn
             newAllMethodsInfo = {}
-            for method, methodInfoList in mfnInfo['methods'].iteritems():
+            for method, methodInfoList in mfnInfo['methods'].items():
                 newMethodInfoList = []
                 for i, methodInfo in enumerate(methodInfoList):
                     newMethodInfo = {}
                     if 'doc' in methodInfo:
                         newMethodInfo['doc'] = methodInfo.pop('doc')
                     newArgInfo = {}
-                    for arg, argInfo in methodInfo['argInfo'].iteritems():
+                    for arg, argInfo in methodInfo['argInfo'].items():
                         if 'doc' in argInfo:
                             newArgInfo[arg] = {'doc': argInfo.pop('doc')}
                     if newArgInfo:
@@ -86,7 +93,7 @@ def upgradeCmdCaches():
     cmdDocList = {}
     examples = {}
     succ = fail = 0
-    for cmdName, cmdInfo in cmdlist.iteritems():
+    for cmdName, cmdInfo in cmdlist.items():
 
         flags = cmdcache.getCallbackFlags(cmdInfo)
         if flags:
@@ -102,7 +109,7 @@ def upgradeCmdCaches():
             newCmdInfo['description'] = cmdInfo.pop('description')
         newFlagInfo = {}
         if 'flags' in cmdInfo:
-            for flag, flagInfo in cmdInfo['flags'].iteritems():
+            for flag, flagInfo in cmdInfo['flags'].items():
                 newFlagInfo[flag] = { 'docstring' : flagInfo.pop('docstring') }
             newCmdInfo['flags'] = newFlagInfo
 
@@ -112,7 +119,7 @@ def upgradeCmdCaches():
         if 'shortFlags' in cmdInfo:
             d = {}
             #print cmdName
-            for flag, flagInfo in cmdInfo['shortFlags'].iteritems():
+            for flag, flagInfo in cmdInfo['shortFlags'].items():
                 if isinstance(flagInfo, dict):
                     d[flag] = flagInfo['longname']
                 elif isinstance(flagInfo, basestring):
@@ -144,7 +151,7 @@ def addCallbackFlags():
     data = list(mayautils.loadCache('mayaCmdsList',compressed=True))
     cmdlist = data[0]
     succ = 0
-    for cmdName, cmdInfo in cmdlist.iteritems():
+    for cmdName, cmdInfo in cmdlist.items():
         flags = factories.getCallbackFlags(cmdInfo)
         if flags:
             cmdlist[cmdName]['callbackFlags'] = flags
@@ -156,11 +163,11 @@ def addCallbackFlags():
 
 def reduceShortFlags():
     succ = 0
-    for cmdName, cmdInfo in factories.cmdlist.iteritems():
+    for cmdName, cmdInfo in factories.cmdlist.items():
         if 'shortFlags' in cmdInfo:
             d = {}
             print(cmdName)
-            for flag, flagInfo in cmdInfo['shortFlags'].iteritems():
+            for flag, flagInfo in cmdInfo['shortFlags'].items():
                 if isinstance(flagInfo, dict):
                     d[flag] = flagInfo['longname']
                 elif isinstance(flagInfo, basestring):
@@ -342,10 +349,10 @@ def compareTrees(tree1, tree2):
 def _getClassEnumDicts(pickleData, parser):
     classInfos = pickleData[-1]
     classEnums = {}; classPyEnums = {}
-    for className, classInfo in classInfos.iteritems():
+    for className, classInfo in classInfos.items():
         enums = classInfo.get('enums')
         if enums:
-            enums = dict( (enumName, data['values']) for enumName, data in enums.iteritems())
+            enums = dict( (enumName, data['values']) for enumName, data in enums.items())
             classEnums[className] = enums
         pyEnums = classInfo.get('pymelEnums')
         if pyEnums:
@@ -369,8 +376,8 @@ def checkEnumConsistency(pickleData, docLocation=None, parser=None):
 
     badByEnum = {}
 
-    for className, enums in classEnums.iteritems():
-        for enumName, enum in enums.iteritems():
+    for className, enums in classEnums.items():
+        for enumName, enum in enums.items():
             fullEnumName = "%s.%s" % (className, enumName)
             badThisEnum = {}
             try:
@@ -379,7 +386,7 @@ def checkEnumConsistency(pickleData, docLocation=None, parser=None):
                 pyEnum = classPyEnums[className][enumName]
                 #print pyEnum
                 enumToPyNames = parser._apiEnumNamesToPymelEnumNames(enum)
-                for apiName, val in enum._keys.iteritems():
+                for apiName, val in enum._keys.items():
                     pyName = enumToPyNames[apiName]
                     try:
                         pyIndex = pyEnum.getIndex(pyName)
@@ -435,7 +442,7 @@ def convertPymelEnums(docLocation=None):
     enumsByCache = {}
     for cachePath in caches:
         print("checking enum data for: %s" % cachePath)
-        raw = pm.util.picklezip.load(unicode(cachePath))
+        raw = pm.util.picklezip.load(str(cachePath))
         rawCaches[cachePath] = raw
         classEnums, classPyEnums, bad = checkEnumConsistency(raw, parser=parser)
         if bad:
@@ -445,29 +452,29 @@ def convertPymelEnums(docLocation=None):
         pprint.pprint(badByCache)
         print("Do you want to continue converting pymel enums? (y/n)")
         print("(Pymel values will be altered to match the api values)")
-        answer = raw_input().lower().strip()
+        answer = input().lower().strip()
         if not answer or answer[0] != 'y':
             print("aborting cache update")
             return
     fixedKeys = []
     deletedEnums = []
-    for cachePath, raw in rawCaches.iteritems():
+    for cachePath, raw in rawCaches.items():
         print('=' * 60)
         print("Fixing: %s" % cachePath)
         apiClassInfo = raw[-1]
         apiEnums = enumsByCache[cachePath]['api']
         pyEnums = enumsByCache[cachePath]['py']
         assert(set(apiEnums.keys()) == set(pyEnums.keys()))
-        for className, apiEnumsForClass in apiEnums.iteritems():
+        for className, apiEnumsForClass in apiEnums.items():
             pyEnumsForClass = pyEnums[className]
             assert(set(apiEnumsForClass.keys()) == set(pyEnumsForClass.keys()))
-            for enumName, apiEnum in apiEnumsForClass.iteritems():
+            for enumName, apiEnum in apiEnumsForClass.items():
                 fullEnumName = '%s.%s' % (className, enumName)
                 print(fullEnumName)
 
                 # first, find any "bad" values - ie, values whose index is None
                 # - and delete them
-                badKeys = [key for key, index in apiEnum._keys.iteritems()
+                badKeys = [key for key, index in apiEnum._keys.items()
                            if index is None]
                 if badKeys:
                     print("!!!!!!!!")
@@ -499,8 +506,8 @@ def convertPymelEnums(docLocation=None):
                     raise
 
     # After making ALL changes, if there were NO errors, write them all out...
-    for cachePath, raw in rawCaches.iteritems():
-        pm.util.picklezip.dump(raw, unicode(cachePath))
+    for cachePath, raw in rawCaches.items():
+        pm.util.picklezip.dump(raw, str(cachePath))
 
 def apiPymelWrapData(keepDocs=False, keepReturnQualifiers=True):
     '''
@@ -520,8 +527,8 @@ def apiPymelWrapData(keepDocs=False, keepReturnQualifiers=True):
 
     apiClassInfo = factories.apiClassInfo
     usedMethods = {}
-    for apiClassName, classMethods in factories._apiMethodWraps.iteritems():
-        for methodName, methodWraps in classMethods.iteritems():
+    for apiClassName, classMethods in factories._apiMethodWraps.items():
+        for methodName, methodWraps in classMethods.items():
             for methodWrapInfo in methodWraps:
                 func = methodWrapInfo['funcRef']
                 if func is None:
@@ -536,7 +543,7 @@ def apiPymelWrapData(keepDocs=False, keepReturnQualifiers=True):
                     # the docs aren't really necessary for comparing
                     # compatibility... get rid of them..
                     methodInfo.pop('doc', None)
-                    for argData in methodInfo.get('argInfo', {}).itervalues():
+                    for argData in methodInfo.get('argInfo', {}).values():
                         argData.pop('doc', None)
                     methodInfo.get('returnInfo', {}).pop('doc', None)
                 if not keepReturnQualifiers:
@@ -565,19 +572,19 @@ def findApiWrapRegressions(oldWraps, newWraps):
         getMethodProblems(className, methodName)[index] = issue
 
     problems = {}
-    for className, oldMethodNames in oldWraps.iteritems():
+    for className, oldMethodNames in oldWraps.items():
         if className not in newWraps:
             setClassProblem(className, '!!!Class missing!!!')
             continue
         newMethodNames = newWraps[className]
 
-        for methodName, oldMethodWraps in oldMethodNames.iteritems():
+        for methodName, oldMethodWraps in oldMethodNames.items():
             if methodName not in newMethodNames:
                 setMethodProblem(className, methodName, '!!!Method missing!!!')
                 continue
             newMethodWraps = newMethodNames[methodName]
 
-            for i, oldWrap in oldMethodWraps.iteritems():
+            for i, oldWrap in oldMethodWraps.items():
                 try:
                     newWrap = newMethodWraps[i]
                 except KeyError:

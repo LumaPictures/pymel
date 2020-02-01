@@ -47,7 +47,12 @@ path.py requires Python 2.5 or later.
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+from builtins import zip
+from past.builtins import basestring
+from builtins import *
+from builtins import object
 import sys
 import warnings
 import os
@@ -86,12 +91,12 @@ except NameError:
     basestring = str
 
 try:
-    unicode
+    str
 except NameError:
-    unicode = str
+    str = str
 
 try:
-    getcwdu = os.getcwdu
+    getcwdu = os.getcwd
 except AttributeError:
     getcwdu = os.getcwd
 
@@ -154,7 +159,7 @@ class multimethod(object):
         )
 
 
-class path(unicode):
+class path(str):
 
     """ Represents a filesystem path.
 
@@ -914,7 +919,7 @@ class path(unicode):
         conversion.
 
         """
-        if isinstance(text, unicode):
+        if isinstance(text, str):
             if linesep is not None:
                 # Convert all standard end-of-line sequences to
                 # ordinary newline characters.
@@ -1005,7 +1010,7 @@ class path(unicode):
             mode = 'wb'
         with self.open(mode) as f:
             for line in lines:
-                isUnicode = isinstance(line, unicode)
+                isUnicode = isinstance(line, str)
                 if linesep is not None:
                     # Strip off any existing line-end and add the
                     # specified linesep string.
@@ -1581,7 +1586,7 @@ def _permission_mask(mode):
     return functools.partial(op_map[op], mask)
 
 
-class CaseInsensitivePattern(unicode):
+class CaseInsensitivePattern(str):
 
     """
     A string with a 'normcase' property, suitable for passing to

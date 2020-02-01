@@ -16,7 +16,15 @@
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import unicode_literals
 
+from past.builtins import cmp
+from builtins import str
+from builtins import map
+from past.builtins import basestring
+from builtins import *
+from builtins import object
+import functools
 import re
 import inspect
 import sys
@@ -56,7 +64,7 @@ class ParsingWarning(UserWarning):
     pass
 
 
-ProxyUni = proxyClass(unicode, 'ProxyUni', module=__name__, dataFuncName='compileName', remove=['__getitem__', '__doc__'])  # 2009 Beta 2.1 has issues with passing classes with __getitem__
+ProxyUni = proxyClass(str, 'ProxyUni', module=__name__, dataFuncName='compileName', remove=['__getitem__', '__doc__'])  # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 # For parsed objects, Token or upper level constructs
 
@@ -93,7 +101,7 @@ class Parsed(ProxyUni):
                     newname = getParts(x, newname)
             except AttributeError:
                 # print "DEAD", repr(obj)
-                newname += unicode(obj._name)
+                newname += str(obj._name)
             return newname
         self._name = getParts(self, newname)
         return self._name
@@ -147,7 +155,7 @@ class Parsed(ProxyUni):
     @classmethod
     def classparse(cls, data, **kwargs):
         clsname = cls.__name__
-        data = unicode(data)
+        data = str(data)
         debug = kwargs.get('debug', verbose())
         errmsg = ''
         # print "Calling parser %s with debug %s" % (cls.classparser(), debug)
@@ -320,14 +328,14 @@ class Parsed(ProxyUni):
             sub = data.sub
             pos = data.pos
             valid = data.isValid()
-            value = unicode(data)
+            value = str(data)
         elif newcls.accepts(data):
             # if debug : print "ACCEPTS", data, repr(data)
             # from a compatible Parsed sub class, build the sub list from it
             sub.append(data)
             pos = data.pos
             valid = data.isValid()
-            value = unicode(data)
+            value = str(data)
         elif isSequence(data) and not isinstance(data, basestring):
             # building from sub parts, must be of the same type and in class _accepts
             # TODO : use yacc own rules for accepts
@@ -348,7 +356,7 @@ class Parsed(ProxyUni):
                     else:
                         valid = False
                         break
-                value = u"".join(map(unicode, data))
+                value = u"".join(map(str, data))
                 if valid:
                     pos = sub[0].pos
                 else:
@@ -359,7 +367,7 @@ class Parsed(ProxyUni):
             if debug:
                 print("REPARSE", data, repr(data))
             # reparse unless it's a Token we already know the type of
-            value = unicode(data)
+            value = str(data)
             if issubclass(newcls, Token) and newcls is not Token:
                 sub = []
                 pos = 0
@@ -370,7 +378,7 @@ class Parsed(ProxyUni):
         # parse if necessary
         if valid:
             # print "No reparsing necessary for a resulting value %s (%r)" % (value, value)
-            strvalue = unicode(value)
+            strvalue = str(value)
         elif isinstance(value, basestring):
             if debug:
                 print("%s: Will need to reparse value %r" % (clsname, value))
@@ -381,7 +389,7 @@ class Parsed(ProxyUni):
             if debug:
                 print("RESULT", result, type(result), isinstance(result, newcls))
             if result is not None and isinstance(result, newcls):
-                strvalue = unicode(result)
+                strvalue = str(result)
                 valid = result._valid
                 sub = result._sub
                 pos = result._pos
@@ -423,7 +431,7 @@ class Parsed(ProxyUni):
         cls = self.__class__
         selfvalid = self.isValid()
         sublist = list(self.sub)
-        value = unicode(self)
+        value = str(self)
         # check other's type
         if isinstance(other, cls):
             othervalid = other.isValid()
@@ -441,7 +449,7 @@ class Parsed(ProxyUni):
             result = cls(*sublist)
         else:
             # reparse
-            result = cls(unicode(self) + unicode(other))
+            result = cls(str(self) + str(other))
 
         return result
 
@@ -489,11 +497,13 @@ class Parser(object):
 
         rulesDict, tokensDict = Parser.getRulesAndTokens(parsercls)
 
-        tokens = tokensDict.keys()
+        tokens = list(tokensDict.keys())
         rules = list(rulesDict.keys())
         # Sort them by line number of declaration as it's how the yacc builder works to order rules
         # TODO : some more explicit rule order handling (when precedence isn't an option) ?
-        rules.sort(lambda x, y: cmp(rulesDict[x].__code__.co_firstlineno, rulesDict[y].__code__.co_firstlineno))
+        rules.sort(key=functools.cmp_to_key(
+            lambda x, y: cmp(rulesDict[x].__code__.co_firstlineno,
+                             rulesDict[y].__code__.co_firstlineno)))
         # print "sorted rules:", [(r, parsercls.rulesDict[r].__code__.co_firstlineno) for r in rules]
         rules = tuple(rules)
 
@@ -871,7 +881,7 @@ class autoparsed(type):
                     setattr(newcls, '_parser', parsercls)
                 else:
                     # update the existing parser
-                    for k, v in updatedict.iteritems():
+                    for k, v in updatedict.items():
                         setattr(parsercls, k, v)
 
                 setattr(newcls, '_accepts', tuple(accepts_set))
@@ -1006,7 +1016,7 @@ def process(module=None):
     tokensDict = {}
 
     # gather up all tokens, parsers, and parsed
-    for name, obj in module_dict.iteritems():
+    for name, obj in module_dict.items():
         if isParserClass(obj):
             parserDict[name] = obj
             tokensDict.update(_getTokenPatterns(obj))

@@ -4,7 +4,11 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
+from builtins import range
+from past.builtins import basestring
+from builtins import *
 import sys
 import pydoc
 import types
@@ -155,7 +159,7 @@ def writemods(branch, output, modules=None):
     toReload = set()
     for modname in modules:
         splitname = modname.split('.')
-        for i in xrange(1, len(splitname) + 1):
+        for i in range(1, len(splitname) + 1):
             toReload.add('.'.join(splitname[:i]))
 
     for mod in list(sys.modules):
