@@ -23,11 +23,11 @@ Attitude Studio, and ImageMovers Digital.
 """
 
 
-__versiontuple__ = (1, 1, 0)
-__version__ = '.'.join(str(x) for x in __versiontuple__)
-__authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowitch']
+__versiontuple__ = (1, 2, 0)
+__version_suffix__ = 'a1'
+__version__ = '.'.join(str(x) for x in __versiontuple__) + __version_suffix__
+__authors__ = ['Chad Dombrova', 'Paul Molodowitch', 'Olivier Renouard', 'Ofer Koren']
 
 import sys
 assert sys.version_info > (2, 7), ("pymel version %s is compatible with Maya2016/python2.7 or later" % __version__)
 
-#import internal.plogging as plogging
