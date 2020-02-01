@@ -10,14 +10,7 @@ import pymel.versions as versions
 import plogging
 from pymel.mayautils import getMayaLocation
 
-try:
-    from pymel.util.external.BeautifulSoup import BeautifulSoup, NavigableString
-except ImportError:
-    try:
-        from BeautifulSoup import BeautifulSoup, NavigableString
-    except ImportError:
-        BeautifulSoup = None
-        NavigableString = None
+from bs4 import BeautifulSoup, NavigableString
 
 from keyword import iskeyword as _iskeyword
 
