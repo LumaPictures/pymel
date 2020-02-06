@@ -12,7 +12,7 @@ echo "$this_script"
 
 print_python_module_dir() {
     module="$1"
-    python -c '
+    mayapy -c '
 try:
     import '$module' as test_mod
 except ImportError:
