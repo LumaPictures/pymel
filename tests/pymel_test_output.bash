@@ -33,19 +33,19 @@ echo "$this_dir"
 pymel_dir=$(dirname "$this_dir")
 pytest_dir=$(print_python_module_dir pytest)
 pkg_resources_dir=$(print_python_module_dir pkg_resources)
-nose_dir=$(print_python_module_dir nose)
-unittest2_dir=$(print_python_module_dir pytest)
 
 mayapy_dir=$(dirname "$(which mayapy)")
 
 # without setting MAYA_DISABLE_CIP and MAYA_DISABLE_CLIC_IPM, got segfaults
 # on our gitlab test runner...
-THE_CMD="export DISPLAY=:0.0;export HOME=$HOME;export TERM=$TERM;export SHELL=$SHELL;export MAYA_DISABLE_CIP=1;export MAYA_DISABLE_CLIC_IPM=1;export USER=$USER;export PATH="'$PATH'":$mayapy_dir;export PYTHONPATH='$pymel_dir:$pytest_dir:$pkg_resources_dir:$nose_dir:$unittest2_dir';${this_dir}/pymel_test.py --gui-stdout --app-dir='$settings_dir' $@"
-
-echo $THE_CMD
-
-# for some reason, just doing:
-#    env -i "$bash_cmd" -c "$THE_CMD"
-# ...doesn't work in cygwin
-bash_cmd=$(which bash)
-env -i "$bash_cmd" -c "$THE_CMD"
+the_cmd=("$(which mayapy)"
+    "${this_dir}/pymel_test.py" --gui-stdout "--app-dir=$settings_dir" "$@")
+env_vars=(DISPLAY=:0.0 "HOME=$HOME" "TERM=$TERM" "SHELL=$SHELL"
+    "USER=$USER" "PATH=$PATH:$mayapy_dir"
+    "PYTHONPATH=$pymel_dir:$pytest_dir:$pkg_resources_dir"
+    MAYA_DISABLE_CIP=1 MAYA_DISABLE_CLIC_IPM=1)
+echo "env_vars:"
+echo "${env_vars[@]}"
+echo "the_cmd:"
+echo "${the_cmd[@]}"
+env -i "${env_vars[@]}" "${the_cmd[@]}"
