@@ -5,7 +5,12 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 import collections
-import collections.abc
+
+# 2to3: remove switch when python-3 only
+try:
+    from collections.abc import Mapping, MutableMapping
+except ImportError:
+    from collections import Mapping, MutableMapping
 import sys
 import os
 import inspect
@@ -76,7 +81,7 @@ def pythonToMel(arg):
     if isinstance(arg, datatypes.Vector):
         return '<<%f,%f,%f>>' % (arg[0], arg[1], arg[2])
     if util.isIterable(arg):
-        if isinstance(arg, collections.abc.Mapping):
+        if isinstance(arg, Mapping):
             arg = list(_flatten(arg.items()))
         else:
             arg = list(_flatten(arg))
@@ -274,7 +279,7 @@ else:
     _Parent = dict
 
 
-class MelGlobals(collections.MutableMapping, _Parent):
+class MelGlobals(MutableMapping, _Parent):
 
     """ A dictionary-like class for getting and setting global variables between mel and python.
 
@@ -628,7 +633,7 @@ class OptionVarList(tuple):
     append = appendVar
 
 
-class OptionVarDict(collections.MutableMapping):
+class OptionVarDict(MutableMapping):
 
     """
     A dictionary-like class for accessing and modifying optionVars.
