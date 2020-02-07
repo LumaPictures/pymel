@@ -33,6 +33,8 @@ def getParser():
     parser.add_argument('-W', '--warnings-as-errors', action='store_true',
                         help="Treat DeprecationWarning and FutureWarning as"
                              " errors")
+    parser.add_argument('--no-doctest', dest='doctest', action='store_false',
+        help='''Skip running doctests''')
     return parser
 
 _PYTHON_DOT_NAME_RE = re.compile(r'[A-Za-z_][A-Za-z_0-9]*(\.[A-Za-z_][A-Za-z_0-9]*)+')
@@ -91,12 +93,14 @@ def isMayaOutput(stream):
     return streamCls.__name__ == 'Output' and streamCls.__module__ == 'maya'
 
 
-def pytest_test(argv, warnings_as_errors=False):
+def pytest_test(argv, doctest=True, warnings_as_errors=False):
     import pytest
     import warnings
 
-    argv[0] = 'pytest'
-    argv[1:1] = ['-vv', '--doctest-modules']  # verbose
+    new_args = ['pytest', '-vv'] # verbose
+    if doctest:
+        new_args.append('--doctest-modules')
+    argv[0:1] = new_args
 
     if warnings_as_errors:
         # TODO: possibly get rid of our own flag entirely, and require
@@ -235,7 +239,8 @@ def main(argv):
         print "using pymel from: %s" % inspect.getsourcefile(pymel)
 
         try:
-            return pytest_test(argv, warnings_as_errors=parsed.warnings_as_errors)
+            return pytest_test(argv, doctest=parsed.doctest,
+                warnings_as_errors=parsed.warnings_as_errors)
         finally:
             os.chdir(oldPath)
     finally:
