@@ -4432,6 +4432,7 @@ class Array(object):
         except:
             return NotImplemented
         res = map(operator.truediv, nself, nother)
+        return self.__class__._convert(res)
 
     def __rtruediv__(self, other):
         """ a.__rtruediv__(b) <==> b/a
@@ -4444,6 +4445,7 @@ class Array(object):
         except:
             return NotImplemented
         res = map(operator.truediv, nother, nself)
+        return self.__class__._convert(res)
 
     def __itruediv__(self, other):
         """ a.__itruediv__(b) <==> a /= b
@@ -4459,6 +4461,7 @@ class Array(object):
         except:
             return NotImplemented
         res = map(operator.floordiv, nself, nother)
+        return self.__class__._convert(res)
 
     def __rfloordiv__(self, other):
         """ a.__rfloordiv__(b) <==> b//a
@@ -4469,6 +4472,7 @@ class Array(object):
         except:
             return NotImplemented
         res = map(operator.floordiv, nother, nself)
+        return self.__class__._convert(res)
 
     def __ifloordiv__(self, other):
         """ a.__ifloordiv__(b) <==> a //= b
@@ -4484,6 +4488,7 @@ class Array(object):
         except:
             return NotImplemented
         res = map(operator.mod, nself, nother)
+        return self.__class__._convert(res)
 
     def __rmod__(self, other):
         """ a.__rmod__(b) <==> b%a
@@ -4494,6 +4499,7 @@ class Array(object):
         except:
             return NotImplemented
         res = map(operator.mod, nother, nself)
+        return self.__class__._convert(res)
 
     def __imod__(self, other):
         """ a.__imod__(b) <==> a %= b
