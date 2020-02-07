@@ -100,7 +100,11 @@ def pytest_test(argv, doctest=True, warnings=True):
     import pytest
     import warnings as warnings_mod
 
-    new_args = ['pytest', '-vv'] # verbose
+    new_args = [
+        'pytest',
+        '-vv',  # verbose
+        '-rfE',  # print summary with (f)ailed and (E)rror
+    ]
     if doctest:
         new_args.append('--doctest-modules')
     argv[0:1] = new_args
