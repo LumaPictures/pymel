@@ -779,8 +779,8 @@ class ApiDocParser(object):
                 '+': '__add__',
                 '-=': '__isub__',
                 '-': '__sub__',
-                '/=': '__idiv__',
-                '/': '__div__',
+                '/=': '__itruediv__',
+                '/': '__truediv__',
                 '==': '__eq__',
                 '!=': '__ne__',
                 '[]': '__getitem__'}.get(op, None)

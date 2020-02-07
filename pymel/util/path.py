@@ -206,8 +206,8 @@ class path(unicode):
         return self._next_class(other.__add__(self))
 
     # The / operator joins paths.
-    def __div__(self, rel):
-        """ fp.__div__(rel) == fp / rel == fp.joinpath(rel)
+    def __truediv__(self, rel):
+        """ fp.__truediv__(rel) == fp / rel == fp.joinpath(rel)
 
         Join two path components, adding a separator character if
         needed.
@@ -216,8 +216,8 @@ class path(unicode):
         """
         return self._next_class(self.module.join(self, rel))
 
-    # Make the / operator work even when true division is enabled.
-    __truediv__ = __div__
+    # Make the / operator work even when true division is not enabled.
+    __div__ = __truediv__
 
     def __enter__(self):
         self._old_dir = self.getcwd()
