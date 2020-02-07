@@ -554,31 +554,34 @@ class Vector(VectorN):
         except Exception:
             return NotImplemented
 
-    def __div__(self, other):
-        """ u.__div__(v) <==> u/v
+    def __truediv__(self, other):
+        """ u.__truediv__(v) <==> u/v
             Returns the result of the division of u by v if v is convertible to a VectorN (element-wise division),
             divide every component of u by v if v is a scalar """
         try:
-            return self.__class__._convert(self.apicls.__div__(self, other))
+            return self.__class__._convert(self.apicls.__truediv__(self, other))
         except Exception:
-            return self.__class__._convert(super(Vector, self).__div__(other))
+            return self.__class__._convert(super(Vector, self).__truediv__(other))
+    __div__ = __truediv__
 
-    def __rdiv__(self, other):
-        """ u.__rdiv__(v) <==> v/u
+    def __rtruediv__(self, other):
+        """ u.__rtruediv__(v) <==> v/u
             Returns the result of of the division of v by u if v is convertible to a VectorN (element-wise division),
             invert every component of u and multiply it by v if v is a scalar """
         try:
-            return self.__class__._convert(self.apicls.__rdiv__(self, other))
+            return self.__class__._convert(self.apicls.__rtruediv__(self, other))
         except Exception:
-            return self.__class__._convert(super(Vector, self).__rdiv__(other))
+            return self.__class__._convert(super(Vector, self).__rtruediv__(other))
+    __rdiv__ = __rtruediv__
 
-    def __idiv__(self, other):
-        """ u.__idiv__(v) <==> u /= v
-            In place division of u by v, see __div__ """
+    def __itruediv__(self, other):
+        """ u.__itruediv__(v) <==> u /= v
+            In place division of u by v, see __truediv__ """
         try:
-            return self.__class__(self.__div__(other))
+            return self.__class__(self.__truediv__(other))
         except Exception:
             return NotImplemented
+    __idiv__ = __itruediv__
     # action depends on second object type
 
     def __mul__(self, other):
@@ -2998,31 +3001,34 @@ class EulerRotation(Array):
         except:
             return NotImplemented
 
-    def __div__(self, other):
-        """ u.__div__(v) <==> u/v
+    def __truediv__(self, other):
+        """ u.__truediv__(v) <==> u/v
             Returns the result of the division of u by v if v is convertible to a VectorN (element-wise division),
             divide every component of u by v if v is a scalar """
         try:
-            return self.__class__._convert(self.apicls.__div__(self, other))
+            return self.__class__._convert(self.apicls.__truediv__(self, other))
         except:
-            return self.__class__._convert(super(EulerRotation, self).__div__(other))
+            return self.__class__._convert(super(EulerRotation, self).__truediv__(other))
+    __div__ = __truediv__
 
-    def __rdiv__(self, other):
-        """ u.__rdiv__(v) <==> v/u
+    def __rtruediv__(self, other):
+        """ u.__rtruediv__(v) <==> v/u
             Returns the result of of the division of v by u if v is convertible to a VectorN (element-wise division),
             invert every component of u and multiply it by v if v is a scalar """
         try:
-            return self.__class__._convert(self.apicls.__rdiv__(self, other))
+            return self.__class__._convert(self.apicls.__rtruediv__(self, other))
         except:
-            return self.__class__._convert(super(EulerRotation, self).__rdiv__(other))
+            return self.__class__._convert(super(EulerRotation, self).__rtruediv__(other))
+    __rdiv__ = __rtruediv__
 
-    def __idiv__(self, other):
-        """ u.__idiv__(v) <==> u /= v
-            In place division of u by v, see __div__ """
+    def __itruediv__(self, other):
+        """ u.__itruediv__(v) <==> u /= v
+            In place division of u by v, see __itruediv__ """
         try:
-            return self.__class__(self.__div__(other))
+            return self.__class__(self.__itruediv__(other))
         except:
             return NotImplemented
+    __idiv__ = __itruediv__
     # action depends on second object type
 
     def __mul__(self, other):
