@@ -1368,7 +1368,7 @@ class Array(object):
                     else:
                         newsize *= idim
                 if newsize:
-                    newshape[unknown] = size / newsize
+                    newshape[unknown] = size // newsize
                 else:
                     newshape[unknown] = 0
                 newsize = reduce(operator.mul, newshape, 1)
