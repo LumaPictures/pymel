@@ -16,7 +16,6 @@ from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
 import pymel.internal.factories as _factories
 from pymel.util.enum import Enum
-from pymel.util.mathutils import clamp, blend, gamma
 
 if False:
     from typing import *

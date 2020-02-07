@@ -479,7 +479,7 @@ def length(a, axis=None):
         >>> length(A, axis=1)
         Array([0.865938219505, 0.865938219505, 0.707])
     """
-    return math.sqrt(sqlength(a, axis))
+    return sqrt(sqlength(a, axis))
 
 
 def normal(a, axis=None):
@@ -4680,7 +4680,7 @@ class Array(object):
             >>> A.length(1)
             Array([0.865938219505, 0.865938219505, 0.707])
         """
-        return math.sqrt(self.sqlength(*args))
+        return sqrt(self.sqlength(*args))
 
     def normal(self, *args):
         """ a.normal(axis0, axis1, ...) <==> normal(a[, axis=(axis0, axis1, ...)])
@@ -6533,7 +6533,7 @@ class VectorN(Array):
             Returns the length of u, ie sqrt(u.dot(u))
 
         """
-        return math.sqrt(self.sqlength())
+        return sqrt(self.sqlength())
 
     def normal(self):
         """ u.normal() --> VectorN
