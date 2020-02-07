@@ -20,7 +20,6 @@ import pymel.internal.pwarnings as _warnings
 import pymel.internal.startup as _startup
 import pymel.api as _api
 import pymel.versions as _versions
-import pymel.core.system as system
 import datatypes
 from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
@@ -1161,6 +1160,7 @@ def ls(*args, **kwargs):
     -------
     List[PyNode]
     """
+    import pymel.core.system as system
 
     regexArgs = kwargs.pop('regex', [])
     if not isinstance(regexArgs, (tuple, list)):
