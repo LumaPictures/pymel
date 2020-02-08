@@ -494,7 +494,7 @@ class Parser(object):
         # Sort them by line number of declaration as it's how the yacc builder works to order rules
         # TODO : some more explicit rule order handling (when precedence isn't an option) ?
         rules.sort(lambda x, y: cmp(rulesDict[x].__code__.co_firstlineno, rulesDict[y].__code__.co_firstlineno))
-        # print "sorted rules:", [(r, parsercls.rulesDict[r].func_code.co_firstlineno) for r in rules]
+        # print "sorted rules:", [(r, parsercls.rulesDict[r].__code__.co_firstlineno) for r in rules]
         rules = tuple(rules)
 
         parsercls.tokens = tuple(tokens + list(set(reserved)))
