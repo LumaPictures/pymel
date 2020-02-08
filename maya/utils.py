@@ -118,7 +118,7 @@ def runOverriddenModule(modName, callingFileFunc, globals):
         except ImportError:
             continue
         # close the open file handle..
-        if isinstance(findResults[0], file):
+        if hasattr(findResults[0], 'close'):
             findResults[0].close()
         # ...then check if the found file matched the callingFile
         if any(samefile(findResults[1], oldFile)
@@ -208,8 +208,8 @@ if not globals().get('_pymel_patched') and '_origShellLogHandler' not in globals
             if detail == 1:
                 # format like MEL error with line number
                 if tbStack:
-                    file, line, func, text = tbStack[-1]
-                    result = u'%s: file %s line %s: %s' % (exceptionType.__name__, file, line, exceptionMsg)
+                    filename, line, func, text = tbStack[-1]
+                    result = u'%s: file %s line %s: %s' % (exceptionType.__name__, filename, line, exceptionMsg)
                 else:
                     result = exceptionMsg
             else: # detail == 2
