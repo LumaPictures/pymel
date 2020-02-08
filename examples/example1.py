@@ -53,16 +53,16 @@ Below, we make a camera, rename it, and then group and instance it, to demonstra
 that the changes could have just as easily been performed by the user interacting with objects through the GUI.
 
     >>> cam, shape = camera()
-    >>> print cam
+    >>> print(cam)
     camera1
     >>> cam.rename('renderCam')
     Transform(u'renderCam')
-    >>> print cam
+    >>> print(cam)
     renderCam
     >>> grp = group(cam)
     >>> instance(grp)
     [Transform(u'group2')]
-    >>> print cam
+    >>> print(cam)
     group1|renderCam
     >>> cam.getInstances()
     [Transform(u'group1|renderCam'), Transform(u'group2|renderCam')]

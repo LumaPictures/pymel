@@ -960,15 +960,15 @@ class MayaNodePath(NameParsed):
         >>> import pymel.util.nameparse as nameparse
         >>> obj = nameparse.parse( 'group1|pCube1|pCubeShape1' )
         >>> obj.setNamespace( 'foo:' )
-        >>> print obj
+        >>> print(obj)
         foo:group1|foo:pCube1|foo:pCubeShape1
-        >>> print obj.parent
+        >>> print(obj.parent)
         foo:group1|foo:pCube1
-        >>> print obj.node
+        >>> print(obj.node)
         foo:pCubeShape1
-        >>> print obj.node.basename
+        >>> print(obj.node.basename)
         pCubeShape1
-        >>> print obj.node.namespace
+        >>> print(obj.node.namespace)
         foo:
 
     """
@@ -1766,3 +1766,4 @@ if __name__ == '__main__':
     # test('SPACE:pre_someMaya12Name10_12')
     # interractive test for names parsing
     _itest()
+

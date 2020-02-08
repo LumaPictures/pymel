@@ -2307,7 +2307,7 @@ class DagNode(Entity):
             >>> t = polyTorus(name='torus')[0]
             >>> s | c | t
             nt.Transform(u'torus')
-            >>> print t.fullPath()
+            >>> print(t.fullPath())
             |sphere|cube|torus
 
         Returns
@@ -6739,8 +6739,8 @@ class Mesh(SurfaceShape):
 
         >>> # do every other edge between 0 and 10
         >>> for edge in p.e[0:10:2]:
-        ...     print edge
-        ...
+        ...     print(edge)
+        ... 
         theMoonShape.e[0]
         theMoonShape.e[2]
         theMoonShape.e[4]
@@ -6765,8 +6765,8 @@ class Mesh(SurfaceShape):
     Or maybe you want the position of every tenth vert:
 
         >>> for x in p.vtx[::10]:
-        ...     print x, x.getPosition()
-        ...
+        ...     print(x, x.getPosition())
+        ... 
         theMoonShape.vtx[0] [0.270522117615, -0.900968849659, -0.339223951101]
         theMoonShape.vtx[10] [-0.704405844212, -0.623489797115, 0.339223951101]
         theMoonShape.vtx[20] [0.974927902222, -0.222520858049, 0.0]
@@ -6777,8 +6777,8 @@ class Mesh(SurfaceShape):
     To be compatible with Maya's range notation, these slices are inclusive of the stop index.
 
         >>> # face at index 8 will be included in the sequence
-        >>> for f in p.f[4:8]: print f
-        ...
+        >>> for f in p.f[4:8]: print(f)
+        ... 
         theMoonShape.f[4]
         theMoonShape.f[5]
         theMoonShape.f[6]
@@ -43837,3 +43837,4 @@ class WtAddMatrix(DependNode):
 
 
 dynModule = _addTypeNames()
+

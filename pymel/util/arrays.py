@@ -174,17 +174,17 @@ def patchMath():
     """ Overload various math functions to work element-wise on iterables
 
         >>> A = Array([[0, pi/4.0], [pi/2.0, 3.0*pi/4.0], [pi, 5.0*pi/4.0], [3.0*pi/2.0, 7.0*pi/4.0]])
-        >>> print round(A,2).formated()
+        >>> print(round(A,2).formated())
         [[0.0, 0.79],
          [1.57, 2.36],
          [3.14, 3.93],
          [4.71, 5.5]]
-        >>> print degrees(A).formated()
+        >>> print(degrees(A).formated())
         [[0.0, 45.0],
          [90.0, 135.0],
          [180.0, 225.0],
          [270.0, 315.0]]
-        >>> print round(sin(A), 2).formated()
+        >>> print(round(sin(A), 2).formated())
         [[0.0, 0.71],
          [1.0, 0.71],
          [0.0, -0.71],
@@ -221,7 +221,7 @@ def sum(a, start=0, axis=None):
         If a is an Array and axis are specified will return an Array of sum(x) for x in a.axisiter(*axis)
 
         >>> A = Array([[1,2,3],[4,5,6]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2, 3],
          [4, 5, 6]]
         >>> sum(A)
@@ -249,7 +249,7 @@ def prod(a, start=1, axis=None):
         If axis are specified will return an Array of prod(x) for x in a.axisiter(*axis).
 
         >>> A = Array([[1,2,3],[4,5,6]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2, 3],
          [4, 5, 6]]
         >>> prod(A)
@@ -277,7 +277,7 @@ def any(a, axis=None):
         If axis are specified will return an Array of any(x) for x in a.axisiter(*axis).
 
         >>> A = Array([[False,True,True],[False,True,False]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[False, True, True],
          [False, True, False]]
         >>> any(A)
@@ -310,7 +310,7 @@ def all(a, axis=None):
         If axis are specified will return an Array of all(x) for x in a.axisiter(*axis).
 
         >>> A = Array([[True,True,True],[False,True,False]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[True, True, True],
          [False, True, False]]
         >>> all(A)
@@ -346,7 +346,7 @@ def min(*args, **kwargs):
         If axis are specified will return an Array of element-wise min(x) for x in a.axisiter(*axis).
 
         >>> A = Array([[6,3,4],[1,5,0.5]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[6, 3, 4],
          [1, 5, 0.5]]
         >>> min(A)
@@ -391,7 +391,7 @@ def max(*args, **kwargs):
         If axis are specified will return an Array of element-wise max(x) for x in a.axisiter(*axis).
 
         >>> A = Array([[6,3,4],[1,5,0.5]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[6, 3, 4],
          [1, 5, 0.5]]
         >>> max(A)
@@ -435,7 +435,7 @@ def sqlength(a, axis=None):
         If a is an Array and axis are specified will return a list of sqlength(x) for x in a.axisiter(*axis).
 
         >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[0.5, 0.5, -0.707],
          [0.707, -0.707, 0.0]]
         >>> sqlength(A)
@@ -471,7 +471,7 @@ def length(a, axis=None):
         If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis).
 
         >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[0.5, 0.5, -0.707],
          [0.707, -0.707, 0.0]]
         >>> round(length(A), 7)
@@ -492,19 +492,19 @@ def normal(a, axis=None):
         Returns a normalized copy of self: self/length(self, axis).
 
         >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[0.5, 0.5, -0.707],
          [0.707, -0.707, 0.0]]
-        >>> print normal(A).formated()
+        >>> print(normal(A).formated())
         [[0.353593437318, 0.353593437318, -0.499981120367],
          [0.499981120367, -0.499981120367, 0.0]]
-        >>> print normal(A, axis=(0,1)).formated()
+        >>> print(normal(A, axis=(0,1)).formated())
         [[0.353593437318, 0.353593437318, -0.499981120367],
          [0.499981120367, -0.499981120367, 0.0]]
-        >>> print normal(A, axis=0).formated()
+        >>> print(normal(A, axis=0).formated())
         [[0.5, 0.5, -0.707],
          [0.707, -0.707, 0.0]]
-        >>> print normal(A, axis=1).formated()
+        >>> print(normal(A, axis=1).formated())
         [[0.577408397894, 0.577408397894, -1.0],
          [0.816455474623, -0.816455474623, 0.0]]
     """
@@ -531,11 +531,11 @@ def dist(a, b, axis=None):
         Returns the distance between a and b, ie length(b-a, axis)
 
         >>> A = Array([[0.5, 0.5, -0.707],[0.707, -0.707, 0.0]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[0.5, 0.5, -0.707],
          [0.707, -0.707, 0.0]]
         >>> B = Array([[0.51, 0.49, -0.71],[0.71, -0.70, 0.0]])
-        >>> print B.formated()
+        >>> print(B.formated())
         [[0.51, 0.49, -0.71],
          [0.71, -0.7, 0.0]]
         >>> length(B-A)
@@ -579,7 +579,7 @@ class ArrayIter(object):
         numerical components if n-p is 0.
 
         >>> A = Array(range(1, 28), shape=(3, 3, 3))
-        >>> print A.formated()
+        >>> print(A.formated())
         [[[1, 2, 3],
           [4, 5, 6],
           [7, 8, 9]],
@@ -612,7 +612,7 @@ class ArrayIter(object):
         to set whole sub-arrays in any order (for instance rows or columns in MatrixN)
 
         >>> A = Array(range(1, 10), shape=(3, 3))
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2, 3],
          [4, 5, 6],
          [7, 8, 9]]
@@ -621,7 +621,7 @@ class ArrayIter(object):
         >>> len(ArrayIter(A, 0, 1))
         9
         >>> ArrayIter(A, 0, 1)[5:9] = [4, 3, 2, 1]
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2, 3],
          [4, 5, 4],
          [3, 2, 1]]
@@ -630,12 +630,12 @@ class ArrayIter(object):
         >>> len(ArrayIter(A, 1))
         3
         >>> ArrayIter(A, 1)[1] = [7, 8, 9]
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 7, 3],
          [4, 8, 4],
          [3, 9, 1]]
         >>> ArrayIter(A, 0)[1] = 0
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 7, 3],
          [0, 0, 0],
          [3, 9, 1]]
@@ -743,7 +743,7 @@ class ArrayIter(object):
             indices on the iterated sub-array (s).
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -808,7 +808,7 @@ class ArrayIter(object):
             Note : if it is an ArrayIter built on Array a, it's equivalent to a[c] for c in it.toArrayCoords(index)
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -824,10 +824,10 @@ class ArrayIter(object):
             Array([2, 5, 8])
             >>> ArrayIter(A, 1)[1, 0]
             2
-            >>> print ArrayIter(A, 1)[0:2, 0:2].formated()
+            >>> print(ArrayIter(A, 1)[0:2, 0:2].formated())
             [[1, 4],
              [2, 5]]
-            >>> print A.transpose()[0:2, 0:2].formated()
+            >>> print(A.transpose()[0:2, 0:2].formated())
             [[1, 4],
              [2, 5]]
         """
@@ -846,7 +846,7 @@ class ArrayIter(object):
             Warning : Do not use __delitem__ during iteration
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -855,13 +855,13 @@ class ArrayIter(object):
             >>> del ArrayIter(A, 0, 1)[1]
             >>> [a for a in ArrayIter(A, 0, 1)]
             [4, 6, 7, 9]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[4, 6],
              [7, 9]]
             >>> [a for a in ArrayIter(A, 1)]
             [Array([4, 7]), Array([6, 9])]
             >>> del ArrayIter(A, 1)[-1]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[4],
              [7]]
         """
@@ -883,7 +883,7 @@ class ArrayIter(object):
             a[c] = value[i] for i, c in enumerate(it.toArrayCoords(index)) if an iterable of values of suitable shapes was provided.
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -892,21 +892,21 @@ class ArrayIter(object):
             >>> ArrayIter(A, 0, 1)[4] = 10
             >>> [a for a in ArrayIter(A, 0, 1)]
             [1, 2, 3, 4, 10, 6, 7, 8, 9]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 10, 6],
              [7, 8, 9]]
             >>> ArrayIter(A, 0, 1)[0:3] = 1
             >>> [a for a in ArrayIter(A, 0, 1)]
             [1, 1, 1, 4, 10, 6, 7, 8, 9]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 1, 1],
              [4, 10, 6],
              [7, 8, 9]]
             >>> ArrayIter(A, 0, 1)[5:9] = [4, 3, 2, 1]
             >>> [a for a in ArrayIter(A, 0, 1)]
             [1, 1, 1, 4, 10, 4, 3, 2, 1]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 1, 1],
              [4, 10, 4],
              [3, 2, 1]]
@@ -915,17 +915,17 @@ class ArrayIter(object):
             >>> ArrayIter(A, 1)[1]
             Array([1, 10, 2])
             >>> ArrayIter(A, 1)[1, 1] = 5
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 1, 1],
              [4, 5, 4],
              [3, 2, 1]]
             >>> ArrayIter(A, 1)[-1] = [7, 8, 9]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 1, 7],
              [4, 5, 8],
              [3, 2, 9]]
             >>> ArrayIter(A, 0)[1] = 0
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 1, 7],
              [0, 0, 0],
              [3, 2, 9]]
@@ -968,23 +968,23 @@ class Array(object):
         >>> Array(2)
         Array([2])
         >>> A = Array([[1, 2], [3, 4]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2],
          [3, 4]]
         >>> A = Array([1, 2], [3, 4])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2],
          [3, 4]]
         >>> A = Array([[1, 2]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2]]
         >>> A = Array([1], [2], [3])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1],
          [2],
          [3]]
         >>> A = Array([[[1], [2], [3]]])
-        >>> print A.formated()
+        >>> print(A.formated())
         [[[1],
           [2],
           [3]]]
@@ -993,7 +993,7 @@ class Array(object):
         the total number of numeric components
 
         >>> A = Array(range(1, 10), shape=(3, 3))
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2, 3],
          [4, 5, 6],
          [7, 8, 9]]
@@ -1015,7 +1015,7 @@ class Array(object):
         unless the Array argument is resized / reshaped.
 
         >>> B = Array(A)
-        >>> print B.formated()
+        >>> print(B.formated())
         [[1, 2, 3],
          [4, 5, 6],
          [7, 8, 9]]
@@ -1026,7 +1026,7 @@ class Array(object):
         >>> B[0] is A[0]
         True
         >>> C = Array([A])
-        >>> print C.formated()
+        >>> print(C.formated())
         [[[1, 2, 3],
           [4, 5, 6],
           [7, 8, 9]]]
@@ -1043,20 +1043,20 @@ class Array(object):
         Value will be repeated if it is a valid sub-array of the Array requested
 
         >>> A = Array(1, shape=(2, 2))
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 1],
          [1, 1]]
 
         It will be padded otherwise, with the Array class default value
 
         >>> A = Array(1, 2, shape=(4,))
-        >>> print A.formated()
+        >>> print(A.formated())
         [1, 2, 0, 0]
 
         Or a combination of both, first pad it to a valid sub-array then repeat it
 
         >>> A = Array(1, 2, shape=(3, 3))
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2, 0],
          [1, 2, 0],
          [1, 2, 0]]
@@ -1064,7 +1064,7 @@ class Array(object):
         Repeat can occur in any dimension
 
         >>> A = Array([1, 2, 3], shape=(3, 3))
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2, 3],
          [1, 2, 3],
          [1, 2, 3]]
@@ -1079,12 +1079,12 @@ class Array(object):
         To avoid repetition, you can use a nested list of the desired number of dimensions
 
         >>> A = Array([1,2,3], shape=(3, 3))
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2, 3],
          [1, 2, 3],
          [1, 2, 3]]
         >>> A = Array([[1,2,3]], shape=(3, 3))
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2, 3],
          [0, 0, 0],
          [0, 0, 0]]
@@ -1093,12 +1093,12 @@ class Array(object):
         will be used (useful for the MatrixN sub-class or Array)
 
         >>> A = Array(range(1, 10), shape=(3, 3))
-        >>> print A.formated()
+        >>> print(A.formated())
         [[1, 2, 3],
          [4, 5, 6],
          [7, 8, 9]]
         >>> B = Array(A, shape=(4, 4))
-        >>> print B.formated()
+        >>> print(B.formated())
         [[1, 2, 3, 0],
          [4, 5, 6, 0],
          [7, 8, 9, 0],
@@ -1150,21 +1150,21 @@ class Array(object):
                          It can be queried, or set to change the Array's shape similarly to the reshape method.
 
                          >>> A = Array(range(1, 17), shape=(4, 4))
-                         >>> print A.formated()
+                         >>> print(A.formated())
                          [[1, 2, 3, 4],
                           [5, 6, 7, 8],
                           [9, 10, 11, 12],
                           [13, 14, 15, 16]]
                          >>> S = A[0]
                          >>> A.shape=(2, 2, 4)
-                         >>> print A.formated()
+                         >>> print(A.formated())
                          [[[1, 2, 3, 4],
                            [5, 6, 7, 8]],
                          <BLANKLINE>
                           [[9, 10, 11, 12],
                            [13, 14, 15, 16]]]
                          >>> A.shape=(4, 4)
-                         >>> print A.formated()
+                         >>> print(A.formated())
                          [[1, 2, 3, 4],
                           [5, 6, 7, 8],
                           [9, 10, 11, 12],
@@ -1207,7 +1207,7 @@ class Array(object):
             >>> B = Array()
             >>> B.assign(A)
             Array([[1, 2], [3, 4]])
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2],
              [3, 4]]
             >>> B == A
@@ -1229,7 +1229,7 @@ class Array(object):
             Returns a's internally stored value as a nested tuple, a raw dump of the stored numeric components.
 
             >>> A = Array(range(1, 5), shape=(2, 2))
-            >>> print A.get()
+            >>> print(A.get())
             ((1, 2), (3, 4))
         """
         res = []
@@ -1390,7 +1390,7 @@ class Array(object):
         """ Check and expand index on Array of given shape,
 
             >>> A = Array(1, shape=(3, 3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 1, 1],
               [1, 1, 1],
               [1, 1, 1]],
@@ -1453,7 +1453,7 @@ class Array(object):
         """ Check and expand index on given Array,
 
             >>> A = Array(1, shape=(3, 3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 1, 1],
               [1, 1, 1],
               [1, 1, 1]],
@@ -1477,7 +1477,7 @@ class Array(object):
         """ Check and expand a tuple of axis on Array,
 
             >>> A = Array(1, shape=(3, 3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 1, 1],
               [1, 1, 1],
               [1, 1, 1]],
@@ -1537,7 +1537,7 @@ class Array(object):
         """ Check and expand a tuple of axis on Array,
 
             >>> A = Array(1, shape=(3, 3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 1, 1],
               [1, 1, 1],
               [1, 1, 1]],
@@ -1799,11 +1799,11 @@ class Array(object):
             Array([0, 1, 2, 0, 0])
             >>> Array(shape=(5,)).filled(2)
             Array([2, 2, 2, 2, 2])
-            >>> print Array(shape=(2, 2)).filled(1).formated()
+            >>> print(Array(shape=(2, 2)).filled(1).formated())
             [[1, 1],
              [1, 1]]
             >>> A = Array(shape=(3, 3)).filled([1, 2, 3])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [1, 2, 3],
              [1, 2, 3]]
@@ -1812,7 +1812,7 @@ class Array(object):
             >>> A[0] is A[-1]
             False
             >>> A = Array(shape=(3, 3)).filled([1, 2])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 0],
              [1, 2, 0],
              [1, 2, 0]]
@@ -1863,27 +1863,27 @@ class Array(object):
             Examples:
 
             >>> A = Array(shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[0, 0, 0],
              [0, 0, 0],
              [0, 0, 0]]
             >>> A.fill(10)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[10, 10, 10],
              [10, 10, 10],
              [10, 10, 10]]
             >>> A.fill()
-            >>> print A.formated()
+            >>> print(A.formated())
             [[0, 0, 0],
              [0, 0, 0],
              [0, 0, 0]]
             >>> A.fill([1, 2])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 0],
              [1, 2, 0],
              [1, 2, 0]]
             >>> A.fill([1, 2, 3])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [1, 2, 3],
              [1, 2, 3]]
@@ -1908,32 +1908,32 @@ class Array(object):
             Examples:
 
             >>> A = Array([])
-            >>> print repr(A)
+            >>> print(repr(A))
             Array([])
             >>> A = A.appended(1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [1]
             >>> A = A.appended(2)
-            >>> print A.formated()
+            >>> print(A.formated())
             [1, 2]
             >>> A = Array([A])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2]]
             >>> A = A.appended([4, 5], axis=0)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [4, 5]]
             >>> A = A.appended([3, 6], axis=1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6]]
             >>> A = A.appended([7, 8, 9])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
             >>> B = Array([A]).appended(A)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -1950,7 +1950,7 @@ class Array(object):
             >>> A is B[0]
             False
             >>> B = B.appended([0, 0, 0], axis=1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9],
@@ -1961,7 +1961,7 @@ class Array(object):
               [7, 8, 9],
               [0, 0, 0]]]
             >>> B = B.appended([0, 0, 0, 1], axis=2)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3, 0],
               [4, 5, 6, 0],
               [7, 8, 9, 0],
@@ -1993,33 +1993,33 @@ class Array(object):
             Examples:
 
             >>> A = Array([])
-            >>> print repr(A)
+            >>> print(repr(A))
             Array([])
             >>> A.append(1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [1]
             >>> A.append(2)
-            >>> print A.formated()
+            >>> print(A.formated())
             [1, 2]
             >>> A = Array([A])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2]]
             >>> A.append([4, 5], axis=0)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [4, 5]]
             >>> A.append([3, 6], axis=1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6]]
             >>> A.append([7, 8, 9])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
             >>> B = Array([A])
             >>> B.append(A)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -2036,7 +2036,7 @@ class Array(object):
             >>> A is B[0]
             True
             >>> B.append([0, 0, 0], axis=1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9],
@@ -2047,7 +2047,7 @@ class Array(object):
               [7, 8, 9],
               [0, 0, 0]]]
             >>> B.append([0, 0, 0, 1], axis=2)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3, 0],
               [4, 5, 6, 0],
               [7, 8, 9, 0],
@@ -2119,33 +2119,33 @@ class Array(object):
             Examples:
 
             >>> A = Array([])
-            >>> print repr(A)
+            >>> print(repr(A))
             Array([])
             >>> A = A.stacked([1])
-            >>> print A.formated()
+            >>> print(A.formated())
             [1]
             >>> A = A.stacked([2])
-            >>> print A.formated()
+            >>> print(A.formated())
             [1, 2]
             >>> A = Array([A])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2]]
             >>> A = A.stacked([[4, 5]], axis=0)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [4, 5]]
             >>> A = A.stacked([[3], [6]], axis=1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6]]
             >>> A = A.stacked([[7, 8, 9]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
             >>> B = Array([A])
             >>> B = B.stacked(B)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -2162,7 +2162,7 @@ class Array(object):
             >>> A is B[0]
             False
             >>> B = B.stacked([[[0, 0, 0]], [[0, 0, 0]]], axis=1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9],
@@ -2173,7 +2173,7 @@ class Array(object):
               [7, 8, 9],
               [0, 0, 0]]]
             >>> B = B.stacked([[[0], [0], [0], [1]], [[0], [0], [0], [1]]], axis=2)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3, 0],
               [4, 5, 6, 0],
               [7, 8, 9, 0],
@@ -2200,33 +2200,33 @@ class Array(object):
             Examples:
 
             >>> A = Array([])
-            >>> print repr(A)
+            >>> print(repr(A))
             Array([])
             >>> A.stack([1])
-            >>> print A.formated()
+            >>> print(A.formated())
             [1]
             >>> A.stack([2])
-            >>> print A.formated()
+            >>> print(A.formated())
             [1, 2]
             >>> A = Array([A])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2]]
             >>> A.stack([[4, 5]], axis=0)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [4, 5]]
             >>> A.stack([[3], [6]], axis=1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6]]
             >>> A.stack([[7, 8, 9]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
             >>> B = Array([A])
             >>> B.stack(B)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -2243,7 +2243,7 @@ class Array(object):
             >>> A is B[0]
             True
             >>> B.stack([[[0, 0, 0]], [[0, 0, 0]]], axis=1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9],
@@ -2254,7 +2254,7 @@ class Array(object):
               [7, 8, 9],
               [0, 0, 0]]]
             >>> B.stack([[[0], [0], [0], [1]], [[0], [0], [0], [1]]], axis=2)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3, 0],
               [4, 5, 6, 0],
               [7, 8, 9, 0],
@@ -2304,11 +2304,11 @@ class Array(object):
             For a 2 dimensional Array/MatrixN, it stacks a and b horizontally.
 
             >>> A = Array([[1, 2], [4, 5]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [4, 5]]
             >>> A = A.hstacked([[3], [6]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6]]
         """
@@ -2321,11 +2321,11 @@ class Array(object):
             For a 2 dimensional Array/MatrixN, it stacks a and b horizontally.
 
             >>> A = Array([[1, 2], [4, 5]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [4, 5]]
             >>> A.hstack([[3], [6]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6]]
         """
@@ -2338,11 +2338,11 @@ class Array(object):
             For a 2 dimensional Array/MatrixN, it stacks a and b vertically.
 
             >>> A = Array([[1, 2], [3, 4]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [3, 4]]
             >>> A = A.vstacked([[5, 6]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [3, 4],
              [5, 6]]
@@ -2356,11 +2356,11 @@ class Array(object):
             For a 2 dimensional Array/MatrixN, it stacks a and b vertically
 
             >>> A = Array([[1, 2], [3, 4]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [3, 4]]
             >>> A.vstack([[5, 6]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [3, 4],
              [5, 6]]
@@ -2406,13 +2406,13 @@ class Array(object):
             Examples :
 
             >>> A = Array(range(1, 17), shape=(4, 4))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3, 4],
              [5, 6, 7, 8],
              [9, 10, 11, 12],
              [13, 14, 15, 16]]
             >>> B = A.reshaped(shape=(2, 2, 4))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3, 4],
               [5, 6, 7, 8]],
             <BLANKLINE>
@@ -2443,14 +2443,14 @@ class Array(object):
             Examples :
 
             >>> A = Array(range(1, 17), shape=(4, 4))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3, 4],
              [5, 6, 7, 8],
              [9, 10, 11, 12],
              [13, 14, 15, 16]]
             >>> S = A[0]
             >>> A.reshape(shape=(2, 2, 4))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3, 4],
               [5, 6, 7, 8]],
             <BLANKLINE>
@@ -2480,13 +2480,13 @@ class Array(object):
             Examples :
 
             >>> A = Array(range(1, 17), shape=(4, 4))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3, 4],
              [5, 6, 7, 8],
              [9, 10, 11, 12],
              [13, 14, 15, 16]]
             >>> B = A.resized(shape=(2, 2, 4))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3, 4],
               [5, 6, 7, 8]],
             <BLANKLINE>
@@ -2497,7 +2497,7 @@ class Array(object):
             >>> A[0] is B[0, 0]
             False
             >>> B = B.resized(shape=(2, 3, 3))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -2506,7 +2506,7 @@ class Array(object):
               [13, 14, 15],
               [16, 0, 0]]]
             >>> B = B.resized(shape=(4, 5), value=1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3, 4, 5],
              [6, 7, 8, 9, 10],
              [11, 12, 13, 14, 15],
@@ -2551,14 +2551,14 @@ class Array(object):
             Examples :
 
             >>> A = Array(range(1, 17), shape=(4, 4))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3, 4],
              [5, 6, 7, 8],
              [9, 10, 11, 12],
              [13, 14, 15, 16]]
             >>> S = A[0]
             >>> A.resize(shape=(2, 2, 4))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3, 4],
               [5, 6, 7, 8]],
             <BLANKLINE>
@@ -2569,7 +2569,7 @@ class Array(object):
             >>> S is A[0, 0]
             False
             >>> A.resize(shape=(2, 3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -2578,7 +2578,7 @@ class Array(object):
               [13, 14, 15],
               [16, 0, 0]]]
             >>> A.resize(shape=(4, 5), value=1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3, 4, 5],
              [6, 7, 8, 9, 10],
              [11, 12, 13, 14, 15],
@@ -2623,18 +2623,18 @@ class Array(object):
             Note : returns a copy (deepcopy) of a.fit(b)
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
             >>> B = Array(shape=(4, 3))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[0, 0, 0],
              [0, 0, 0],
              [0, 0, 0],
              [0, 0, 0]]
             >>> C = B.fitted(A)
-            >>> print C.formated()
+            >>> print(C.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9],
@@ -2648,13 +2648,13 @@ class Array(object):
             >>> C[-1] is B[-1]
             False
             >>> B = Array(shape=(4, 4)).fitted(A)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3, 0],
              [4, 5, 6, 0],
              [7, 8, 9, 0],
              [0, 0, 0, 0]]
             >>> B = Array(shape=(2, 2)).fitted(A)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2],
              [4, 5]]
         """
@@ -2673,19 +2673,19 @@ class Array(object):
             Note : copies (deepcopy) of b sub-arrays are fit in a, not references, but modification of a is done in-place.
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
             >>> B = Array(shape=(4, 3))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[0, 0, 0],
              [0, 0, 0],
              [0, 0, 0],
              [0, 0, 0]]
             >>> S = B[-1]
             >>> B.fit(A)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9],
@@ -2700,14 +2700,14 @@ class Array(object):
             True
             >>> B = Array(shape=(4, 4))
             >>> B.fit(A)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3, 0],
              [4, 5, 6, 0],
              [7, 8, 9, 0],
              [0, 0, 0, 0]]
             >>> B = Array(shape=(2, 2))
             >>> B.fit(A)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2],
              [4, 5]]
         """
@@ -2753,12 +2753,12 @@ class Array(object):
             Note : returns a copy (deepcopy) of a.trim([shape [, value]])
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
             >>> B = A.trimmed(shape=(4, 3))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9],
@@ -2768,13 +2768,13 @@ class Array(object):
             >>> B[0] is A[0]
             False
             >>> B = A.trimmed(shape=(4, 4))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3, 0],
              [4, 5, 6, 0],
              [7, 8, 9, 0],
              [0, 0, 0, 0]]
             >>> B = A.trimmed(shape=(2, 2))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2],
              [4, 5]]
         """
@@ -2807,13 +2807,13 @@ class Array(object):
             Note : a is modified in-place
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
             >>> S = A[0]
             >>> A.trim(shape=(4, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9],
@@ -2823,13 +2823,13 @@ class Array(object):
             >>> S is A[0]
             True
             >>> A.trim(shape=(4, 4))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3, 0],
              [4, 5, 6, 0],
              [7, 8, 9, 0],
              [0, 0, 0, 0]]
             >>> A.trim(shape=(2, 2))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2],
              [4, 5]]
         """
@@ -2865,17 +2865,17 @@ class Array(object):
 
             >>> A = Array(range(1, 10), shape=(3, 3))
             >>> B = A.copy()
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
-            >>> print B == A
+            >>> print(B == A)
             True
-            >>> print B is A
+            >>> print(B is A)
             False
-            >>> print B[0] == A[0]
+            >>> print(B[0] == A[0])
             True
-            >>> print B[0] is A[0]
+            >>> print(B[0] is A[0])
             True
         """
         return copy.copy(self)
@@ -2887,17 +2887,17 @@ class Array(object):
 
             >>> A = Array(range(1, 10), shape=(3, 3))
             >>> B = A.deepcopy()
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
-            >>> print B == A
+            >>> print(B == A)
             True
-            >>> print B is A
+            >>> print(B is A)
             False
-            >>> print B[0] == A[0]
+            >>> print(B[0] == A[0])
             True
-            >>> print B[0] is A[0]
+            >>> print(B[0] is A[0])
             False
         """
         return copy.deepcopy(self)
@@ -2932,7 +2932,7 @@ class Array(object):
             Returns a string representing a formated output of Array a
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -2967,30 +2967,30 @@ class Array(object):
             Note : __getitem__ returns reference that can be modified unless the sub-array had to be reconstructed.
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
-            >>> print repr(A[0])
+            >>> print(repr(A[0]))
             Array([1, 2, 3])
-            >>> print repr(A[-1])
+            >>> print(repr(A[-1]))
             Array([7, 8, 9])
-            >>> print repr(A[0, 0])
+            >>> print(repr(A[0, 0]))
             1
-            >>> print repr(A[-1, -1])
+            >>> print(repr(A[-1, -1]))
             9
 
             Multiple indices and slices are supported :
 
             >>> B = A[0:2, 0:2]
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2],
              [4, 5]]
 
             When sub-arrays are not broken / rebuilt by requested indexing, a reference is returned :
 
             >>> B = A[0:2]
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3],
              [4, 5, 6]]
             >>> B[0] == A[0]
@@ -3002,7 +3002,7 @@ class Array(object):
             a copy of a, not a reference to a.
 
             >>> B = A[0:2, :]
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3],
              [4, 5, 6]]
             >>> B[0] == A[0]
@@ -3013,11 +3013,11 @@ class Array(object):
             When sub-arrays are rebuilt, result is a copy.
 
             >>> B = A[:, 0:2]
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2],
              [4, 5],
              [7, 8]]
-            >>> print repr(B[:,0])
+            >>> print(repr(B[:,0]))
             Array([1, 4, 7])
             >>> B[:,0] == A[:, 0]
             True
@@ -3027,7 +3027,7 @@ class Array(object):
             Use __setindex__ to change the value of an indexed element in that case
 
             >>> A[:, 0:2] += 10
-            >>> print A.formated()
+            >>> print(A.formated())
             [[11, 12, 3],
              [14, 15, 6],
              [17, 18, 9]]
@@ -3076,7 +3076,7 @@ class Array(object):
             use an explicit deepcopy
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -3085,7 +3085,7 @@ class Array(object):
 
             >>> S = Array([0, 0, 0])
             >>> A[0] = S
-            >>> print A.formated()
+            >>> print(A.formated())
             [[0, 0, 0],
              [4, 5, 6],
              [7, 8, 9]]
@@ -3094,7 +3094,7 @@ class Array(object):
             >>> A[0] is S
             True
             >>> A[:, 2] = S
-            >>> print A.formated()
+            >>> print(A.formated())
             [[0, 0, 0],
              [4, 5, 0],
              [7, 8, 0]]
@@ -3106,22 +3106,22 @@ class Array(object):
             Multiple indices and slices are supported :
 
             >>> A[0] = [2, 4, 6]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[2, 4, 6],
              [4, 5, 0],
              [7, 8, 0]]
             >>> A[1, 1] = 10
-            >>> print A.formated()
+            >>> print(A.formated())
             [[2, 4, 6],
              [4, 10, 0],
              [7, 8, 0]]
             >>> A[:, -1] = [7, 8, 9]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[2, 4, 7],
              [4, 10, 8],
              [7, 8, 9]]
             >>> A[:, 0:2] += 10
-            >>> print A.formated()
+            >>> print(A.formated())
             [[12, 14, 7],
              [14, 20, 8],
              [17, 18, 9]]
@@ -3129,22 +3129,22 @@ class Array(object):
             Value is expanded / repeated as necessary to fit the indexed sub-array
 
             >>> A[0:2, 0:2] = 1
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 1, 7],
              [1, 1, 8],
              [17, 18, 9]]
             >>> A[1:3, :] = [1, 2]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 1, 7],
              [1, 2, 0],
              [1, 2, 0]]
             >>> A[0:2, 1:3] = [1, 2]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 1, 2],
              [1, 1, 2],
              [1, 2, 0]]
             >>> A[0:2, 1:3] = [[1], [2]]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 1, 0],
              [1, 2, 0],
              [1, 2, 0]]
@@ -3159,7 +3159,7 @@ class Array(object):
         # NUMPY differences: expands by repeating last value
         """
             >>> A[0:2, 1:3] = [[1], [2]]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 1, 1],
              [1, 2, 2],
              [1, 2, 0]]
@@ -3208,7 +3208,7 @@ class Array(object):
             that end up with only one sub-array.
 
             >>> A = Array(xrange(1, 28), shape=(3, 3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -3224,7 +3224,7 @@ class Array(object):
             (3, 3, 3)
             >>> S = A[0]
             >>> del A[1]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -3239,26 +3239,26 @@ class Array(object):
             >>> S is A[0]
             True
             >>> del A[-1]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]]]
             >>> A.shape
             (1, 3, 3)
             >>> del A[None, None, 1:3]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1],
               [4],
               [7]]]
             >>> A.shape
             (1, 3, 1)
             >>> del A[None, 1:3]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1]]]
             >>> A.shape
             (1, 1, 1)
             >>> del A[-1]
-            >>> print A.formated()
+            >>> print(A.formated())
             []
             >>> A.shape
             (0,)
@@ -3298,7 +3298,7 @@ class Array(object):
             that end up with only one sub-array.
 
             >>> A = Array(xrange(1, 28), shape=(3, 3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -3313,7 +3313,7 @@ class Array(object):
             >>> A.shape
             (3, 3, 3)
             >>> B = A.deleted(1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -3328,26 +3328,26 @@ class Array(object):
             >>> B[0] is A[0]
             False
             >>> B = B.deleted(-1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]]]
             >>> B.shape
             (1, 3, 3)
             >>> B = B.deleted(None, None, slice(1, 3))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1],
               [4],
               [7]]]
             >>> B.shape
             (1, 3, 1)
             >>> B = B.deleted((None, slice(1, 3)))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1]]]
             >>> B.shape
             (1, 1, 1)
             >>> B = B.deleted(-1)
-            >>> print B.formated()
+            >>> print(B.formated())
             []
             >>> B.shape
             (0,)
@@ -3383,7 +3383,7 @@ class Array(object):
             that end up with only one sub-array.
 
             >>> A = Array(xrange(1, 28), shape=(3, 3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -3399,7 +3399,7 @@ class Array(object):
             (3, 3, 3)
             >>> S = A[0]
             >>> A.strip(1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -3412,7 +3412,7 @@ class Array(object):
             >>> S is A[0]
             True
             >>> A.strip(-1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -3425,19 +3425,19 @@ class Array(object):
             >>> S[0] is A[0]
             True
             >>> A.strip(None, slice(1,3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1],
              [4],
              [7]]
             >>> A.strip(-1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1],
              [4]]
             >>> A.strip(-1)
-            >>> print A.formated()
+            >>> print(A.formated())
             [1]
             >>> A.strip(-1)
-            >>> print A.formated()
+            >>> print(A.formated())
             []
         """
         index = self._getindex(args, default=None, expand=True)
@@ -3458,7 +3458,7 @@ class Array(object):
             that end up with only one sub-array.
 
             >>> A = Array(xrange(1, 28), shape=(3, 3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -3473,7 +3473,7 @@ class Array(object):
             >>> A.shape
             (3, 3, 3)
             >>> B = A.stripped(1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -3486,7 +3486,7 @@ class Array(object):
             >>> B[0] is A[0]
             False
             >>> B = B.stripped(-1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -3499,19 +3499,19 @@ class Array(object):
             >>> B[0] is A[0,0]
             False
             >>> B = B.stripped(None, slice(1,3))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1],
              [4],
              [7]]
             >>> B = B.stripped(-1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1],
              [4]]
             >>> B = B.stripped(-1)
-            >>> print B.formated()
+            >>> print(B.formated())
             [1]
             >>> B = B.stripped(-1)
-            >>> print B.formated()
+            >>> print(B.formated())
             []
         """
         cls = self.__class__
@@ -3528,7 +3528,7 @@ class Array(object):
             Default Array storage class iterator, operates on first axis only
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -3547,7 +3547,7 @@ class Array(object):
             Note : ArrayIter ierators support __len__, __getitem__ and __setitem__
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -3575,7 +3575,7 @@ class Array(object):
             Note : ArrayIter iterators support __len__, __getitem__ and __setitem__
 
             >>> A = Array(range(1, 28), shape=(3, 3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
               [7, 8, 9]],
@@ -3618,7 +3618,7 @@ class Array(object):
             Note : ArrayIter iterators support __len__, __getitem__ and __setitem__
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -3627,7 +3627,7 @@ class Array(object):
             >>> [a for a in A.flat]
             [1, 2, 3, 4, 5, 6, 7, 8, 9]
             >>> A.flat[5:10] = [4, 3, 2, 1]
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 4],
              [3, 2, 1]]
@@ -3644,11 +3644,11 @@ class Array(object):
             Returns that Array converted to a nested list
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print repr(A)
+            >>> print(repr(A))
             Array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-            >>> print repr(list(A))
+            >>> print(repr(list(A)))
             [Array([1, 2, 3]), Array([4, 5, 6]), Array([7, 8, 9])]
-            >>> print repr(A.tolist())
+            >>> print(repr(A.tolist()))
             [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         """
         return self._iterable_convert(list)
@@ -3659,11 +3659,11 @@ class Array(object):
             Returns that Array converted to a nested tuple
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print repr(A)
+            >>> print(repr(A))
             Array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-            >>> print repr(tuple(A))
+            >>> print(repr(tuple(A)))
             (Array([1, 2, 3]), Array([4, 5, 6]), Array([7, 8, 9]))
-            >>> print repr(A.totuple())
+            >>> print(repr(A.totuple()))
             ((1, 2, 3), (4, 5, 6), (7, 8, 9))
         """
         return self._iterable_convert(tuple)
@@ -3678,7 +3678,7 @@ class Array(object):
             Returns that Array flattened as to a one-dimensional array.
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print repr(A.ravel())
+            >>> print(repr(A.ravel()))
             Array([1, 2, 3, 4, 5, 6, 7, 8, 9])
         """
         return Array(self.flat)
@@ -3690,7 +3690,7 @@ class Array(object):
             False otherwise
 
             >>> A = Array(list(range(1, 6))+list(range(4, 0, -1)), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 4],
              [3, 2, 1]]
@@ -3731,7 +3731,7 @@ class Array(object):
             Returns the number of occurrences of b in a.
 
             >>> A = Array(list(range(1, 6))+list(range(4, 0, -1)), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 4],
              [3, 2, 1]]
@@ -3771,7 +3771,7 @@ class Array(object):
             Returns the index of the first occurrence of b in a.
 
             >>> A = Array(list(range(1, 6))+list(range(4, 0, -1)), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 4],
              [3, 2, 1]]
@@ -3821,25 +3821,25 @@ class Array(object):
             b is cast to Array when possible
 
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
             >>> nA, nB = coerce(A, 1)
-            >>> print nA.formated()
+            >>> print(nA.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
-            >>> print nB.formated()
+            >>> print(nB.formated())
             [[1, 1, 1],
              [1, 1, 1],
              [1, 1, 1]]
             >>> nA, nB = coerce(A, [1, 2, 3])
-            >>> print nA.formated()
+            >>> print(nA.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
-            >>> print nB.formated()
+            >>> print(nB.formated())
             [[1, 2, 3],
              [1, 2, 3],
              [1, 2, 3]]
@@ -3859,19 +3859,19 @@ class Array(object):
 
             >>> A = Array(range(1, 10), shape=(3, 3))
             >>> B = Array(range(1, 5), shape=(2, 2))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 2],
              [3, 4]]
             >>> nA, nB = coerce(A, B)
-            >>> print nA.formated()
+            >>> print(nA.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
-            >>> print nB.formated()
+            >>> print(nB.formated())
             [[1, 2, 0],
              [3, 4, 0],
              [0, 0, 0]]
@@ -3879,11 +3879,11 @@ class Array(object):
             When coerce(x, y) is not doable, it defers to coerce(y, x)
 
             >>> nB, nA = coerce(B, A)
-            >>> print nA.formated()
+            >>> print(nA.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
-            >>> print nB.formated()
+            >>> print(nB.formated())
             [[1, 2, 0],
              [3, 4, 0],
              [0, 0, 0]]
@@ -3899,23 +3899,23 @@ class Array(object):
 
             >>> A = Array(range(1, 10), shape=(3, 3))
             >>> M = MatrixN(range(1, 10), shape=(3, 3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
             >>> nA, nM = coerce(A, M)
-            >>> print repr(nA)
+            >>> print(repr(nA))
             MatrixN([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-            >>> print repr(nM)
+            >>> print(repr(nM))
             MatrixN([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
             >>> nM, nA = coerce(M, A)
-            >>> print repr(nA)
+            >>> print(repr(nA))
             MatrixN([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-            >>> print repr(nM)
+            >>> print(repr(nM))
             MatrixN([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
             This allows to implement a common behavior for element-wise arithmetics between Arrays of same
@@ -3926,19 +3926,19 @@ class Array(object):
             Operands are cast to Array when possible
 
             >>> A = Array(range(4), shape=(2, 2))
-            >>> print (A).formated()
+            >>> print((A).formated())
             [[0, 1],
              [2, 3]]
-            >>> print (A+1).formated()
+            >>> print((A+1).formated())
             [[1, 2],
              [3, 4]]
-            >>> print (A+[1, 2]).formated()
+            >>> print((A+[1, 2]).formated())
             [[1, 3],
              [3, 5]]
 
             Operands can only be expanded, not truncated to avoid silent loss of data.
 
-            >>> print (A+[1, 2, 3, 4, 5]).formated()
+            >>> print((A+[1, 2, 3, 4, 5]).formated())
             Traceback (most recent call last):
                 ...
             TypeError: unsupported operand type(s) for +: 'Array' and 'list'
@@ -3950,11 +3950,11 @@ class Array(object):
 
             >>> A = Array(range(9), shape=(3, 3))
             >>> B = Array(range(10, 50, 10), shape=(2, 2))
-            >>> print (A+B).formated()
+            >>> print((A+B).formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(A+B)
+            >>> print(clsname(A+B))
             Array
 
             As Array.__coerce__ cannot truncate data, it will defer to the other operand's __coerce__ if it exists,
@@ -3962,50 +3962,50 @@ class Array(object):
 
             >>> A = Array(range(10, 50, 10), shape=(2, 2))
             >>> B = Array(range(9), shape=(3, 3))
-            >>> print (A+B).formated()
+            >>> print((A+B).formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(A+B)
+            >>> print(clsname(A+B))
             Array
 
             Result is cast to the first applicable Array herited type of either operand
 
             >>> A = Array(range(9), shape=(3, 3))
             >>> M = MatrixN(range(10, 50, 10), shape=(2, 2))
-            >>> print (A+M).formated()
+            >>> print((A+M).formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(A+M)
+            >>> print(clsname(A+M))
             MatrixN
-            >>> print (M+A).formated()
+            >>> print((M+A).formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(M+A)
+            >>> print(clsname(M+A))
             MatrixN
 
             >>> A = Array(range(10, 50, 10), shape=(2, 2))
             >>> M = MatrixN(range(9), shape=(3, 3))
-            >>> print (A+M).formated()
+            >>> print((A+M).formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(A+M)
+            >>> print(clsname(A+M))
             MatrixN
-            >>> print (M+A).formated()
+            >>> print((M+A).formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(M+A)
+            >>> print(clsname(M+A))
             MatrixN
 
             Here result is cast to Array as a MatrixN can't have 3 dimensions
 
             >>> A = Array(range(10, 190, 10), shape=(2, 3, 3))
             >>> M = MatrixN(range(9), shape=(3, 3))
-            >>> print (A+M).formated()
+            >>> print((A+M).formated())
             [[[10, 21, 32],
               [43, 54, 65],
               [76, 87, 98]],
@@ -4013,9 +4013,9 @@ class Array(object):
              [[100, 111, 122],
               [133, 144, 155],
               [166, 177, 188]]]
-            >>> print clsname(A+M)
+            >>> print(clsname(A+M))
             Array
-            >>> print (M+A).formated()
+            >>> print((M+A).formated())
             [[[10, 21, 32],
               [43, 54, 65],
               [76, 87, 98]],
@@ -4023,7 +4023,7 @@ class Array(object):
              [[100, 111, 122],
               [133, 144, 155],
               [166, 177, 188]]]
-            >>> print clsname(M+A)
+            >>> print(clsname(M+A))
             Array
 
             There are cases where no type coercion is possible, as it would truncate data or reduce number
@@ -4031,7 +4031,7 @@ class Array(object):
 
             >>> A = Array(range(8), shape=(2, 2, 2))
             >>> M = MatrixN(range(9), shape=(3, 3))
-            >>> print (A+M).formated()
+            >>> print((A+M).formated())
             Traceback (most recent call last):
                 ...
             TypeError: unsupported operand type(s) for +: 'Array' and 'MatrixN'
@@ -4122,11 +4122,11 @@ class Array(object):
             Element-wise absolute value of a.
 
             >>> A = Array([[complex(1, 2), complex(2, 3)], [complex(4, 5), complex(6, 7)]])
-            >>> print abs(A).formated()
+            >>> print(abs(A).formated())
             [[2.2360679775, 3.60555127546],
              [6.40312423743, 9.21954445729]]
             >>> A = Array(-1, 2, -3)
-            >>> print repr(abs(A))
+            >>> print(repr(abs(A)))
             Array([1, 2, 3])
         """
         return self.__class__(abs(x) for x in self)
@@ -4137,7 +4137,7 @@ class Array(object):
             Element-wise invert of a, as with '~', operator 'invert'
 
             >>> A = Array(range(4), shape=(2, 2))
-            >>> print (~A).formated()
+            >>> print((~A).formated())
             [[-1, -2],
              [-3, -4]]
         """
@@ -4150,7 +4150,7 @@ class Array(object):
             This always returns an Array of floating point numbers.  Precision may be negative.
 
             >>> A = Array([1.0/x for x in range(1, 10)], shape=(3, 3))
-            >>> print round(A, 2).formated()
+            >>> print(round(A, 2).formated())
             [[1.0, 0.5, 0.33],
              [0.25, 0.2, 0.17],
              [0.14, 0.13, 0.11]]
@@ -4163,7 +4163,7 @@ class Array(object):
             Element-wise positive of a
 
             >>> A = Array(range(4), shape=(2, 2))
-            >>> print (+A).formated()
+            >>> print((+A).formated())
             [[0, 1],
              [2, 3]]
         """
@@ -4175,7 +4175,7 @@ class Array(object):
             Element-wise negation of a
 
             >>> A = Array(range(4), shape=(2, 2))
-            >>> print (-A).formated()
+            >>> print((-A).formated())
             [[0, -1],
              [-2, -3]]
         """
@@ -4193,30 +4193,30 @@ class Array(object):
             Related : See the Array.__coerce__ method
 
             >>> A = Array(range(4), shape=(2, 2))
-            >>> print (A).formated()
+            >>> print((A).formated())
             [[0, 1],
              [2, 3]]
-            >>> print (A+1).formated()
+            >>> print((A+1).formated())
             [[1, 2],
              [3, 4]]
-            >>> print (A+[1, 2]).formated()
+            >>> print((A+[1, 2]).formated())
             [[1, 3],
              [3, 5]]
             >>> A = Array(range(9), shape=(3, 3))
             >>> M = MatrixN(range(10, 50, 10), shape=(2, 2))
-            >>> print (A+M).formated()
+            >>> print((A+M).formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(A+M)
+            >>> print(clsname(A+M))
             MatrixN
             >>> A = Array(range(10, 50, 10), shape=(2, 2))
             >>> M = MatrixN(range(9), shape=(3, 3))
-            >>> print (A+M).formated()
+            >>> print((A+M).formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(A+M)
+            >>> print(clsname(A+M))
             MatrixN
         """
         try:
@@ -4239,30 +4239,30 @@ class Array(object):
             Related : See the Array.__coerce__ method
 
             >>> A = Array(range(4), shape=(2, 2))
-            >>> print (A).formated()
+            >>> print((A).formated())
             [[0, 1],
              [2, 3]]
-            >>> print (1+A).formated()
+            >>> print((1+A).formated())
             [[1, 2],
              [3, 4]]
-            >>> print ([1, 2]+A).formated()
+            >>> print(([1, 2]+A).formated())
             [[1, 3],
              [3, 5]]
             >>> A = Array(range(9), shape=(3, 3))
             >>> M = MatrixN(range(10, 50, 10), shape=(2, 2))
-            >>> print (M+A).formated()
+            >>> print((M+A).formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(M+A)
+            >>> print(clsname(M+A))
             MatrixN
             >>> A = Array(range(10, 50, 10), shape=(2, 2))
             >>> M = MatrixN(range(9), shape=(3, 3))
-            >>> print (M+A).formated()
+            >>> print((M+A).formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(M+A)
+            >>> print(clsname(M+A))
             MatrixN
         """
         return self.__add__(other)
@@ -4275,20 +4275,20 @@ class Array(object):
             >>> A = Array(range(9), shape=(3, 3))
             >>> M = MatrixN(range(10, 50, 10), shape=(2, 2))
             >>> A += M
-            >>> print A.formated()
+            >>> print(A.formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(A)
+            >>> print(clsname(A))
             Array
             >>> A = Array(range(9), shape=(3, 3))
             >>> M = MatrixN(range(10, 50, 10), shape=(2, 2))
             >>> M += A
-            >>> print M.formated()
+            >>> print(M.formated())
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
-            >>> print clsname(M)
+            >>> print(clsname(M))
             MatrixN
 
             Result must be castable to the type of a
@@ -4296,7 +4296,7 @@ class Array(object):
             >>> A = Array(range(12), shape=(2, 3, 2))
             >>> M = MatrixN(range(9), shape=(3, 3))
             >>> B = M + A
-            >>> print B.formated()
+            >>> print(B.formated())
             [[[0, 2],
               [4, 6],
               [8, 10]],
@@ -4304,7 +4304,7 @@ class Array(object):
              [[12, 14],
               [16, 9],
               [10, 11]]]
-            >>> print clsname(B)
+            >>> print(clsname(B))
             Array
             >>> M += A
             Traceback (most recent call last):
@@ -4522,7 +4522,7 @@ class Array(object):
             sum on all axis of a.
 
             >>> A = Array([[1,2,3],[4,5,6]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6]]
             >>> A.sum()
@@ -4543,7 +4543,7 @@ class Array(object):
             If axis are specified will return an Array of prod(x) for x in a.axisiter(*axis).
 
             >>> A = Array([[1,2,3],[4,5,6]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[1, 2, 3],
              [4, 5, 6]]
             >>> A.prod()
@@ -4565,7 +4565,7 @@ class Array(object):
             If axis are specified will return an Array of any(x) for x in a.axisiter(*axis).
 
             >>> A = Array([[False,True,True],[False,True,False]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[False, True, True],
              [False, True, False]]
             >>> A.any()
@@ -4586,7 +4586,7 @@ class Array(object):
             If axis are specified will return an Array of all(x) for x in a.axisiter(*axis).
 
             >>> A = Array([[True,True,True],[False,True,False]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[True, True, True],
              [False, True, False]]
             >>> A.all()
@@ -4607,7 +4607,7 @@ class Array(object):
             If axis are specified will return an Array of element-wise min(x) for x in a.axisiter(*axis).
 
             >>> A = Array([[6,3,4],[1,5,0.5]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[6, 3, 4],
              [1, 5, 0.5]]
             >>> A.min()
@@ -4628,7 +4628,7 @@ class Array(object):
             If axis are specified will return an Array of element-wise max(x) for x in a.axisiter(*axis).
 
             >>> A = Array([[6,3,4],[1,5,0.5]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[6, 3, 4],
              [1, 5, 0.5]]
             >>> A.max()
@@ -4651,7 +4651,7 @@ class Array(object):
             If a is an Array and axis are specified will return a list of sqlength(x) for x in a.axisiter(*axis).
 
             >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[0.5, 0.5, -0.707],
              [0.707, -0.707, 0.0]]
             >>> A.sqlength()
@@ -4678,7 +4678,7 @@ class Array(object):
             If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis).
 
             >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[0.5, 0.5, -0.707],
              [0.707, -0.707, 0.0]]
             >>> round(A.length(), 7)
@@ -4698,19 +4698,19 @@ class Array(object):
             Returns a normalized copy of self: self/self.length(axis0, axis1, ...).
 
             >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[0.5, 0.5, -0.707],
              [0.707, -0.707, 0.0]]
-            >>> print A.normal().formated()
+            >>> print(A.normal().formated())
             [[0.353593437318, 0.353593437318, -0.499981120367],
              [0.499981120367, -0.499981120367, 0.0]]
-            >>> print A.normal(0,1).formated()
+            >>> print(A.normal(0,1).formated())
             [[0.353593437318, 0.353593437318, -0.499981120367],
              [0.499981120367, -0.499981120367, 0.0]]
-            >>> print A.normal(0).formated()
+            >>> print(A.normal(0).formated())
             [[0.5, 0.5, -0.707],
              [0.707, -0.707, 0.0]]
-            >>> print A.normal(1).formated()
+            >>> print(A.normal(1).formated())
             [[0.577408397894, 0.577408397894, -1.0],
              [0.816455474623, -0.816455474623, 0.0]]
         """
@@ -4729,11 +4729,11 @@ class Array(object):
             Returns the distance between a and b, ie length(b-a, axis)
 
             >>> A = Array([[0.5, 0.5, -0.707],[0.707, -0.707, 0.0]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[0.5, 0.5, -0.707],
              [0.707, -0.707, 0.0]]
             >>> B = Array([[0.51, 0.49, -0.71],[0.71, -0.70, 0.0]])
-            >>> print B.formated()
+            >>> print(B.formated())
             [[0.51, 0.49, -0.71],
              [0.71, -0.7, 0.0]]
             >>> A.dist(B)
@@ -4798,7 +4798,7 @@ class Array(object):
             For a 2-d array, this is the usual matrix transpose.
 
             >>> A = Array(range(18), shape=(2,3,3))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[[0, 1, 2],
               [3, 4, 5],
               [6, 7, 8]],
@@ -4806,7 +4806,7 @@ class Array(object):
              [[9, 10, 11],
               [12, 13, 14],
               [15, 16, 17]]]
-            >>> print A.transpose().formated()
+            >>> print(A.transpose().formated())
             [[[0, 9],
               [3, 12],
               [6, 15]],
@@ -4818,7 +4818,7 @@ class Array(object):
              [[2, 11],
               [5, 14],
               [8, 17]]]
-            >>> print A.transpose(0,2,1).formated()
+            >>> print(A.transpose(0,2,1).formated())
             [[[0, 3, 6],
               [1, 4, 7],
               [2, 5, 8]],
@@ -4828,11 +4828,11 @@ class Array(object):
               [11, 14, 17]]]
 
             >>> B=MatrixN(range(9), shape=(3, 3))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[0, 1, 2],
              [3, 4, 5],
              [6, 7, 8]]
-            >>> print B.transpose().formated()
+            >>> print(B.transpose().formated())
             [[0, 3, 6],
              [1, 4, 7],
              [2, 5, 8]]
@@ -4852,17 +4852,17 @@ class Array(object):
             Returns the element-wise complex.conjugate() of the Array.
 
             >>> A = Array([[complex(1, 2), complex(2, 3)], [complex(4, 5), complex(6, 7)]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[(1+2j), (2+3j)],
              [(4+5j), (6+7j)]]
-            >>> print A.conjugate().formated()
+            >>> print(A.conjugate().formated())
             [[(1-2j), (2-3j)],
              [(4-5j), (6-7j)]]
-            >>> print conjugate(A).formated()
+            >>> print(conjugate(A).formated())
             [[(1-2j), (2-3j)],
              [(4-5j), (6-7j)]]
             >>> A = Array(range(1, 5), shape=(2, 2))
-            >>> print conjugate(A).formated()
+            >>> print(conjugate(A).formated())
             [[1, 2],
              [3, 4]]
         """
@@ -4874,17 +4874,17 @@ class Array(object):
             Returns the element-wise complex real part of the Array.
 
             >>> A = Array([[complex(1, 2), complex(2, 3)], [complex(4, 5), complex(6, 7)]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[(1+2j), (2+3j)],
              [(4+5j), (6+7j)]]
-            >>> print A.real().formated()
+            >>> print(A.real().formated())
             [[1.0, 2.0],
              [4.0, 6.0]]
-            >>> print real(A).formated()
+            >>> print(real(A).formated())
             [[1.0, 2.0],
              [4.0, 6.0]]
             >>> A = Array(range(1, 5), shape=(2, 2))
-            >>> print real(A).formated()
+            >>> print(real(A).formated())
             [[1, 2],
              [3, 4]]
         """
@@ -4896,17 +4896,17 @@ class Array(object):
             Returns the element-wise complex imaginary part of the Array.
 
             >>> A = Array([[complex(1, 2), complex(2, 3)], [complex(4, 5), complex(6, 7)]])
-            >>> print A.formated()
+            >>> print(A.formated())
             [[(1+2j), (2+3j)],
              [(4+5j), (6+7j)]]
-            >>> print A.imag().formated()
+            >>> print(A.imag().formated())
             [[2.0, 3.0],
              [5.0, 7.0]]
-            >>> print imag(A).formated()
+            >>> print(imag(A).formated())
             [[2.0, 3.0],
              [5.0, 7.0]]
             >>> A = Array(range(1, 5), shape=(2, 2))
-            >>> print imag(A).formated()
+            >>> print(imag(A).formated())
             [[0, 0],
              [0, 0]]
         """
@@ -4920,23 +4920,23 @@ class Array(object):
             or a an iterable of independent weights.
 
             >>> A = Array(0, shape=(2, 2))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[0, 0],
              [0, 0]]
             >>> B = Array(1, shape=(2, 2))
-            >>> print B.formated()
+            >>> print(B.formated())
             [[1, 1],
              [1, 1]]
-            >>> print A.blend(B, weight=0.5).formated()
+            >>> print(A.blend(B, weight=0.5).formated())
             [[0.5, 0.5],
              [0.5, 0.5]]
-            >>> print blend(A, B).formated()
+            >>> print(blend(A, B).formated())
             [[0.5, 0.5],
              [0.5, 0.5]]
-            >>> print blend(A, B, weight=[x/4.0 for x in range(4)]).formated()
+            >>> print(blend(A, B, weight=[x/4.0 for x in range(4)]).formated())
             [[0.0, 0.25],
              [0.5, 0.75]]
-            >>> print blend(A, B, weight=[[0.0, 0.25],[0.75, 1.0]]).formated()
+            >>> print(blend(A, B, weight=[[0.0, 0.25],[0.75, 1.0]]).formated())
             [[0.0, 0.25],
              [0.75, 1.0]]
         """
@@ -4953,16 +4953,16 @@ class Array(object):
             or the corresponding components of low and high if low and high are sequences of scalars
 
             >>> A = Array(range(4), shape=(2, 2))
-            >>> print A.formated()
+            >>> print(A.formated())
             [[0, 1],
              [2, 3]]
-            >>> print A.clamp(1, 2).formated()
+            >>> print(A.clamp(1, 2).formated())
             [[1, 1],
              [2, 2]]
-            >>> print clamp(A, 1, 2).formated()
+            >>> print(clamp(A, 1, 2).formated())
             [[1, 1],
              [2, 2]]
-            >>> print clamp(A, 0.0, [x/4.0 for x in range(4)]).formated()
+            >>> print(clamp(A, 0.0, [x/4.0 for x in range(4)]).formated())
             [[0, 0.25],
              [0.5, 0.75]]
         """
@@ -5024,22 +5024,22 @@ class MatrixN(Array):
         >>> M
         MatrixN([[]])
         >>> M = MatrixN([0, 1, 2])
-        >>> print M.formated()
+        >>> print(M.formated())
         [[0, 1, 2]]
         >>> M = MatrixN([[0, 1, 2]])
-        >>> print M.formated()
+        >>> print(M.formated())
         [[0, 1, 2]]
         >>> M = MatrixN([[0], [1], [2]])
-        >>> print M.formated()
+        >>> print(M.formated())
         [[0],
          [1],
          [2]]
         >>> M = MatrixN([[1, 2, 3], [4, 5, 6]])
-        >>> print M.formated()
+        >>> print(M.formated())
         [[1, 2, 3],
          [4, 5, 6]]
         >>> M = MatrixN(range(4), shape=(2, 2))
-        >>> print M.formated()
+        >>> print(M.formated())
         [[0, 1],
          [2, 3]]
 
@@ -5076,11 +5076,11 @@ class MatrixN(Array):
 
         >>> A = Array(range(9), shape=(3, 3))
         >>> M = MatrixN(A)
-        >>> print M.formated()
+        >>> print(M.formated())
         [[0, 1, 2],
          [3, 4, 5],
          [6, 7, 8]]
-        >>> print clsname(M)
+        >>> print(clsname(M))
         MatrixN
         >>> A = Array([[[1, 2, 3], [4, 5, 6]], [[10, 20, 30], [40, 50, 60]]])
         >>> M = MatrixN(A)
@@ -5093,7 +5093,7 @@ class MatrixN(Array):
 
         >>> V = VectorN(1, 2, 3)
         >>> M = MatrixN(V)
-        >>> print M.formated()
+        >>> print(M.formated())
         [[1, 2, 3]]
 
         Internally, rows are stored as Array though, not VectorN
@@ -5139,13 +5139,13 @@ class MatrixN(Array):
                          It can be queried, or set to change the MatrixN's shape similarly to the reshape method.
 
                          >>> M = MatrixN(range(1, 17), shape=(4, 4))
-                         >>> print M.formated()
+                         >>> print(M.formated())
                          [[1, 2, 3, 4],
                           [5, 6, 7, 8],
                           [9, 10, 11, 12],
                           [13, 14, 15, 16]]
                          >>> M.shape=(2, 8)
-                         >>> print M.formated()
+                         >>> print(M.formated())
                          [[1, 2, 3, 4, 5, 6, 7, 8],
                           [9, 10, 11, 12, 13, 14, 15, 16]]
                          >>> M.shape=(2, 2, 4)
@@ -5179,7 +5179,7 @@ class MatrixN(Array):
             a square n x n MatrixN of 0.0, with all diagonal components set to 1.0.
 
             >>> I = MatrixN.identity(4)
-            >>> print I.formated()
+            >>> print(I.formated())
             [[1.0, 0.0, 0.0, 0.0],
              [0.0, 1.0, 0.0, 0.0],
              [0.0, 0.0, 1.0, 0.0],
@@ -5198,7 +5198,7 @@ class MatrixN(Array):
             if the normalize keyword argument is set to True, the vectors are also normalized
 
             >>> M = MatrixN.basis(VectorN(0, 1, 0), VectorN(0, 0, 1))
-            >>> print M.formated()
+            >>> print(M.formated())
             [[0, 0, 1],
              [1, 0, 0],
              [0, 1, 0]]
@@ -5229,14 +5229,14 @@ class MatrixN(Array):
                         It can be queried, or set to reduce / expand the matrix similarly to the trim method.
 
                         >>> M = MatrixN(range(1, 10), shape=(3, 3))
-                        >>> print M.formated()
+                        >>> print(M.formated())
                         [[1, 2, 3],
                          [4, 5, 6],
                          [7, 8, 9]]
                         >>> M.nrow, M.ncol
                         (3, 3)
                         >>> M.nrow, M.ncol = 4, 4
-                        >>> print M.formated()
+                        >>> print(M.formated())
                         [[1, 2, 3, 0],
                          [4, 5, 6, 0],
                          [7, 8, 9, 0],
@@ -5256,14 +5256,14 @@ class MatrixN(Array):
                         It can be queried, or set to reduce / expand the matrix similarly to the trim method.
 
                         >>> M = MatrixN(range(1, 10), shape=(3, 3))
-                        >>> print M.formated()
+                        >>> print(M.formated())
                         [[1, 2, 3],
                          [4, 5, 6],
                          [7, 8, 9]]
                         >>> M.nrow, M.ncol
                         (3, 3)
                         >>> M.nrow, M.ncol = 4, 4
-                        >>> print M.formated()
+                        >>> print(M.formated())
                         [[1, 2, 3, 0],
                          [4, 5, 6, 0],
                          [7, 8, 9, 0],
@@ -5281,7 +5281,7 @@ class MatrixN(Array):
             >>> M = MatrixN(range(1, 10), shape=(3, 3))
             >>> M.nrow, M.ncol = 4, 4
             >>> M[-1, -1] = 1
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3, 0],
              [4, 5, 6, 0],
              [7, 8, 9, 0],
@@ -5302,10 +5302,10 @@ class MatrixN(Array):
             Slices return shallow copies though
 
             >>> r = M.row[:2]
-            >>> print r.formated()
+            >>> print(r.formated())
             [[1, 2, 3, 0],
              [4, 5, 6, 0]]
-            >>> print clsname(r)
+            >>> print(clsname(r))
             MatrixN
 
             >>> r == M[:2]
@@ -5336,14 +5336,14 @@ class MatrixN(Array):
             Values can be set as with MatrixN indexing
 
             >>> M.row[:2, 1] = 10
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 10, 3, 0],
              [4, 10, 6, 0],
              [7, 8, 9, 0],
              [0, 0, 0, 1]]
             >>> r = M.row[:2]
             >>> r[:, 1] = [2, 5]
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3, 0],
              [4, 5, 6, 0],
              [7, 8, 9, 0],
@@ -5353,7 +5353,7 @@ class MatrixN(Array):
 
             >>> del M.row[-1]
             >>> del M[None, -1]
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -5371,7 +5371,7 @@ class MatrixN(Array):
             >>> M = MatrixN(range(1, 10), shape=(3, 3))
             >>> M.nrow, M.ncol = 4, 4
             >>> M[-1, -1] = 1
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3, 0],
              [4, 5, 6, 0],
              [7, 8, 9, 0],
@@ -5392,19 +5392,19 @@ class MatrixN(Array):
             Multiple columns are returned as rows in a new MatrixN
 
             >>> c = M.col[:2]
-            >>> print c.formated()
+            >>> print(c.formated())
             [[1, 4, 7, 0],
              [2, 5, 8, 0]]
-            >>> print clsname(c)
+            >>> print(clsname(c))
             MatrixN
 
             >>> s = M[:,:2]
-            >>> print s.formated()
+            >>> print(s.formated())
             [[1, 2],
              [4, 5],
              [7, 8],
              [0, 0]]
-            >>> print clsname(s)
+            >>> print(clsname(s))
             MatrixN
 
             TODO : is it what we want ? If so invert these
@@ -5441,7 +5441,7 @@ class MatrixN(Array):
             This won't work :
 
             >>> M.col[1][:2] = 10
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3, 0],
              [4, 5, 6, 0],
              [7, 8, 9, 0],
@@ -5450,7 +5450,7 @@ class MatrixN(Array):
             But this will :
 
             >>> M.col[1, :2] = 10
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 10, 3, 0],
              [4, 10, 6, 0],
              [7, 8, 9, 0],
@@ -5459,7 +5459,7 @@ class MatrixN(Array):
             >>> c = M.col[1]
             >>> c[:2] = [2, 5]
             >>> M.col[1] = c
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3, 0],
              [4, 5, 6, 0],
              [7, 8, 9, 0],
@@ -5469,7 +5469,7 @@ class MatrixN(Array):
 
             >>> del M.col[-1]
             >>> del M[-1]
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -5533,7 +5533,7 @@ class MatrixN(Array):
             Examples :
 
             >>> M = MatrixN([[1, 2], [4, 6]])
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2],
              [4, 6]]
             >>> M.diagonal()
@@ -5568,7 +5568,7 @@ class MatrixN(Array):
             Returns the sum of the components on the diagonal, obtained by calling m.diagonal(offset, wrap).
 
             >>> M = MatrixN([[1, 2], [4, 6]])
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2],
              [4, 6]]
             >>> M.trace()
@@ -5590,7 +5590,7 @@ class MatrixN(Array):
             Returns the MatrixN obtained by deleting row i and column j from m.
 
             >>> M = MatrixN(range(4), shape=(2, 2))
-            >>> print M.formated()
+            >>> print(M.formated())
             [[0, 1],
              [2, 3]]
             >>> M.minor(0, 0)
@@ -5604,12 +5604,12 @@ class MatrixN(Array):
 
             >>> M = MatrixN.identity(4)
             >>> M[:3, :3] = [float(i) for i in range(1, 10)]
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1.0, 2.0, 3.0, 0.0],
              [4.0, 5.0, 6.0, 0.0],
              [7.0, 8.0, 9.0, 0.0],
              [0.0, 0.0, 0.0, 1.0]]
-            >>> print M.minor(3, 3).formated()
+            >>> print(M.minor(3, 3).formated())
             [[1.0, 2.0, 3.0],
              [4.0, 5.0, 6.0],
              [7.0, 8.0, 9.0]]
@@ -5635,18 +5635,18 @@ class MatrixN(Array):
             signed by (-1)**(i+j).
 
             >>> M = MatrixN(range(1, 10), shape=(3, 3))
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
-            >>> print M.minor(2, 2).formated()
+            >>> print(M.minor(2, 2).formated())
             [[1, 2],
              [4, 5]]
             >>> M.minor(2, 2).det()
             -3
             >>> M.cofactor(2, 2)
             -3
-            >>> print M.minor(0, 1).formated()
+            >>> print(M.minor(0, 1).formated())
             [[4, 6],
              [7, 9]]
             >>> M.minor(0, 1).det()
@@ -5665,21 +5665,21 @@ class MatrixN(Array):
             of m.cofactor(i, j).
 
             >>> M = MatrixN([ [100/(i+j) for i in xrange(1,5)] for j in xrange(4) ])
-            >>> print M.formated()
+            >>> print(M.formated())
             [[100, 50, 33, 25],
              [50, 33, 25, 20],
              [33, 25, 20, 16],
              [25, 20, 16, 14]]
-            >>> print M[:1, :1].adjugate().formated()
+            >>> print(M[:1, :1].adjugate().formated())
             [[1]]
-            >>> print M[:2, :2].adjugate().formated()
+            >>> print(M[:2, :2].adjugate().formated())
             [[33, -50],
              [-50, 100]]
-            >>> print M[:3, :3].adjugate().formated()
+            >>> print(M[:3, :3].adjugate().formated())
             [[35, -175, 161],
              [-175, 911, -850],
              [161, -850, 800]]
-            >>> print M[:4, :4].adjugate().formated()
+            >>> print(M[:4, :4].adjugate().formated())
             [[42, -210, 154, 49],
              [-210, 1054, -775, -245],
              [154, -775, 575, 175],
@@ -5736,34 +5736,34 @@ class MatrixN(Array):
             will raise a ZeroDivisionError if m cannot be triangulated.
 
             >>> M = MatrixN([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
-            >>> print round(M, 2).formated()
+            >>> print(round(M, 2).formated())
             [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
              [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
              [0.33, 0.25, 0.2, 0.17, 0.14, 0.13],
              [0.25, 0.2, 0.17, 0.14, 0.13, 0.11],
              [0.2, 0.17, 0.14, 0.13, 0.11, 0.1],
              [0.17, 0.14, 0.13, 0.11, 0.1, 0.09]]
-            >>> print round(M[:1, :1].gauss(), 2).formated()
+            >>> print(round(M[:1, :1].gauss(), 2).formated())
             [[1.0]]
-            >>> print round(M[:2, :2].gauss(), 2).formated()
+            >>> print(round(M[:2, :2].gauss(), 2).formated())
             [[1.0, 0.5],
              [0.0, 0.08]]
-            >>> print round(M[:3, :3].gauss(), 2).formated() # doctest: +SKIP
+            >>> print(round(M[:3, :3].gauss(), 2).formated()) # doctest: +SKIP
             [[1.0, 0.5, 0.33],
              [0.0, 0.08, 0.09],
              [0.0, 0.0, -0.01]]
-            >>> print round(M[:4, :4].gauss(), 2).formated() # doctest: +SKIP
+            >>> print(round(M[:4, :4].gauss(), 2).formated()) # doctest: +SKIP
             [[1.0, 0.5, 0.33, 0.25],
              [0.0, 0.08, 0.09, 0.08],
              [0.0, 0.0, -0.01, -0.01],
              [0.0, 0.0, 0.0, 0.0]]
-            >>> print round(M[:5, :5].gauss(), 2).formated()  # doctest: +SKIP
+            >>> print(round(M[:5, :5].gauss(), 2).formated())  # doctest: +SKIP
             [[1.0, 0.5, 0.33, 0.25, 0.2],
              [0.0, 0.08, 0.09, 0.08, 0.08],
              [0.0, 0.0, -0.01, -0.01, -0.01],
              [0.0, 0.0, 0.0, 0.0, 0.0],
              [0.0, 0.0, 0.0, -0.0, -0.0]]
-            >>> print round(M[:6, :6].gauss(), 2).formated() # doctest: +SKIP
+            >>> print(round(M[:6, :6].gauss(), 2).formated()) # doctest: +SKIP
             [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
              [0.0, 0.08, 0.09, 0.08, 0.08, 0.07],
              [0.0, 0.0, 0.01, 0.01, 0.01, 0.01],
@@ -5772,7 +5772,7 @@ class MatrixN(Array):
              [0.0, 0.0, 0.0, 0.0, 0.0, -0.0]]
 
             >>> M = MatrixN([[1, 2, 3], [2, 4, 6], [6, 7, 8]])
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3],
              [2, 4, 6],
              [6, 7, 8]]
@@ -5780,7 +5780,7 @@ class MatrixN(Array):
             0
             >>> M.isSingular()
             True
-            >>> print M.gauss().formated()
+            >>> print(M.gauss().formated())
             Traceback (most recent call last):
                 ...
             ZeroDivisionError: MatrixN is singular
@@ -5794,34 +5794,34 @@ class MatrixN(Array):
             followed by back substitution.
 
             >>> M = MatrixN([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
-            >>> print round(M, 2).formated()
+            >>> print(round(M, 2).formated())
             [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
              [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
              [0.33, 0.25, 0.2, 0.17, 0.14, 0.13],
              [0.25, 0.2, 0.17, 0.14, 0.13, 0.11],
              [0.2, 0.17, 0.14, 0.13, 0.11, 0.1],
              [0.17, 0.14, 0.13, 0.11, 0.1, 0.09]]
-            >>> print round(M[:1, :1].reduced(), 2).formated()
+            >>> print(round(M[:1, :1].reduced(), 2).formated())
             [[1.0]]
-            >>> print round(M[:2, :2].reduced(), 2).formated()
+            >>> print(round(M[:2, :2].reduced(), 2).formated())
             [[1.0, 0.0],
              [0.0, 1.0]]
-            >>> print round(M[:3, :3].reduced(), 2).formated() # doctest: +SKIP
+            >>> print(round(M[:3, :3].reduced(), 2).formated()) # doctest: +SKIP
             [[1.0, 0.0, 0.0],
              [0.0, 1.0, -0.0],
              [0.0, 0.0, 1.0]]
-            >>> print round(M[:4, :4].reduced(), 2).formated() # doctest: +SKIP
+            >>> print(round(M[:4, :4].reduced(), 2).formated()) # doctest: +SKIP
             [[1.0, 0.0, 0.0, 0.0],
              [0.0, 1.0, -0.0, 0.0],
              [0.0, 0.0, 1.0, 0.0],
              [0.0, 0.0, 0.0, 1.0]]
-            >>> print round(M[:5, :5].reduced(), 2).formated() # doctest: +SKIP
+            >>> print(round(M[:5, :5].reduced(), 2).formated()) # doctest: +SKIP
             [[1.0, 0.0, 0.0, 0.0, 0.0],
              [0.0, 1.0, -0.0, 0.0, -0.0],
              [0.0, 0.0, 1.0, 0.0, -0.0],
              [0.0, 0.0, 0.0, 1.0, -0.0],
              [0.0, 0.0, 0.0, -0.0, 1.0]]
-            >>> print round(M[:6, :6].reduced(), 2).formated() # doctest: +SKIP
+            >>> print(round(M[:6, :6].reduced(), 2).formated()) # doctest: +SKIP
             [[1.0, 0.0, 0.0, 0.0, -0.0, 0.0],
              [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
              [0.0, 0.0, 1.0, 0.0, -0.0, 0.0],
@@ -5830,7 +5830,7 @@ class MatrixN(Array):
              [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]]
 
             >>> M = MatrixN([[1, 2, 3], [2, 4, 6], [6, 7, 8]])
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3],
              [2, 4, 6],
              [6, 7, 8]]
@@ -5838,7 +5838,7 @@ class MatrixN(Array):
             0
             >>> M.isSingular()
             True
-            >>> print M.reduced().formated()
+            >>> print(M.reduced().formated())
             Traceback (most recent call last):
                 ...
             ZeroDivisionError: MatrixN is singular
@@ -5864,7 +5864,7 @@ class MatrixN(Array):
             Returns the determinant of m, 0 if MatrixN is singular.
 
             >>> M = MatrixN([ [100/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
-            >>> print M.formated()
+            >>> print(M.formated())
             [[100, 50, 33, 25, 20, 16],
              [50, 33, 25, 20, 16, 14],
              [33, 25, 20, 16, 14, 12],
@@ -5885,7 +5885,7 @@ class MatrixN(Array):
             452.0
 
             >>> M = MatrixN(range(1, 10), shape=(3, 3))
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -5941,7 +5941,7 @@ class MatrixN(Array):
             Returns True if m is singular, ie it's determinant is smaller than the given tolerance.
 
             >>> M = MatrixN(range(1, 5), shape=(2, 2))
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2],
              [3, 4]]
             >>> M.det()
@@ -5950,7 +5950,7 @@ class MatrixN(Array):
             False
 
             >>> M = MatrixN(range(1, 10), shape=(3, 3))
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -5967,34 +5967,34 @@ class MatrixN(Array):
             Returns the inverse MatrixN of m, if m is invertible, will raise a ValueError otherwise.
 
             >>> M = MatrixN([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
-            >>> print round(M, 2).formated()
+            >>> print(round(M, 2).formated())
             [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
              [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
              [0.33, 0.25, 0.2, 0.17, 0.14, 0.13],
              [0.25, 0.2, 0.17, 0.14, 0.13, 0.11],
              [0.2, 0.17, 0.14, 0.13, 0.11, 0.1],
              [0.17, 0.14, 0.13, 0.11, 0.1, 0.09]]
-            >>> print round(M[:1, :1].inverse(), 0).formated()
+            >>> print(round(M[:1, :1].inverse(), 0).formated())
             [[1.0]]
-            >>> print round(M[:2, :2].inverse(), 0).formated()
+            >>> print(round(M[:2, :2].inverse(), 0).formated())
             [[4.0, -6.0],
              [-6.0, 12.0]]
-            >>> print round(M[:3, :3].inverse(), 0).formated()
+            >>> print(round(M[:3, :3].inverse(), 0).formated())
             [[9.0, -36.0, 30.0],
              [-36.0, 192.0, -180.0],
              [30.0, -180.0, 180.0]]
-            >>> print round(M[:4, :4].inverse(), 0).formated()
+            >>> print(round(M[:4, :4].inverse(), 0).formated())
             [[16.0, -120.0, 240.0, -140.0],
              [-120.0, 1200.0, -2700.0, 1680.0],
              [240.0, -2700.0, 6480.0, -4200.0],
              [-140.0, 1680.0, -4200.0, 2800.0]]
-            >>> print round(M[:5, :5].inverse(), 0).formated()
+            >>> print(round(M[:5, :5].inverse(), 0).formated())
             [[25.0, -300.0, 1050.0, -1400.0, 630.0],
              [-300.0, 4800.0, -18900.0, 26880.0, -12600.0],
              [1050.0, -18900.0, 79380.0, -117600.0, 56700.0],
              [-1400.0, 26880.0, -117600.0, 179200.0, -88200.0],
              [630.0, -12600.0, 56700.0, -88200.0, 44100.0]]
-            >>> print round(M[:6, :6].inverse(), 0).formated()
+            >>> print(round(M[:6, :6].inverse(), 0).formated())
             [[36.0, -630.0, 3360.0, -7560.0, 7560.0, -2772.0],
              [-630.0, 14700.0, -88200.0, 211680.0, -220500.0, 83160.0],
              [3360.0, -88200.0, 564480.0, -1411200.0, 1512000.0, -582120.0],
@@ -6003,7 +6003,7 @@ class MatrixN(Array):
              [-2772.0, 83160.0, -582120.0, 1552320.0, -1746360.0, 698544.0]]
 
             >>> M = MatrixN(range(1, 10), shape=(3, 3))
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3],
              [4, 5, 6],
              [7, 8, 9]]
@@ -6011,7 +6011,7 @@ class MatrixN(Array):
             0
             >>> M.isSingular()
             True
-            >>> print M.inverse().formated()
+            >>> print(M.inverse().formated())
             Traceback (most recent call last):
                 ...
             ValueError: MatrixN is not invertible
@@ -6054,11 +6054,11 @@ class MatrixN(Array):
             If m is invertible then the left inverse of m is also it's right inverse, and it's inverse matrix.
 
             >>> M = MatrixN([[1, 2], [3, 4], [5, 6]])
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2],
              [3, 4],
              [5, 6]]
-            >>> print round(M.linverse(), 2).formated()
+            >>> print(round(M.linverse(), 2).formated())
             [[-1.33, -0.33, 0.67],
              [1.08, 0.33, -0.42]]
         """
@@ -6079,10 +6079,10 @@ class MatrixN(Array):
             If m is invertible then the right inverse of m is also it's left inverse, and it's inverse matrix.
 
             >>> M = MatrixN([[1, 2, 3], [4, 5, 6]])
-            >>> print M.formated()
+            >>> print(M.formated())
             [[1, 2, 3],
              [4, 5, 6]]
-            >>> print round(M.rinverse(), 2).formated()
+            >>> print(round(M.rinverse(), 2).formated())
             [[-0.94, 0.44],
              [-0.11, 0.11],
              [0.72, -0.22]]
@@ -6130,9 +6130,9 @@ def dot(u, v):
 
         >>> u = VectorN(1.0, 0.0, 0.0)
         >>> v = VectorN(0.707, 0.0, -0.707)
-        >>> print round(dot(u, v), 3)
+        >>> print(round(dot(u, v), 3))
         0.707
-        >>> print round(dot(u, [0.707, 0.0, -0.707]), 3)
+        >>> print(round(dot(u, [0.707, 0.0, -0.707]), 3))
         0.707
 
         Related : see VectorN.dot method.
@@ -6177,9 +6177,9 @@ def angle(a, b, c=None):
 
         >>> u = VectorN(1.0, 0.0, 0.0)
         >>> v = VectorN(0.707, 0.0, -0.707)
-        >>> print round(angle(u, v), 7)
+        >>> print(round(angle(u, v), 7))
         0.7853982
-        >>> print round(angle(u, [0.707, 0.0, -0.707]), 7)
+        >>> print(round(angle(u, [0.707, 0.0, -0.707]), 7))
         0.7853982
 
         Alternatively can use the form angle(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
@@ -6188,7 +6188,7 @@ def angle(a, b, c=None):
         >>> o = VectorN(0.0, 1.0, 0.0, 1.0)
         >>> p = VectorN(1.0, 1.0, 0.0, 1.0)
         >>> q = VectorN(0.707, 1.0, -0.707, 1.0)
-        >>> print round(angle(o, p, q), 7)
+        >>> print(round(angle(o, p, q), 7))
         0.7853982
 
         Related : see VectorN.angle method.
@@ -6296,7 +6296,7 @@ class VectorN(Array):
         >>> V
         VectorN([0, 1, 2])
         >>> M = MatrixN([[0], [1], [2]])
-        >>> print M.formated()
+        >>> print(M.formated())
         [[0],
          [1],
          [2]]
@@ -6668,3 +6668,4 @@ class VectorN(Array):
 if __name__ == '__main__':
     import doctest
     doctest.testmod(verbose=True)
+
