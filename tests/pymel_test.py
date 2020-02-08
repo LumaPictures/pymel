@@ -30,9 +30,12 @@ def getParser():
         the test modules''', default=testsDir)
     parser.add_argument('--pymel-root', help='''The base directory of the pymel
         source repository''', default=pymelRoot)
-    parser.add_argument('-W', '--warnings-as-errors', action='store_true',
-                        help="Treat DeprecationWarning and FutureWarning as"
-                             " errors")
+    warn_grp = parser.add_mutually_exclusive_group()
+    warn_grp.add_argument('-W', '--warnings-as-errors', action='store_const',
+        const='errors', dest='warnings', default=True,
+        help="Treat DeprecationWarning and FutureWarning as errors")
+    warn_grp.add_argument('--no-warnings', action='store_false',
+        dest='warnings', help='''Disable DeprecationWarning/FutureWarning''')
     parser.add_argument('--no-doctest', dest='doctest', action='store_false',
         help='''Skip running doctests''')
     return parser
@@ -93,16 +96,18 @@ def isMayaOutput(stream):
     return streamCls.__name__ == 'Output' and streamCls.__module__ == 'maya'
 
 
-def pytest_test(argv, doctest=True, warnings_as_errors=False):
+def pytest_test(argv, doctest=True, warnings=True):
     import pytest
-    import warnings
+    import warnings as warnings_mod
 
     new_args = ['pytest', '-vv'] # verbose
     if doctest:
         new_args.append('--doctest-modules')
     argv[0:1] = new_args
 
-    if warnings_as_errors:
+    if not warnings:
+        argv.append('--disable-warnings')
+    elif warnings == 'errors':
         # TODO: possibly get rid of our own flag entirely, and require
         # pytest >= 3.1?
 
@@ -116,9 +121,9 @@ def pytest_test(argv, doctest=True, warnings_as_errors=False):
             argv.extend(['-W', 'error::DeprecationWarning'])
             argv.extend(['-W', 'error::FutureWarning'])
         else:
-            warnings.simplefilter("error", PendingDeprecationWarning)
-            warnings.simplefilter("error", DeprecationWarning)
-            warnings.simplefilter("error", FutureWarning)
+            warnings_mod.simplefilter("error", PendingDeprecationWarning)
+            warnings_mod.simplefilter("error", DeprecationWarning)
+            warnings_mod.simplefilter("error", FutureWarning)
 
     origStdOut = sys.stdout
     wrappedStdout = None
@@ -240,7 +245,7 @@ def main(argv):
 
         try:
             return pytest_test(argv, doctest=parsed.doctest,
-                warnings_as_errors=parsed.warnings_as_errors)
+                warnings=parsed.warnings)
         finally:
             os.chdir(oldPath)
     finally:
