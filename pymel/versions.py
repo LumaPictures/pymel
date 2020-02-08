@@ -4,7 +4,7 @@ Class for storing apiVersions, which are the best method for comparing versions.
 
     >>> from pymel import versions
     >>> if versions.current() >= versions.v2008:
-    ...     print "The current version is later than Maya 2008"
+    ...     print("The current version is later than Maya 2008")
     The current version is later than Maya 2008
 """
 from __future__ import print_function
@@ -263,3 +263,4 @@ def isEval():
         return maya.cmds.about(evalVersion=1)
     except AttributeError:
         raise RuntimeError("This method cannot be used until maya is fully initialized")
+

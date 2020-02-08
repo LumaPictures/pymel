@@ -575,7 +575,7 @@ class Catch(object):
 
     >>> if not catch( lambda: myFunc( "somearg" ) ):
     ...    result = catch.result
-    ...    print "succeeded:", result
+    ...    print("succeeded:", result)
 
     """
     #__metaclass__ = util.Singleton
@@ -646,7 +646,7 @@ class OptionVarDict(collections.MutableMapping):
         ...     optionVar['numbers'] = [1,24,7]
         >>> optionVar['numbers'].appendVar( 9 )
         >>> numArray = optionVar.pop('numbers')
-        >>> print numArray
+        >>> print(numArray)
         [1L, 24L, 7L, 9L]
         >>> optionVar.has_key('numbers') # previous pop removed the key
         False
@@ -1349,3 +1349,4 @@ sortCaseInsensitive = _factories.getCmdFunc('sortCaseInsensitive')
 stackTrace = _factories.getCmdFunc('stackTrace')
 
 waitCursor = _factories.getCmdFunc('waitCursor')
+

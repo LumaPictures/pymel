@@ -395,7 +395,7 @@ def mel2pyStr(data, currentModule=None, pymelNamespace='', forceCompatibility=Fa
     convert a string representing mel code into a string representing python code
 
         >>> import pymel.tools.mel2py as mel2py
-        >>> print mel2py.mel2pyStr('paneLayout -e -configuration "top3" test;')
+        >>> print(mel2py.mel2pyStr('paneLayout -e -configuration "top3" test;'))
         from pymel.all import *
         paneLayout('test',configuration="top3",e=1)
         <BLANKLINE>
@@ -561,4 +561,5 @@ def mel2py(input, outputDir=None,
         print("%d files imported without error" % (importCnt))
 
     succCnt = 0
+
 

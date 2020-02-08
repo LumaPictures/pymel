@@ -2942,7 +2942,7 @@ class Attribute(PyNode):
         ...     cam.visibility.set( True )
         ...     cam.visibility.lock()
         ...
-        >>> print cam.v.type()      # shortnames also work
+        >>> print(cam.v.type())      # shortnames also work
         bool
 
     Accessing Attributes
@@ -3018,10 +3018,10 @@ class Attribute(PyNode):
     be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as a `Vector`.
 
         >>> t = cam.translate.get()
-        >>> print t
+        >>> print(t)
         [4.0, 5.0, 6.0]
         >>> # translation is returned as a vector class
-        >>> print type(t)
+        >>> print(type(t))
         <class 'pymel.core.datatypes.Vector'>
 
     `set` is flexible in the types that it will accept, but `get` will always return the same type
@@ -3198,8 +3198,8 @@ class Attribute(PyNode):
             nt.SpotLight(u'spotLightShape2')
             >>> nt.SpotLight()
             nt.SpotLight(u'spotLightShape3')
-            >>> for x in at: print x
-            ...
+            >>> for x in at: print(x)
+            ... 
             defaultLightSet.dagSetMembers[0]
             defaultLightSet.dagSetMembers[1]
             defaultLightSet.dagSetMembers[2]
@@ -8661,3 +8661,4 @@ def selectionConnection(*args, **kwargs):
             pass
     res = cmds.selectionConnection(*args, **kwargs)
     return res
+

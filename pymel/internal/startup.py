@@ -141,7 +141,7 @@ def _mayaInit(forversion=None):
     >>> import maya.standalone            #doctest: +SKIP
     >>> maya.standalone.initialize()      #doctest: +SKIP
     >>> import maya.mel as mm             #doctest: +SKIP
-    >>> print mm.eval("getenv MAYA_SCRIPT_PATH")    #doctest: +SKIP
+    >>> print(mm.eval("getenv MAYA_SCRIPT_PATH"))    #doctest: +SKIP
     /Network/Servers/sv-user.luma-pictures.com/luma .....
     >>> import os                         #doctest: +SKIP
     >>> 'MAYA_SCRIPT_PATH' in os.environ  #doctest: +SKIP
@@ -949,3 +949,4 @@ def parsePymelConfig():
     return d
 
 pymel_options = parsePymelConfig()
+
