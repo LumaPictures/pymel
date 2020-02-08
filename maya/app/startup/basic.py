@@ -28,7 +28,7 @@ executeUserSetupOnly = executeUserSetup  # @UndefinedVariable
 
 # do this by copying executeUserSetup, except replace the constant
 # 'userSetup.py' with 'siteSetup.py'
-old_code = executeUserSetupOnly.func_code
+old_code = executeUserSetupOnly.__code__
 new_consts = tuple('siteSetup.py' if x == 'userSetup.py' else x
                    for x in old_code.co_consts)
 new_code = types.CodeType(old_code.co_argcount,
@@ -46,10 +46,10 @@ new_code = types.CodeType(old_code.co_argcount,
                           old_code.co_freevars,
                           old_code.co_cellvars)
 executeSiteSetup = types.FunctionType(new_code,
-                                      executeUserSetupOnly.func_globals,
+                                      executeUserSetupOnly.__globals__,
                                       'executeSiteSetup',
-                                      executeUserSetupOnly.func_defaults,
-                                      executeUserSetupOnly.func_closure)
+                                      executeUserSetupOnly.__defaults__,
+                                      executeUserSetupOnly.__closure__)
 
 # ok, now we have executeSiteSetup, make our "new" executeUserSetup
 
