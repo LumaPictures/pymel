@@ -5664,7 +5664,7 @@ class MatrixN(Array):
             It's a square MatrixN of same size as m, where a component of index (i, j) is set to the value
             of m.cofactor(i, j).
 
-            >>> M = MatrixN([ [100/(i+j) for i in xrange(1,5)] for j in xrange(4) ])
+            >>> M = MatrixN([ [100//(i+j) for i in xrange(1,5)] for j in xrange(4) ])
             >>> print(M.formated())
             [[100, 50, 33, 25],
              [50, 33, 25, 20],
@@ -5863,7 +5863,7 @@ class MatrixN(Array):
 
             Returns the determinant of m, 0 if MatrixN is singular.
 
-            >>> M = MatrixN([ [100/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> M = MatrixN([ [100//(i+j) for i in xrange(1,7)] for j in xrange(6) ])
             >>> print(M.formated())
             [[100, 50, 33, 25, 20, 16],
              [50, 33, 25, 20, 16, 14],

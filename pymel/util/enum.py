@@ -15,7 +15,7 @@ This package provides a module for robust enumerations in Python.
 An enumeration object is created with a sequence of string arguments
 to the Enum() constructor:
 
-    >>> from enum import Enum
+    >>> from .enum import Enum
     >>> Colours = Enum('Colours', ['red', 'blue', 'green'])
     >>> Weekdays = Enum('Weekdays', ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
 
@@ -542,7 +542,7 @@ class EnumDict(utilitytypes.EquivalencePairs):
 
     To instantiate, pass a sequence of string arguments to the EnumDict() constructor:
 
-        >>> from enum import EnumDict
+        >>> from .enum import EnumDict
         >>> Colours = EnumDict(['red', 'blue', 'green'])
         >>> Weekdays = EnumDict(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
         >>> sorted(Weekdays.items())
