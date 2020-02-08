@@ -14,6 +14,8 @@ shell respectively.
 # Note that several of the functions in this module are implemented in C++
 # code, such as executeDeferred and executeInMainThreadWithResult
  
+from past.builtins import execfile
+from builtins import str
 def runOverriddenModule(modName, callingFileFunc, globals):
     '''Run a module that has been 'overriden' on the python path by another module.
 
@@ -196,9 +198,9 @@ if not globals().get('_pymel_patched') and '_origShellLogHandler' not in globals
         if issubclass(exceptionType, SyntaxError):
             # syntax errors are unique, in that str(syntaxError) will include line
             # number info, which is what detail == 0 is trying to avoid...
-            exceptionMsg = unicode(exceptionObject.args[0])
+            exceptionMsg = str(exceptionObject.args[0])
         else:
-            exceptionMsg = unicode(exceptionObject).strip()
+            exceptionMsg = str(exceptionObject).strip()
         if detail == 0:
             result = exceptionType.__name__ + ': ' + exceptionMsg
         else:
