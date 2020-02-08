@@ -143,7 +143,7 @@ def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, ar
             >>> import pymel.tools.py2mel as py2mel
             >>> def myFunc( arg ):
             ...    for x in arg:
-            ...       print x
+            ...       print(x)
             >>> py2mel.py2melProc( myFunc, procName='myFuncWrapper', evaluateInputs=True )
 
         Then, in mel::
@@ -747,3 +747,4 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
     if register:
         dummyCommand.register()
     return dummyCommand
+

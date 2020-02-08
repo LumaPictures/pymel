@@ -8,16 +8,16 @@ We do NOT recommend using it in external code...
 
 >>> # Create a tree from nested sequences:
 >>> myTree = Tree('a', ('ab', 'aa', 3, {}))
->>> print myTree
+>>> print(myTree)
 ('a', ('ab', 'aa', '3', '{}'))
->>> print myTree.formatted()
+>>> print(myTree.formatted())
 +: a
 |--: ab
 |--: aa
 |--: 3
 \--: {}
 >>> myTree.sort()
->>> print myTree.formatted()
+>>> print(myTree.formatted())
 +: a
 |--: 3
 |--: {}
@@ -29,12 +29,12 @@ We do NOT recommend using it in external code...
 >>> # We can make a forest by passing in multiple args to the constructor
 >>> myForest = Tree(1, 2, 3)
 >>> for top in myForest.tops():
-...     print top.value
-...
+...     print(top.value)
+... 
 1
 2
 3
->>> print myForest.formatted()
+>>> print(myForest.formatted())
 -: 1
 <BLANKLINE>
 -: 2
@@ -575,13 +575,13 @@ class MetaTree(type):
             Now, some examples:
 
             >>> myTree = Tree()  # makes an empty tree
-            >>> print myTree
+            >>> print(myTree)
             ()
             >>> myTree = Tree(1)
-            >>> print repr(myTree) # different ways of stringifying...
+            >>> print(repr(myTree)) # different ways of stringifying...
             Tree(1)
             >>> myTree = Tree(1,('a','b'))  # make a tree with children
-            >>> print myTree.formatted()
+            >>> print(myTree.formatted())
             +: 1
             |--: a
             \--: b
@@ -1504,7 +1504,7 @@ def treeFromChildLink(isExactChildFn, *args):
         ...     return s1.startswith(s2) and len(s1)==len(s2)+1
         >>> a = treeFromChildLink (isDirectChild, *lst)
         >>> a.sort()
-        >>> print a.formatted()
+        >>> print(a.formatted())
         +: a
         |-+: aa
         | \--: aab
@@ -1588,7 +1588,7 @@ def treeFromIsChild(isChildFn, *elements):
     ...     return s1.startswith(s2)
     >>> a = treeFromIsChild (isChild, *lst)
     >>> a.sort()
-    >>> print a.formatted()
+    >>> print(a.formatted())
     +: a
     |-+: aa
     | \--: aab
@@ -1701,3 +1701,4 @@ def treeFromIsChild(isChildFn, *elements):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
+

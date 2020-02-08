@@ -91,7 +91,7 @@ class SafeApiPtr(object):
     >>> aperMin = SafeApiPtr('double')
     >>> aperMax = SafeApiPtr('double')
     >>> cam.getFilmApertureLimits(aperMin(), aperMax())
-    >>> print '%.5f, %.5f' % (aperMin.get(), aperMax.get())
+    >>> print('%.5f, %.5f' % (aperMin.get(), aperMax.get()))
     0.01378, 20.28991
     """
 
@@ -885,3 +885,4 @@ def getPlugValue(plug):
     raise TypeError("%s: Unsupported Type: %s" %
                     (plug.partialName(True, True, True, False, True, True),
                      obj.apiTypeStr()))
+

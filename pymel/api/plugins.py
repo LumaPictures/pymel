@@ -898,7 +898,7 @@ class PyNodeMethod(object):
     ...     _typeId = om.MTypeId(654748)
     ...     @PyNodeMethod
     ...     def introduce(self):
-    ...         print "Hi, I'm an instance of a MyNode PyNode - my name is %s!" % self.name()
+    ...         print("Hi, I'm an instance of a MyNode PyNode - my name is %s!" % self.name())
     >>> FriendlyNode.register()
     >>> import pymel.core as pm
     >>> frank = pm.createNode('FriendlyNode', name='Frank')
@@ -1212,3 +1212,4 @@ def pluginCommands(pluginName, reportedOnly=False):
         if moreCmds:
             commands.extend(moreCmds)
     return commands
+
