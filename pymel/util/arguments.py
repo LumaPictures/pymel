@@ -9,7 +9,12 @@ from __future__ import unicode_literals
 
 from future import standard_library
 import numbers
-import collections.abc
+
+# 2to3: remove switch when python-3 only
+try:
+    from collections.abc import Mapping, Sequence
+except ImportError:
+    from collections import Mapping, Sequence
 standard_library.install_aliases()
 from builtins import str
 from builtins import range
@@ -88,7 +93,7 @@ def isSequence(obj):
     -------
     bool
     """
-    return isinstance(obj, collections.abc.Sequence)
+    return isinstance(obj, Sequence)
 
 
 def isMapping(obj):
@@ -102,7 +107,7 @@ def isMapping(obj):
     -------
     bool
     """
-    return isinstance(obj, collections.abc.Mapping)
+    return isinstance(obj, Mapping)
 
 clsname = lambda x: type(x).__name__
 
