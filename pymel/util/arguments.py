@@ -465,6 +465,9 @@ class RemovedKey(object):
     def __ne__(self, other):
         return not self.oldVal == other.oldVal
 
+    def __hash__(self):
+        return hash(self.oldVal)
+
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self.oldVal)
 
@@ -480,6 +483,9 @@ class AddedKey(object):
     def __ne__(self, other):
         return not self.newVal == other.newVal
 
+    def __hash__(self):
+        return hash(self.newVal)
+
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self.newVal)
 
@@ -494,7 +500,10 @@ class ChangedKey(object):
         return self.newVal == other.newVal and self.oldVal == other.oldVal
 
     def __ne__(self, other):
-        return not self.newVal == other.newVal
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((self.oldVal, self.newVal))
 
     def __repr__(self):
         return '%s(%r, %r)' % (type(self).__name__, self.oldVal, self.newVal)
