@@ -2854,7 +2854,7 @@ def _deprecatePyNode():
             return proxyMethod(self, *args)
 
         f.__doc__ = "deprecated\n"
-        f.__name__ = method
+        f.__name__ = __builtins__['str'](method)
         g = strDeprecateDecorator(f)
         setattr(PyNode, method, g)
 

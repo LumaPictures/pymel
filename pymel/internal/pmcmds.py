@@ -133,7 +133,7 @@ def _createFunction(func, oldname, newname):
                               old_code.co_names,
                               old_code.co_varnames,
                               old_code.co_filename,
-                              '%s_wrapped' % oldname,  # unicode no good in py2
+                              __builtins__['str']('%s_wrapped' % oldname),  # unicode no good in py2
                               old_code.co_firstlineno,
                               old_code.co_lnotab,
                               old_code.co_freevars,

@@ -456,7 +456,7 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
                 except AttributeError:
                     print("proxyClass: error adding proxy attribute %s.%s" % (classname, attrName))
 
-    Proxy.__name__ = classname
+    Proxy.__name__ = __builtins__['str'](classname)
     if module is not None:
         Proxy.__module__ = module
     return Proxy

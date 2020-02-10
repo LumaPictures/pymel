@@ -5565,7 +5565,7 @@ class DeformableShape(GeometryShape):
             else:
                 return spansPlusDegreeFunc(self)
         if name:
-            _numCvs_generatedFunc.__name__ = name
+            _numCvs_generatedFunc.__name__ = __builtins__['str'](name)
         if doc:
             _numCvs_generatedFunc.__doc__ = doc
         return _numCvs_generatedFunc
@@ -5590,7 +5590,7 @@ class DeformableShape(GeometryShape):
             else:
                 return spansFunc(self) + 1
         if name:
-            _numEPs_generatedFunc.__name__ = name
+            _numEPs_generatedFunc.__name__ = __builtins__['str'](name)
         if doc:
             _numEPs_generatedFunc.__doc__ = doc
         return _numEPs_generatedFunc
@@ -7821,7 +7821,7 @@ def _makeApiMethodWrapForEmptyMesh(apiMethodName, baseMethodName=None,
         if not isinstance(mfn, _api.MFnMesh):
             return defaultVal
         return baseMethod(self, *args, **kwargs)
-    methodWrapForEmptyMesh.__name__ = resultName
+    methodWrapForEmptyMesh.__name__ = __builtins__['str'](resultName)
     return methodWrapForEmptyMesh
 
 

@@ -318,7 +318,7 @@ def toPyType(moduleName, objectName):
         cls = getattr(module, objectName)
         if res is not None:
             return cls(res)
-    toGivenClass.__name__ = 'to%s' % util.capitalize(objectName)
+    toGivenClass.__name__ = __builtins__['str']('to%s' % util.capitalize(objectName))
     toGivenClass.__doc__ = "returns a %s object" % objectName
     return toGivenClass
 
@@ -398,7 +398,7 @@ def toPyTypeList(moduleName, objectName):
         if res is None:
             return []
         return [cls(x) for x in res]
-    toGivenClassList.__name__ = 'to%sList' % util.capitalize(objectName)
+    toGivenClassList.__name__ = __builtins__['str']('to%sList' % util.capitalize(objectName))
     toGivenClassList.__doc__ = "returns a list of %s objects" % objectName
     return toGivenClassList
 
@@ -897,7 +897,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None):
 
         return beforeUiFunc(*args, **kwargs)
 
-    newUiFunc.__name__ = funcName
+    newUiFunc.__name__ = __builtins__['str'](funcName)
     newUiFunc.__module__ = inFunc.__module__
     newUiFunc.__doc__ = inFunc.__doc__
 
@@ -1174,9 +1174,9 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
         addCmdDocs(newFunc, funcName)
 
     if rename:
-        newFunc.__name__ = rename
+        newFunc.__name__ = __builtins__['str'](rename)
     else:
-        newFunc.__name__ = funcName
+        newFunc.__name__ = __builtins__['str'](funcName)
 
     return newFunc
 
@@ -1213,9 +1213,9 @@ def makeCreateFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName
             return inFunc(*args, **kwargs)
 
     if newMethodName:
-        wrappedMelFunc.__name__ = newMethodName
+        wrappedMelFunc.__name__ = __builtins__['str'](newMethodName)
     else:
-        wrappedMelFunc.__name__ = flag
+        wrappedMelFunc.__name__ = __builtins__['str'](flag)
 
     return _addFlagCmdDocs(wrappedMelFunc, cmdName, flag, docstring)
 
@@ -1253,9 +1253,9 @@ def makeQueryFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=
             return inFunc(self, **kwargs)
 
     if newMethodName:
-        wrappedMelFunc.__name__ = newMethodName
+        wrappedMelFunc.__name__ = __builtins__['str'](newMethodName)
     else:
-        wrappedMelFunc.__name__ = flag
+        wrappedMelFunc.__name__ = __builtins__['str'](flag)
 
     return _addFlagCmdDocs(wrappedMelFunc, cmdName, flag, docstring)
 
@@ -1314,9 +1314,9 @@ def makeEditFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=N
             return inFunc(self, **kwargs)
 
     if newMethodName:
-        wrappedMelFunc.__name__ = newMethodName
+        wrappedMelFunc.__name__ = __builtins__['str'](newMethodName)
     else:
-        wrappedMelFunc.__name__ = flag
+        wrappedMelFunc.__name__ = __builtins__['str'](flag)
 
     return _addFlagCmdDocs(wrappedMelFunc, cmdName, flag, docstring)
 
@@ -1421,7 +1421,7 @@ class ApiTypeRegister(object):
             else:
                 [arrayPtr.append(inCast(x)) for x in array]
             return arrayPtr
-        setArray.__name__ = 'set_' + type.__name__
+        setArray.__name__ = __builtins__['str']('set_' + type.__name__)
         return setArray
 
     @staticmethod
@@ -1434,14 +1434,14 @@ class ApiTypeRegister(object):
                 safeArrayPtr[i] = val
             #_logger.debug("result %s" % safeArrayPtr)
             return safeArrayPtr
-        setArray.__name__ = 'set_' + apiTypeName + str(length) + 'Array'
+        setArray.__name__ = __builtins__['str']('set_' + apiTypeName + str(length) + 'Array')
         return setArray
 
     @staticmethod
     def _makeArrayGetter(apiTypeName, length):
         def getArray(safeArrayPtr):
             return [x for x in safeArrayPtr]
-        getArray.__name__ = 'get_' + apiTypeName + str(length) + 'Array'
+        getArray.__name__ = __builtins__['str']('get_' + apiTypeName + str(length) + 'Array')
         return getArray
 
     @classmethod
@@ -2785,7 +2785,7 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
         result = argHelper.castResult(self, result)
         return processApiResult(result, outArgs, outTypeList, do_args)
 
-    wrappedApiFunc.__name__ = pymelName
+    wrappedApiFunc.__name__ = __builtins__['str'](pymelName)
 
     _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex, undoable)
 

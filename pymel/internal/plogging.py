@@ -360,7 +360,7 @@ def addErrorLog(logger):
         def instanceErrorLog(*args, **kwargs):
             return raiseLog(logger, *args, **kwargs)
         instanceErrorLog.__doc__ = raiseLog.__doc__
-        instanceErrorLog.__name__ = 'raiseLog'
+        instanceErrorLog.__name__ = __builtins__['str']('raiseLog')
         logger.raiseLog = instanceErrorLog
     return logger
 
