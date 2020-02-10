@@ -1213,7 +1213,7 @@ class path(unicode):
         Return the name of the owner of this file or directory. Follow
         symbolic links.
 
-        Return a name of the form ``ur'DOMAIN\User Name'``; may be a group.
+        Return a name of the form ``r'<DOMAIN>\<USERNAME>'``; may be a group.
 
         .. seealso:: :attr:`owner`
         """
