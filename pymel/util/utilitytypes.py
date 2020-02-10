@@ -7,7 +7,11 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import collections.abc
+# 2to3: remove switch when python-3 only
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
 from builtins import str
 from builtins import *
 from builtins import object
@@ -685,7 +689,7 @@ class LazyLoadModule(types.ModuleType):
                 cb_args = ()
                 cb_kwargs = {}
             if len(args) == 3:
-                assert isinstance(args[2], collections.abc.Mapping), 'third argument must be a mapping type'
+                assert isinstance(args[2], Mapping), 'third argument must be a mapping type'
                 cb_kwargs = args[2]
             else:
                 cb_kwargs = {}

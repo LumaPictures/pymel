@@ -53,7 +53,12 @@ from __future__ import unicode_literals
 
 from past.builtins import cmp
 from future import standard_library
-import collections.abc
+
+# 2to3: remove switch when python-3 only
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
 standard_library.install_aliases()
 from builtins import str
 from past.builtins import basestring
@@ -284,7 +289,7 @@ class Enum(object):
         extraKeys = {}
         pairs = None
 
-        if isinstance(keys, collections.abc.Mapping):
+        if isinstance(keys, Mapping):
             pairs = list(keys.items())
         else:
             # could be an iterable of keys - in which case the "value" is it's
@@ -346,7 +351,7 @@ class Enum(object):
 
         # always store values as an OrderedDict, to provide unified behavior,
         # regardless of how it's constructed
-        if not isinstance(values, collections.abc.Mapping):
+        if not isinstance(values, Mapping):
             values = OrderedDict(enumerate(values))
         elif not isinstance(values, OrderedDict):
             values = OrderedDict((key, values[key]) for key in sorted(values))
@@ -589,7 +594,7 @@ class EnumDict(utilitytypes.EquivalencePairs):
         if not keys:
             raise EnumEmptyError()
 
-        if isinstance(keys, collections.abc.Mapping):
+        if isinstance(keys, Mapping):
             items = list(keys.items())
             if isinstance(items[0][0], int):
                 byKey = dict((k, v) for v, k in items)
