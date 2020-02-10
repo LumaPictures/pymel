@@ -10,7 +10,12 @@ import pymel.versions as versions
 import plogging
 from pymel.mayautils import getMayaLocation
 
-from bs4 import BeautifulSoup, NavigableString
+try:
+    from bs4 import BeautifulSoup, NavigableString
+except ImportError:
+    # Allow import to succeed, even without bs4 - this allows unittesting to 
+    # import this, and test docstrings (ie, getFirstText)
+    pass
 
 from keyword import iskeyword as _iskeyword
 
