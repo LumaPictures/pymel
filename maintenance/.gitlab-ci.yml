@@ -1,4 +1,0 @@
-include:
-  - project: 'dev/pipe'
-    ref: luma
-    file: '/shell/gitlab/pymel.gitlab-ci.yml'
