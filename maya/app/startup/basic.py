@@ -10,6 +10,7 @@ both the maya.app.startup.batch and maya.app.startup.gui scripts
 
 import maya.OpenMaya
 
+import sys
 import types
 
 # On newer versions of maya, executeUserSetup() isn't run inside of
@@ -31,20 +32,70 @@ executeUserSetupOnly = executeUserSetup  # @UndefinedVariable
 old_code = executeUserSetupOnly.__code__
 new_consts = tuple('siteSetup.py' if x == 'userSetup.py' else x
                    for x in old_code.co_consts)
-new_code = types.CodeType(old_code.co_argcount,
-                          old_code.co_nlocals,
-                          old_code.co_stacksize,
-                          old_code.co_flags,
-                          old_code.co_code,
-                          new_consts,
-                          old_code.co_names,
-                          old_code.co_varnames,
-                          old_code.co_filename,
-                          'executeSiteSetup',
-                          old_code.co_firstlineno,
-                          old_code.co_lnotab,
-                          old_code.co_freevars,
-                          old_code.co_cellvars)
+
+if hasattr(old_code, 'replace'):
+    # Future-proofing - 3.9 introduces a .replace() method
+    new_code = old_code.replace(
+        co_consts=new_consts,
+        co_name='executeSiteSetup',
+    )
+elif sys.version_info[:2] >= (3, 8):
+    # Future-proofing: 3.8 adds co_posonlyargcount
+    new_code = types.CodeType(
+        old_code.co_argcount,
+        old_code.co_posonlyargcount,
+        old_code.co_kwonlyargcount,
+        old_code.co_nlocals,
+        old_code.co_stacksize,
+        old_code.co_flags,
+        old_code.co_code,
+        new_consts,
+        old_code.co_names,
+        old_code.co_varnames,
+        old_code.co_filename,
+        'executeSiteSetup',
+        old_code.co_firstlineno,
+        old_code.co_lnotab,
+        old_code.co_freevars,
+        old_code.co_cellvars,
+    )
+# 2to3: remove switch when python-3 only
+elif sys.version_info[0] >= 3:
+    # Python 3 supports co_kwonlyargcount
+    new_code = types.CodeType(
+        old_code.co_argcount,
+        old_code.co_kwonlyargcount,
+        old_code.co_nlocals,
+        old_code.co_stacksize,
+        old_code.co_flags,
+        old_code.co_code,
+        new_consts,
+        old_code.co_names,
+        old_code.co_varnames,
+        old_code.co_filename,
+        'executeSiteSetup',
+        old_code.co_firstlineno,
+        old_code.co_lnotab,
+        old_code.co_freevars,
+        old_code.co_cellvars,
+    )
+else:
+    new_code = types.CodeType(
+        old_code.co_argcount,
+        old_code.co_nlocals,
+        old_code.co_stacksize,
+        old_code.co_flags,
+        old_code.co_code,
+        new_consts,
+        old_code.co_names,
+        old_code.co_varnames,
+        old_code.co_filename,
+        'executeSiteSetup',
+        old_code.co_firstlineno,
+        old_code.co_lnotab,
+        old_code.co_freevars,
+        old_code.co_cellvars,
+    )
 executeSiteSetup = types.FunctionType(new_code,
                                       executeUserSetupOnly.__globals__,
                                       'executeSiteSetup',
