@@ -210,7 +210,12 @@ def patchMath():
         newfn = _patchfn(basefn)
         _thisModule.__setattr__(fname, newfn)
 
-    mathutilsfn = inspect.getmembers(mathutils, inspect.isfunction)
+    def patchable_mathutils_func(f):
+        if not inspect.isfunction(f):
+            return False
+        return f.__module__ == 'pymel.util.mathutils'
+
+    mathutilsfn = inspect.getmembers(mathutils, patchable_mathutils_func)
     for mfn in mathutilsfn:
         fname = mfn[0]
         basefn = mfn[1]
