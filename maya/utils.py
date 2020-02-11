@@ -15,7 +15,6 @@ shell respectively.
 # code, such as executeDeferred and executeInMainThreadWithResult
  
 from past.builtins import execfile
-from builtins import str
 def runOverriddenModule(modName, callingFileFunc, globals):
     '''Run a module that has been 'overriden' on the python path by another module.
 

@@ -4,11 +4,9 @@ Contains the wrapping mechanisms that allows pymel to integrate the api and maya
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from __future__ import unicode_literals
 
 # Built-in imports
 from builtins import zip
-from builtins import str
 from builtins import map
 from builtins import range
 from past.builtins import basestring

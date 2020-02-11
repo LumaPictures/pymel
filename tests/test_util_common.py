@@ -6,7 +6,6 @@ Created on Oct 16, 2012
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from __future__ import unicode_literals
 
 # used to have tests for util.isClassRunningStack, but it turned out
 # inspect.stack() could cause crashes in some cases...

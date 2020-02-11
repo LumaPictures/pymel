@@ -44,13 +44,11 @@ We do NOT recommend using it in external code...
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from __future__ import unicode_literals
 # Python implementation inspired from Gonzalo Rodrigues "Trees and more trees" in ASPN cookbook
 
 # removed as it's 2.5 only
 # import functools as ftools
 from past.builtins import cmp
-from builtins import str
 from builtins import map
 from builtins import next
 from builtins import range

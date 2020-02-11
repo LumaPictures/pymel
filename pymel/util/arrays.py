@@ -4,7 +4,6 @@ A generic n-dimensionnal Array class serving as base for arbitrary length Vector
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from __future__ import unicode_literals
 
 # NOTE: modified and added some methods that are closer to how Numpy works, as some people pointed out
 # they didn't want non-Python dependencies.
@@ -18,7 +17,6 @@ from __future__ import unicode_literals
 # TODO : trim does preserve sub-element identity, should trimmed do a copy or deepcopy (currently deepcopy)?
 # resize / reshape should be checked and set to same behavior as well
 
-from builtins import str
 from builtins import zip
 from builtins import map
 from builtins import range

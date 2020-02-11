@@ -49,7 +49,6 @@ original arguments used to create the enumeration:
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from __future__ import unicode_literals
 
 from past.builtins import cmp
 from future import standard_library
@@ -60,7 +59,6 @@ try:
 except ImportError:
     from collections import Mapping
 standard_library.install_aliases()
-from builtins import str
 from past.builtins import basestring
 from builtins import *
 from builtins import object
