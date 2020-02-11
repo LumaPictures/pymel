@@ -14,7 +14,14 @@ import logging.config
 from logging import *
 # The python 2.6 version of 'logging' hides these functions, so we need to import explcitly
 from logging import getLevelName, root, info, debug, warning, error, critical
-import configparser
+
+# 2to3: remove switch when python-3 only
+# We can't use future-provided configparser in 2.7, because we need the version
+# that logging.config._create_formatters will work with...
+if sys.version_info[0] >= 3:
+    from configparser import ConfigParser
+else:
+    from ConfigParser import ConfigParser
 
 import maya
 import pymel.util as util
@@ -105,7 +112,7 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
     handlers, by setting the 'remove_existing_handlers' option in the appropriate
     section to True.
     """
-    cp = configparser.ConfigParser(defaults)
+    cp = ConfigParser(defaults)
     if hasattr(cp, 'readfp') and hasattr(fname, 'readline'):
         cp.readfp(fname)
     else:
