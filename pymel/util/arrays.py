@@ -43,6 +43,35 @@ from functools import reduce
 if False:
     from typing import *
 
+if 'coerce' not in __builtins__:
+    def coerce(v1, v2):
+        import numbers
+        if not isinstance(v1, numbers.Number):
+            if hasattr(v1, '__coerce__'):
+                return v1.__coerce__(v2)
+            elif hasattr(v2, '__coerce__'):
+                result = v2.__coerce__(v1)
+                if result is NotImplemented:
+                    return NotImplemented
+                return (result[1], result[0])
+            return NotImplemented
+        elif not isinstance(v2, numbers.Number):
+            if hasattr(v2, '__coerce__'):
+                result = v2.__coerce__(v1)
+                if result is NotImplemented:
+                    return NotImplemented
+                return (result[1], result[0])
+            return NotImplemented
+        # Ok, they're both numbers...
+        # We're just going to deal with floats, ints
+        if (not isinstance(v1, (int, float))
+                or not isinstance(v1, (int, float))):
+            return NotImplemented
+        if isinstance(v1, float) or isinstance(v2, float):
+            return float(v1), float(v2)
+        return int(v1), int(v2)
+
+
 # 1.0/sys.maxint on 64-bit systems is too precise for maya to manage...
 eps = 1.0 / (2 ** 30)
 from builtins import sum as _sum, min as _min, max as _max, abs as _abs
