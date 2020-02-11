@@ -2,10 +2,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from __future__ import unicode_literals
 
 from builtins import map
-from builtins import str
 from past.builtins import basestring
 from builtins import *
 import pymel.util as _util

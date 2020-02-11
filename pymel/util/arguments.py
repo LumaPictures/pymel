@@ -5,7 +5,6 @@ These utility functions can be used by other util modules and are imported in ut
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from __future__ import unicode_literals
 
 from future import standard_library
 import numbers
@@ -16,7 +15,6 @@ try:
 except ImportError:
     from collections import Mapping, Sequence
 standard_library.install_aliases()
-from builtins import str
 from builtins import range
 from past.builtins import basestring
 from builtins import *

@@ -5,14 +5,12 @@ These types can be shared by other utils modules and imported into util main nam
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from __future__ import unicode_literals
 
 # 2to3: remove switch when python-3 only
 try:
     from collections.abc import Mapping
 except ImportError:
     from collections import Mapping
-from builtins import str
 from builtins import *
 from builtins import object
 import inspect

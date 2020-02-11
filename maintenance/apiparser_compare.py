@@ -5,10 +5,8 @@ Written for transitioning to doxygen-xml docs, so we can compare to old results'
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from builtins import zip
-from builtins import str
 from builtins import range
 from past.builtins import basestring
 from builtins import *

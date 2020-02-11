@@ -4,10 +4,8 @@ These do not require initialization of maya.standalone"""
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from past.builtins import execfile
-from builtins import str
 from builtins import next
 from past.builtins import basestring
 from builtins import *

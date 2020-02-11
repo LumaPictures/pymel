@@ -5,9 +5,7 @@ A wrap of Maya's Vector, Point, Color, Matrix, TransformationMatrix, Quaternion,
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from __future__ import unicode_literals
 
-from builtins import str
 from builtins import map
 from builtins import range
 from past.builtins import basestring

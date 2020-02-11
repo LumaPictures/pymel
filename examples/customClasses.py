@@ -89,7 +89,6 @@ decorators you should read up on them before using this feature.
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from __future__ import unicode_literals
 # Note - all of this, below the 'warning', is copied from the docstring for
 # VirtualClassManger.register - keep it in sync!
 
