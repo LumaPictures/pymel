@@ -164,28 +164,51 @@ class EnumValue(object):
     def __hash__(self):
         return hash(self.__index)
 
-#    def __cmp__(self, other):
-#        result = NotImplemented
-#        self_type = self.enumtype
-#        try:
-#            assert self_type == other.enumtype
-#            result = cmp(self.index, other.index)
-#        except (AssertionError, AttributeError):
-#            result = NotImplemented
-#
-#        return result
-
-    def __cmp__(self, other):
+    def _get_comparers(self, other):
         result = NotImplemented
-        self_type = self.enumtype
-        if isinstance(other, EnumValue) and self_type == other.enumtype:
-            result = cmp(self.index, other.index)
-        else:
-            if isinstance(other, basestring):
-                result = cmp(self.key, other)
-            elif isinstance(other, int):
-                result = cmp(self.index, other)
+        if isinstance(other, EnumValue) and self.enumtype == other.enumtype:
+            result = (self.index, other.index)
+        elif isinstance(other, basestring):
+            result = (self.key, other)
+        elif isinstance(other, int):
+            result = (self.index, other)
         return result
+
+    def __eq__(self, other):
+        comparers = self._get_comparers(other)
+        if comparers is NotImplemented:
+            return NotImplemented
+        return comparers[0] == comparers[1]
+
+    def __ne__(self, other):
+        comparers = self._get_comparers(other)
+        if comparers is NotImplemented:
+            return NotImplemented
+        return comparers[0] != comparers[1]
+
+    def __gt__(self, other):
+        comparers = self._get_comparers(other)
+        if comparers is NotImplemented:
+            return NotImplemented
+        return comparers[0] > comparers[1]
+
+    def __lt__(self, other):
+        comparers = self._get_comparers(other)
+        if comparers is NotImplemented:
+            return NotImplemented
+        return comparers[0] < comparers[1]
+
+    def __ge__(self, other):
+        comparers = self._get_comparers(other)
+        if comparers is NotImplemented:
+            return NotImplemented
+        return comparers[0] >= comparers[1]
+
+    def __le__(self, other):
+        comparers = self._get_comparers(other)
+        if comparers is NotImplemented:
+            return NotImplemented
+        return comparers[0] <= comparers[1]
 
 # Modified to support multiple keys for the same value
 

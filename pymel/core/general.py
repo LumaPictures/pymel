@@ -4806,12 +4806,43 @@ class HashableSlice(ProxySlice):
     def _toNormalSlice(self):
         return slice(self.start, self.stop, self.step)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if isinstance(other, HashableSlice):
             other = other._toNormalSlice()
         elif not isinstance(other, slice):
-            return -1
-        return slice.__cmp__(self._toNormalSlice(), other)
+            return False
+        return other == self._toNormalSlice()
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __le__(self, other):
+        if isinstance(other, HashableSlice):
+            other = other._toNormalSlice()
+        elif not isinstance(other, slice):
+            return NotImplemented
+        return other <= self._toNormalSlice()
+
+    def __lt__(self, other):
+        if isinstance(other, HashableSlice):
+            other = other._toNormalSlice()
+        elif not isinstance(other, slice):
+            return NotImplemented
+        return other < self._toNormalSlice()
+
+    def __ge__(self, other):
+        if isinstance(other, HashableSlice):
+            other = other._toNormalSlice()
+        elif not isinstance(other, slice):
+            return NotImplemented
+        return other >= self._toNormalSlice()
+
+    def __gt__(self, other):
+        if isinstance(other, HashableSlice):
+            other = other._toNormalSlice()
+        elif not isinstance(other, slice):
+            return NotImplemented
+        return other > self._toNormalSlice()
 
     @property
     def start(self):

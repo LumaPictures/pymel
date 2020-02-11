@@ -488,6 +488,11 @@ class MetaTree(type):
         def __cmp__(self, other):
             return cmp(self.value, other.value)
 
+        __le__ = lambda self, other: self.__cmp__(other) <= 0
+        __lt__ = lambda self, other: self.__cmp__(other) < 0
+        __ge__ = lambda self, other: self.__cmp__(other) >= 0
+        __gt__ = lambda self, other: self.__cmp__(other) > 0
+
         @mutabletree
         def sort(self, *args):
             if self and self._subtrees:
