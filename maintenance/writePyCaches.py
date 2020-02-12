@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import absolute_import
 #!/usr/bin/env mayapy
 from builtins import *
+str = __builtins__['str']
 import pymel.internal.apicache as apicache
 import pymel.internal.cmdcache as cmdcache
 print(apicache)

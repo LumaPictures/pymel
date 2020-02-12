@@ -11,6 +11,7 @@ from __future__ import absolute_import
 # inspect.stack() could cause crashes in some cases...
 
 from builtins import *
+str = __builtins__['str']
 import unittest
 from pymel.util.scanf import (sscanf, fscanf, CharacterBufferFromIterable,
                               makeCharBuffer, handleWhitespace, handleChar,

@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from builtins import zip
 from builtins import range
 from builtins import *
+str = __builtins__['str']
 import pymel.all as pymel
 import logging
 import logging.handlers

@@ -7,6 +7,7 @@ from builtins import map
 from builtins import range
 from past.builtins import basestring
 from builtins import *
+str = __builtins__['str']
 from pydoc import *         #@UnusedWildImport
 import pydoc, sys, pprint   #@Reimport
 import builtins

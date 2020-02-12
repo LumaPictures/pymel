@@ -9,6 +9,7 @@ from past.builtins import execfile
 from builtins import next
 from past.builtins import basestring
 from builtins import *
+str = __builtins__['str']
 import os
 import sys
 import re

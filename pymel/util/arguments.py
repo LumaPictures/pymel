@@ -18,6 +18,7 @@ standard_library.install_aliases()
 from builtins import range
 from past.builtins import basestring
 from builtins import *
+str = __builtins__['str']
 from builtins import object
 from collections import deque as _deque
 import sys

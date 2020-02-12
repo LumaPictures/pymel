@@ -28,6 +28,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from builtins import *
+str = __builtins__['str']
 from pymel.core import *
 
 class LocalizedTemplate(ui.AETemplate):

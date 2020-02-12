@@ -4,6 +4,7 @@ from __future__ import division
 from builtins import range
 from past.builtins import basestring
 from builtins import *
+str = __builtins__['str']
 from builtins import object
 import os
 import sys

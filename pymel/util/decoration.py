@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 
 from builtins import *
+str = __builtins__['str']
 def decorated(origFunc, newFunc, decoration=None):
     """
     Copies the original function's name/docs/signature to the new function, so that the docstrings
