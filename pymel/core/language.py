@@ -286,7 +286,8 @@ def getMelType(pyObj, exactOnly=True, allowBool=False, allowMatrix=False):
 if False:
     _Parent = object
 else:
-    _Parent = dict
+    # 2to3: need to use "true" dict object in python-2 to avoid metaclass issue
+    _Parent = __builtins__['dict']
 
 
 class MelGlobals(MutableMapping, _Parent):
