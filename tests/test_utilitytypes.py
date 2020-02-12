@@ -16,7 +16,8 @@ bDict = {'B':3, 'b':4}
 class BasicSingleton(with_metaclass(utilitytypes.Singleton, object)):
     pass
 
-class DictSingleton(with_metaclass(utilitytypes.Singleton, dict)) :
+# 2to3: need to use "true" dict object in python-2 to avoid metaclass issue
+class DictSingleton(with_metaclass(utilitytypes.Singleton, __builtins__['dict'])) :
     pass
 
 
@@ -200,7 +201,8 @@ class TestFrozenDict(__AbstractTestDict):
         self._makeNewFrozenDictClass()
 
     def _makeNewFrozenDictClass(self, initialValue=None):
-        class FrozenDict(with_metaclass(utilitytypes.metaStatic, dict)):
+        # 2to3: need to use "true" dict object in python-2 to avoid metaclass issue
+        class FrozenDict(with_metaclass(utilitytypes.metaStatic, __builtins__['dict'])):
             pass
         self.theClass = FrozenDict
 
