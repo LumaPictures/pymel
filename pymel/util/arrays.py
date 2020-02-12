@@ -21,6 +21,7 @@ from builtins import zip
 from builtins import map
 from builtins import range
 from builtins import *
+str = __builtins__['str']
 from builtins import object
 from future.utils import with_metaclass
 

@@ -11,6 +11,7 @@ from builtins import map
 from builtins import range
 from past.builtins import basestring
 from builtins import *
+str = __builtins__['str']
 from builtins import object
 from future.utils import with_metaclass
 import re

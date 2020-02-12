@@ -10,6 +10,7 @@ from builtins import map
 from builtins import range
 from past.builtins import basestring
 from builtins import *
+str = __builtins__['str']
 import os
 import sys
 import math

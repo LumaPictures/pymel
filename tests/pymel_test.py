@@ -4,6 +4,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from builtins import *
+str = __builtins__['str']
 
 import os
 import pipes

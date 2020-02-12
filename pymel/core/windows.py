@@ -8,6 +8,7 @@ from __future__ import division
 from builtins import range
 from past.builtins import basestring
 from builtins import *
+str = __builtins__['str']
 import re
 import sys
 import functools

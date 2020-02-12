@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 from builtins import zip
 from builtins import *
+str = __builtins__['str']
 from builtins import object
 import string
 import sys

@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from builtins import *
+str = __builtins__['str']
 import pymel.all as pymel
 import pymel.core as pm
 from pymel.core.datatypes import *

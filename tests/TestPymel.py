@@ -4,6 +4,7 @@ from __future__ import absolute_import
 #!/usr/bin/env mayapy
 
 from builtins import *
+str = __builtins__['str']
 import unittest
 import os
 """

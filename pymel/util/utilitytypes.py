@@ -12,6 +12,7 @@ try:
 except ImportError:
     from collections import Mapping
 from builtins import *
+str = __builtins__['str']
 from builtins import object
 import inspect
 import types
