@@ -196,6 +196,9 @@ def main(argv):
         os.environ['MAYA_PSEUDOTRANS_MODE'] = '5'
         os.environ['MAYA_PSEUDOTRANS_VALUE'] = ','
 
+        # Maya 2019.1+ won't set exit code correctly unless this is set
+        os.environ['MAYA_NO_STANDALONE_ATEXIT'] = '1'
+
         if parsed.app_dir:
             if not os.path.exists(parsed.app_dir):
                 os.makedirs(parsed.app_dir)
