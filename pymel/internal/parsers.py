@@ -23,7 +23,7 @@ from future.utils import with_metaclass
 try:
     from bs4 import BeautifulSoup, NavigableString
 except ImportError:
-    # Allow import to succeed, even without bs4 - this allows unittesting to 
+    # Allow import to succeed, even without bs4 - this allows unittesting to
     # import this, and test docstrings (ie, getFirstText)
     pass
 
@@ -1163,7 +1163,29 @@ class XmlApiDocParser(ApiDocParser):
 
         return names, types, typeQualifiers, defaults
 
+    def isMayaEnumFunc(self, element):
+        return bool(element.find("./[name='OPENMAYA_ENUM']"))
+
     def _parseEnum(self, enumData):
+        kind = enumData.attrib.get('kind')
+        if kind == 'enum':
+            results = self._parseEnum_normal(enumData)
+        elif kind == 'function' and self.isMayaEnumFunc(enumData):
+            results = self._parseEnum_func(enumData)
+        else:
+            raise ValueError("Got unrecognized enum: {}".format(enumData))
+
+        if not results['values']:
+            return
+
+        if self._anonymousEnumRe.match(results['name']):
+            # for an example of an anonymous enum, see MFnDagNode.kNextPos
+            for key, value in enumValues.items():
+                self.constants[key] = value
+            return
+        return results
+
+    def _parseEnum_normal(self, enumData):
         enumValues = {}
         enumDocs = {}
         enumName = xmlText(enumData.find('name'))
@@ -1191,16 +1213,49 @@ class XmlApiDocParser(ApiDocParser):
                         docs.append(docText)
             if docs:
                 enumDocs[enumKey] = '\n\n'.join(docs)
-        if not enumValues:
-            return
-
-        if self._anonymousEnumRe.match(enumName):
-            # for an example of an anonymous enum, see MFnDagNode.kNextPos
-            for key, value in enumValues.items():
-                self.constants[key] = value
-            return
 
         return {'values': enumValues, 'docs': enumDocs, 'name': enumName}
+
+    def _parseEnum_func(self, enumData):
+        '''Parse an OPENMAYA_ENUM style enum declaration'''
+
+        enumName = None
+        enumValues = {}
+
+        self.currentMethodName = 'OPENMAYA_ENUM' # placeholder
+        self.xprint("ENUM", enumName)
+
+        for param in enumData.findall("./param"):
+            enumKey = param.find('type')
+            if enumKey is None:
+                raise ValueError("Unable to process OPENMAYA_ENUM - one of the"
+                    " params had no type tag: {}".format(enumData))
+            enumKey = xmlText(enumKey)
+            if enumName is None:
+                # the first param is actually the enum name
+                enumName = enumKey
+                self.currentMethodName = enumName
+                continue
+
+            try:
+                enumVal = getattr(self.apiClass, enumKey)
+            except:
+                _logger.warn("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethodName))
+                continue
+            enumValues[enumKey] = enumVal
+
+        if enumName is None:
+            raise ValueError(
+                "Unable to process OPENMAYA_ENUM - no name found: {}".format(
+                    enumData))
+
+        # it seems that OPENMAYA_ENUM style enums never have docs for
+        # enum values - as an example, see M3dView::TextPosition - in
+        # the 2019 docs, we can see a description of each enum value:
+        #   http://help.autodesk.com/cloudhelp/2019/CHS/Maya-SDK-MERGED/cpp_ref/class_m3d_view.html#a8e0d441725a81d2bbdebbea09078260e
+        # ...but nothing similar can be found in 2020 docs:
+        #   http://help.autodesk.com/view/MAYAUL/2020/ENU/?guid=Maya_SDK_MERGED_cpp_ref_class_m3d_view_html
+        return {'values': enumValues, 'docs': {}, 'name': enumName}
 
     def hasNoPython(self):
         for text in self.currentRawMethod.itertext():
@@ -1497,7 +1552,14 @@ class XmlApiDocParser(ApiDocParser):
         for enum in self.cdef.findall("./*/memberdef[@kind='enum'][@prot='public']"):
             self.parseEnum(enum)
 
+        for enumFunc in self.cdef.findall("./*/memberdef[@kind='function'][name='OPENMAYA_ENUM']"):
+            self.parseEnum(enumFunc)
+
         for func in self.cdef.findall("./*/memberdef[@kind='function']"):
+            # skip OPENMAYA_ENUM, those are handled by parseEnum, above
+            if self.isMayaEnumFunc(func):
+                continue
+
             # We take public functions, and protected virtual functions
             # Protected virtual funcs may not be exposed if the method they override
             # isn't public, but better to be overly inclusive
