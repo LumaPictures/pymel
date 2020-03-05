@@ -25,6 +25,7 @@ from pymel.mayautils import getUserPrefsDir
 from pymel.versions import shortName, installName
 from . import plogging
 
+from future.utils import PY2
 
 # There are FOUR different ways maya might be started, all of which are
 # subtly different, that need to be considered / tested:
@@ -931,7 +932,10 @@ def getConfigFile():
 
 
 def parsePymelConfig():
-    import configparser
+    if PY2:
+        import ConfigParser as configparser
+    else:
+        import configparser
 
     types = {
         'skip_mel_init': 'boolean',
