@@ -65,7 +65,7 @@ Building an Official PyMEL Release
                 del sys.modules[mod]
     import pymel
     assert pymel.__file__.startswith(pymelInit)
-    print pymel.__file__
+    print(pymel.__file__)
     import pymel.core as pm
     ```
 
