@@ -416,6 +416,7 @@ def fixMayapySegFault():
         atexit.register(uninitializeMayaOnPythonExit)
         _atExitCallbackInstalled = True
 
+_fixMayapy2011SegFault_applied = False
 
 # Have all the checks inside here, in case people want to insert this in their
 # userSetup... it's currently not always on
@@ -425,6 +426,12 @@ def fixMayapy2011SegFault():
     import platform
     if platform.system() == 'Linux':
         if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp:  # mayapy only
+            global _fixMayapy2011SegFault_applied
+            if _fixMayapy2011SegFault_applied:
+                return
+
+            _fixMayapy2011SegFault_applied = True
+
             # In linux maya 2011, once maya has been initialized, if you try
             # to do a 'normal' sys.exit, it will crash with a segmentation
             # fault..
@@ -433,9 +440,9 @@ def fixMayapy2011SegFault():
             # note that, since there is no built-in support to tell from
             # within atexit functions what the exit code is, we cannot
             # guarantee returning the "correct" exit code... for instance,
-            # if someone does:
-            #    raise SystemExit(300)
-            # we will instead return a 'normal' exit code of 0
+            # if someone gets a reference to sys.exit before it is wrapped,
+            # which can easily happen with command-line tools.
+
             # ... but in general, the return code is a LOT more reliable now,
             # since it used to ALWAYS return non-zero...
 
@@ -454,6 +461,20 @@ def fixMayapy2011SegFault():
                 sys._exit_status = status
                 _orig_exit(status)
             sys.exit = exit
+
+            _orig_SystemExit = __builtins__['SystemExit']
+            if '_orig_SystemExit' not in __builtins__:
+                __builtins__['_orig_SystemExit'] = _orig_SystemExit
+
+            def WrappedSystemExit(*args, **kwargs):
+                exitObj = _orig_SystemExit(*args, **kwargs)
+                if exitObj.args:
+                    exitcode = exitObj.args[0]
+                else:
+                    exitcode = 1
+                sys._exit_status = exitcode
+                return exitObj
+            __builtins__['SystemExit'] = WrappedSystemExit
 
             def hardExit():
                 # run all the other exit handlers registered with
