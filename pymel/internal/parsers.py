@@ -7,6 +7,7 @@ from past.builtins import basestring
 from builtins import *
 str = __builtins__['str']
 from builtins import object
+import functools
 import re
 import os.path
 import platform
@@ -562,7 +563,8 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         self.pymelEnums = {}
         self.methods = util.defaultdict(list)
         self.currentMethodName = None
-        self.currentRawMethod = None
+        self._currentRawMethod = None
+        self._methodCache = {}
         self.badEnums = []
 
     def __repr__(self):
@@ -574,6 +576,30 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
                                                  self.enumClass.__module__,
                                                  self.enumClass.__name__,
                                                  self.docloc)
+
+    # We use a property here just to make sure that _methodCache is cleared
+    # when method changes
+    @property
+    def currentRawMethod(self):
+        return self._currentRawMethod
+
+    @currentRawMethod.setter
+    def currentRawMethod(self, val):
+        self._methodCache = {}
+        self._currentRawMethod = val
+
+    # property for defining retrievers that are cached per method
+    @staticmethod
+    def methodcached(getter):
+        name = getter.__name__
+
+        @functools.wraps(getter)
+        def cached_getter(self, *args, **kwargs):
+            if name not in self._methodCache:
+                self._methodCache[name] = getter(self, *args, **kwargs)
+            return self._methodCache[name]
+
+        return cached_getter
 
     def fullMethodName(self):
         className = self.apiClassName or "<no class>"
@@ -1680,7 +1706,7 @@ class HtmlApiDocParser(ApiDocParser):
 
     def hasNoPython(self):
         # ARGUMENT DIRECTION AND DOCUMENTATION
-        addendum = self.currentRawMethod.findNextSiblings('div', limit=1)[0]
+        addendum = self.findAddendum()
         # try: self.xprint( addendum.findAll(text=True ) )
         # except: pass
 
@@ -1703,11 +1729,12 @@ class HtmlApiDocParser(ApiDocParser):
             pass
         return False
 
-    def _findAddendum(self):
+    @ApiDocParser.methodcached
+    def findAddendum(self):
         return self.currentRawMethod.findNextSiblings('div', 'memdoc', limit=1)[0]
 
     def isDeprecated(self):
-        addendum = self._findAddendum()
+        addendum = self.findAddendum()
         if addendum.findAll(text=lambda x: any(badMsg in x for badMsg in self.DEPRECATED_MSG)):
             self.xprint("DEPRECATED")
             # print self.apiClassName + '.' + self.currentMethodName + ':' + ' DEPRECATED'
@@ -1719,7 +1746,7 @@ class HtmlApiDocParser(ApiDocParser):
         docs = {}
         returnDoc = ''
 
-        addendum = self._findAddendum()
+        addendum = self.findAddendum()
 
         methodDoc = addendum.p
         if methodDoc:
