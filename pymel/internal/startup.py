@@ -416,6 +416,7 @@ def fixMayapySegFault():
         atexit.register(uninitializeMayaOnPythonExit)
         _atExitCallbackInstalled = True
 
+_fixMayapy2011SegFault_applied = False
 
 # Have all the checks inside here, in case people want to insert this in their
 # userSetup... it's currently not always on
@@ -425,6 +426,12 @@ def fixMayapy2011SegFault():
     import platform
     if platform.system() == 'Linux':
         if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp:  # mayapy only
+            global _fixMayapy2011SegFault_applied
+            if _fixMayapy2011SegFault_applied:
+                return
+
+            _fixMayapy2011SegFault_applied = True
+
             # In linux maya 2011, once maya has been initialized, if you try
             # to do a 'normal' sys.exit, it will crash with a segmentation
             # fault..
