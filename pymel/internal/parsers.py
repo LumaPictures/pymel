@@ -921,7 +921,8 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         names, types, typeQualifiers, defaults = self.parseArgTypes()
 
         try:
-            directions, docs, methodDoc, returnDoc, deprecated = self.parseMethodArgs(returnType, names, types, typeQualifiers)
+            deprecated = self.isDeprecated()
+            directions, docs, methodDoc, returnDoc = self.parseMethodArgs(returnType, names, types, typeQualifiers)
         except AssertionError as msg:
             if self.strict:
                 raise
@@ -1055,6 +1056,10 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
 
     @abstractmethod
     def isStaticMethod(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def isDeprecated(self):
         raise NotImplementedError()
 
     @abstractmethod
@@ -1366,7 +1371,6 @@ class XmlApiDocParser(ApiDocParser):
             # we have returnDoc in here so it can be modified by internal funcs
             '<returnDoc>': ''
         }
-        deprecated = self.isDeprecated()
         methodDoc = ''
 
         brief = self.currentRawMethod.find('briefdescription')
@@ -1532,7 +1536,7 @@ class XmlApiDocParser(ApiDocParser):
             docs[name] = doc.replace('\n\r', ' ').replace('\n', ' ')
 
         returnDoc = docs.pop('<returnDoc>')
-        return directions, docs, methodDoc, returnDoc, deprecated
+        return directions, docs, methodDoc, returnDoc
 
     def getMethodNameAndOutput(self):
         methodName = self.currentRawMethod.find("name").text
@@ -1699,17 +1703,23 @@ class HtmlApiDocParser(ApiDocParser):
             pass
         return False
 
-    def parseMethodArgs(self, returnType, names, types, typeQualifiers):
-        directions = {}
-        docs = {}
-        deprecated = False
-        returnDoc = ''
+    def _findAddendum(self):
+        return self.currentRawMethod.findNextSiblings('div', 'memdoc', limit=1)[0]
 
-        addendum = self.currentRawMethod.findNextSiblings('div', 'memdoc', limit=1)[0]
+    def isDeprecated(self):
+        addendum = self._findAddendum()
         if addendum.findAll(text=lambda x: any(badMsg in x for badMsg in self.DEPRECATED_MSG)):
             self.xprint("DEPRECATED")
             # print self.apiClassName + '.' + self.currentMethodName + ':' + ' DEPRECATED'
-            deprecated = True
+            return True
+        return False
+
+    def parseMethodArgs(self, returnType, names, types, typeQualifiers):
+        directions = {}
+        docs = {}
+        returnDoc = ''
+
+        addendum = self._findAddendum()
 
         methodDoc = addendum.p
         if methodDoc:
@@ -1823,7 +1833,7 @@ class HtmlApiDocParser(ApiDocParser):
                         returnDoc = ''.join(returnDocBuf[1:]).replace('\n\r', ' ').replace('\n', ' ').encode('ascii', 'ignore')
                     self.xprint('RETURN_DOC', repr(returnDoc))
         #assert len(names) == len(directions), "name lenght mismatch: %s %s" % (sorted(names), sorted(directions.keys()))
-        return directions, docs, methodDoc, returnDoc, deprecated
+        return directions, docs, methodDoc, returnDoc
 
     TYPEDEF_RE = re.compile('^typedef(\s|$)')
 
