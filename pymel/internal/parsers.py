@@ -948,7 +948,8 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
 
         try:
             deprecated = self.isDeprecated()
-            directions, docs, methodDoc, returnDoc = self.parseMethodArgs(returnType, names, types, typeQualifiers)
+            methodDoc = self.getMethodDoc()
+            directions, docs, returnDoc = self.parseMethodArgs(returnType, names, types, typeQualifiers)
         except AssertionError as msg:
             if self.strict:
                 raise
@@ -1086,6 +1087,10 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
 
     @abstractmethod
     def isDeprecated(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def getMethodDoc(self):
         raise NotImplementedError()
 
     @abstractmethod
@@ -1391,28 +1396,33 @@ class XmlApiDocParser(ApiDocParser):
             info['remainingText'] = strip_tags(''.join(remainingPieces))
             return info
 
+    @ApiDocParser.methodcached
+    def findDetailedDescription(self):
+        return self.currentRawMethod.find('detaileddescription')
+
+    def getMethodDoc(self):
+        brief = self.currentRawMethod.find('briefdescription')
+        if brief is not None:
+            briefText = getFirstText(brief)
+            if briefText not in self.DEPRECATED_MSG and briefText not in self.NO_PYTHON_MSG:
+                return briefText
+
+        detail = self.findDetailedDescription()
+
+        if detail is not None:
+            for para in detail.findall('para'):
+                paraText = getFirstText(para)
+                if paraText:
+                    return paraText
+        return ''
+
     def parseMethodArgs(self, returnType, names, types, typeQualifiers):
         directions = {}
         docs = {
             # we have returnDoc in here so it can be modified by internal funcs
             '<returnDoc>': ''
         }
-        methodDoc = ''
-
-        brief = self.currentRawMethod.find('briefdescription')
-        if brief is not None:
-            briefText = getFirstText(brief)
-            if briefText not in self.DEPRECATED_MSG and briefText not in self.NO_PYTHON_MSG:
-                methodDoc = briefText
-
-        detail = self.currentRawMethod.find('detaileddescription')
-
-        if not methodDoc and detail is not None:
-            for para in detail.findall('para'):
-                paraText = getFirstText(para)
-                if paraText:
-                    methodDoc = paraText
-                    break
+        detail = self.findDetailedDescription()
 
         if returnType and detail is not None:
             returnElem = detail.find(".//simplesect[@kind='return']")
@@ -1562,7 +1572,7 @@ class XmlApiDocParser(ApiDocParser):
             docs[name] = doc.replace('\n\r', ' ').replace('\n', ' ')
 
         returnDoc = docs.pop('<returnDoc>')
-        return directions, docs, methodDoc, returnDoc
+        return directions, docs, returnDoc
 
     def getMethodNameAndOutput(self):
         methodName = self.currentRawMethod.find("name").text
@@ -1741,18 +1751,18 @@ class HtmlApiDocParser(ApiDocParser):
             return True
         return False
 
-    def parseMethodArgs(self, returnType, names, types, typeQualifiers):
-        directions = {}
-        docs = {}
-        returnDoc = ''
-
+    def getMethodDoc(self):
         addendum = self.findAddendum()
 
         methodDoc = addendum.p
         if methodDoc:
-            methodDoc = ' '.join(methodDoc.findAll(text=True)).encode('ascii', 'ignore')
-        else:
-            methodDoc = ''
+            return ' '.join(methodDoc.findAll(text=True)).encode('ascii', 'ignore')
+        return ''
+
+    def parseMethodArgs(self, returnType, names, types, typeQualifiers):
+        directions = {}
+        docs = {}
+        returnDoc = ''
 
         tmpDirs = []
         tmpNames = []
@@ -1860,7 +1870,7 @@ class HtmlApiDocParser(ApiDocParser):
                         returnDoc = ''.join(returnDocBuf[1:]).replace('\n\r', ' ').replace('\n', ' ').encode('ascii', 'ignore')
                     self.xprint('RETURN_DOC', repr(returnDoc))
         #assert len(names) == len(directions), "name lenght mismatch: %s %s" % (sorted(names), sorted(directions.keys()))
-        return directions, docs, methodDoc, returnDoc
+        return directions, docs, returnDoc
 
     TYPEDEF_RE = re.compile('^typedef(\s|$)')
 
