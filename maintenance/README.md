@@ -7,7 +7,7 @@ Building an Official PyMEL Release
 
   - git
   - graphviz: using an OS package manager like `yum`, `apt-get`, or `brew`, or
-    on windows, from an [installer](http://www.graphviz.org/Download_windows.php)
+    on windows, from an [installer](https://graphviz.gitlab.io/_pages/Download/Download_windows.html)
   - python dependencies:
 
     ```
