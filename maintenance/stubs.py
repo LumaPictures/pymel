@@ -426,7 +426,7 @@ class NoUnicodeTextRepr(TextRepr):
         # SystemError: Objects/longobject.c:244: bad argument to internal
         # function so this is a slight edit of TextRepr.repr1
         if hasattr(type(x), '__name__'):
-            methodname = 'repr_' + join(type(x).__name__.split(), '_')
+            methodname = 'repr_' + '_'.join(type(x).__name__.split())
             if hasattr(self, methodname):
                 return getattr(self, methodname)(x, level)
         return cram(stripid(repr(x)), self.maxother)
@@ -483,7 +483,7 @@ class StubDoc(Doc):
         lines = [prefix + line for line in lines]
         if lines:
             lines[-1] = rstrip(lines[-1])
-        return join(lines, '\n')
+        return '\n'.join(lines)
 
     def docstring(self, contents):
         """Format a section with a given heading."""
@@ -501,7 +501,7 @@ class StubDoc(Doc):
                 result = result + prefix + self.classname(c, modname)
                 if bases and bases != (parent,):
                     parents = [self.classname(b, modname) for b in bases]
-                    result = result + '(%s)' % join(parents, ', ')
+                    result = result + '(%s)' % ', '.join(parents)
                 result = result + '\n'
             elif type(entry) is type([]):
                 result = result + self.formattree(
@@ -894,7 +894,7 @@ class StubDoc(Doc):
                 if has_default_constructor(cls):
                     self.safe_constructor_classes.add(id(cls))
 
-            classres = join(contents, '\n').split('\n')
+            classres = '\n'.join(contents).split('\n')
 
             for i, line in enumerate(classres):
                 if u'\xa0' in line:
@@ -949,7 +949,7 @@ class StubDoc(Doc):
                 if import_text:
                     contents.append(import_text)
             self.contents = contents + ['', ''] + self.contents
-        result = join(self.contents, '\n')
+        result = '\n'.join(self.contents)
         self.safe_constructor_classes = set()
         return result
 
@@ -1120,7 +1120,7 @@ class StubDoc(Doc):
                 parents = data
                 imports = []
 
-            title = title + '(%s)' % join(parents, ', ')
+            title = title + '(%s)' % ', '.join(parents)
             if imports:
                 imports = '\n'.join(imports)
                 title = imports + '\n\n' + title
