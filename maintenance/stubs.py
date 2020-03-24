@@ -38,7 +38,7 @@ if 'basestring' not in globals():
 verbose = False
 
 
-# def classify_class_attrs(object):
+# def classify_class_attrs(obj):
 #     """Wrap inspect.classify_class_attrs, with fixup for data descriptors."""
 #     def fixup(data):
 #         name, kind, cls, value = data
@@ -47,7 +47,7 @@ verbose = False
 #                 print name, value, cls
 #             kind = 'data descriptor'
 #         return name, kind, cls, value
-#     return map(fixup, inspect.classify_class_attrs(object))
+#     return [fixup(x) for x in inspect.classify_class_attrs(obj)]
 
 
 def walk_packages(path=None, prefix='', onerror=None, skip_regex=None):
@@ -1092,25 +1092,25 @@ class StubDoc(Doc):
         else:
             return realname
 
-    def docclass(self, object, name=None, mod=None):
+    def docclass(self, obj, name=None, mod=None):
         """Produce text documentation for a given class object."""
-        # print "docclass", name, object
-        realname = object.__name__
+        # print "docclass", name, obj
+        realname = obj.__name__
         name = name or realname
 
-        if is_named_tuple(object):
+        if is_named_tuple(obj):
             title = '{name} = {namedtuple}({realname!r}, {fields!r})'.format(
                 name=name, namedtuple=self.id_map[id(collections.namedtuple)],
-                realname=realname, fields=object._fields)
+                realname=realname, fields=obj._fields)
             contents = []
         else:
-            title, contents = self._docclass(object, name, mod=mod)
+            title, contents = self._docclass(obj, name, mod=mod)
         contents = '\n'.join(contents)
 
         return title + self.indent(rstrip(contents), '    ') + '\n\n'
 
-    def _docclass(self, object, name, mod=None):
-        bases = object.__bases__
+    def _docclass(self, obj, name, mod=None):
+        bases = obj.__bases__
         full_name = mod + '.' + name
 
         title = 'class ' + name
@@ -1131,7 +1131,7 @@ class StubDoc(Doc):
                 title = imports + '\n\n' + title
         title += ':\n'
 
-        doc = getdoc(object)
+        doc = getdoc(obj)
         contents = doc and [self.docstring(doc) + '\n'] or []
         push = contents.append
 
@@ -1140,8 +1140,8 @@ class StubDoc(Doc):
             if ok:
                 for name, kind, homecls, value in ok:
                     # docroutine
-                    push(self.document(getattr(object, name),
-                                       name, full_name, object, kind))
+                    push(self.document(getattr(obj, name),
+                                       name, full_name, obj, kind))
             return attrs
 
         def spilldescriptors(msg, attrs, predicate):
@@ -1160,16 +1160,16 @@ class StubDoc(Doc):
                         doc = getdoc(value)
                     else:
                         doc = None
-                    push(self.docother(getattr(object, name),
+                    push(self.docother(getattr(obj, name),
                                        name, full_name, maxlen=70, doc=doc) + '\n')
             return attrs
 
-        attrs = [data for data in inspect.classify_class_attrs(object) if visiblename(data[0])]
+        attrs = [data for data in inspect.classify_class_attrs(obj) if visiblename(data[0])]
 
-        thisclass = object
+        thisclass = obj
         attrs, inherited = pydoc._split_list(attrs, lambda t: t[2] is thisclass)
 
-        if thisclass is not builtins.object:
+        if thisclass is not object:
             if attrs:
                 # Sort attrs by name.
                 attrs.sort()
@@ -1192,28 +1192,28 @@ class StubDoc(Doc):
 
         return title, contents
 
-    def formatvalue(self, object):
+    def formatvalue(self, obj):
         """Format an argument default value as text."""
-        # check if the object is os.environ...
+        # check if the obj is os.environ...
         isEnviron = False
         # os.environ is an old-style class, can't use isinstance on it!
-        if object is os.environ or object.__class__ == os.environ.__class__:
+        if obj is os.environ or obj.__class__ == os.environ.__class__:
             isEnviron = True
-        if isinstance(object, dict):
-            if object == os.environ:
+        if isinstance(obj, dict):
+            if obj == os.environ:
                 isEnviron = True
-            elif len(set(object) & set(os.environ)) > (len(object) * 0.9):
+            elif len(set(obj) & set(os.environ)) > (len(obj) * 0.9):
                 # If over 90% of the keys are in os.environ, assume it's os.environ
                 isEnviron = True
         if isEnviron:
             objRepr = repr({'PROXY_FOR': 'os.environ'})
         else:
-            if isinstance(object, str):
+            if isinstance(obj, str):
                 # pydev can't handle unicode literals - ie, u'stuff' - so
                 # convert to normal strings
-                object = str(object)
+                obj = str(obj)
 
-            objRepr = self.repr(object)
+            objRepr = self.repr(obj)
             isPythonNameRepr = None
 
             if objRepr[0] == '<' and objRepr[-1] == '>':
@@ -1221,8 +1221,8 @@ class StubDoc(Doc):
                 objRepr = repr(objRepr)
                 realmodule = None
             # get the object's module
-            elif hasattr(object, '__module__'):
-                realmodule = object.__module__
+            elif hasattr(obj, '__module__'):
+                realmodule = obj.__module__
             elif PYTHON_OBJECT_RE.match(objRepr):
                 # it's a standard instance repr: e.g. foo.Bar('spangle')
                 # ...or a constant, like PySide2.QtGui.QPalette.ColorRole.NoRole
@@ -1398,7 +1398,7 @@ class StubDoc(Doc):
 
     def docdata(self, obj, name=None, mod=None, *args):
         """Produce text documentation for a data descriptor."""
-        # print "docdata", name, object
+        # print "docdata", name, obj
         return self._docdescriptor(name, obj, mod)
 
     def docother_data_repr(self, obj):
@@ -1420,28 +1420,28 @@ class StubDoc(Doc):
             else:
                 value = 'None'
         except NameError:
-            # doing 'isinstance(object, collections.Mapping)' can cause:
+            # doing 'isinstance(obj, collections.Mapping)' can cause:
             # NameError: Unknown C global variable
             # in some situations... ie, maya.OpenMaya.cvar...
             # ...some sort of swig error?
             value = 'None'
         return value
 
-    def docother(self, object, name=None, mod=None, parent=None, maxlen=None,
+    def docother(self, obj, name=None, mod=None, parent=None, maxlen=None,
                  doc=None):
         """Produce text documentation for a data object."""
-        # print "docother", name, object
+        # print "docother", name, obj
         if name in ['__metaclass__']:
             return ''
 
         if name == '__all__':
-            value = pprint.pformat(object)
-        elif id(get_class(object)) in self.safe_constructor_classes:
-            cls_name = self.id_map[id(get_class(object))]
+            value = pprint.pformat(obj)
+        elif id(get_class(obj)) in self.safe_constructor_classes:
+            cls_name = self.id_map[id(get_class(obj))]
             value = '%s()' % cls_name
         else:
-            value = self.docother_data_repr(object)
-        assert name is not None, "Name of object %r is None" % object
+            value = self.docother_data_repr(obj)
+        assert name is not None, "Name of object %r is None" % obj
         if name == 'None':
             # special case exception for None, which is syntactically invalid
             # to assign to but can still be used as an attribute
@@ -1553,7 +1553,7 @@ class PEP484StubDoc(StubDoc):
     def docother(self, obj, name=None, mod=None, parent=None, maxlen=None,
                  doc=None):
         """Produce text documentation for a data object."""
-        # print "docother", name, object
+        # print "docother", name, obj
         if name in ['__metaclass__']:
             return ''
 
