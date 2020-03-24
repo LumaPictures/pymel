@@ -11,7 +11,6 @@ import doctest
 import modulefinder
 import traceback
 import inspect
-from io import StringIO
 from unittest import *
 
 import pymel.util

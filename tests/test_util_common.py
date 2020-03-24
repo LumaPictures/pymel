@@ -136,11 +136,11 @@ class ScanfTests(unittest.TestCase):
 
     def testFscanf(self):
         import io
-        b = io.StringIO("hello world")
+        b = io.StringIO(u"hello world")
         self.assertEquals(("hello", " ", "world"), fscanf(b, "%s%c%s"))
         # Check that calling fscanf() twice doesn't
         # drop the last character
-        b2 = io.StringIO("hello world")
+        b2 = io.StringIO(u"hello world")
         self.assertEquals(("hello",), fscanf(b2, "%s"))
         self.assertEquals((" ",), fscanf(b2, "%c"))
         self.assertEquals(("world",), fscanf(b2, "%s"))
