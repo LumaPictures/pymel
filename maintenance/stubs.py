@@ -18,6 +18,8 @@ import re
 import types
 import json
 
+from future.utils import PY2
+
 OBJ = 0
 OBJTYPE = 1
 SOURCEMOD = 2
@@ -26,7 +28,16 @@ NAMES = 3
 PYTHON_OBJECT_RE = re.compile(
     '^[a-zA-Z_][a-zA-Z_0-9]*(?:\.[a-zA-Z_][a-zA-Z_0-9]*)*(?:\(.*\))?$')
 
-builtins = set(builtins.__dict__.values())
+def _hashable(x):
+    try:
+        hash(x)
+    except Exception:
+        return False
+    return True
+
+builtin_objs = set(x for x in builtins.__dict__.values() if _hashable(x))
+if PY2:
+    builtin_objs.update(x for x in __builtins__.values() if _hashable(x))
 
 # some basic data types which may not exist...
 if 'bytes' not in globals():
@@ -145,7 +156,9 @@ def subpackages(packagemod, skip_regex=None):
 
 def get_source_module(obj, default):
     mod = inspect.getmodule(obj)
-    if mod == __builtin__ and obj in builtins:
+    if mod == builtins and obj in builtin_objs:
+        return mod
+    if PY2 and mod == __builtin__ and obj in builtin_objs:
         return mod
     if (not mod or inspect.isbuiltin(obj) or isdata(obj)
             or not mod.__name__ or mod.__name__.startswith('_')):
@@ -566,7 +579,7 @@ class StubDoc(Doc):
                 id_parent = id(parent_class)
                 parent_mod = inspect.getmodule(parent_class)
                 if id_parent not in id_to_data:
-                    if parent_class in builtins:
+                    if parent_class in builtin_objs:
                         continue
 
                     # We've found a class that's not in this namespace...
