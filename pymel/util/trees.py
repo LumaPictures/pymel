@@ -52,8 +52,6 @@ from past.builtins import cmp
 from builtins import map
 from builtins import next
 from builtins import range
-from builtins import *
-str = __builtins__['str']
 from builtins import object
 from collections import *
 import inspect

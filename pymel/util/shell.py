@@ -1,8 +1,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-from builtins import *
-str = __builtins__['str']
 import os
 import subprocess
 from pymel.util.arguments import isIterable as _isIterable

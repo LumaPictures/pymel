@@ -8,8 +8,6 @@ from builtins import filter
 from builtins import zip
 from builtins import range
 from past.builtins import basestring
-from builtins import *
-str = __builtins__['str']
 import inspect
 import re
 import types

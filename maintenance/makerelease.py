@@ -7,8 +7,6 @@ from __future__ import absolute_import
 
 # Ideally this should use the python interpreter used by mayapy, but without LD_LIBRARY_PATH or PYTHONHOME set
 
-from builtins import *
-str = __builtins__['str']
 import argparse
 import inspect
 import re

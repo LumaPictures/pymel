@@ -60,8 +60,6 @@ except ImportError:
     from collections import Mapping
 standard_library.install_aliases()
 from past.builtins import basestring
-from builtins import *
-str = __builtins__['str']
 from builtins import object
 __author_name__ = "Ben Finney"
 __author_email__ = "ben+python@benfinney.id.au"

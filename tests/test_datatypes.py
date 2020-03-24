@@ -3,8 +3,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 from builtins import range
-from builtins import *
-str = __builtins__['str']
 import sys, os, inspect, unittest
 import pymel.core as pm
 import maya.cmds as cmds

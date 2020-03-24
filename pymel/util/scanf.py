@@ -141,8 +141,6 @@ from __future__ import absolute_import
 
 
 from builtins import next
-from builtins import *
-str = __builtins__['str']
 from builtins import object
 import sys
 from string import whitespace as WHITESPACE

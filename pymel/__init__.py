@@ -28,8 +28,6 @@ from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
 
-from builtins import *
-str = __builtins__['str']
 __versiontuple__ = (1, 2, 0)
 __version_suffix__ = 'a1'
 __version__ = '.'.join(str(x) for x in __versiontuple__) + __version_suffix__

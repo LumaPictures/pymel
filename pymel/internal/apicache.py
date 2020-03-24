@@ -6,8 +6,6 @@ from __future__ import division
 # They will be imported / redefined later in Pymel, but we temporarily need them here
 from builtins import range
 from past.builtins import basestring
-from builtins import *
-str = __builtins__['str']
 from builtins import object
 import inspect
 import os

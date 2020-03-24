@@ -4,8 +4,6 @@ from __future__ import print_function
 from __future__ import division
 
 from builtins import map
-from builtins import *
-str = __builtins__['str']
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.core.general as _general

@@ -3,8 +3,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from builtins import *
-str = __builtins__['str']
 import pymel.internal.factories as _factories
 import pymel.core.general as _general
 if False:

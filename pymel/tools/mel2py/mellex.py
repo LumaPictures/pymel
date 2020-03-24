@@ -7,8 +7,6 @@ from __future__ import absolute_import
 # A lexer for ANSI C.
 # ----------------------------------------------------------------------
 
-from builtins import *
-str = __builtins__['str']
 import sys
 sys.path.insert(0, "../..")
 
