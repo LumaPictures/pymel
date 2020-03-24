@@ -3,7 +3,6 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from builtins import map
 from builtins import range
 from past.builtins import basestring
 from pydoc import *         #@UnusedWildImport
@@ -476,16 +475,12 @@ class StubDoc(Doc):
         if hasattr(Doc, '__init__'):
             Doc.__init__(self)
 
-    # def bold(self, text):
-    #     """Format a string in bold by overstriking."""
-    #     return join(map(lambda ch: ch + '\b' + ch, text), '')
-
     def indent(self, text, prefix='    '):
         """Indent text by prepending a given prefix to each line."""
         if not text:
             return ''
         lines = split(text, '\n')
-        lines = list(map(lambda line, prefix=prefix: prefix + line, lines))
+        lines = [prefix + line for line in lines]
         if lines:
             lines[-1] = rstrip(lines[-1])
         return join(lines, '\n')
@@ -505,7 +500,7 @@ class StubDoc(Doc):
                 c, bases = entry
                 result = result + prefix + self.classname(c, modname)
                 if bases and bases != (parent,):
-                    parents = list(map(lambda c, m=modname: self.classname(c, m), bases))
+                    parents = [self.classname(b, modname) for b in bases]
                     result = result + '(%s)' % join(parents, ', ')
                 result = result + '\n'
             elif type(entry) is type([]):
