@@ -449,7 +449,7 @@ class StubDoc(Doc):
         'ctypes': set(['WinError']),
     }
 
-    SIMPLE_TYPES = (basestring, bytes, bool, int, int, float, complex)
+    SIMPLE_TYPES = (basestring, bytes, bool, int, float, complex)
     PASS = 'pass'
     UNKNOWN_SIGNATURE = '(*args, **kwargs)'
 
