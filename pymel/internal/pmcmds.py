@@ -121,23 +121,74 @@ def _createFunction(func, oldname, newname):
     # unfortunately, this isn't easy - have to get hacky...
     # ...we could do it with a big string and exec, but then we'd lose both
     # syntax highlighting, and file + lineno info...
-    new_code = types.CodeType(old_code.co_argcount,
-                              old_code.co_nlocals,
-                              old_code.co_stacksize,
-                              old_code.co_flags,
-                              old_code.co_code,
-                              old_code.co_consts,
-                              old_code.co_names,
-                              old_code.co_varnames,
-                              old_code.co_filename,
-                              '%s_wrapped' % oldname,  # unicode no good in py2
-                              old_code.co_firstlineno,
-                              old_code.co_lnotab,
-                              old_code.co_freevars,
-                              old_code.co_cellvars)
+
+    codeNewname = '%s_wrapped' % oldname
+
+    if hasattr(old_code, 'replace'):
+        # Future-proofing - 3.9 introduces a .replace() method
+        new_code = old_code.replace(co_name=codeNewname)
+    elif sys.version_info[:2] >= (3, 8):
+        # Future-proofing: 3.8 adds co_posonlyargcount
+        new_code = types.CodeType(
+            old_code.co_argcount,
+            old_code.co_posonlyargcount,
+            old_code.co_kwonlyargcount,
+            old_code.co_nlocals,
+            old_code.co_stacksize,
+            old_code.co_flags,
+            old_code.co_code,
+            old_code.co_consts,
+            old_code.co_names,
+            old_code.co_varnames,
+            old_code.co_filename,
+            codeNewname,
+            old_code.co_firstlineno,
+            old_code.co_lnotab,
+            old_code.co_freevars,
+            old_code.co_cellvars,
+        )
+    # 2to3: remove switch when python-3 only
+    elif sys.version_info[0] >= 3:
+        # Python 3 supports co_kwonlyargcount
+        new_code = types.CodeType(
+            old_code.co_argcount,
+            old_code.co_kwonlyargcount,
+            old_code.co_nlocals,
+            old_code.co_stacksize,
+            old_code.co_flags,
+            old_code.co_code,
+            old_code.co_consts,
+            old_code.co_names,
+            old_code.co_varnames,
+            old_code.co_filename,
+            codeNewname,
+            old_code.co_firstlineno,
+            old_code.co_lnotab,
+            old_code.co_freevars,
+            old_code.co_cellvars,
+        )
+    else:
+        new_code = types.CodeType(
+            old_code.co_argcount,
+            old_code.co_nlocals,
+            old_code.co_stacksize,
+            old_code.co_flags,
+            old_code.co_code,
+            old_code.co_consts,
+            old_code.co_names,
+            old_code.co_varnames,
+            old_code.co_filename,
+            str(codeNewname),  # unicode no good in py2
+            old_code.co_firstlineno,
+            old_code.co_lnotab,
+            old_code.co_freevars,
+            old_code.co_cellvars,
+        )
+        newname = str(newname)  # unicode no good in py2
+
     return types.FunctionType(new_code,
                               func.__globals__,
-                              newname,  # unicode no good in py2
+                              newname,
                               func.__defaults__,
                               func.__closure__)
 
@@ -195,9 +246,7 @@ def addWrappedCmd(cmdname, cmd=None):
     else:
         newname = cmdname
 
-    if sys.version_info[0] < 3:
-        wrappedCmd = _createFunction(wrappedCmd, cmdname, newname)
-
+    wrappedCmd = _createFunction(wrappedCmd, cmdname, newname)
     wrappedCmd.__doc__ = cmd.__doc__
 
     # for debugging, to make sure commands got wrapped...
