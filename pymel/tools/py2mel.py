@@ -401,7 +401,7 @@ def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
             newArgNames = []
             for argName in argNames:
                 # can only filter out optional args
-                if argName not in defaults or list(filter(argName)):
+                if argName not in defaults or filter(argName):
                     newArgNames.append(argName)
                 else:
                     del defaults[argName]

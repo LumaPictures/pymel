@@ -1975,7 +1975,7 @@ def p_iteration_statement_2(t):
             try:
                 update_op = update_buf.pop(1)  # this might raise an indexError if the update expression followed the form:  $i = $i+1
                 # find the variables in the update statement, and find which were also present in conditional statement
-                update_vars = list(filter(var_reg.match, update_buf))
+                update_vars = filter(var_reg.match, update_buf)
                 iterator = list(cond_vars.intersection(update_vars))
                 # print cond_vars, tmp, iterator
             except IndexError:
