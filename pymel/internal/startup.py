@@ -288,14 +288,19 @@ def initMEL():
                 if os.path.isabs(f) and not os.path.exists(f):
                     _logger.warning("Maya startup file %s does not exist" % f)
                 else:
-                    if sys.version_info[0] < 3:
+                    if PY2:
                         # need to encode backslashes (used for windows paths)
-                        if isinstance(f, str):
+                        if isinstance(f, unicode):
                             encoding = 'unicode_escape'
                         else:
-                            # bytes
                             encoding = 'string_escape'
                         f = f.encode(encoding)
+                    else:
+                        # encoding to unicode_escape should add escape
+                        # sequences, but also make sure everything is in basic
+                        # ascii - so if we decode utf-8 (or ascii), it should
+                        # give us a string which is escaped
+                        f = f.encode('unicode_escape').decode('utf-8')
                     maya.mel.eval('source "%s"' % f)
 
     except Exception as e:
