@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 from builtins import range
+from builtins import str
 from past.builtins import basestring
 from builtins import object
 import os

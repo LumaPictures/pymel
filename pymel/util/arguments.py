@@ -18,6 +18,7 @@ standard_library.install_aliases()
 from builtins import range
 from past.builtins import basestring
 from builtins import object
+from future.utils import PY2
 from collections import deque as _deque
 import sys
 import operator
@@ -178,7 +179,7 @@ def expandArgs(*args, **kwargs):
         def _expandArgsTest(arg):
             return isIterable(arg)
     else:
-        raise ValueError("unknown expand type=%s" % str(tpe))
+        raise ValueError("unknown expand type=%s" % tpe)
 
     if postorder:
         return postorderArgs(limit, _expandArgsTest, *args)
@@ -306,7 +307,7 @@ def iterateArgs(*args, **kwargs):
         def _iterateArgsTest(arg):
             return isIterable(arg)
     else:
-        raise ValueError("unknown expand type=%s" % str(tpe))
+        raise ValueError("unknown expand type=%s" % tpe)
 
     if postorder:
         for arg in postorderIterArgs(limit, _iterateArgsTest, *args):
@@ -524,6 +525,7 @@ class ChangedKey(object):
         return '%s(%r, %r)' % (type(self).__name__, self.oldVal, self.newVal)
 
 
+# 2to3: when we transition to 3-only, get rid of encoding kwarg
 def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
                           useChangedKeys=False):
     # type: (Union[dict, list, tuple], Union[dict, list, tuple], Union[str, bool, None], bool, bool) -> Tuple[set, set, set, dict]
@@ -601,7 +603,8 @@ def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
         differences.update(RemovedKey(key) for key in only1)
     else:
         recurseTypes = (dict, list, tuple, set)
-        strUnicode = set([str, str])
+        if PY2:
+            strUnicode = set([str, unicode])
         if useAddedKeys:
             differences = dict((key, AddedKey(dict2[key])) for key in only2)
         else:
@@ -628,8 +631,7 @@ def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
                         differences[key] = subDiffs
             else:
                 # ok, we're not doing a recursive comparison...
-                isStrUnicode = (set([type(val1), type(val2)]) == strUnicode)
-                if isStrUnicode:
+                if PY2 and set([type(val1), type(val2)]) == strUnicode:
                     # we have a string and a unicode - decide what to do based on
                     # encoding setting
                     if encoding is False:

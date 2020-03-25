@@ -38,6 +38,10 @@ import pymel.core.datatypes as dt
 import pymel.core.uitypes as uitypes
 import pymel.core.uitypes as ui
 
+from future.utils import PY2
+if PY2:
+    from __builtin__ import str
+
 # This is for backwards incompatibility due to a bug in the way LazyLoadModule
 # was used, which made all the uitypes available in this namespace
 # We may consider deprecating or removing these at some point, so don't rely on
@@ -129,6 +133,7 @@ def _addPluginCommand(pluginName, funcName):
         else:
             _logger.warning("failed to create function")
     except Exception as msg:
+        from builtins import str
         _logger.warning("exception: %s" % str(msg))
 
 

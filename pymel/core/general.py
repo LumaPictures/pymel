@@ -10,6 +10,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 from builtins import next
+from builtins import str
 from builtins import zip
 from builtins import range
 from past.builtins import basestring
@@ -30,7 +31,7 @@ import pymel.core.datatypes as datatypes
 from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
 from pymel.util.enum import Enum
-from future.utils import with_metaclass
+from future.utils import PY2, with_metaclass
 
 if False:
     from typing import *
@@ -3218,23 +3219,34 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         else:
             raise TypeError("%s is not a multi-attribute and cannot be iterated over" % self)
 
-    def __str__(self):
-        # type: () -> str
-        """
-        Returns
-        -------
-        str
-        """
-        return str(self.name())
+    if PY2:
+        def __str__(self):
+            # type: () -> str
+            """
+            Returns
+            -------
+            str
+            """
+            import __builtin__
+            return __builtin__.str(self.name())
 
-    def __unicode__(self):
-        # type: () -> unicode
-        """
-        Returns
-        -------
-        unicode
-        """
-        return self.name()
+        def __unicode__(self):
+            # type: () -> unicode
+            """
+            Returns
+            -------
+            unicode
+            """
+            return self.name()
+    else:
+        def __str__(self):
+            # type: () -> str
+            """
+            Returns
+            -------
+            str
+            """
+            return self.name()
 
     def __eq__(self, other):
         # type: (Any) -> bool
@@ -5038,11 +5050,16 @@ class Component(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         """
         return bool(len(self))
 
-    def __str__(self):
-        return str(self.name())
+    if PY2:
+        def __str__(self):
+            import __builtin__
+            return __builtin__.str(self.name())
 
-    def __unicode__(self):
-        return self.name()
+        def __unicode__(self):
+            return self.name()
+    else:
+        def __str__(self):
+            return self.name()
 
     def _completeNameString(self):
         return u'%s.%s' % (self.node(), self.plugAttr())

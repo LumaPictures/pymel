@@ -844,7 +844,8 @@ def makeUICallback(origCallback, args, doPassSelf):
                                           creationTrace=creationTraceback)
             raise
         if isinstance(res, util.ProxyUnicode):
-            res = str(res)
+            import builtins
+            res = builtins.str(res)
         return res
     return callback
 

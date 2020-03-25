@@ -6,11 +6,13 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from future.utils import PY2
+
 # 2to3: remove switch when python-3 only
-try:
-    from collections.abc import Mapping
-except ImportError:
+if PY2:
     from collections import Mapping
+else:
+    from collections.abc import Mapping
 from builtins import object
 import inspect
 import types
@@ -469,7 +471,11 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
 # ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name',
 #                           remove=['__getitem__', 'translate'])
 # 2009 Beta 2.1 has issues with passing classes with __getitem__
-ProxyUnicode = proxyClass(str, 'ProxyUnicode', module=__name__, dataFuncName='name',
+if PY2:
+    _proxyStrBase = unicode
+else:
+    _proxyStrBase = str
+ProxyUnicode = proxyClass(_proxyStrBase, 'ProxyUnicode', module=__name__, dataFuncName='name',
                           remove=['__doc__', '__getslice__', '__contains__', '__len__',
                                   '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__',  # reserved for higher levels
                                   'expandtabs', 'translate', 'decode', 'encode', 'splitlines',

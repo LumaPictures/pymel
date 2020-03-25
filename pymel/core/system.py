@@ -41,6 +41,7 @@ from __future__ import division
 from past.builtins import cmp
 from builtins import zip
 from builtins import range
+from builtins import str
 from past.builtins import basestring
 from builtins import object
 import sys
@@ -286,7 +287,7 @@ class Namespace(str):
         -------
         Namespace
         """
-        if (str(self) != u":"):
+        if (str(self) != ":"):
             return self.__class__(':'.join(self.splitAll()[:-1]))
 
     def ls(self, pattern="*", **kwargs):

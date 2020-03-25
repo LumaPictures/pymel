@@ -5,6 +5,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 from builtins import range
+from builtins import str
 from past.builtins import basestring
 import sys
 import os
@@ -41,7 +42,7 @@ from pymel.core import windows
 from pymel.core.animation import listAnimatable as _listAnimatable
 from pymel.core.system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 from pymel.util.enum import Enum
-from future.utils import with_metaclass
+from future.utils import PY2, with_metaclass
 
 if False:
     from typing import *
@@ -380,11 +381,13 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
         "get the ``maya.OpenMaya.MObjectHandle`` for this node if it is valid"
         return self.__apiobjects__['MObjectHandle']
 
+
     def __str__(self):
         return "%s" % self.name()
 
-    def __unicode__(self):
-        return u"%s" % self.name()
+    if PY2:
+        def __unicode__(self):
+            return u"%s" % self.name()
 
     def __hash__(self):
         return self.__apihandle__().hashCode()
@@ -944,7 +947,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         >>> from pymel.core import *
         >>> SCENE.lambert1.nextName()
-        DependNodeName(u'lambert2')
+        DependNodeName('lambert2')
 
         Returns
         -------

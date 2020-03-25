@@ -456,6 +456,8 @@ def toComponentMObject(dagPath):
 # TODO : add components support, short/ long name support where applies
 def MObjectName(obj):
     """ Get the name of an existing MPlug, MDagPath or MObject representing a dependency node"""
+    from builtins import str
+
     if isValidMPlug(obj):
         return obj.name()
     elif isValidMNode(obj):

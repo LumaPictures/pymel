@@ -20,7 +20,7 @@ from __future__ import division
 from builtins import zip
 from builtins import range
 from builtins import object
-from future.utils import with_metaclass
+from future.utils import PY2, with_metaclass
 
 import operator
 import itertools
@@ -2986,8 +2986,9 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
     def __str__(self):
         return "[%s]" % ", ".join(str(x) for x in self)
 
-    def __unicode__(self):
-        return u"[%s]" % u", ".join(str(x) for x in self)
+    if PY2:
+        def __unicode__(self):
+            return u"[%s]" % u", ".join(unicode(x) for x in self)
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, str(self))

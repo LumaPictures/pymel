@@ -5,6 +5,7 @@ from builtins import zip
 from builtins import range
 from past.builtins import basestring
 from builtins import object
+import builtins
 import functools
 import re
 import os.path
@@ -1913,7 +1914,7 @@ class HtmlApiDocParser(ApiDocParser):
 
     def getDoxygenVersion(self, soup):
         doxyComment = soup.find(text=self.DOXYGEN_VER_RE)
-        match = self.DOXYGEN_VER_RE.search(str(doxyComment))
+        match = self.DOXYGEN_VER_RE.search(builtins.str(doxyComment))
         verStr = match.group(1)
         return tuple(int(x) for x in verStr.split('.'))
 

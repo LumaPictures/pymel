@@ -58,7 +58,7 @@ import warnings
 import weakref as weak
 from copy import *
 from functools import reduce
-from future.utils import with_metaclass
+from future.utils import PY2, with_metaclass
 
 #import logging
 #_logger = logging.getLogger(__name__)
@@ -1154,24 +1154,25 @@ class MetaTree(type):
             else:
                 return "()"
 
-        def _unicodeIter(self):
-            res = u""
-            value = self.value
-            if value:
-                res = u"'%s'" % str(value)
-            temp = [sub._unicodeIter() for sub in self.childs()]
-            if temp:
-                if res:
-                    res += u", (%s)" % u", ".join(temp)
-                else:
-                    res = u", ".join(temp)
-            return res
+        if PY2:
+            def _unicodeIter(self):
+                res = u""
+                value = self.value
+                if value:
+                    res = u"'%s'" % unicode(value)
+                temp = [sub._unicodeIter() for sub in self.childs()]
+                if temp:
+                    if res:
+                        res += u", (%s)" % u", ".join(temp)
+                    else:
+                        res = u", ".join(temp)
+                return res
 
-        def __unicode__(self):
-            if self:
-                return u"(%s)" % (self._unicodeIter())
-            else:
-                return u"()"
+            def __unicode__(self):
+                if self:
+                    return u"(%s)" % (self._unicodeIter())
+                else:
+                    return u"()"
 
         def _reprIter(self):
             res = ""
@@ -1452,8 +1453,9 @@ class MetaTree(type):
     def __str__(cls):
         return "%s<TreeType:%r>" % (cls.__name__, cls.TreeType)
 
-    def __unicode__(cls):
-        return u"%s<TreeType:%r>" % (cls.__name__, cls.TreeType)
+    if PY2:
+        def __unicode__(cls):
+            return u"%s<TreeType:%r>" % (cls.__name__, cls.TreeType)
 
 # derive from one of these as needed
 

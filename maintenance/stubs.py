@@ -4,7 +4,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 from builtins import range
-from past.builtins import basestring
 from pydoc import *         #@UnusedWildImport
 import pydoc, sys, pprint   #@Reimport
 import builtins
@@ -38,11 +37,8 @@ def _hashable(x):
 builtin_objs = set(x for x in builtins.__dict__.values() if _hashable(x))
 if PY2:
     builtin_objs.update(x for x in __builtins__.values() if _hashable(x))
-
-# some basic data types which may not exist...
-if 'bytes' not in globals():
     bytes = str
-if 'basestring' not in globals():
+else:
     basestring = str
 
 verbose = False

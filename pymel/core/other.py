@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from builtins import str
 import re
 import inspect
 
@@ -42,8 +43,8 @@ class NameParser(str):
         return self
 
     def __repr__(self):
-        return u"%s(%s)" % (self.__class__.__name__,
-                            super(NameParser, self).__repr__())
+        return "%s(%s)" % (self.__class__.__name__,
+                           super(NameParser, self).__repr__())
 
     # def __unicode__(self):
     #    return u"%s" % self
@@ -51,7 +52,7 @@ class NameParser(str):
     def __getattr__(self, attr):
         """
             >>> NameParser('foo:bar').spangle
-            AttributeName(u'foo:bar.spangle')
+            AttributeName('foo:bar.spangle')
 
         """
         if attr.startswith('__') and attr.endswith('__'):
@@ -68,7 +69,7 @@ class NameParser(str):
         The default is 0 which will remove all namespaces.
 
             >>> NameParser('foo:bar.spangle').stripNamespace()
-            AttributeName(u'bar.spangle')
+            AttributeName('bar.spangle')
 
         """
 
@@ -92,10 +93,10 @@ class NameParser(str):
         also be stripped.  If it is false, only namespaces
 
             >>> NameParser('foo:bar:top|foo:middle|foo:bar:extra:guy.spangle').stripGivenNamespace('foo:bar')
-            AttributeName(u'top|middle|extra:guy.spangle')
+            AttributeName('top|middle|extra:guy.spangle')
 
             >>> NameParser('foo:bar:top|foo:middle|foo:bar:extra:guy.spangle').stripGivenNamespace('foo:bar', partial=False)
-            AttributeName(u'top|foo:middle|extra:guy.spangle')
+            AttributeName('top|foo:middle|extra:guy.spangle')
         """
         prefixSplit = namespace.rstrip(':').split(':')
 
@@ -162,7 +163,7 @@ class NameParser(str):
         AttributeName class for the given AttributeName.
 
             >>> NameParser('foo:bar').attr('spangle')
-            AttributeName(u'foo:bar.spangle')
+            AttributeName('foo:bar.spangle')
 
         """
         return AttributeName('%s.%s' % (self, attr))
@@ -199,7 +200,7 @@ class AttributeName(NameParser):
         Returns the array (multi) AttributeName of the current element
             >>> n = AttributeName('lambert1.groupNodes[0]')
             >>> n.array()
-            AttributeName(u'lambert1.groupNodes')
+            AttributeName('lambert1.groupNodes')
         """
         try:
             return AttributeName(AttributeName.attrItemReg.split(self)[0])
@@ -210,7 +211,7 @@ class AttributeName(NameParser):
         """plugNode
 
         >>> NameParser('foo:bar.spangle.banner').plugNode()
-        DependNodeName(u'foo:bar')
+        DependNodeName('foo:bar')
 
         """
         return NameParser(str(self).split('.')[0])
@@ -221,7 +222,7 @@ class AttributeName(NameParser):
         """plugAttr
 
         >>> NameParser('foo:bar.spangle.banner').plugAttr()
-        u'spangle.banner'
+        'spangle.banner'
 
         """
         return '.'.join(str(self).split('.')[1:])
@@ -229,7 +230,7 @@ class AttributeName(NameParser):
     def lastPlugAttr(self):
         """
         >>> NameParser('foo:bar.spangle.banner').lastPlugAttr()
-        u'banner'
+        'banner'
 
         """
         return self.split('.')[-1]
@@ -259,12 +260,12 @@ class AttributeName(NameParser):
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
                   >>> AttributeName("Cube1.multiComp[3].child.otherchild").getParent(2)
-                  AttributeName(u'Cube1.multiComp[3]')
+                  AttributeName('Cube1.multiComp[3]')
 
               Negative values will traverse from the top, not counting the initial node name:
 
                   >>> AttributeName("Cube1.multiComp[3].child.otherchild").getParent(-2)
-                  AttributeName(u'Cube1.multiComp[3].child')
+                  AttributeName('Cube1.multiComp[3].child')
 
               A value of 0 will return the same node.
               The default value is 1.
@@ -452,12 +453,12 @@ class DagNodeName(DependNodeName):
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
                   >>> DagNodeName("NS1:TopLevel|Next|ns2:Third|Fourth").getParent(2)
-                  DagNodeName(u'NS1:TopLevel|Next')
+                  DagNodeName('NS1:TopLevel|Next')
 
               Negative values will traverse from the top, not counting the initial node name:
 
                   >>> DagNodeName("NS1:TopLevel|Next|ns2:Third|Fourth").getParent(-3)
-                  DagNodeName(u'NS1:TopLevel|Next|ns2:Third')
+                  DagNodeName('NS1:TopLevel|Next|ns2:Third')
 
               A value of 0 will return the same node.
               The default value is 1.

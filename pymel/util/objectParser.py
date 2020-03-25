@@ -19,6 +19,7 @@ from __future__ import division
 
 from past.builtins import cmp
 from builtins import map
+from builtins import str
 from past.builtins import basestring
 from builtins import object
 import functools
