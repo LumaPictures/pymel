@@ -49,7 +49,6 @@ from __future__ import absolute_import
 # removed as it's 2.5 only
 # import functools as ftools
 from past.builtins import cmp
-from builtins import map
 from builtins import next
 from builtins import range
 from builtins import object
@@ -347,7 +346,7 @@ class MetaTree(type):
                 elif len(self) != len(other):
                     return False
                 else:
-                    return reduce(lambda x, y: x and y, list(map(lambda c1, c2: c1 == c2, self.childs(), other.childs())), True)
+                    return reduce(lambda x, y: x and y, map(lambda c1, c2: c1 == c2, self.childs(), other.childs()), True)
             # Both trees empty.
             elif not self and not other:
                 return True

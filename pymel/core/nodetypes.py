@@ -4,7 +4,6 @@ Contains classes corresponding to the Maya type hierarchy, including `DependNode
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from builtins import map
 from builtins import range
 from past.builtins import basestring
 import sys
@@ -5276,7 +5275,8 @@ class RenderLayer(DependNode):
 
     def listMembers(self, fullNames=True):
         if fullNames:
-            return list(map(general.PyNode, _util.listForNone(cmds.editRenderLayerMembers(self, q=1, fullNames=True))))
+            return [general.PyNode(x) for x in _util.listForNone(
+                cmds.editRenderLayerMembers(self, q=1, fullNames=True))]
         else:
             return _util.listForNone(cmds.editRenderLayerMembers(self, q=1, fullNames=False))
 
@@ -5287,7 +5287,8 @@ class RenderLayer(DependNode):
         cmds.editRenderLayerMembers(self, members, remove=True)
 
     def listAdjustments(self):
-        return list(map(general.PyNode, _util.listForNone(cmds.editRenderLayerAdjustment(self, layer=1, q=1))))
+        return [general.PyNode(x) for x in _util.listForNone(
+            cmds.editRenderLayerAdjustment(self, layer=1, q=1))]
 
     def addAdjustments(self, members):
         return cmds.editRenderLayerAdjustment(members, layer=self)
@@ -5412,7 +5413,8 @@ class DisplayLayer(DependNode):
 
     def listMembers(self, fullNames=True):
         if fullNames:
-            return list(map(general.PyNode, _util.listForNone(cmds.editDisplayLayerMembers(self, q=1, fullNames=True))))
+            return [general.PyNode(x) for x in _util.listForNone(
+                cmds.editDisplayLayerMembers(self, q=1, fullNames=True))]
         else:
             return _util.listForNone(cmds.editDisplayLayerMembers(self, q=1, fullNames=False))
 

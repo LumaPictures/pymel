@@ -11,7 +11,6 @@ from __future__ import print_function
 from __future__ import division
 from builtins import next
 from builtins import zip
-from builtins import map
 from builtins import range
 from past.builtins import basestring
 from builtins import object
@@ -1025,7 +1024,8 @@ def listConnections(*args, **kwargs):
             return makePairs(cmds.listConnections(*args, **kwargs))
 
         else:
-            return list(map(CastObj, _util.listForNone(cmds.listConnections(*args, **kwargs))))
+            return [CastObj(x) for x in
+                    _util.listForNone(cmds.listConnections(*args, **kwargs))]
 
     # if passed a list of types, concatenate the resutls
     # NOTE: there may be duplicate results if a leaf type and it's parent are
@@ -1131,7 +1131,8 @@ def listRelatives(*args, **kwargs):
         else:
             results = ls(res, shapes=1)
     else:
-        results = list(map(PyNode, _util.listForNone(cmds.listRelatives(*args, **kwargs))))
+        results = [PyNode(x) for x in
+                   _util.listForNone(cmds.listRelatives(*args, **kwargs))]
     # Fix that noIntermediate doesn't seem to work in list relatives
     if kwargs.get('noIntermediate', kwargs.get('ni', False)):
         return [result for result in results if not result.intermediateObject.get()]
@@ -1238,11 +1239,11 @@ def ls(*args, **kwargs):
         kwargs.pop('ro', True)
         roNodes = _util.listForNone(cmds.ls(*args, **kwargs))
         # faster way?
-        return list(map(PyNode, [x for x in res if x not in roNodes]))
+        return [PyNode(x) for x in res if x not in roNodes]
 
     if kwargs.get('readOnly', kwargs.get('ro', False)):
         # when readOnly is provided showType is ignored
-        return list(map(PyNode, res))
+        return [PyNode(x) for x in res]
 
     if kwargs.get('showType', kwargs.get('st', False)):
         tmp = res
@@ -1266,7 +1267,7 @@ def ls(*args, **kwargs):
         return [system.Namespace(item) if i % 2 else PyNode(item)
                 for i, item in enumerate(res)]
 
-    return list(map(PyNode, res))
+    return [PyNode(x) for x in res]
 
 
 #    showType = kwargs.get( 'showType', kwargs.get('st', False) )
@@ -2016,7 +2017,7 @@ Modifications
     if isinstance(result, (bool, int, int, float)):
         return result
     if _util.isIterable(result):
-        return list(map(PyNode, _util.listForNone(result)))
+        return [PyNode(x) for x in _util.listForNone(result)]
     elif result is None:
         return []
     else:
@@ -2148,7 +2149,7 @@ def instancer(*args, **kwargs):
       - name of newly created instancer was not returned
     """
     # instancer does not like PyNode objects
-    args = list(map(str, args))
+    args = [str(x) for x in args]
     if kwargs.get('query', kwargs.get('q', False)):
         return cmds.instancer(*args, **kwargs)
     if kwargs.get('edit', kwargs.get('e', False)):

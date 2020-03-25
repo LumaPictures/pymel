@@ -18,7 +18,6 @@ from __future__ import division
 # resize / reshape should be checked and set to same behavior as well
 
 from builtins import zip
-from builtins import map
 from builtins import range
 from builtins import object
 from future.utils import with_metaclass
@@ -340,7 +339,7 @@ def any(a, axis=None):
         if subshape == ():
             return _any(it)
         else:
-            return Array(list(map(_any, list(zip(*it)))), shape=subshape)
+            return Array([_any(x) for x in zip(*it)], shape=subshape)
     elif hasattr(a, '__iter__'):
         return _any(a)
     else:
@@ -373,7 +372,7 @@ def all(a, axis=None):
         if subshape == ():
             return _all(it)
         else:
-            return Array(list(map(_all, list(zip(*it)))), shape=subshape)
+            return Array([_all(x) for x in zip(*it)], shape=subshape)
     elif hasattr(a, '__iter__'):
         return _all(a)
     else:
@@ -1820,7 +1819,7 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
                             data = cls(shape=shape).filled(data)
                         else:
                             if size >= dsize and ndim >= dndim:
-                                if ndim == dndim and reduce(operator.and_, list(map(operator.ge, shape, dshape)), True):
+                                if ndim == dndim and all(map(operator.ge, shape, dshape)):
                                     data = data.trimmed(shape=shape, value=self)
 #                                    if self.shape == shape :
 #                                        data = self.fitted(data)
@@ -2985,10 +2984,10 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
 
     # display
     def __str__(self):
-        return "[%s]" % ", ".join(map(str, self))
+        return "[%s]" % ", ".join(str(x) for x in self)
 
     def __unicode__(self):
-        return u"[%s]" % u", ".join(map(str, self))
+        return u"[%s]" % u", ".join(str(x) for x in self)
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, str(self))
@@ -6582,7 +6581,7 @@ class VectorN(Array):
             assert len(nself) == len(nother)
         except:
             raise TypeError("%s not convertible to %s, dot product is only defined for two Vectors of identical size" % (clsname(other), clsname(self)))
-        return reduce(operator.add, list(map(operator.mul, nself, nother)))
+        return reduce(operator.add, map(operator.mul, nself, nother))
 
     def outer(self, other):
         """ u.outer(v) <==> outer(u, v)

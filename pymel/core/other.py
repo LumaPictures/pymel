@@ -6,7 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from builtins import map
 import re
 import inspect
 
@@ -245,7 +244,7 @@ class AttributeName(NameParser):
             if asString:
                 return "[%s]" % str(item)
             val = item.split(":")
-            val = list(map(int, val))
+            val = [int(x) for x in val]
             if len(val) > 1:
                 return asSlice and slice(*val) or val
             return val[0]

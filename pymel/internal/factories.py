@@ -7,7 +7,6 @@ from __future__ import absolute_import
 
 # Built-in imports
 from builtins import zip
-from builtins import map
 from builtins import range
 from past.builtins import basestring
 from builtins import object
@@ -20,7 +19,6 @@ import sys
 import textwrap
 import time
 import traceback
-from operator import itemgetter
 
 # Maya imports
 import maya.cmds as cmds
@@ -576,7 +574,8 @@ def _getApiOverrideNameAndData(classname, pymelName):
 
 
 def getUncachedCmds():
-    return list(set(map(itemgetter(0), inspect.getmembers(cmds, callable))).difference(cmdlist.keys()))
+    return list(set(name for (name, val) in inspect.getmembers(cmds, callable))
+            .difference(cmdlist.keys()))
 
 
 # -----------------------
@@ -985,7 +984,7 @@ def convertTimeValues(rawVal):
 def maybeConvert(val, castFunc):
     if isinstance(val, list):
         try:
-            return list(map(castFunc, val))
+            return [castFunc(x) for x in val]
         except:
             return val
     elif val:
@@ -1073,7 +1072,7 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
                         res = returnFunc(res[0])
                     else:
                         try:
-                            res = list(map(returnFunc, res))
+                            res = [returnFunc(x) for x in res]
                         except:
                             pass
 

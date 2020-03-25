@@ -40,7 +40,6 @@ from __future__ import division
 
 from past.builtins import cmp
 from builtins import zip
-from builtins import map
 from builtins import range
 from past.builtins import basestring
 from builtins import object
@@ -335,8 +334,9 @@ class Namespace(str):
         try:
             # workaround: namespaceInfo sometimes returns duplicates
             seen = set()
-            namespaces = list(map(self.__class__, [ns for ns in (cmds.namespaceInfo(listOnlyNamespaces=True) or [])
-                                              if not (ns in seen or seen.add(ns))]))
+            namespaces = [self.__class__(ns)
+                for ns in (cmds.namespaceInfo(listOnlyNamespaces=True) or [])
+                if not (ns in seen or seen.add(ns))]
 
             if not internal:
                 for i in [":UI", ":shared"]:
@@ -1926,7 +1926,7 @@ class ReferenceEdit(str):
         elif self.type == "disconnectAttr":
             if elements[0].startswith("-"):
                 elements.append(elements.pop(0))
-            refNode, otherNode = list(map(_safeRefPyNode, elements[:2]))
+            refNode, otherNode = [_safeRefPyNode(x) for x in elements[:2]]
             editData['sourceNode'] = refNode
             editData['targetNode'] = otherNode
             otherNode, refNode = sorted([otherNode, refNode], key=lambda n: self.namespace in n)
@@ -1935,7 +1935,7 @@ class ReferenceEdit(str):
         elif self.type == "connectAttr":
             if elements[0].startswith("-"):
                 elements.append(elements.pop(0))
-            refNode, otherNode = list(map(_safeRefPyNode, elements[:2]))
+            refNode, otherNode = [_safeRefPyNode(x) for x in elements[:2]]
             editData['sourceNode'] = refNode
             editData['targetNode'] = otherNode
             otherNode, refNode = sorted([otherNode, refNode], key=lambda n: self.namespace in n)
@@ -1943,7 +1943,7 @@ class ReferenceEdit(str):
             del elements[:2]
         else:
             editData['node'] = _safeRefPyNode(elements.pop(0))
-        editData['parameters'] = list(map(str, elements))
+        editData['parameters'] = [str(x) for x in elements]
 
         return editData
 

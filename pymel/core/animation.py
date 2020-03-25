@@ -3,12 +3,10 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
-from builtins import map
 from past.builtins import basestring
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.core.general as _general
-import pymel.versions as versions
 
 if False:
     from maya import cmds
@@ -43,8 +41,8 @@ def listAnimatable(*args, **kwargs):
         - returns an empty list when the result is None
         - returns wrapped classes
     """
-    return list(map(_general.PyNode,
-               _util.listForNone(cmds.listAnimatable(*args, **kwargs))))
+    return [_general.PyNode(x) for x in
+            _util.listForNone(cmds.listAnimatable(*args, **kwargs))]
 
 
 def keyframe(*args, **kwargs):
@@ -61,7 +59,7 @@ def keyframe(*args, **kwargs):
 
 
 def deformer(*args, **kwargs):
-    return list(map(_general.PyNode, cmds.deformer(*args, **kwargs)))
+    return [_general.PyNode(x) for x in cmds.deformer(*args, **kwargs)]
 
 
 def _constraint(func):
