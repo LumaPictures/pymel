@@ -6170,7 +6170,7 @@ class Component1D64(DiscreteComponent):
         # The ContinuousComponent version works fine for us - just
         # make sure we grab the original function object, not the method
         # object, since we don't inherit from ContinuousComponent
-        if sys.version_info[0] < 3:
+        if PY2:
             _sliceToIndices = ContinuousComponent._sliceToIndices.__func__
         else:
             _sliceToIndices = ContinuousComponent._sliceToIndices

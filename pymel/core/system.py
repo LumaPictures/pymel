@@ -59,7 +59,7 @@ import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.versions as versions
-from future.utils import with_metaclass
+from future.utils import PY2, with_metaclass
 if False:
     from typing import *
     from maya import cmds
@@ -854,7 +854,7 @@ class FileInfo(collections.MutableMapping):
                                "more than one value returned" % item)
         else:
             value = result[0]
-            if sys.version_info[0] < 3:
+            if PY2:
                 if isinstance(value, bytes):
                     return value.decode('string_escape')
                 else:

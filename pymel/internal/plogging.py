@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 from builtins import range
+from future.utils import PY2
 import sys
 import os
 
@@ -15,10 +16,10 @@ from logging import getLevelName, root, info, debug, warning, error, critical
 # 2to3: remove switch when python-3 only
 # We can't use future-provided configparser in 2.7, because we need the version
 # that logging.config._create_formatters will work with...
-if sys.version_info[0] >= 3:
-    from configparser import ConfigParser
-else:
+if PY2:
     from ConfigParser import ConfigParser
+else:
+    from configparser import ConfigParser
 
 import maya
 import pymel.util as util
