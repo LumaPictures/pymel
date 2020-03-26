@@ -1393,7 +1393,7 @@ class MetaTree(type):
         for c in BaseCoreClass:
             for k in list(c.__dict__.keys()):
                 # drawback of organising methods in "fake" classes is we get an unneeded entries, like __module__
-                if k not in ('__module__'):
+                if k not in ('__module__', '__dict__', '__weakref__'):
                     coredict[k] = c.__dict__[k]
         # use methods of core implementation that are relevant to this type of trees
         for k in coredict:
