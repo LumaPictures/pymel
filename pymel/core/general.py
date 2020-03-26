@@ -5081,7 +5081,8 @@ class Component(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         # that didn't work - try checking if we have a valid plugAttr
         if not component and self.plugAttr():
             try:
-                component = _api.toApiObject(self._completeNameString())[1]
+                component = _api.toApiObject(self._completeNameString(),
+                                             plugs=False)[1]
             except Exception:
                 pass
             else:

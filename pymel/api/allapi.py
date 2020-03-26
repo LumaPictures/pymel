@@ -274,8 +274,8 @@ def toMObject(nodeName):
     return result
 
 
-def toApiObject(nodeName, dagPlugs=True):
-    # type: (Any, bool) -> None
+def toApiObject(nodeName, dagPlugs=True, plugs=True):
+    # type: (Any, bool, bool) -> None
     """ Get the API MPlug, MObject or (MObject, MComponent) tuple given the name
     of an existing node, attribute, components selection
 
@@ -283,6 +283,8 @@ def toApiObject(nodeName, dagPlugs=True):
     ----------
     dagPlugs : bool
         if True, plug result will be a tuple of type (MDagPath, MPlug)
+    plugs : bool
+        if True, check if nodeName is an attribute/plug
 
     If we were unable to retrieve the node/attribute/etc, returns None
     """
@@ -294,7 +296,7 @@ def toApiObject(nodeName, dagPlugs=True):
     try:
         sel.add(nodeName)
     except Exception:
-        if "." in nodeName:
+        if "." in nodeName and plugs:
             # Compound Attributes
             #  sometimes the index might be left off somewhere in a compound attribute
             # (ex 'Nexus.auxiliary.input' instead of 'Nexus.auxiliary[0].input' )
@@ -317,68 +319,72 @@ def toApiObject(nodeName, dagPlugs=True):
     else:
         if sel.length() != 1:
             return None
-        if "." in nodeName:
-            try:
-                # Plugs
+        splitName = nodeName.split('.')
+        if len(splitName) > 1:
+            if plugs:
                 plug = MPlug()
-                sel.getPlug(0, plug)
-                if dagPlugs:
-                    try:
-                        # Plugs with DagPaths
-                        sel.add(nodeName.split('.')[0])
-                        dag = MDagPath()
-                        sel.getDagPath(1, dag)
-
-                        # used to be a bug with some types that inherited from DagNode,
-                        # but were not compatibile w/ MFnDagNode... these have been
-                        # fixed, but we leave check in case another one crops up
-                        if not dag.node().hasFn(MFn.kDagNode):
-                            obj = MObject()
-                            sel.getDependNode(1, obj)
-                            return (obj, plug)
-
-                        # if isValidMDagPath(dag) :
-                        return (dag, plug)
-                    except RuntimeError:
-                        pass
-                return plug
-
-            except RuntimeError:
-                # Components
-                dag = MDagPath()
-                comp = MObject()
                 try:
-                    sel.getDagPath(0, dag, comp)
+                    sel.getPlug(0, plug)
                 except RuntimeError:
                     pass
-                # if not isValidMDagPath(dag) :   return
-                if not comp.isNull():
-                    return (dag, comp)
-                # We may have gotten a published container attribute, which
-                # auto- magically converts to the contained node it references
-                # when added to an MSelectionList
-                splitName = nodeName.split('.')
+                else:
+                    if dagPlugs:
+                        try:
+                            # Plugs with DagPaths
+                            sel.add(splitName[0])
+                            dag = MDagPath()
+                            sel.getDagPath(1, dag)
+
+                            # used to be a bug with some types that inherited from DagNode,
+                            # but were not compatibile w/ MFnDagNode... these have been
+                            # fixed, but we leave check in case another one crops up
+                            if not dag.node().hasFn(MFn.kDagNode):
+                                obj = MObject()
+                                sel.getDependNode(1, obj)
+                                return (obj, plug)
+
+                            # if isValidMDagPath(dag) :
+                            return (dag, plug)
+                        except RuntimeError:
+                            pass
+                    return plug
+
+            # Components
+            dag = MDagPath()
+            comp = MObject()
+            try:
+                sel.getDagPath(0, dag, comp)
+            except RuntimeError:
+                pass
+            # if not isValidMDagPath(dag) :   return
+            if not comp.isNull():
+                return (dag, comp)
+
+            # We may have gotten a published container attribute, which
+            # auto- magically converts to the contained node it references
+            # when added to an MSelectionList
+            if plugs and len(splitName) == 2:
                 # Thankfully, it seems you can't index / get children off an
                 # aliased attribute - ie, myNode.myAlias[0] and
                 # myNode.myAlias.childAttr don't work, even if myAlias point
                 # to a multi / compound attr
-                if len(splitName) == 2:
-                    obj = MObject()
-                    try:
-                        sel.add(splitName[0])
-                        sel.getDependNode(1, obj)
-                    except RuntimeError:
-                        pass
-                    else:
-                        # Since it seems there's no api way to get at the plug for
-                        # a published / aliased container attr, we just check for
-                        # aliases...
-                        mfn = MFnDependencyNode(obj)
-                        aliases = []
-                        if mfn.getAliasList(aliases):
-                            for aliasName, trueName in util.pairIter(aliases):
-                                if aliasName == splitName[1]:
-                                    return toApiObject('.'.join((splitName[0], trueName)))
+                obj = MObject()
+                try:
+                    sel.add(splitName[0])
+                    sel.getDependNode(1, obj)
+                except RuntimeError:
+                    pass
+                else:
+                    # Since it seems there's no api way to get at the plug for
+                    # a published / aliased container attr, we just check for
+                    # aliases...
+                    mfn = MFnDependencyNode(obj)
+                    aliases = []
+                    if mfn.getAliasList(aliases):
+                        for aliasName, trueName in util.pairIter(aliases):
+                            if aliasName == splitName[1]:
+                                return toApiObject('.'.join((splitName[0], trueName)),
+                                                   dagPlugs=dagPlugs, plugs=plugs)
         else:
             try:
                 # DagPaths
