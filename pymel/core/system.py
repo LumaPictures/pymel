@@ -549,9 +549,9 @@ class Translator(object):
     u'ma'
     >>> bin = Translator.fromExtension( 'mb' )
     >>> bin
-    Translator(u'mayaBinary')
+    Translator('mayaBinary')
     >>> bin.name
-    u'mayaBinary'
+    'mayaBinary'
     >>> bin.hasReadSupport()
     True
 
@@ -1429,7 +1429,7 @@ class FileReference(object):
     def __repr__(self):
         return u'%s(%r, refnode=%r)' % (self.__class__.__name__,
                                         self.withCopyNumber(),
-                                        str(self.refNode))
+                                        self.refNode.name())
 
     def __str__(self):
         return self.withCopyNumber()

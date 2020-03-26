@@ -5,6 +5,7 @@ as well as the name parsing classes `DependNodeName`, `DagNodeName`, and `Attrib
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from future.utils import PY2
 
 from builtins import str
 import re
@@ -45,9 +46,6 @@ class NameParser(str):
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__,
                            super(NameParser, self).__repr__())
-
-    # def __unicode__(self):
-    #    return u"%s" % self
 
     def __getattr__(self, attr):
         """
@@ -225,6 +223,10 @@ class AttributeName(NameParser):
         'spangle.banner'
 
         """
+        if PY2:
+            # just to get this method returning a builtins.str object, like
+            # nearly everything else here does...
+            return str('.').join(str(self).split('.')[1:])
         return '.'.join(str(self).split('.')[1:])
 
     def lastPlugAttr(self):

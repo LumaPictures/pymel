@@ -6,6 +6,7 @@ node creation at any time, to test this.'''
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from future.utils import PY2
 
 import pymel.api.plugins as plugins
 import maya.OpenMaya as om
@@ -31,7 +32,7 @@ class addDynamicNodeCommand(plugins.Command):
 
 
 def createNode(nodeName, plugin=None):
-    if isinstance(nodeName, str):
+    if PY2 and isinstance(nodeName, unicode):
         nodeName = nodeName.encode('ascii')
 
     class NewNode(plugins.DependNode):
