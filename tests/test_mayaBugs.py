@@ -162,8 +162,10 @@ class TestMMatrixMEulerRotationSetAttr(unittest.TestCase):
         cmds.file(new=1, f=1)
 
     def runTest(self):
+        # This bug was apparently fixed in maya 2020 for all OSes
+        # For pre-2020:
         # We expect it to fail on windows, and pass on other operating systems...
-        shouldPass = os.name != 'nt'
+        shouldPass = os.name != 'nt' or pymel.versions.current() >= pymel.versions.v2020
         try:
             class InfoBaseClass(object):
                 # These two are just so we can trace what's going on...
