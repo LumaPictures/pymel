@@ -146,7 +146,7 @@ def loadCmdCache():
     global cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds
 
     # cmdlist can be populated when plugins are loaded, prior to this being called
-    oirgCmdlist = cmdlist
+    origCmdlist = cmdlist
 
     if nodeHierarchy is not None:
         return
@@ -159,8 +159,8 @@ def loadCmdCache():
     for name, val in zip(_cmdCacheInst.cacheNames(), _cmdCacheInst.contents()):
         globals()[name] = val
 
-    assert not set(cmdlist.keys()).intersection(oirgCmdlist.keys())
-    cmdlist.update(oirgCmdlist)
+    assert not set(cmdlist.keys()).intersection(origCmdlist.keys())
+    cmdlist.update(origCmdlist)
 
     _elapsed = time.time() - _start
     _logger.debug("Initialized Cmd Cache in in %.2f sec" % _elapsed)
