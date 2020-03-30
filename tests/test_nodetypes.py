@@ -1121,7 +1121,7 @@ class testCase_components(unittest.TestCase):
         notFoundCompTypes = set(flatCompTypes)
         for compDatum in self.compData.values():
             testedType = compDatum.typeEnum()
-            self.assert_(testedType in flatCompTypes)
+            self.assertIn(testedType, flatCompTypes)
             notFoundCompTypes.discard(testedType)
 
         if notFoundCompTypes:
