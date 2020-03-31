@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 # Built-in imports
+from future.utils import PY2
 from builtins import range
 from past.builtins import basestring
 import os
@@ -765,6 +766,8 @@ def nodeCreationCmd(func, nodeType):
         createArgs = [argMaker() for argMaker in createArgs]
 
     # run the function
+    _logger.debug('{}(*{!r})'.format(func.__name__, createArgs))
+
     return func(*createArgs)
 
 
@@ -908,6 +911,12 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                     #_logger.debug('val: %r' % (val,))
                     resultType = _objectToType(val)
 
+                    # deal with unicode vs str
+                    if PY2:
+                        if set([argtype, resultType]) == set([str, unicode]):
+                            # just ignore this, set resultType to match
+                            resultType = argtype
+
                     # ensure symmetry between edit and query commands:
                     # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
@@ -938,7 +947,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                             flagInfo['resultNeedsCasting'] = True
                             val = argtype(val)
                         else:
-                            # no valid corrctions found
+                            # no valid corrections found
                             _logger.info(cmd)
                             _logger.info("\treturn mismatch")
                             _logger.info('\tresult: %s', val.__repr__())
