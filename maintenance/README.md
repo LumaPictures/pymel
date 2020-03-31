@@ -41,8 +41,7 @@ Building an Official PyMEL Release
 
 ### To build the caches
 
-  - set the environment variable `MAYA_NO_INITIAL_AUTOLOAD_MT=true` to prevent
-    the modeling toolkit from being force loaded
+#### Build the api cache
 
   - start maya
 
@@ -52,7 +51,7 @@ Building an Official PyMEL Release
     ```python
     import sys
     import os
-    pymelPath = r'E:\Projects\Dev\_work\pymel'   # ...or wherever YOUR pymel version is installed
+    pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
     pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
     if not os.path.isfile(pymelInit):
         raise RuntimeError('invalid pymel path: %s' % pymelPath)
@@ -66,17 +65,65 @@ Building an Official PyMEL Release
     import pymel
     assert pymel.__file__.startswith(pymelInit)
     print(pymel.__file__)
-    import pymel.core as pm
+    import pymel.internal.factories
     ```
+  - importing pymel.internal.factories will automatically build the api cache,
+    but not the command caches - which is good, because we need to make sure
+    some plugins are NOT loaded before building the cmd caches (they can crash
+    when unloaded, or are unable to be unloaded - unfortunately, we want these
+    plugins loaded when building the API cache, but not when building the cmd
+    caches.)
 
-  - cross your fingers.
+#### Build the cmd cache
 
-  - repeat. building of api cache loads plugins, then building of cmd cache
-    unloads them... unfortunately, some of the built-in plugins may not
-    unload cleanly, resulting in an error; therefore, it may be necessary
-    to run the above steps twice (once to build api cache, once for
-    cmd cache)
+  - In an open GUI maya, go the menu item "Window > Settings/Preferences>Plugin-in Manager"
+  - Find the following plugins, and make sure they all have "Auto load"
+    *UN*-checked:
 
+    - bifrostGraph.mll (not strictly necessary, but maya will load much faster)
+    - lookdevKit.mll
+    - modelingToolkit.mll
+    - mtoa.mll
+    - renderSetup.mll
+    - Type.mll
+    - VectorRender.mll (will cause crash later when querying cmds.allNodeTypes)
+
+  - Quit out of maya (which will save the plugin auto-load prefs)
+  - set the environment variable `MAYA_NO_INITIAL_AUTOLOAD_MT=true` to prevent
+    the modeling toolkit from being force loaded
+  - start maya
+  - in the script editor, run the following, substituting location of your dev
+    version of pymel:
+
+    ```python
+    import sys
+    import os
+    pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
+    pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
+    if not os.path.isfile(pymelInit):
+        raise RuntimeError('invalid pymel path: %s' % pymelPath)
+    if sys.path[0] != pymelPath:
+        sys.path.insert(0, pymelPath)
+    import pymel
+    if not pymel.__file__.startswith(pymelInit):  # don't check equality, it may be a .pyc
+        for mod in list(sys.modules):
+            if mod.split('.')[0] == 'pymel':
+                del sys.modules[mod]
+    import pymel
+    assert pymel.__file__.startswith(pymelInit)
+    print(pymel.__file__)
+
+    # for some reason, renderSetup.mll is always force-loaded; further, if
+    # unloaded automatically by pymel, it seems to trigger a crash - but if
+    # explicitly unloaded first, it seems to be ok
+    import maya.cmds as cmds
+    cmds.unloadPlugin('renderSetup')
+
+    import pymel.internal.factories
+
+    # force loading + building of cmd caches
+    pymel.internal.factories.loadCmdCache()
+    ```
 
 ## 3) Generate core modules from templates
 
