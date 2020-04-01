@@ -722,7 +722,8 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
                     # despite the fact that findPlug finds them as MPlugs. need to look into this
                     # TODO: test speed versus above method
                     try:
-                        plug = _api.toApiObject(self.name() + '.' + attr, dagPlugs=False)
+                        plug = _api.toApiObject(self.name() + '.' + attr,
+                                                dagPlugs=False, comps=False)
                     except RuntimeError:
                         raise
                     if not isinstance(plug, _api.MPlug):

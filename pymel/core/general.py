@@ -2340,16 +2340,6 @@ class PyNode(_util.ProxyUnicode):
                 # ensure that the node object is a PyNode object
                 if not isinstance(attrNode, nodetypes.DependNode):
                     attrNode = PyNode(attrNode)
-
-#                # - Second Argument: Plug or Component
-#                # convert from string to _api objects.
-#                if isinstance(argObj,basestring) :
-#                    argObj = _api.toApiObject( argObj, dagPlugs=False )
-#
-#                # components
-#                elif isinstance( argObj, int ) or isinstance( argObj, slice ):
-#                    argObj = attrNode._apiobject
-
             else:
                 argObj = args[0]
 
@@ -2384,7 +2374,15 @@ class PyNode(_util.ProxyUnicode):
                     except Exception:
                         raise MayaNodeError
                     else:
-                        res = _api.toApiObject(name, dagPlugs=True)
+                        allowPlugs = allowComps = True
+                        if issubclass(cls, Attribute):
+                            allowComps = False
+                        elif issubclass(cls, Component):
+                            allowPlugs = False
+
+                        res = _api.toApiObject(name,
+                                               plugs=allowPlugs,
+                                               comps=allowComps)
                         # DagNode Plug
                         if isinstance(res, tuple):
                             # Plug or Component
