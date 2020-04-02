@@ -409,17 +409,55 @@ A few notes on rebuilding:
     module) before rebuilding
 
 
-## 9) Make Release
+## 9) Make Release and Publish
+
+  (TODO: figure out if maintenance/makerelease.py still needed, and
+  strip out excess, or port it's necessary bits to poetry. At
+  minimum, we want the portions that convert the caches to .pyc.zip)
 
   - before releasing, make sure to tag the release (TODO: make this part of
     makerelease?):
 
         git tag -a 1.0.5rc1 -m "pymel release 1.0.5rc1"
-        
-  - then run the release script:
-
-        python maintenance/makerelease.py 1.0.5rc1
 
   - then make sure you push the tag!
   
         git push origin --tags
+
+  - then, build with poetry
+    - if you've never installed poetry, do:
+
+          pip install poetry`
+
+    - then:
+
+          poetry build
+
+    - if you've never set test.pypi.org as a poetry repo:
+
+          poetry config repositories.testpypi https://test.pypi.org/legacy/
+
+    - then publish to testpypi:
+
+          poetry publish -r testpypi
+
+    - then check that your publish worked by installing into a fresh venv:
+
+      Windows:
+
+          python  -m venv pymel_test_env
+          .\pymel_test_env\Scripts\activate
+          pip install -i https://test.pypi.org/simple/ pymel
+
+      Linux/MacOS:
+
+          python  -m venv pymel_test_env
+          source pymel_test_env/bin/activate
+          pip install -i https://test.pypi.org/simple/ pymel
+
+      Inspect the contents of pymel_test_env to ensure everything looks ok
+
+    - publish to "real" pypi!
+
+          poetry publish testpypi
+
