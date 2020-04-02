@@ -1460,7 +1460,7 @@ class ApiCache(BaseApiClassInfoCache):
 
         _logger.debug("...finished ApiCache._buildApiTypeHierarchy")
 
-    def addMayaType(self, mayaType, apiType=None, updateObj=None):
+    def addMayaType(self, mayaType, apiType, updateObj=None):
         """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
 
             - mayaTypesToApiTypes
@@ -1469,6 +1469,10 @@ class ApiCache(BaseApiClassInfoCache):
         if updateObj is given, this instance will first be updated from it,
         before the mayaType is added.
         """
+        if apiType is None:
+            # Check is here because formerly apiType was a kwarg with default
+            # value of None
+            raise ValueError("apiType must be given!")
 
         if apiType is not 'kInvalid':
             apiEnum = getattr(api.MFn, apiType)
