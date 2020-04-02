@@ -105,7 +105,7 @@ class NodetypesLazyLoadModule(_util.LazyLoadModule):
                         _factories._apiCacheInst.mayaTypesToApiTypes[mayaType] = apiType
                         _factories._apiCacheInst.mayaTypesToApiEnums[mayaType] = cache.mayaTypesToApiEnums[mayaType]
 
-        return unknownNodes - set(mayaTypeNameToPymelTypeName)
+        return unknownNodes
 
     def __getattr__(self, name):
         '''Check to see if the name corresponds to a PyNode that hasn't been
