@@ -1403,7 +1403,8 @@ class XmlApiDocParser(ApiDocParser):
         brief = self.currentRawMethod.find('briefdescription')
         if brief is not None:
             briefText = getFirstText(brief)
-            if briefText not in self.DEPRECATED_MSG and briefText not in self.NO_PYTHON_MSG:
+            if briefText and briefText not in self.DEPRECATED_MSG \
+                    and briefText not in self.NO_PYTHON_MSG:
                 return briefText
 
         detail = self.findDetailedDescription()
