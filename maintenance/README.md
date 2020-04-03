@@ -140,7 +140,7 @@ Building an Official PyMEL Release
     ```python
     import sys
     import os
-    pymelPath = r'E:\Projects\Dev\_work\pymel'   # ...or wherever YOUR pymel version is installed
+    pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
     pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
     if not os.path.isfile(pymelInit):
         raise RuntimeError('invalid pymel path: %s' % pymelPath)
