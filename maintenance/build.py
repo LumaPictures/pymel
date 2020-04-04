@@ -1032,8 +1032,6 @@ class MelMethodGenerator(object):
     def render(self):
         self.getTemplateData()
 
-        # self.setDefault('__metaclass__', Literal('_f.MetaMayaTypeRegistry'))
-
         methodNames = set(self.methods)
         if self.existingClass:
             # add methods that exist *directly* on the existing class
@@ -1930,7 +1928,7 @@ def iterModuleApiDataTypeText(module):
         # we check for type registry metaclass because some datatypes (Time, Distance)
         # don't have a metaclass (and never did).  I'm not sure if that was a
         # mistake, but adding the metaclass causes errors.
-        if issubclass(getattr(obj, '__metaclass__', type), factories.MetaMayaTypeRegistry):
+        if issubclass(type(obj), factories.MetaMayaTypeRegistry):
             templateGenerator = ApiDataTypeGenerator
         elif issubclass(obj, pymel.core.datatypes.Unit):
             templateGenerator = ApiUnitsGenerator
