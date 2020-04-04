@@ -1934,11 +1934,16 @@ def iterModuleApiDataTypeText(module):
             templateGenerator = ApiDataTypeGenerator
         elif issubclass(obj, pymel.core.datatypes.Unit):
             templateGenerator = ApiUnitsGenerator
+        else:
+            templateGenerator = None
 
-        template = templateGenerator(
-            cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
-        text, methods = template.render()
-        yield text, template
+        if templateGenerator:
+            template = templateGenerator(
+                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+            text, methods = template.render()
+            yield text, template
+        else:
+            methods = set()
 
         heritedMethods[cls.__name__] = parentMethods.union(methods)
 
