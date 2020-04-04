@@ -955,30 +955,9 @@ def _getTokenPatterns(parsercls):
             tokensDict[k] = v
     return tokensDict
 
-# do it
-#_addedTokenClasses =_createTokenClasses(debug=verbose())
-
-# Build a dict of all existing Parser and Parsed classes in this module
-# class Parsed.classes(dict) :
-#    __metaclass__ =  metaStatic
-
-
-# def parsedClasses(module):
-#    return dict(inspect.getmembers(module, isParsedClass))
-# Stores it at import so that the inspect method isn't recalled at each query
-# Parsed.classes(Parsed.classes)
-
-# class Parser.classes(dict) :
-#    __metaclass__ =  metaStatic
-
 
 Parsed.classes = {}
 Parser.classes = {}
-
-# def parserClasses(module):
-#    return dict(inspect.getmembers(module, isParserClass))
-# Stores it at import so that the inspect method isn't recalled at each query
-# Parser.classes(Parser.classes)
 
 
 def process(module=None):

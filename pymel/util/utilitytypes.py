@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from future.utils import PY2
+from future.utils import PY2, with_metaclass
 
 # 2to3: remove switch when python-3 only
 if PY2:
@@ -26,8 +26,8 @@ class Singleton(type):
 
     """ Metaclass for Singleton classes.
 
-        >>> class DictSingleton(dict) :
-        ...    __metaclass__ = Singleton
+        >>> class DictSingleton(with_metaclass(Singleton, dict)) :
+        ...     pass
         ...
         >>> DictSingleton({'A':1})
         {'A': 1}
@@ -40,8 +40,8 @@ class Singleton(type):
         >>> a is b and a is DictSingleton()
         True
 
-        >>> class StringSingleton(str) :
-        ...    __metaclass__ = Singleton
+        >>> class StringSingleton(with_metaclass(Singleton, str)) :
+        ...    pass
         ...
         >>> StringSingleton("first")
         'first'
@@ -101,8 +101,8 @@ class metaStatic(Singleton):
     """ A static (immutable) Singleton metaclass to quickly build classes
         holding predefined immutable dicts
 
-        >>> class FrozenDictSingleton(dict) :
-        ...    __metaclass__ = metaStatic
+        >>> class FrozenDictSingleton(with_metaclass(metaStatic, dict)) :
+        ...    pass
         ...
         >>> FrozenDictSingleton({'A':1})
         {'A': 1}
@@ -788,9 +788,7 @@ class LazyDocString(object):
     >>> # In order to alter the doc of a class, we need to use a metaclass
     >>> class TestMetaClass(type): pass
     >>>
-    >>> class TestClass(object):
-    ...     __metaclass__ = TestMetaClass
-    ...
+    >>> class TestClass(with_metaclass(TestMetaClass, object)):
     ...     def aMethod(self):
     ...         pass
     ...

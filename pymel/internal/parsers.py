@@ -373,10 +373,6 @@ class CommandDocParser(HTMLParser):
             #self.active = False
 
 
-# class MayaDocsLoc(str) :
-#    """ Path to the Maya docs, cached at pymel start """
-#    __metaclass__ = util.Singleton
-
 # TODO : cache doc location or it's evaluated for each getCmdInfo !
 # MayaDocsLoc(mayaDocsLocation())
 

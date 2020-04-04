@@ -587,7 +587,6 @@ class Catch(object):
     ...    print("succeeded:", result)
 
     """
-    #__metaclass__ = util.Singleton
     result = None
     success = None
 
@@ -1225,83 +1224,6 @@ def conditionExists(conditionName):
     """
     return conditionName in cmds.scriptJob(listConditions=True)
 
-
-# class MayaGlobals(object):
-#    """
-#    A Singleton class to represent Maya current optionVars and settings which are global
-#    to all of maya and are not saved with the scene.
-#    """
-#    __metaclass__ = util.Singleton
-#
-#    optionVars = OptionVarDict()
-#    #grid = Grid()
-#    #playbackOptions = PlaybackOptions()
-#
-#    # TODO : create a wrapper for os.environ which allows direct appending and popping of individual env entries (i.e. make ':' transparent)
-#    envVars = os.environ
-#    @staticmethod
-#    def setConstructionHistory( state ):
-#        cmds.constructionHistory( tgl=state )
-#    @staticmethod
-#    def getConstructionHistory(self):
-#        return cmds.constructionHistory( q=True, tgl=True )
-#
-#    @staticmethod
-#    def setUpAxis( axis, rotateView=False ):
-#        """This flag specifies the axis as the world up direction. The valid axis are either 'y' or 'z'."""
-#        cmds.upAxis( axis=axis.lower(), rotateView=rotateView )
-#
-#    @staticmethod
-#    def getUpAxis(self):
-#        """This flag gets the axis set as the world up direction. The valid axis are either 'y' or 'z'."""
-#        return cmds.upAxis( q=True, axis=True )
-#
-#    @staticmethod
-#    def user():
-#        return getuser()
-#
-#    @staticmethod
-#    def host():
-#        return gethostname()
-#
-
-# class SceneGlobals(object):
-#    """
-#    A Static Singleton class to represent scene-dependent settings.
-#    """
-#    __metaclass__ = util.Singleton
-#
-#    @staticmethod
-#    def sceneName():
-#        return system.Path(cmds.file( q=1, sn=1))
-#
-#    @util.universalmethod
-#    def getTime(obj):
-#        return cmds.currentTime( q=1 )
-#
-#    @util.universalmethod
-#    def setTime( obj, val ):
-#        cmds.currentTime( val )
-#    time = property( getTime, setTime )
-#
-#    @staticmethod
-#    def getMinTime():
-#        return cmds.playbackOptions( q=1, minTime=1 )
-#    @staticmethod
-#    def setMinTime( val ):
-#        cmds.playbackOptions( minTime=val )
-#    minTime = property( getMinTime, setMinTime )
-#
-#    @staticmethod
-#    def getMaxTime():
-#        return cmds.playbackOptions( q=1, maxTime=1 )
-#    @staticmethod
-#    def setMaxTime( val ):
-#        cmds.playbackOptions( maxTime=val )
-#
-#    maxTime = property( getMaxTime, setMaxTime )
-
-#env = Env()
 
 # ------ Do not edit below this line --------
 

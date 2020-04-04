@@ -129,8 +129,8 @@ def printobj(name, obj, prefix='', inherited=False, depth=0, file=sys.stdout):
                 child = getattr(obj, childname)
             except AttributeError:
                 # some things may be returned in dir, but not be accessible -
-                # one example is any abstract base class (__metaclass__ =
-                # ABCMeta), which will have an __abstractmethods__ slot, but it
+                # one example is any abstract base class (metaclass= ABCMeta),
+                # which will have an __abstractmethods__ slot, but it
                 # may not actually be filled. We ignore any getattr errors.
                 continue
             printobj(childname, child, prefix=childprefix, inherited=inherited,
