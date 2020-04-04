@@ -359,6 +359,11 @@ class VersionedCaches(object):
     def _getAllApiSubCaches(self, subcacheName):
         result = OrderedDict()
         for version in self.allApiVersions:
+            # skip versions greater than our current - trying to load them
+            # will probably bring in objects that we don't have in this version,
+            # resulting in an import error, and attempting to rebuild...
+            if versions.current() < version:
+                continue
             result[version] = self._getApiSubCache(version, subcacheName)
         return result
 
