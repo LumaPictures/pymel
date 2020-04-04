@@ -2,7 +2,7 @@
 @_factories.addCmdDocs
 def {{ funcName }}(*args, **kwargs):
   {% if uiWidget %}
-    import uitypes
+    from . import uitypes
   {% endif %}
   {% if timeRangeFlags %}
     for flag in {{ timeRangeFlags }}:
