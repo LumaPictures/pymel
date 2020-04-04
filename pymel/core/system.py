@@ -811,7 +811,14 @@ workspace = Workspace()
 #  FileInfo Class
 # ----------------------------------------------
 
-class FileInfo(collections.MutableMapping):
+class SingletonABCMeta(_util.Singleton, abc.ABCMeta):
+    """
+    Simple subclass of the abstract base metaclass, and the Pymel Singleton.
+    Needed to deal with the fact that Python doesn't let you have multiple metaclasses.
+    """
+    pass
+
+class FileInfo(with_metaclass(SingletonABCMeta, collections.MutableMapping)):
 
     """
     store and get custom data specific to this file:
@@ -835,14 +842,6 @@ class FileInfo(collections.MutableMapping):
 
 
     """
-
-    class __metaclass__(_util.Singleton, abc.ABCMeta):
-
-        """
-        Simple subclass of the abstract base metaclass, and the Pymel Singleton.
-        Needed to deal with the fact that Python doesn't let you have multiple metaclasses.
-        """
-        pass
 
     def __getitem__(self, item):
         # type: (str) -> str
