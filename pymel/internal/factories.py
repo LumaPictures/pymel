@@ -388,7 +388,7 @@ def toPyTypeList(moduleName, objectName):
     Callable[[Any], List[Any]]
     """
     def toGivenClassList(res):
-        module = __import__(moduleName, globals(), locals(), [objectName], -1)
+        module = __import__(moduleName, globals(), locals(), [objectName], 0)
         cls = getattr(module, objectName)
         if res is None:
             return []
