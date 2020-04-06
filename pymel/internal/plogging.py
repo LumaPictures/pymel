@@ -324,15 +324,15 @@ def raiseLog(logger, level, message, errorClass=RuntimeError):
     So, if we make a call:
         raiseLog(_logger, _logger.INFO, "oh noes! something weird happened!")
     ...then what happens will depend on what the value of ERRORLEVEL (controlled
-    by the environment var %s) is - if it was not set, or set to ERROR, or
+    by the environment var {}) is - if it was not set, or set to ERROR, or
     WARNING, then the call will result in issuing a _logger.info(...) call;
     if it was set to INFO or DEBUG, then an error would be raised.
 
     For convenience, raiseLog is installed onto logger instances created with
     the getLogger function in this module, so you can do:
         _logger.raiseLog(_logger.INFO, "oh noes! something weird happened!")
-    '''
-    # Initially wanted to have ERROR_LOGLEVEL controlled by the pymel.conf,
+    '''.format(PYMEL_ERRORLEVEL_ENV_VAR)
+    # Initially wanted to have ERRORLEVEL controlled by the pymel.conf,
     # but I want to be able to use raiseLog in early startup, before pymel.conf
     # is read in pymel.internal.startup, so an environment variable seemed the
     # only way to go

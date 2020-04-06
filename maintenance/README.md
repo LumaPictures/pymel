@@ -38,7 +38,7 @@ Building an Official PyMEL Release
 
   - ensure that the CommandsPython, API, and Nodes doc subdirectories are
     installed. these go in `docs/Maya20XX/en_US/`
-
+    
   - consider setting PYMEL_ERRORLEVEL=WARNING in your environment - this will
     make pymel error instead of warning when some odd things happen.  Note that
     I don't think we can currently get through the whole cache build without
@@ -146,7 +146,7 @@ Building an Official PyMEL Release
     ```python
     import sys
     import os
-    pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
+    pymelPath = r'E:\Projects\Dev\_work\pymel'   # ...or wherever YOUR pymel version is installed
     pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
     if not os.path.isfile(pymelInit):
         raise RuntimeError('invalid pymel path: %s' % pymelPath)
