@@ -18,6 +18,7 @@
 ._*
 *.tmproj
 *~
+.vscode
 /maintenance/release
 /maintenance/CHANGELOG.temp
 get-pip.py
