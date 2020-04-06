@@ -2582,4 +2582,3 @@ whatsNewHighlight = _factories.getCmdFunc('whatsNewHighlight')
 workspace = _factories.addCmdDocs(workspace, cmdName='workspace')
 
 xpmPicker = _factories.getCmdFunc('xpmPicker')
-

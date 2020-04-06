@@ -4543,14 +4543,14 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
     @_f.addApiDocs(_api.MPlug, 'getSetAttrCmds')
     def getSetAttrCmds(self, valueSelector='all', useLongNames=False):
-        # type: (datatypes.Plug.MValueSelector, bool) -> List[unicode]
+        # type: (datatypes.Plug.MValueSelector, bool) -> List[str]
         do, final_do, outTypes = _f.getDoArgs([valueSelector, useLongNames], [('cmds', 'MStringArray', 'out', None), ('valueSelector', ('MPlug', 'MValueSelector'), 'in', None), ('useLongNames', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MPlug, 'getSetAttrCmds', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MPlug, 'info')
     def info(self):
-        # type: () -> unicode
+        # type: () -> str
         res = _f.getProxyResult(self, _api.MPlug, 'info')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
@@ -6324,14 +6324,14 @@ class MeshVertex(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshVertex, 'getColorIndices')
     def getColorIndices(self, colorSetName=None):
-        # type: (unicode) -> List[int]
+        # type: (str) -> List[int]
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colorIndices', 'MIntArray', 'out', None), ('colorSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'getColorIndices', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshVertex, 'getColors')
     def getColors(self, colorSetName=None):
-        # type: (unicode) -> List[datatypes.Color]
+        # type: (str) -> List[datatypes.Color]
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colors', 'MColorArray', 'out', None), ('colorSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'getColors', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6367,21 +6367,21 @@ class MeshVertex(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshVertex, 'getUV')
     def getUV(self, uvSet=None):
-        # type: (unicode) -> Tuple[float, float]
+        # type: (str) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvPoint', 'float2', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'getUV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshVertex, 'getUVIndices')
     def getUVIndices(self, uvSet=None):
-        # type: (unicode) -> List[int]
+        # type: (str) -> List[int]
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvIndices', 'MIntArray', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'getUVIndices', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshVertex, 'getUVs')
     def getUVs(self, uvSet=None):
-        # type: (unicode) -> Tuple[List[float], List[float], List[int]]
+        # type: (str) -> Tuple[List[float], List[float], List[int]]
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('uArray', 'MFloatArray', 'out', None), ('vArray', 'MFloatArray', 'out', None), ('faceIds', 'MIntArray', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'getUVs', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6430,7 +6430,7 @@ class MeshVertex(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshVertex, 'numUVs')
     def numUVs(self, uvSet=None):
-        # type: (unicode) -> int
+        # type: (str) -> int
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvCount', 'int', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'numUVs', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6445,7 +6445,7 @@ class MeshVertex(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshVertex, 'setUV')
     def setUV(self, uvPoint, uvSet=None):
-        # type: (Tuple[float, float], unicode) -> None
+        # type: (Tuple[float, float], str) -> None
         do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([uvPoint, uvSet], [('uvPoint', 'float2', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['uvSet'])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'setUV', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
@@ -6453,7 +6453,7 @@ class MeshVertex(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshVertex, 'setUVs')
     def setUVs(self, uArray, vArray, faceIds, uvSet=None):
-        # type: (List[float], List[float], List[int], unicode) -> None
+        # type: (List[float], List[float], List[int], str) -> None
         do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([uArray, vArray, faceIds, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('faceIds', 'MIntArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
         res = _f.getProxyResult(self, _api.MItMeshVertex, 'setUVs', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
@@ -6708,35 +6708,35 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getAxisAtUV')
     def getAxisAtUV(self, uvPoint, space='preTransform', uvSet=None, tolerance=0.0):
-        # type: (Tuple[float, float], datatypes.Space.Space, unicode, float) -> Tuple[datatypes.Vector, datatypes.Vector, datatypes.Vector]
+        # type: (Tuple[float, float], datatypes.Space.Space, str, float) -> Tuple[datatypes.Vector, datatypes.Vector, datatypes.Vector]
         do, final_do, outTypes = _f.getDoArgs([uvPoint, space, uvSet, tolerance], [('normal', 'MVector', 'out', None), ('uTangent', 'MVector', 'out', None), ('vTangent', 'MVector', 'out', None), ('uvPoint', 'float2', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('tolerance', 'float', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getAxisAtUV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getColor')
     def getColor(self, colorSetName=None):
-        # type: (unicode) -> datatypes.Color
+        # type: (str) -> datatypes.Color
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('color', 'MColor', 'out', None), ('colorSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getColor', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getColorIndex')
     def getColorIndex(self, vertexIndex, colorSetName=None):
-        # type: (int, unicode) -> int
+        # type: (int, str) -> int
         do, final_do, outTypes = _f.getDoArgs([vertexIndex, colorSetName], [('vertexIndex', 'int', 'in', None), ('colorIndex', 'int', 'out', None), ('colorSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getColorIndex', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getColorIndices')
     def getColorIndices(self, colorSetName=None):
-        # type: (unicode) -> List[int]
+        # type: (str) -> List[int]
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colorIndices', 'MIntArray', 'out', None), ('colorSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getColorIndices', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getColors')
     def getColors(self, colorSetName=None):
-        # type: (unicode) -> List[datatypes.Color]
+        # type: (str) -> List[datatypes.Color]
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colors', 'MColorArray', 'out', None), ('colorSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getColors', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6772,7 +6772,7 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getPointAtUV')
     def getPointAtUV(self, uvPoint, space='preTransform', uvSet=None, tolerance=0.0):
-        # type: (Tuple[float, float], datatypes.Space.Space, unicode, float) -> datatypes.Point
+        # type: (Tuple[float, float], datatypes.Space.Space, str, float) -> datatypes.Point
         do, final_do, outTypes = _f.getDoArgs([uvPoint, space, uvSet, tolerance], [('pt', 'MPoint', 'out', None), ('uvPoint', 'float2', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('tolerance', 'float', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getPointAtUV', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6786,42 +6786,42 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getUV')
     def getUV(self, vertex, uvSet=None):
-        # type: (int, unicode) -> Tuple[float, float]
+        # type: (int, str) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([vertex, uvSet], [('vertex', 'int', 'in', None), ('uvPoint', 'float2', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUV', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getUVArea')
     def getUVArea(self, uvSet=None):
-        # type: (unicode) -> float
+        # type: (str) -> float
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('area', 'double', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVArea', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getUVAtPoint')
     def getUVAtPoint(self, pt, space='preTransform', uvSet=None):
-        # type: (datatypes.Point, datatypes.Space.Space, unicode) -> Tuple[float, float]
+        # type: (datatypes.Point, datatypes.Space.Space, str) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([pt, space, uvSet], [('pt', 'MPoint', 'in', None), ('uvPoint', 'float2', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVAtPoint', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getUVIndex')
     def getUVIndex(self, vertex, uvSet=None):
-        # type: (int, unicode) -> int
+        # type: (int, str) -> int
         do, final_do, outTypes = _f.getDoArgs([vertex, uvSet], [('vertex', 'int', 'in', None), ('index', 'int', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVIndex', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getUVSetNames')
     def getUVSetNames(self):
-        # type: () -> List[unicode]
+        # type: () -> List[str]
         do, final_do, outTypes = _f.getDoArgs([], [('setNames', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVSetNames', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'getUVs')
     def getUVs(self, uvSet=None):
-        # type: (unicode) -> Tuple[List[float], List[float]]
+        # type: (str) -> Tuple[List[float], List[float]]
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('uArray', 'MFloatArray', 'out', None), ('vArray', 'MFloatArray', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'getUVs', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6913,7 +6913,7 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'isUVReversed')
     def isUVReversed(self, uvSet=None):
-        # type: (unicode) -> bool
+        # type: (str) -> bool
         do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'isUVReversed', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -6941,7 +6941,7 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'numColors')
     def numColors(self, colorSetName=None):
-        # type: (unicode) -> int
+        # type: (str) -> int
         do, final_do, outTypes = _f.getDoArgs([colorSetName], [('colorCount', 'int', 'out', None), ('colorSetName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'numColors', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -6991,7 +6991,7 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'setUV')
     def setUV(self, vertexId, uvPoint, uvSet=None):
-        # type: (int, Tuple[float, float], unicode) -> None
+        # type: (int, Tuple[float, float], str) -> None
         do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vertexId, uvPoint, uvSet], [('vertexId', 'int', 'in', None), ('uvPoint', 'float2', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUV, self.setUV, ['vertex', 'uvSet'])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setUV', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
@@ -6999,7 +6999,7 @@ class MeshFace(MItComponent1D):
 
     @_f.addApiDocs(_api.MItMeshPolygon, 'setUVs')
     def setUVs(self, uArray, vArray, uvSet=None):
-        # type: (List[float], List[float], unicode) -> None
+        # type: (List[float], List[float], str) -> None
         do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([uArray, vArray, uvSet], [('uArray', 'MFloatArray', 'in', None), ('vArray', 'MFloatArray', 'in', None), ('uvSet', 'MString', 'in', None)], self.getUVs, self.setUVs, ['uvSet'])
         res = _f.getProxyResult(self, _api.MItMeshPolygon, 'setUVs', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
@@ -7797,14 +7797,14 @@ Modifications:
 
     @_f.addApiDocs(_api.MFnAttribute, 'addToCategory')
     def addToCategory(self, category):
-        # type: (unicode) -> None
+        # type: (str) -> None
         do, final_do, outTypes = _f.getDoArgs([category], [('category', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'addToCategory', final_do)
         return res
 
     @_f.addApiDocs(_api.MFnAttribute, 'getAddAttrCmd')
     def getAddAttrCmd(self, useLongName=False):
-        # type: (bool) -> unicode
+        # type: (bool) -> str
         do, final_do, outTypes = _f.getDoArgs([useLongName], [('useLongName', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'getAddAttrCmd', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
@@ -7818,7 +7818,7 @@ Modifications:
 
     @_f.addApiDocs(_api.MFnAttribute, 'getCategories')
     def getCategories(self):
-        # type: () -> List[unicode]
+        # type: () -> List[str]
         do, final_do, outTypes = _f.getDoArgs([], [('categories', 'MStringArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'getCategories', final_do)
         return _f.processApiResult(res, outTypes, do)
@@ -7849,7 +7849,7 @@ Modifications:
 
     @_f.addApiDocs(_api.MFnAttribute, 'hasCategory')
     def hasCategory(self, category):
-        # type: (unicode) -> bool
+        # type: (str) -> bool
         do, final_do, outTypes = _f.getDoArgs([category], [('category', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'hasCategory', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
@@ -7965,7 +7965,7 @@ Modifications:
 
     @_f.addApiDocs(_api.MFnAttribute, 'removeFromCategory')
     def removeFromCategory(self, category):
-        # type: (unicode) -> None
+        # type: (str) -> None
         do, final_do, outTypes = _f.getDoArgs([category], [('category', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'removeFromCategory', final_do)
         return res
@@ -8067,7 +8067,7 @@ Modifications:
 
     @_f.addApiDocs(_api.MFnAttribute, 'setNiceNameOverride')
     def setNiceNameOverride(self, localizedName):
-        # type: (unicode) -> None
+        # type: (str) -> None
         do, final_do, outTypes = _f.getDoArgs([localizedName], [('localizedName', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setNiceNameOverride', final_do)
         return res
@@ -8146,7 +8146,7 @@ Modifications:
 
     @_f.addApiDocs(_api.MFnAttribute, 'shortName')
     def shortName(self):
-        # type: () -> unicode
+        # type: () -> str
         res = _f.getProxyResult(self, _api.MFnAttribute, 'shortName')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
@@ -8685,4 +8685,3 @@ def selectionConnection(*args, **kwargs):
             pass
     res = cmds.selectionConnection(*args, **kwargs)
     return res
-

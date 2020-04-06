@@ -1280,4 +1280,3 @@ sortCaseInsensitive = _factories.getCmdFunc('sortCaseInsensitive')
 stackTrace = _factories.getCmdFunc('stackTrace')
 
 waitCursor = _factories.getCmdFunc('waitCursor')
-
