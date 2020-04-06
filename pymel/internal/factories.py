@@ -3758,7 +3758,7 @@ def addMayaType(mayaType, apiType=None):
         - mayaTypesToApiEnums
     """
     if apiType is None:
-        apiType = mayaTypeToApiType(mayaType)
+        apiType = _apiCacheInst.mayaTypeToApiType(mayaType)
 
     global _apiCacheInst
     _apiCacheInst.addMayaType(mayaType, apiType, globals())
@@ -4093,45 +4093,6 @@ def apiClassNameToPymelClassName(apiName, allowGuess=True):
     if pymelName is None:
         pymelName = ApiTypeRegister.getPymelType(apiName, allowGuess=allowGuess)
     return pymelName
-
-
-def mayaTypeToApiType(mayaType):
-    # type: (str) -> str
-    """
-    Get the Maya API type from the name of a Maya type
-
-    Parameters
-    ----------
-    mayaType : str
-
-    Returns
-    -------
-    str
-    """
-    try:
-        return mayaTypesToApiTypes[mayaType]
-    except KeyError:
-        apiType = None
-        import pymel.api.plugins as plugins
-        try:
-            inheritance = apicache.getInheritance(mayaType,
-                                                  checkManip3D=False)
-        except Exception:
-            inheritance = None
-        if inheritance:
-            for mayaType in reversed(inheritance[:-1]):
-                apiType = mayaTypesToApiTypes.get(mayaType)
-                if apiType:
-                    break
-
-        if not apiType:
-            apiType = 'kInvalid'
-            # we need to actually create the obj to query it...
-            with apicache._GhostObjMaker(mayaType) as obj:
-                if obj is not None and api.isValidMObject(obj):
-                    apiType = obj.apiTypeStr()
-        mayaTypesToApiTypes[mayaType] = apiType
-        return apiType
 
 
 def isMayaType(mayaType):

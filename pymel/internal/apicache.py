@@ -1168,6 +1168,8 @@ class ApiCache(BaseApiClassInfoCache):
                 for node in toSet:
                     self.mayaTypesToApiTypes[node] = apiType
 
+        self.filterPluginNodes()
+
         for mayaType, apiType in self.mayaTypesToApiTypes.items():
             self.addMayaType(mayaType, apiType)
 
@@ -1451,6 +1453,13 @@ class ApiCache(BaseApiClassInfoCache):
         # until I can figure out if it's possible to avoid this crash...
         import maya.mel
         maya.mel.eval('source "initialPlugins.mel"')
+
+        # Note that even though we later call filterPluginNodes, which will
+        # remove most of the info for plugin nodes, we still load all plugins
+        # before building the cache.  This is because some "core" maya api types
+        # (ie, node types that have a corresponding kSomeType entry on MFn,
+        # and possibly even an MFnSomeType) are actually implemented in plugin
+        # nodes, and we need to make sure we grab all of these.
         plugins.loadAllMayaPlugins()
 
         self._buildApiClassInfo()
@@ -1490,6 +1499,83 @@ class ApiCache(BaseApiClassInfoCache):
         """
         self.mayaTypesToApiEnums.pop(mayaType, None)
         self.mayaTypesToApiTypes.pop(mayaType, None)
+
+    def mayaTypeToApiType(self, mayaType, useCache=True, ghostObjs=True):
+        # type: (str, bool) -> str
+        """
+        Get the Maya API type from the name of a Maya type
+
+        Parameters
+        ----------
+        mayaType : str
+        useCache : bool
+
+        Returns
+        -------
+        str
+        """
+        if useCache:
+            apiType = self.mayaTypesToApiTypes.get(mayaType)
+            if apiType:
+                return apiType
+
+        apiType = None
+        import pymel.api.plugins as plugins
+        try:
+            inheritance = getInheritance(mayaType, checkManip3D=False)
+        except Exception:
+            inheritance = None
+        if inheritance:
+            for mayaType in reversed(inheritance[:-1]):
+                apiType = self.mayaTypesToApiTypes.get(mayaType)
+                if apiType:
+                    break
+
+        if not apiType:
+            apiType = 'kInvalid'
+            # we need to actually create the obj to query it...
+            if ghostObjs:
+                with _GhostObjMaker(mayaType) as obj:
+                    if obj is not None and api.isValidMObject(obj):
+                        apiType = obj.apiTypeStr()
+        if useCache:
+            self.mayaTypesToApiTypes[mayaType] = apiType
+        return apiType
+
+    def filterPluginNodes(self):
+        '''Remove most plugin nodes from mayaTypesToApiTypes
+
+        When building the cache, filter out most plugin nodes - these are
+        easily queried dynamically when the plugin loads, and they just
+        create bloat / noise in the caches.  However, we want to retain
+        plugin nodes in two cases:
+        - they map to an MFn enum other than one of the standard kPlugin*
+          types - ie, some "core" maya types are actually implemented in
+          plugins
+        - their type can't be queried correctly without creating them
+        '''
+        toRemove = []
+        for mayaType, apiType in self.mayaTypesToApiTypes.items():
+            if not apiType.startswith('kPlugin') or apiType == 'kPlugin':
+                continue
+            # don't remove the maya types for the kPlugin* themselves - ie,
+            # THdependNode == kPluginNode
+            # Also, THmanip and THmanipContainer aren't actually even nodes -
+            # ignore them too
+            if mayaType in self.abstractMayaTypes \
+                    or mayaType not in self.allMayaTypes:
+                continue
+            # ok, now query the type
+            calcApiType = self.mayaTypeToApiType(mayaType, useCache=False,
+                                                 ghostObjs=False)
+            if calcApiType != apiType:
+                _logger.raiseLog(_logger.WARNING,
+                    "could not determine apiType for plugin node '{}' without"
+                    " creating it".format(mayaType))
+            else:
+                toRemove.append(mayaType)
+        for mayaType in toRemove:
+            del self.mayaTypesToApiTypes[mayaType]
 
     def rebuild(self):
         """Rebuild the api cache from scratch
