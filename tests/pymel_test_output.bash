@@ -31,14 +31,11 @@ pkg_resources_dir=$(print_python_module_dir pkg_resources)
 
 mayapy_dir=$(dirname "$(which mayapy)")
 
-# without setting MAYA_DISABLE_CIP and MAYA_DISABLE_CLIC_IPM, got segfaults
-# on our gitlab test runner...
 the_cmd=("$(which mayapy)"
     "${this_dir}/pymel_test.py" --gui-stdout "$@")
 env_vars=(DISPLAY=:0.0 "HOME=$HOME" "TERM=$TERM" "SHELL=$SHELL"
     "USER=$USER" "PATH=$PATH:$mayapy_dir"
-    "PYTHONPATH=$pymel_dir:$pytest_dir:$pkg_resources_dir"
-    MAYA_DISABLE_CIP=1 MAYA_DISABLE_CLIC_IPM=1)
+    "PYTHONPATH=$pymel_dir:$pytest_dir:$pkg_resources_dir")
 echo "env_vars:"
 echo "${env_vars[@]}"
 echo "the_cmd:"

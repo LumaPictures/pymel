@@ -218,6 +218,11 @@ def main(argv):
         # Maya 2019.1+ won't set exit code correctly unless this is set
         os.environ['MAYA_NO_STANDALONE_ATEXIT'] = '1'
 
+        # without setting MAYA_DISABLE_CIP and MAYA_DISABLE_CLIC_IPM, got segfaults
+        # on our gitlab test runner...
+        os.environ['MAYA_DISABLE_CIP'] = '1'
+        os.environ['MAYA_DISABLE_CLIC_IPM'] = '1'
+
         if parsed.app_dir:
             if not os.path.exists(parsed.app_dir):
                 os.makedirs(parsed.app_dir)
