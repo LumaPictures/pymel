@@ -1,12 +1,5 @@
 #!/bin/bash
 
-settings_dir=~/maya_pymel_test
-
-#if [[ -d "$settings_dir" ]]; then
-#    rm -rf "$settings_dir"
-#fi
-mkdir -p $settings_dir
-
 this_script=$(python -c "import os; import posixpath; print(os.path.normcase(os.path.normpath(os.path.realpath(os.path.abspath('''$0''')))).replace(os.sep, posixpath.sep))")
 echo "$this_script"
 
@@ -41,7 +34,7 @@ mayapy_dir=$(dirname "$(which mayapy)")
 # without setting MAYA_DISABLE_CIP and MAYA_DISABLE_CLIC_IPM, got segfaults
 # on our gitlab test runner...
 the_cmd=("$(which mayapy)"
-    "${this_dir}/pymel_test.py" --gui-stdout "--app-dir=$settings_dir" "$@")
+    "${this_dir}/pymel_test.py" --gui-stdout "$@")
 env_vars=(DISPLAY=:0.0 "HOME=$HOME" "TERM=$TERM" "SHELL=$SHELL"
     "USER=$USER" "PATH=$PATH:$mayapy_dir"
     "PYTHONPATH=$pymel_dir:$pytest_dir:$pkg_resources_dir"

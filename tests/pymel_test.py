@@ -14,6 +14,7 @@ import inspect
 
 THIS_FILE = os.path.abspath(inspect.getsourcefile(lambda: None))
 
+DEFAULT_APP_DIR = os.path.join(os.path.expanduser('~'), 'maya_pymel_test')
 
 def getParser():
     testsDir = os.path.dirname(THIS_FILE)
@@ -27,7 +28,8 @@ def getParser():
         restored, so the tests print to the console, NOT the gui script 
         editor''')
     parser.add_argument('--app-dir', help='''make the tests use the given dir as
-        the MAYA_APP_DIR (ie, the base maya settings folder)''')
+        the MAYA_APP_DIR (ie, the base maya settings folder) - defaults to
+        %(default)s''', default=DEFAULT_APP_DIR)
     #parser.add_argument('--test', help='''specific TestCase or test function to
         #run; if given, will be run using the "new" unittest"''')
     parser.add_argument('--tests-dir', help='''The directory that contains 
