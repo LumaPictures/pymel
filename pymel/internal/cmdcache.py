@@ -310,6 +310,17 @@ def getCmdInfo(command, version, python=True):
 
         example = parser.example
         example = example.rstrip()
+
+        if PY2:
+            if isinstance(example, unicode):
+                # for consistency / diffs, want everything to not use
+                # unicode string literals - ie u'My example ...' - whenever
+                # possible.
+                try:
+                    example = str(example)
+                except UnicodeEncodeError:
+                    pass
+
         if python:
             pass
 
