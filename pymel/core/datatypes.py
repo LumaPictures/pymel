@@ -3541,6 +3541,7 @@ class BoundingBox(with_metaclass(_factories.MetaMayaTypeRegistry, _api.MBounding
         # type: () -> float
         res = _api.MBoundingBox.depth(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
+    d = property(depth)
 
     @_f.addApiDocs(_api.MBoundingBox, 'expand')
     def expand(self, point):
@@ -3554,6 +3555,7 @@ class BoundingBox(with_metaclass(_factories.MetaMayaTypeRegistry, _api.MBounding
         # type: () -> float
         res = _api.MBoundingBox.height(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
+    h = property(height)
 
     @_f.addApiDocs(_api.MBoundingBox, 'intersects')
     def intersects(self, box, tol=0.0):
@@ -3587,11 +3589,8 @@ class BoundingBox(with_metaclass(_factories.MetaMayaTypeRegistry, _api.MBounding
         # type: () -> float
         res = _api.MBoundingBox.width(self)
         return _f.ApiArgUtil._castResult(self, res, 'double', None)
-# ------ Do not edit above this line --------
     w = property(width)
-    h = property(height)
-    d = property(depth)
-
+# ------ Do not edit above this line --------
 
 
 #_factories.ApiTypeRegister.register( 'MVector', Vector )
