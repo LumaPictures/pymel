@@ -924,10 +924,10 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
 
                     # deal with unicode vs str
                     if PY2:
-                        if set([argtype, resultType]) == set([str, unicode]):
-                            # just ignore this, set resultType to match
+                        if argtype in (str, unicode) \
+                                and resultType in (str, unicode):
+                            # just ignore str/unicode diff, set resultType to match
                             resultType = argtype
-
                     # ensure symmetry between edit and query commands:
                     # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
@@ -982,8 +982,10 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                         flagInfo.pop(shortname, None)
                         modes = []  # stop edit from running
                     else:
-                        _logger.info(cmd)
+                        _logger.info("Error running: {}".format(cmd))
                         _logger.info("\t" + str(msg).rstrip('\n'))
+                        import traceback
+                        _logger.debug(traceback.format_exc())
                     val = None
 
                 except RuntimeError as msg:
