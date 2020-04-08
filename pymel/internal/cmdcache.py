@@ -924,10 +924,15 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
 
                     # deal with unicode vs str
                     if PY2:
-                        if argtype in (str, unicode) \
-                                and resultType in (str, unicode):
+                        strUni = (str, unicode)
+                        lStrUni = ([str], [unicode])
+                        if (argtype in strUni and resultType in strUni)\
+                                or (argtype in lStrUni and resultType in lStrUni):
                             # just ignore str/unicode diff, set resultType to match
                             resultType = argtype
+                        elif argtype in strUni and resultType in lStrUni:
+                            resultType[0] = argtype
+
                     # ensure symmetry between edit and query commands:
                     # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
