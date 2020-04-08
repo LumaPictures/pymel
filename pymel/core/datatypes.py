@@ -812,7 +812,7 @@ class Vector(with_metaclass(MetaMayaArrayTypeWrapper, VectorN)):
             cotangent of the a, b angle, a and b should be MVectors"""
         return VectorN.cotan(self, other)
 # ------ Do not edit below this line --------
-    if os.name == 'nt':
+    if os.name == 'nt' and versions.current() < versions.v2020:
         __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     Axis = Enum('Axis', [('xaxis', 0), ('kXaxis', 0), ('yaxis', 1), ('kYaxis', 1), ('zaxis', 2), ('kZaxis', 2), ('waxis', 3), ('kWaxis', 3)], multiKeys=True)
     one = _f.ClassConstant([1.0, 1.0, 1.0])
@@ -837,7 +837,7 @@ class FloatVector(Vector):
     __slots__ = ()
     apicls = _api.MFloatVector
 # ------ Do not edit below this line --------
-    if os.name == 'nt':
+    if os.name == 'nt' and versions.current() < versions.v2020:
         __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     one = _f.ClassConstant([1.0, 1.0, 1.0])
     xAxis = _f.ClassConstant([1.0, 0.0, 0.0])
@@ -1114,7 +1114,7 @@ class Point(Vector):
         else:
             return ()
 # ------ Do not edit below this line --------
-    if os.name == 'nt':
+    if os.name == 'nt' and versions.current() < versions.v2020:
         __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     origin = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
 # ------ Do not edit above this line --------
@@ -1129,7 +1129,7 @@ class FloatPoint(Point):
     __slots__ = ()
     apicls = _api.MFloatPoint
 # ------ Do not edit below this line --------
-    if os.name == 'nt':
+    if os.name == 'nt' and versions.current() < versions.v2020:
         __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     origin = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
 
@@ -1529,7 +1529,7 @@ class Color(Vector):
             c[0] += 1.0
         return self.__class__(c, mode='hsv')
 # ------ Do not edit below this line --------
-    if os.name == 'nt':
+    if os.name == 'nt' and versions.current() < versions.v2020:
         __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     MColorType = Enum('MColorType', [('RGB', 0), ('kRGB', 0), ('HSV', 1), ('kHSV', 1), ('CMY', 2), ('kCMY', 2), ('CMYK', 3), ('kCMYK', 3)], multiKeys=True)
     black = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
@@ -2128,7 +2128,7 @@ class Matrix(with_metaclass(MetaMayaArrayTypeWrapper, MatrixN)):
             self = TransformationMatrix(self)
         return self.__class__._convert(self.asMatrix(weight))
 # ------ Do not edit below this line --------
-    if os.name == 'nt':
+    if os.name == 'nt' and versions.current() < versions.v2020:
         __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     identity = _f.ClassConstant([Array([1.0, 0.0, 0.0, 0.0]), Array([0.0, 1.0, 0.0, 0.0]), Array([0.0, 0.0, 1.0, 0.0]), Array([0.0, 0.0, 0.0, 1.0])])
 # ------ Do not edit above this line --------
@@ -2144,7 +2144,7 @@ class FloatMatrix(Matrix):
     __slots__ = ()
     apicls = _api.MFloatMatrix
 # ------ Do not edit below this line --------
-    if os.name == 'nt':
+    if os.name == 'nt' and versions.current() < versions.v2020:
         __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
 # ------ Do not edit above this line --------
 
@@ -2343,7 +2343,7 @@ class Quaternion(Matrix):
         """ True if at least one of the vector components is equal to the argument """
         return value in self.__iter__()
 # ------ Do not edit below this line --------
-    if os.name == 'nt':
+    if os.name == 'nt' and versions.current() < versions.v2020:
         __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     identity = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
 
@@ -3070,7 +3070,7 @@ class EulerRotation(with_metaclass(MetaMayaArrayTypeWrapper, Array)):
         except:
             return NotImplemented
 # ------ Do not edit below this line --------
-    if os.name == 'nt':
+    if os.name == 'nt' and versions.current() < versions.v2020:
         __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     RotationOrder = Enum('RotationOrder', [('XYZ', 0), ('kXYZ', 0), ('YZX', 1), ('kYZX', 1), ('ZXY', 2), ('kZXY', 2), ('XZY', 3), ('kXZY', 3), ('YXZ', 4), ('kYXZ', 4), ('ZYX', 5), ('kZYX', 5)], multiKeys=True)
     identity = _f.ClassConstant([0.0, 0.0, 0.0])

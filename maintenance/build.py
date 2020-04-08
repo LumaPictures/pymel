@@ -1598,18 +1598,39 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
                                       setattr.__closure__)))
             origSetAttr = internal_vars['origSetAttr']
             self.apicls.__setattr__ = origSetAttr
-        if factories.MetaMayaTypeWrapper._hasApiSetAttrBug(self.apicls):
-            if os.name != 'nt':
-                # we should only see this in windows - if we see it elsewhere,
-                # raise an error so we can decide what to do
-                raise ValueError("saw setattr bug on non-windows!")
-            # make sure we haven't already applied the fix on a parent class...
-            oldSetAttr = getattr(self.existingClass, '__setattr__', None)
-            oldSetAttr = getattr(oldSetAttr, 'im_func', oldSetAttr)
-            if oldSetAttr != factories.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug:
-                self.attrs['__setattr__'] = Conditional(
-                    [("os.name == 'nt'",
-                      Assignment('__setattr__', Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')))])
+
+        ########################################################################
+        # REMOVE once 2019 no longer supported
+        ########################################################################
+        # Hardcoded fix for api setattr bug - used to dynamically test, with
+        #   factories.MetaMayaTypeWrapper._hasApiSetAttrBug
+        # ...but now that it's been fixed in 2020, we just use a fixed list
+        # of classes to apply it to.
+        # Note that this should be inherited by some of these classes, but
+        # we were applying it to all these (I think due to a bug in our
+        # inheritance detection?), so we continue to do that just to be "safe".
+        # This will all go away once we hit maya-2022 anyway...
+        setAttrBugClasses = {
+            'Vector',
+            'FloatVector',
+            'Point',
+            'FloatPoint',
+            'Color',
+            'Matrix',
+            'FloatMatrix',
+            'Quaternion',
+            'EulerRotation',
+        }
+        if versions.current() >= 20220000:
+            raise RuntimeError('last version of maya with setattr bug no longer'
+                               ' supported - remove this code!')
+        elif self.classname in setAttrBugClasses:
+            self.attrs['__setattr__'] = Conditional(
+                [("os.name == 'nt' and versions.current() < versions.v2020",
+                  Assignment('__setattr__', Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')))])
+        ########################################################################
+        # END REMOVE once 2019 no longer supported
+        ########################################################################
 
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
