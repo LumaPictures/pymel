@@ -376,9 +376,66 @@ class VersionedCaches(object):
             verClassInfo[version] = classInfo.get(apiClsName)
         return verClassInfo
 
+    def getVersionedClassCategory(self, apiClsName, category):
+        '''
+        Given versionedClassInfo that looks like:
+
+            {
+                2017: {
+                    'MFnAwesome': {
+                        'functions': {
+                            'foo': 1,
+                        }
+                    }, ...
+                },
+                2018: {
+                    'MFnAwesome': {
+                        'functions': {
+                            'foo': 1,
+                            'bar': 10,
+                        }
+                    }, ...
+                },
+                2019: {
+                    'MFnAwesome': {
+                        'functions': {
+                            'foo': 2,
+                            'bar': 10,
+                        }
+                    }, ...
+                },
+            }
+
+        then getVersionedClassCategory('MFnAwesome', 'functions') would return:
+
+            {
+                'foo': {2017: 1, 2018: 1, 2019: 2},
+                'bar': {2017: None, 2018: 10, 2019: 10},
+            }
+        '''
+        categoryByVersion = {}
+        allCategoryNames = set()
+        for version, classInfo in \
+                versionedCaches.getVersionedClassInfo(apiClsName).items():
+            if classInfo is None:
+                categoryInfo = {}
+            else:
+                categoryInfo = classInfo.get(category, {})
+            categoryByVersion[version] = categoryInfo
+            allCategoryNames.update(categoryInfo)
+
+        allCategoryNames = sorted(allCategoryNames)
+
+        categoryByName = OrderedDict()
+        for name in allCategoryNames:
+            byVersion = OrderedDict()
+            for version, verEnums in categoryByVersion.items():
+                byVersion[version] = verEnums.get(name)
+            categoryByName[name] = byVersion
+        return categoryByName
 
     @classmethod
-    def assignmentFromVersionDict(cls, name, byVersion):
+    def assignmentFromVersionDict(cls, name, byVersion, noExistClause=None):
         # check if the enum exists and is the same for all versions...
         allVariations = set(byVersion.values())
         if len(allVariations) == 1:
@@ -405,9 +462,15 @@ class VersionedCaches(object):
                     existsVersions, missingVersions)
             existsByVersion = {ver : byVersion[ver]
                                for ver in existsVersions}
-            return Conditional(
-                [(existsCondition,
-                  cls.assignmentFromVersionDict(name, existsByVersion))])
+            conditions = [
+                (existsCondition,
+                 cls.assignmentFromVersionDict(name, existsByVersion)),
+            ]
+
+            if noExistClause:
+                # add an else clause, if it doesn't exist
+                conditions.append((True, noExistClause))
+            return Conditional(conditions)
 
         # ok, it exists in all versions... now create branching conditional,
         # based on version...
@@ -650,7 +713,7 @@ class ModuleGenerator(object):
                     # that it will fail when we import the module if we simply
                     # remove the sections inbetween the start / end markers.
                     #
-                    # This, we resetting the module, we also trim off any
+                    # Thus, when resetting the module, we also trim off any
                     # portion in the class "suffix", so the class will import
                     # properly, then append it back at the "end"
                     clsSuffix = lines[trimEnd + 1:clsEnd + 1]
@@ -1278,24 +1341,9 @@ class ApiMethodGenerator(MelMethodGenerator):
                 pass
 
     def addEnums(self):
-        versionedEnums = {}
-        allEnumNames = set()
-        for version, classInfo in \
-                versionedCaches.getVersionedClassInfo(self.apicls.__name__).items():
-            if classInfo is None:
-                enums = {}
-            else:
-                enums = classInfo.get('pymelEnums', {})
-            versionedEnums[version] = enums
-            allEnumNames.update(enums)
-
-        allEnumNames = sorted(allEnumNames)
-
-        for enumName in allEnumNames:
-            byVersion = OrderedDict()
-            for version, verEnums in versionedEnums.items():
-                byVersion[version] = verEnums.get(enumName)
-
+        enumsByNameVersion = versionedCaches.getVersionedClassCategory(
+            self.apicls.__name__, 'pymelEnums')
+        for enumName, byVersion in enumsByNameVersion.items():
             self.attrs[enumName] = VersionedCaches.assignmentFromVersionDict(
                 enumName, byVersion)
 
