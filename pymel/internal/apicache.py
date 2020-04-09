@@ -1343,24 +1343,30 @@ class ApiCache(BaseApiClassInfoCache):
 
         _logger.debug("...finished ApiCache._buildApiClassInfo")
 
+    def getMfnClsToApiEnum(self, mfnCls):
+        if mfnCls == api.MFnBase:
+            return api.MFn.kBase  # 1
+        else:
+            enumInt = self.MFN_TO_API_OVERRIDES.get(mfnCls)
+            if enumInt is None:
+                enumInt = mfnCls().type()
+            return enumInt
+
+    def getApiEnumToApiType(self, enumInt):
+        return self.apiEnumsToApiTypes.get(enumInt,
+                                           # 'kInvalid'
+                                           self.apiEnumsToApiTypes[0])
+
+    def getMfnClsToApiType(self, mfnCls):
+        return self.getApiEnumToApiType(self.getMfnClsToApiEnum(mfnCls))
+
     def _buildApiTypeToApiClasses(self):
         self.apiTypesToApiClasses = {}
-
-        def _MFnType(x):
-            if x == api.MFnBase:
-                return self.apiEnumsToApiTypes[1]  # 'kBase'
-            else:
-                enumInt = self.MFN_TO_API_OVERRIDES.get(x)
-                if enumInt is None:
-                    enumInt = x().type()
-                return self.apiEnumsToApiTypes.get(enumInt,
-                                                   # 'kInvalid'
-                                                   self.apiEnumsToApiTypes[0])
 
         # all of maya OpenMaya api is now imported in module api's namespace
         mfnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
         for name, mfnClass in mfnClasses:
-            current = _MFnType(mfnClass)
+            current = self.getMfnClsToApiType(mfnClass)
             if not current:
                 _logger.warning("MFnClass gave MFnType %s" % current)
             elif current == 'kInvalid':

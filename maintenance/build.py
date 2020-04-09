@@ -97,6 +97,16 @@ class Literal(object):
     def __repr__(self):
         return str(self.value)
 
+    def __eq__(self, other):
+        return isinstance(other, Literal) and self.value == other.value
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __hash__(self):
+        # +1 is just so we get a different hash than self.value
+        return hash(self.value) + 1
+
 
 def methodNames(cls, apicls=None):
     if apicls:
@@ -369,6 +379,9 @@ class VersionedCaches(object):
 
     def getAllApiClassInfos(self):
         return self._getAllApiSubCaches('apiClassInfo')
+
+    def getAllApiTypesToApiEnums(self):
+        return self._getAllApiSubCaches('apiTypesToApiEnums')
 
     def getVersionedClassInfo(self, apiClsName):
         verClassInfo = OrderedDict()
@@ -1065,12 +1078,16 @@ class MelMethodGenerator(object):
         self.methods = {}
 
     def setDefault(self, key, value, directParentOnly=True):
+        if isinstance(value, Statement):
+            statement = value
+        else:
+            statement = Assignment(key, value)
         if directParentOnly:
             if self.existingClass is None or key not in self.existingClass.__dict__:
-                self.attrs.setdefault(key, Assignment(key, value))
+                self.attrs.setdefault(key, statement)
         else:
             if self.existingClass is None or not hasattr(self.existingClass, key):
-                self.attrs.setdefault(key, Assignment(key, value))
+                self.attrs.setdefault(key, statement)
 
     def assign(self, name, value, force=False):
         if (force or self.existingClass is None
@@ -1339,6 +1356,19 @@ class ApiMethodGenerator(MelMethodGenerator):
                 return self.existingClass.__dict__['__apicls__']
             except KeyError:
                 pass
+
+    def getApiClsByVersion(self):
+        if self.apicls is None:
+            return {}
+        apiTypeName = factories._apiCacheInst.getMfnClsToApiType(self.apicls)
+        versionedApiTypes = versionedCaches.getAllApiTypesToApiEnums()
+        byVersion = OrderedDict()
+        for version, apiTypesToApiEnums in versionedApiTypes.items():
+            if apiTypeName in apiTypesToApiEnums:
+                byVersion[version] = self.apicls
+            else:
+                byVersion[version] = None
+        return byVersion
 
     def addEnums(self):
         enumsByNameVersion = versionedCaches.getVersionedClassCategory(
@@ -1756,8 +1786,15 @@ class NodeTypeGenerator(ApiMethodGenerator):
         self.assign('__melnode__', self.mayaType)
 
         if self.apicls is not None and self.apicls is not self.parentApicls:
+            # _api.MFnSomeClass may not exist in all versions of maya we
+            # support... so we need to do some versioned conditionals
+            apiClsByVersion = self.getApiClsByVersion()
+            for version, apicls in apiClsByVersion.items():
+                if apicls is not None:
+                    apiClsByVersion[version] = Literal('_api.' + apicls.__name__)
             self.setDefault('__apicls__',
-                            Literal('_api.' + self.apicls.__name__))
+                            VersionedCaches.assignmentFromVersionDict(
+                                '__apicls__', apiClsByVersion))
 
         # FIXME:
         isVirtual = False
