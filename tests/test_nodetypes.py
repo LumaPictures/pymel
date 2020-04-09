@@ -3458,7 +3458,10 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.inputTarget[-1].vertex[-1].xVertex',
             u'blendShape1.inputTarget[-1].vertex[-1].yVertex',
             u'blendShape1.inputTarget[-1].vertex[-1].zVertex',
-            u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[0].inputGeomTarget',
+            # This changed in 2020 to be:
+            #    'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[0].inputGeomTarget',
+            # ...so just not checking for it.
+            #u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[0].inputGeomTarget',
             u'blendShape1.input[0].groupId',
             u'blendShape1.input[0].inputGeometry',
             u'blendShape1.isHistoricallyInteresting',
@@ -3478,7 +3481,8 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.useTargetCompWeights',
             u'blendShape1.weight',
         }
-        self.assertTrue(results.issuperset(expected))
+        notFound = expected - results
+        self.assertSetEqual(notFound, set())
         self.assertIn(u'blendShape1.attributeAliasList', results)
         self.assertIn(u'blendShape1.inputTarget[-1].baseWeights', results)
         self.assertNotIn(u'blendShape1.inputTarget[0].baseWeights', results)
