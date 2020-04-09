@@ -5597,6 +5597,9 @@ class DeformableShape(GeometryShape):
             _numEPs_generatedFunc.__doc__ = doc
         return _numEPs_generatedFunc
 # ------ Do not edit below this line --------
+    __melcmd__ = staticmethod(other.deformableShape)
+    __melcmd_isinfo__ = False
+    __melcmdname__ = u'deformableShape'
     __melnode__ = u'deformableShape'
     __slots__ = ()
 # ------ Do not edit above this line --------
@@ -15730,6 +15733,11 @@ class AddMatrix(DependNode):
         return res
 
 
+class AimMatrix(DependNode):
+    __melnode__ = u'aimMatrix'
+    __slots__ = ()
+
+
 class AnimBlend(DependNode):
     __melnode__ = u'animBlend'
     __slots__ = ()
@@ -16425,6 +16433,11 @@ class BlendColors(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
+
+
+class BlendMatrix(DependNode):
+    __melnode__ = u'blendMatrix'
+    __slots__ = ()
 
 
 class BlindDataTemplate(DependNode):
@@ -17647,6 +17660,11 @@ class CombinationShape(DependNode):
 
 class CompactPlugArrayTest(DependNode):
     __melnode__ = u'compactPlugArrayTest'
+    __slots__ = ()
+
+
+class ComposeMatrix(DependNode):
+    __melnode__ = u'composeMatrix'
     __slots__ = ()
 
 
@@ -23817,6 +23835,11 @@ class DataBlockTest(DependNode):
         return res
 
 
+class DecomposeMatrix(DependNode):
+    __melnode__ = u'decomposeMatrix'
+    __slots__ = ()
+
+
 class DefaultLightList(DependNode):
     __melnode__ = u'defaultLightList'
     __slots__ = ()
@@ -26467,6 +26490,11 @@ class NonLinear(WeightGeometryFilter):
     @_f.addMelDocs('nonLinear', 'geometry')
     def setGeometry(self, val=True, **kwargs):
         return _f.asEdit(self, animation.nonLinear, kwargs, 'geometry', val)
+
+
+class ProximityWrap(WeightGeometryFilter):
+    __melnode__ = u'proximityWrap'
+    __slots__ = ()
 
 
 class ShrinkWrap(WeightGeometryFilter):
@@ -29987,6 +30015,11 @@ class PassMatrix(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
+
+
+class PickMatrix(DependNode):
+    __melnode__ = u'pickMatrix'
+    __slots__ = ()
 
 
 class PointMatrixMult(DependNode):
@@ -38217,6 +38250,11 @@ class PrecompExport(DependNode):
         return res
 
 
+class ProximityPin(DependNode):
+    __melnode__ = u'proximityPin'
+    __slots__ = ()
+
+
 class ProxyManager(DependNode):
     __melnode__ = u'proxyManager'
     __slots__ = ()
@@ -40479,6 +40517,13 @@ class SamplerInfo(ShadingDependNode):
 
 class ShadingMap(ShadingDependNode):
     __melnode__ = u'shadingMap'
+    __slots__ = ()
+
+
+class StandardSurface(ShadingDependNode):
+    if versions.current() >= versions.v2020:
+        __apicls__ = _api.MFnStandardSurfaceShader
+    __melnode__ = u'standardSurface'
     __slots__ = ()
 
 
@@ -43667,6 +43712,11 @@ class UvChooser(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
+
+
+class UvPin(DependNode):
+    __melnode__ = u'uvPin'
+    __slots__ = ()
 
 
 class ViewColorManager(DependNode):

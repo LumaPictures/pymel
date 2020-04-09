@@ -8617,8 +8617,6 @@ ungroup = _factories.getCmdFunc('ungroup')
 
 upAxis = _factories.getCmdFunc('upAxis')
 
-webView = _factories.getCmdFunc('webView')
-
 xform = _factories.getCmdFunc('xform')
 
 xformConstraint = _factories.getCmdFunc('xformConstraint')

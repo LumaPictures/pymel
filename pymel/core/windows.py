@@ -2093,7 +2093,7 @@ def optionMenu(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['acc', 'alwaysCallChangeCommand', 'beforeShowPopup', 'bsp', 'cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ['acc', 'alwaysCallChangeCommand', 'beforeShowPopup', 'bsp', 'cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce', 'vcc', 'visibleChangeCommand']:
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2136,7 +2136,7 @@ def optionMenuGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce', 'vcc', 'visibleChangeCommand']:
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2609,7 +2609,7 @@ def modelPanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure', 'tabCommand', 'tc']:
+    for key in ['pmp', 'popupMenuProcedure']:
         try:
             cb = kwargs[key]
             if callable(cb):
