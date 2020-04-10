@@ -16,6 +16,9 @@ import maya
 import maya.OpenMaya as om
 import maya.utils
 
+import pymel.util
+import pymel.util.py2to3 as util2to3
+
 from pymel.util import picklezip, shellOutput, subpackages, refreshEnviron, universalmethod
 from collections import namedtuple
 import pymel.versions as versions
@@ -676,6 +679,13 @@ class PymelCache(object):
     def toRawData(self, data):
         '''If a subclass needs to modify data before it is written to the cache
         on disk, do it here'''
+        if PY2:
+            # the written out .py cache will not include 'u' prefixes, which
+            # makes it easier to diff to python-3-built caches; initially, just
+            # using this is caches where we think it's unlikely to affect client
+            # code
+            isUnicode = lambda x: isinstance(x, unicode)
+            data = pymel.util.deepPatch(data, isUnicode, util2to3.trystr)
         return data
 
     def read(self, path=None, ext=None, ignoreError=False):
