@@ -704,7 +704,7 @@ class BaseApiClassInfoCache(startup.SubItemCache):
         # convert from ApiEnum tuples to tuples
         self._modifyApiEnums(data, lambda x: isinstance(x, ApiEnum),
                              tuple)
-        return data
+        return super(BaseApiClassInfoCache, self).toRawData(data)
 
 
 class ApiMelBridgeCache(BaseApiClassInfoCache):

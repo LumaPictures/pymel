@@ -1389,4 +1389,4 @@ class CmdCache(startup.SubItemCache):
             return '<type {}>'.format(startup.getImportableName(typeObj))
 
         self._modifyTypes(data, callable, toTypeStr)
-        return data
+        return super(CmdCache, self).toRawData(data)
