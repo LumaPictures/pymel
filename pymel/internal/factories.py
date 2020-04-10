@@ -533,7 +533,8 @@ simpleCommandWraps = {
 # ---------------------------------------------------------------
 
 if docstringMode == 'html':
-    examples = cmdcache.CmdProcessedExamplesCache().read()
+    # examples aren't crucial, don't error if can't be read
+    examples = cmdcache.CmdProcessedExamplesCache().read(ignoreError=True)
     if examples:
         for cmd, example in examples.items():
             try:
@@ -590,11 +591,12 @@ def getUncachedCmds():
 docCacheLoaded = False
 
 
-def loadCmdDocCache():
+def loadCmdDocCache(ignoreError=True):
     global docCacheLoaded
     if docCacheLoaded:
         return
-    data = cmdcache.CmdDocsCache().read()
+    # examples aren't crucial, don't error if can't be read
+    data = cmdcache.CmdDocsCache().read(ignoreError=ignoreError)
     util.mergeCascadingDicts(data, cmdlist)
     docCacheLoaded = True
 

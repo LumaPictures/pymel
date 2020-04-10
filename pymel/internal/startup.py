@@ -673,7 +673,7 @@ class PymelCache(object):
         on disk, do it here'''
         return data
 
-    def read(self, ext=None):
+    def read(self, ext=None, ignoreError=False):
         if ext is not None:
             formats = [self.EXTENSIONS[ext]]
         else:
@@ -690,11 +690,13 @@ class PymelCache(object):
                 finalData = self.fromRawData(func(newPath))
             except Exception as e:
                 self._errorMsg('read', 'from', newPath, e)
+                if not ignoreError:
+                    raise
             else:
                 self._lastReadPath = newPath
                 return finalData
 
-    def write(self, data, ext=None):
+    def write(self, data, ext=None, ignoreError=False):
         import copy
         # when writing data, we dont' actually want to modify the passed in
         # data, as it may be in use... so we make a deepcopy
@@ -711,6 +713,8 @@ class PymelCache(object):
             func(self.toRawData(data), newPath)
         except Exception as e:
             self._errorMsg('write', 'to', newPath, e)
+            if not ignoreError:
+                raise
         else:
             self._lastWritePath = newPath
 
@@ -776,7 +780,8 @@ class PymelCache(object):
             'Unable to eat cls.DESC at Joes: error.msg'
         '''
         actionMsg = cls._actionMessage(action, direction, path)
-        _logger.error("Unable to %s: %s" % (actionMsg, error))
+        _logger.raiseLog(_logger.WARNING,
+                         "Unable to %s: %s" % (actionMsg, error))
         import traceback
         _logger.debug(traceback.format_exc())
 
@@ -903,7 +908,7 @@ class SubItemCache(PymelCache):
         If it succeeds, it will update itself, and return the loaded items;
         if it fails, it will return None
         '''
-        data = self.read()
+        data = self.read(ignoreError=True)
         if data is not None:
             data = tuple(data)
             self.update(data, cacheNames=self._CACHE_NAMES)
