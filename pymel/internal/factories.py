@@ -76,6 +76,11 @@ moduleCmds = None
 building = False
 
 
+_apiCacheInst = None
+_apiMelBridgeCacheInst = None
+_cmdCacheInst = None
+
+
 class MissingInCacheError(Exception):
     pass
 
