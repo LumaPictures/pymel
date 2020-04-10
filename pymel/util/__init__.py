@@ -21,7 +21,8 @@ from .arguments import (
     preorderIterArgs, postorderIterArgs, breadthIterArgs, preorder, postorder,
     breadth, listForNone, pairIter, reorder, RemovedKey, AddedKey, ChangedKey,
     compareCascadingDicts, mergeCascadingDicts, setCascadingDictItem,
-    getCascadingDictItem, sequenceToSlices, izip_longest)
+    getCascadingDictItem, deepPatch, deepPatchAltered, sequenceToSlices,
+    izip_longest)
 from .utilitytypes import (
     Singleton, defaultdict, metaStatic, defaultlist, ModuleInterceptor,
     readonly, metaReadOnlyAttr, proxyClass, ProxyUnicode, universalmethod,

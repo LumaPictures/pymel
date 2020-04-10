@@ -738,6 +738,73 @@ def getCascadingDictItem(dict, keys, default={}):
         return default
 
 
+def deepPatch(input, predicate, changer):
+    '''Recursively traverses the items stored in input (for basic data types:
+    lists, tuples, sets, and dicts), calling changer on all items for which
+    predicate returns true, and then replacing the original item with the
+    changed item.
+
+    Changes will be made in place when possible. The patched input (which may
+    be a new object, or the original object, if altered in place) is returned.
+    '''
+    return deepPatchAltered(input, predicate, changer)[0]
+
+
+def deepPatchAltered(input, predicate, changer):
+    '''Like deepPatch, but returns a pair, (alteredInput, wasAltered)'''
+
+    # first, recurse
+    anyAltered = False
+    if isinstance(input, dict):
+        alteredKeys = {}
+        for key, val in input.items():
+            newVal, altered = deepPatchAltered(val, predicate, changer)
+            if altered:
+                anyAltered = True
+                input[key] = newVal
+            # we need to delay altering the keys, so we don't change size
+            # of the dict while we're in the middle of traversing; also, if
+            # changer makes it into a key that already exists - but that already
+            # existing key is altered too - this is handled correctly. ie, if
+            # changer adds 2, and we have {2: 'foo', 4: 'bar'}, we need to make
+            # sure we end up with {4: 'foo', 6: 'bar'}, and not just {4: 'foo'}
+            newKey, altered = deepPatchAltered(key, predicate, changer)
+            if altered:
+                anyAltered = True
+                alteredKeys[newKey] = input.pop(key)
+        # ok, now go back and change the keys
+        input.update(alteredKeys)
+    elif isinstance(input, list):
+        for i, item in enumerate(input):
+            newItem, altered = deepPatchAltered(item, predicate, changer)
+            if altered:
+                anyAltered = True
+                input[i] = newItem
+    elif isinstance(input, tuple):
+        asList = list(input)
+        newList, altered = deepPatchAltered(asList, predicate, changer)
+        if altered:
+            anyAltered = True
+            input = tuple(newList)
+    elif isinstance(input, set):
+        toRemove = set()
+        toAdd = set()
+        for item in input:
+            newItem, altered = deepPatchAltered(item, predicate, changer)
+            if altered:
+                anyAltered = True
+                toRemove.add(item)
+                toAdd.add(newItem)
+        input.difference_update(toRemove)
+        input.update(toAdd)
+
+    # now check if predicate applies to entire input
+    if predicate(input):
+        anyAltered = True
+        input = changer(input)
+    return input, anyAltered
+
+
 def sequenceToSlices(intList, sort=True):
     """convert a sequence of integers into a tuple of slice objects"""
     slices = []
