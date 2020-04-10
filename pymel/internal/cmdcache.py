@@ -16,6 +16,7 @@ import maya.mel as mm
 
 # PyMEL imports
 import pymel.util as util
+import pymel.util.py2to3 as util2to3
 import pymel.versions as versions
 
 # Module imports
@@ -310,16 +311,6 @@ def getCmdInfo(command, version, python=True):
 
         example = parser.example
         example = example.rstrip()
-
-        if PY2:
-            if isinstance(example, unicode):
-                # for consistency / diffs, want everything to not use
-                # unicode string literals - ie u'My example ...' - whenever
-                # possible.
-                try:
-                    example = str(example)
-                except UnicodeEncodeError:
-                    pass
 
         if python:
             pass
@@ -1163,7 +1154,21 @@ def _getNodeHierarchy(version=None):
         for x in nodeHierarchyTree.preorder()]
 
 
-class CmdExamplesCache(startup.PymelCache):
+if PY2:
+    class UnicodeNotPreferredCache(startup.PymelCache):
+        # the written out .py cache will not include 'u' prefixes, which
+        # makes it easier to diff to python-3-built caches; initially, just
+        # using this is caches where we think it's unlikely to affect client
+        # code
+        def toRawData(self, data):
+            isUnicode = lambda x: isinstance(x, unicode)
+            data = util.deepPatch(data, isUnicode, util2to3.trystr)
+            return super(UnicodeNotPreferredCache, self).toRawData(data)
+else:
+    UnicodeNotPreferredCache = startup.PymelCache
+
+
+class CmdExamplesCache(UnicodeNotPreferredCache):
     NAME = 'mayaCmdsExamples'
     DESC = 'the list of Maya command examples'
     USE_VERSION = True
@@ -1173,7 +1178,7 @@ class CmdProcessedExamplesCache(CmdExamplesCache):
     USE_VERSION = False
 
 
-class CmdDocsCache(startup.PymelCache):
+class CmdDocsCache(UnicodeNotPreferredCache):
     NAME = 'mayaCmdsDocs'
     DESC = 'the Maya command documentation'
 
