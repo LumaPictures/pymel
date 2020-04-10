@@ -9,16 +9,15 @@ Building an Official PyMEL Release
   - graphviz: using an OS package manager like `yum`, `apt-get`, or `brew`, or
     on windows, from an [installer](https://graphviz.gitlab.io/_pages/Download/Download_windows.html)
   - python dependencies:
+    first set the `MAYA_LOCATION` env var, and add `$MAYA_LOCATION/bin` to your
+    path, then:
 
     ```
+    # on windows, you'll need to download this script manually
     curl -O https://bootstrap.pypa.io/get-pip.py
-    # if you have a globally accessible verison of pip it could conflict with the command below
-    pip install -U pip
-    # the extra args are to get around an insecure SSL in python < 2.7.9 - see:
-    # https://urllib3.readthedocs.org/en/latest/security.<html id="insecureplatformwarning"></html>
     sudo chmod -R ugo+w $MAYA_LOCATION/
-    $MAYA_LOCATION/bin/mayapy get-pip.py --index-url=http://pypi.python.org/simple/ --trusted-host pypi.python.org
-    $MAYA_LOCATION/bin/mayapy -m pip install -r maintenance/requirements.txt --index-url=http://pypi.python.org/simple/ --trusted-host pypi.python.org
+    mayapy get-pip.py
+    mayapy -m pip install -r maintenance/requirements.txt
     ```
 
 ## 2) Build caches
