@@ -1426,9 +1426,10 @@ class XmlApiDocParser(ApiDocParser):
 
         paramDescriptions = []
         if detail is not None:
-            paramList = detail.find(".//parameterlist[@kind='param']")
-            if paramList is not None:
-                paramDescriptions = paramList.findall('parameteritem')
+            # for some reason, some clases (ie, MFnMesh) have multiple
+            # parameter lists...
+            for paramList in detail.findall(".//parameterlist[@kind='param']"):
+                paramDescriptions.extend(paramList.findall('parameteritem'))
 
         def parseRawTagInfo(text):
             parsedTags = self.parseBackslashTags(text)
