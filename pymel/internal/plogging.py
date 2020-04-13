@@ -313,6 +313,17 @@ ERRORLEVEL = None
 ERRORLEVEL_DEFAULT = logging.ERROR
 
 
+def errorLevel():
+    global ERRORLEVEL
+    if ERRORLEVEL is None:
+        levelName = os.environ.get(PYMEL_ERRORLEVEL_ENV_VAR)
+        if levelName is None:
+            ERRORLEVEL = ERRORLEVEL_DEFAULT
+        else:
+            ERRORLEVEL = nameToLevel(levelName)
+    return ERRORLEVEL
+
+
 def raiseLog(logger, level, message, errorClass=RuntimeError):
     '''For use in situations in which you may wish to raise an error or simply
     print to a logger.
@@ -336,14 +347,7 @@ def raiseLog(logger, level, message, errorClass=RuntimeError):
     # but I want to be able to use raiseLog in early startup, before pymel.conf
     # is read in pymel.internal.startup, so an environment variable seemed the
     # only way to go
-    global ERRORLEVEL
-    if ERRORLEVEL is None:
-        levelName = os.environ.get(PYMEL_ERRORLEVEL_ENV_VAR)
-        if levelName is None:
-            ERRORLEVEL = ERRORLEVEL_DEFAULT
-        else:
-            ERRORLEVEL = nameToLevel(levelName)
-    if level >= ERRORLEVEL:
+    if level >= errorLevel():
         raise errorClass(message)
     else:
         logger.log(level, message)

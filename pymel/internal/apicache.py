@@ -1066,11 +1066,14 @@ class ApiCache(BaseApiClassInfoCache):
         return [x for x in super(ApiCache, cls).allVersions(allowEmpty=allowEmpty)
                 if x != 'MelBridge']
 
-    def __init__(self, docLocation=None):
+    def __init__(self, docLocation=None, strict=None):
         super(ApiCache, self).__init__()
         for name in self.EXTRA_GLOBAL_NAMES:
             setattr(self, name, {})
         self.docLocation = docLocation
+        if strict is None:
+            strict = _plogging.errorLevel() <= _plogging.WARNING
+        self.strict = strict
 
     def _modifyApiTypes(self, data, predicate, converter):
         '''convert apiTypesToApiClasses between class names and class objects'''
@@ -1320,7 +1323,8 @@ class ApiCache(BaseApiClassInfoCache):
         _logger.debug("Starting ApiCache._buildApiClassInfo...")
         from pymel.internal.parsers import ApiDocParser
         self.apiClassInfo = {}
-        parser = ApiDocParser(api, enumClass=ApiEnum, docLocation=self.docLocation)
+        parser = ApiDocParser(api, enumClass=ApiEnum,
+                              docLocation=self.docLocation, strict=self.strict)
 
         for name, obj in inspect.getmembers(api, lambda x: type(x) == type and x.__name__.startswith('M')):
             if not name.startswith('MPx'):
@@ -1337,6 +1341,8 @@ class ApiCache(BaseApiClassInfoCache):
                         _logger.warning(baseMsg)
                         _logger.warning("%s: %s" % (name, e))
                     else:
+                        if self.strict:
+                            raise
                         import traceback
                         _logger.error(baseMsg)
                         _logger.error(traceback.format_exc())
