@@ -1106,7 +1106,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
 
 
 class XmlApiDocParser(ApiDocParser):
-    _backslashTagRe = re.compile(r'(?:^|(?<=\s))\\(\S+)\s+', re.MULTILINE)
+    _backslashTagRe = re.compile(r'(?:^|(?<=\s))\\(\S+)(?:$|\s+)', re.MULTILINE)
     _paramDirRe = re.compile(r'^param\[(?P<dir>in|out|in,out|inout)\]$')
 
     def fullMethodName(self):
@@ -1388,7 +1388,7 @@ class XmlApiDocParser(ApiDocParser):
                 else:
                     remainingPieces.append('{} {}'.format(tag, tagText))
         if foundSomething:
-            info['remainingText'] = strip_tags(''.join(remainingPieces))
+            info['remainingText'] = strip_tags(''.join(remainingPieces)).strip()
             return info
 
     @ApiDocParser.methodcached
@@ -1405,12 +1405,26 @@ class XmlApiDocParser(ApiDocParser):
 
         detail = self.findDetailedDescription()
 
+        doc = ''
         if detail is not None:
             for para in detail.findall('para'):
                 paraText = getFirstText(para)
                 if paraText:
-                    return paraText
-        return ''
+                    doc = paraText
+                    # note that if getFirstText(detail.find('para')) is the
+                    # same as xmlText(detail), then we will run
+                    # parseBackslashTags twice on the exact same input - once
+                    # here, to strip any parameters out of the method doc, and
+                    # once in parseMethodArgs, to get the parameters.
+                    # This is somewhat wasteful; I considered caching
+                    # parseBackslashTags, but decided not to bother, and leave
+                    # it simpler, since we don't really need the speed.
+                    info = self.parseBackslashTags(doc)
+                    if info:
+                        doc = info['remainingText']
+                    if doc:
+                        break
+        return doc
 
     def parseMethodArgs(self, returnType, names, types, typeQualifiers):
         directions = {}
