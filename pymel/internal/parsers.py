@@ -18,7 +18,7 @@ import pymel.util as util
 import pymel.versions as versions
 from . import plogging
 from pymel.mayautils import getMayaLocation
-from future.utils import with_metaclass
+from future.utils import PY2, with_metaclass
 
 try:
     from bs4 import BeautifulSoup, NavigableString
@@ -493,6 +493,36 @@ class CommandModuleDocParser(HTMLParser):
             return
 
 
+# Use a class, instead of `NO_DEFAULT = object()`, because it's pickleable and
+# printable
+class NO_DEFAULT(object):
+    '''Indicates that there was no default
+
+    For situations where None is meaningful (ie, may be a standin for NULL)'''
+    pass
+
+
+class ParamInfo(object):
+    def __init__(self, defName, declName, type, typeQualifiers,
+                 default=NO_DEFAULT, direction=None, doc=''):
+        self.defName = defName
+        self.declName = declName
+        self.type = type
+        self.typeQualifiers = typeQualifiers
+        self.default = default
+        self.direction = direction
+        self.doc = doc
+
+    # traditionally, we've preferred the defName, both because that name is
+    # featured more prominently in the maya api help docs, and because it's
+    # generally more descriptive
+    @property
+    def name(self):
+        if self.defName:
+            return self.defName
+        return self.declName
+
+
 class ApiDocParser(with_metaclass(ABCMeta, object)):
     NO_PYTHON_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated', 'Obsolete -']
@@ -867,7 +897,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             argtype = 'u' + argtype
 
         argtype = self.handleEnums(argtype)
-        return argtype, tokens
+        return ParamInfo(None, None, argtype, tokens)
 
     def parseEnum(self, enumData):
         try:
@@ -900,13 +930,14 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
 
     def parseMethod(self, rawMethod):
         self.currentRawMethod = rawMethod
-        methodName, returnType, returnQualifiers = self.getMethodNameAndOutput()
+        methodName, returnInfo = self.getMethodNameAndOutput()
         if methodName is None:
             return
 
-        # Old html parser filtered these from returnQualifiers, so we enforce this
-        # too, for consistency
-        returnQualifiers = [x for x in returnQualifiers if x not in ['const', 'unsigned'] and x]
+        # Old html parser filtered these from returnQualifiers, so we enforce
+        # this too, for consistency
+        returnInfo.typeQualifiers = [x for x in returnInfo.typeQualifiers
+                                     if x not in ['const', 'unsigned'] and x]
 
         # skip constructors and destructors
         if methodName.startswith('~') or methodName == self.apiClassName:
@@ -919,13 +950,13 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
                 return
 
         # no MStatus in python
-        if returnType in ['MStatus', 'void']:
-            returnType = None
+        if returnInfo.type in ['MStatus', 'void']:
+            returnInfo.type = None
 
         # convert to unicode
         self.currentMethodName = str(methodName)
 
-        result = self._parseMethod(returnType, returnQualifiers)
+        result = self._parseMethod(returnInfo)
 
         # used to reset these to none using a try/finally, but then some
         # error handlers couldn't use them, reducing their usefulness
@@ -933,18 +964,18 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         self.currentRawMethod = None
         return result
 
-    def _parseMethod(self, returnType, returnQualifiers):
-        self.xprint("RETURN", returnType)
+    def _parseMethod(self, returnInfo):
+        self.xprint("RETURN", returnInfo.type)
 
         if self.hasNoPython():
             return
 
-        names, types, typeQualifiers, defaults = self.parseArgTypes()
+        paramInfos = self.parseArgTypes()
 
         try:
             deprecated = self.isDeprecated()
             methodDoc = self.getMethodDoc()
-            directions, docs, returnDoc = self.parseMethodArgs(returnType, names, types, typeQualifiers)
+            paramInfos, returnInfo = self.parseMethodArgs(paramInfos, returnInfo)
         except AssertionError as msg:
             if self.strict:
                 raise
@@ -957,69 +988,78 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             _logger.error(self.formatMsg(traceback.format_exc()))
             return
 
+        oldParamInfos = paramInfos
+        paramInfos = []
+        for param in oldParamInfos:
+            if param.type == 'MStatus':
+                continue
+            if not param.direction:
+                self.xprint("Warning: assuming direction is 'in'")
+                param.direction = 'in'
+            param.doc = standardizeWhitespace(param.doc)
+            paramInfos.append(param)
+
+        # correct bad outputs
+        if self.isGetMethod() and not returnInfo.type \
+                and not any(x.direction == 'out' for x in paramInfos):
+            for param in paramInfos:
+                if '&' in param.typeQualifiers:
+                    _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (
+                        self.apiClassName, self.currentMethodName,
+                        ', '.join(x.name for x in paramInfos), param.name,
+                        param.doc))
+                    param.direction = 'out'
+
+        if returnInfo.type is None:
+            returnInfo.doc = ''
+
+        # TODO: eliminate all the redundant data - all we really need is:
+        #       - args (as list of ParamInfos - make them serializable to/from a sparse dict)
+        #       - return (as a ParamInfo)
+        #       - doc
+        #       - static
+        #       - deprecated
+        #    Ideally, encapsulate this in a MethodInfo class (also serializable
+        #    to a sparse dict)
+        #    Will probably need to version up PY_CACHE_FORMAT_VERSION as well
+
+        # build out dicts / lists from paramInfos
         argInfo = {}
+        types = {}
+        typeQualifiers = {}
+        defaults = {}
         argList = []
         inArgs = []
         outArgs = []
 
-        for argname in names[:]:
-            type = types[argname]
-            if argname not in directions:
-                self.xprint("Warning: assuming direction is 'in'")
-                directions[argname] = 'in'
-            direction = directions[argname]
-            doc = docs.get(argname, '')
-
-            if type == 'MStatus':
-                types.pop(argname)
-                defaults.pop(argname, None)
-                directions.pop(argname, None)
-                docs.pop(argname, None)
-                idx = names.index(argname)
-                names.pop(idx)
+        for param in paramInfos:
+            argInfo[param.name] = {'type': param.type, 'doc': param.doc}
+            types[param.name] = param.type
+            if param.typeQualifiers:
+                typeQualifiers[param.name] = param.typeQualifiers
+            if param.default is not NO_DEFAULT:
+                defaults[param.name] = param.default
+            argList.append((param.name, param.type, param.direction))
+            if param.direction == 'in':
+                inArgs.append(param.name)
             else:
-                if direction == 'in':
-                    inArgs.append(argname)
-                else:
-                    outArgs.append(argname)
-                argInfo[argname] = {'type': type, 'doc': standardizeWhitespace(doc)}
+                outArgs.append(param.name)
 
-        # correct bad outputs
-        if self.isGetMethod() and not returnType and not outArgs:
-            for argname in names:
-                if '&' in typeQualifiers[argname]:
-                    doc = docs.get(argname, '')
-                    directions[argname] = 'out'
-                    idx = inArgs.index(argname)
-                    inArgs.pop(idx)
-                    outArgs.append(argname)
-
-                    _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (
-                        self.apiClassName, self.currentMethodName, ', '.join(names), argname, doc))
-
-        # now that the directions are correct, make the argList
-        for argname in names:
-            type = types[argname]
-            self.xprint("DIRECTIONS", directions)
-            direction = directions[argname]
-            data = (argname, type, direction)
-            self.xprint("ARG", data)
-            argList.append(data)
-
-        if returnType is None:
-            returnDoc = ''
+        # sanity check that we didn't have some weird collision between
+        # declNames and defNames
+        assert len(types) == len(paramInfos)
+        assert set(types) == set(x.name for x in paramInfos)
 
         methodInfo = {'argInfo': argInfo,
-                      'returnInfo': {'type': returnType,
-                                     'doc': standardizeWhitespace(returnDoc),
-                                     'qualifiers': returnQualifiers},
+                      'returnInfo': {'type': returnInfo.type,
+                                     'doc': standardizeWhitespace(returnInfo.doc),
+                                     'qualifiers': returnInfo.typeQualifiers},
                       'args': argList,
-                      'returnType': returnType,
+                      'returnType': returnInfo.type,
                       'inArgs': inArgs,
                       'outArgs': outArgs,
                       'doc': standardizeWhitespace(methodDoc),
                       'defaults': defaults,
-                      #'directions' : directions,
                       'types': types,
                       'static': self.isStaticMethod(),
                       'typeQualifiers': typeQualifiers,
@@ -1089,7 +1129,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         raise NotImplementedError()
 
     @abstractmethod
-    def parseMethodArgs(self, returnType, names, types, typeQualifiers):
+    def parseMethodArgs(self, paramInfos, returnInfo):
         raise NotImplementedError()
 
     @abstractmethod
@@ -1128,31 +1168,15 @@ class XmlApiDocParser(ApiDocParser):
         self.numAnonymousEnums = 0
 
     def parseArgTypes(self):
-        names = []
-        types = {}
-        defaults = {}
-        typeQualifiers = {}
-
-        def returnEmpty():
-            return [], {}, {}, {}
-
-        foundUnknownName = False
+        paramInfos = []
 
         # TYPES
         for param in self.currentRawMethod.findall('param'):
-            paramNameElem = param.find('defname')
-            if paramNameElem is None:
-                paramNameElem = param.find('declname')
-            paramName = xmlText(paramNameElem)
-            if paramName == '':
-                if foundUnknownName:
-                    # if we find more than one unknown param name, we abort
-                    return returnEmpty()
-                foundUnknownName = True
-
             rawType = xmlText(param.find('type'))
-            parsedType, qualifiers = self.parseType(rawType.split())
-            names.append(paramName)
+            paramInfo = self.parseType(rawType.split())
+
+            paramInfo.defName = xmlText(param.find('defname'))
+            paramInfo.declName = xmlText(param.find('declname'))
 
             arrayInfo = param.find('array')
             if arrayInfo is not None:
@@ -1160,39 +1184,37 @@ class XmlApiDocParser(ApiDocParser):
                 if brackets:
                     numbuf = self._bracketRe.split(brackets)
                     if len(numbuf) > 1:
-                        if not isinstance(parsedType, str):
-                            if isinstance(parsedType, self.enumClass):
+                        if not isinstance(paramInfo.type, str):
+                            if isinstance(paramInfo.type, self.enumClass):
                                 raise TypeError("%s should be a string, but it has been marked as an enum. "
                                                 "Check if it is a new type which should be added to "
-                                                "OTHER_TYPES or MISSING_TYPES on this class." % (parsedType,))
+                                                "OTHER_TYPES or MISSING_TYPES on this class." % (paramInfo.type,))
                             else:
-                                raise TypeError("%r should be a string" % (parsedType,))
+                                raise TypeError("%r should be a string" % (paramInfo.type,))
                         # Note that these two args need to be cast differently:
                         #   int2 foo;
                         #   int bar[2];
                         # ... so, instead of storing the type of both as
                         # 'int2', we make the second one 'int__array2'
-                        parsedType = parsedType + '__array' + numbuf[1]
+                        paramInfo.type = paramInfo.type + '__array' + numbuf[1]
                     else:
-                        print("this is not a bracketed number", repr(brackets), parsedType)
+                        print("this is not a bracketed number", repr(brackets), paramInfo.type)
 
-            types[paramName] = parsedType
-            typeQualifiers[paramName] = qualifiers
-
+            # can't use None, which may indicate 'NULL'
+            paramInfo.default = NO_DEFAULT
             defaultElem = param.find('defval')
             if defaultElem is not None:
                 default = xmlText(defaultElem)
-                if default:
-                    default = self.parseValue(default, parsedType)
-                    # default must be set here, because 'NULL' may mean default is set to back to None,
-                    # but in this case it is meaningful (ie, doesn't mean "there was no default")
+                if paramInfo.default:
+                    paramInfo.default = self.parseValue(default, paramInfo.type)
                     self.xprint('DEFAULT', default)
-                    defaults[paramName] = default
+            paramInfos.append(paramInfo)
         # filter myFunc(void) type funcs - this also gets stuff like "myFunc(void) const"
-        if types == {'': 'void'}:
-            return returnEmpty()
+        if all(x.defName == '' and x.declName == '' and x.type == 'void'
+                for x in paramInfos):
+            return []
 
-        return names, types, typeQualifiers, defaults
+        return paramInfos
 
     def isMayaEnumFunc(self, element):
         return bool(element.find("./[name='OPENMAYA_ENUM']"))
@@ -1426,17 +1448,15 @@ class XmlApiDocParser(ApiDocParser):
                         break
         return doc
 
-    def parseMethodArgs(self, returnType, names, types, typeQualifiers):
+    def parseMethodArgs(self, paramInfos, returnInfo):
         directions = {}
         docs = {
-            # we have returnDoc in here so it can be modified by internal funcs
-            '<returnDoc>': ''
         }
         detail = self.findDetailedDescription()
 
-        if returnType and detail is not None:
+        if returnInfo.type and detail is not None:
             returnElem = detail.find(".//simplesect[@kind='return']")
-            docs['<returnDoc>'] = xmlText(returnElem)
+            returnInfo.doc = xmlText(returnElem)
 
         paramDescriptions = []
         if detail is not None:
@@ -1455,19 +1475,19 @@ class XmlApiDocParser(ApiDocParser):
                         directions[paramName] = paramInfo['direction']
                         missingParamDocs.remove(paramName)
                         foundSomething = True
-                if not docs['<returnDoc>']:
-                    docs['<returnDoc>'] = parsedTags['returnDoc']
+                if not returnInfo.doc:
+                    returnInfo.doc = parsedTags['returnDoc']
                     foundSomething = True
             if foundSomething:
                 return parsedTags['remainingText']
 
-        if len(paramDescriptions) > len(names):
+        if len(paramDescriptions) > len(paramInfos):
             msg = "found more ({}) parameter descriptions than parameter declarations ({})".format(
-                len(paramDescriptions), len(names))
+                len(paramDescriptions), len(paramInfos))
             raise ValueError(self.formatMsg(msg))
 
         paramDescriptionNames = []
-        missingParamDocs = set(names)
+        missingParamDocs = set(x.name for x in paramInfos)
         foundParamNameOnce = {}
         foundParamNameRepeated = {}
 
@@ -1499,18 +1519,19 @@ class XmlApiDocParser(ApiDocParser):
         # check for repeats
         if foundParamNameRepeated:
             # if all the names that show up onlyOnce match the names at the
-            # same positions of "names", then just use "names" to fill in
-            # the remaining names
+            # same positions of "paramInfos", then just use "paramInfos" to fill
+            # in the remaining names
             uniquesMatch = True
             for name, i in foundParamNameOnce.items():
-                if names[i] != name:
+                if paramInfos[i].name != name:
                     uniquesMatch = False
                     break
             if uniquesMatch:
-                paramDescriptionNames = names[:len(paramDescriptions)]
+                nameList = [x.name for x in paramInfos]
+                paramDescriptionNames = nameList[:len(paramDescriptions)]
                 # note we may still have missing names if
                 # len(paramDescriptions) < len(names)
-                missingParamDocs = set(names) - set(paramDescriptionNames)
+                missingParamDocs = set(nameList) - set(paramDescriptionNames)
             else:
                 # otherwise, we error (for now)
                 raise ValueError("Found repeated param names, and non-repated"
@@ -1533,7 +1554,11 @@ class XmlApiDocParser(ApiDocParser):
             if remainingText:
                 docs[name] = remainingText
 
-        if missingParamDocs or (returnType and not docs['<returnDoc>']):
+        paramsByName = {x.name: x for x in paramInfos if x.name}
+
+        assert len(paramsByName) == len(paramInfos)
+
+        if missingParamDocs or (returnInfo.type and not returnInfo.doc):
             # Sometimes, "parameteritem" xml objects may not be properly created,
             # but (manually) parsable information still exists in the detaileddescription
             # ie, this happens in the 2019 MFnMesh.addPolygon 2nd overload (with 6 args)
@@ -1541,11 +1566,12 @@ class XmlApiDocParser(ApiDocParser):
                 parseRawTagInfo(xmlText(detail))
 
         if missingParamDocs:
-            wereMissingAll = len(missingParamDocs) == len(names)
+            wereMissingAll = len(missingParamDocs) == len(paramInfos)
             for missing in list(missingParamDocs):
-                if (types[missing] == 'MStatus'
-                        and ('*' in typeQualifiers[missing]
-                             or '&' in typeQualifiers[missing])):
+                paramInfo = paramsByName[missing]
+                if (paramInfo.type == 'MStatus'
+                        and ('*' in paramInfo.typeQualifiers
+                             or '&' in paramInfo.typeQualifiers)):
                     missingParamDocs.remove(missing)
                     directions[missing] = 'out'
                     continue
@@ -1556,20 +1582,32 @@ class XmlApiDocParser(ApiDocParser):
 
         for name, dir in directions.items():
             doc = docs.get(name, '')
+
+            paramInfo = paramsByName[name]
+
+            def methodNameWithArgs():
+                argNames = ', '.join(x.name for x in paramInfos)
+                return "{}.{}({})".format(self.apiClassName,
+                                          self.currentMethodName, argNames)
+
             if dir == 'in':
                 # attempt to correct bad in/out docs
                 if self._fillStorageResultRe.search(doc):
-                    _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
-                        self.apiClassName, self.currentMethodName, ', '.join(names), name, doc))
+                    _logger.warn(
+                        "{}: Correcting suspected output argument '{}' based on doc '{}'".format(
+                        methodNameWithArgs(), name, doc))
                     dir = 'out'
-                elif not self.isSetMethod() and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float', 'uint', 'uchar']:
-                    _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
-                        self.apiClassName, self.currentMethodName, ', '.join(names), name, types[name], doc))
+                elif not self.isSetMethod() and '&' in paramInfo.typeQualifiers \
+                        and paramInfo.type in ['int', 'double', 'float', 'uint', 'uchar']:
+                    _logger.warn(
+                        "{}: Correcting suspected output argument '{}' based on reference type '{} &' ('{}')".format(
+                        methodNameWithArgs(), name, paramInfo.type, doc))
                     dir = 'out'
             elif dir == 'out':
-                if types[name] == 'MAnimCurveChange':
-                    _logger.warn("%s.%s(%s): Setting MAnimCurveChange argument '%s' to an input arg (instead of output)" % (
-                        self.apiClassName, self.currentMethodName, ', '.join(names), name))
+                if paramInfo.type == 'MAnimCurveChange':
+                    _logger.warn(
+                        "{}: Setting MAnimCurveChange argument '{}' to an input arg (instead of output)".format(
+                        methodNameWithArgs(), name))
                     dir = 'in'
             elif dir in ('in,out', 'inout'):
                 # it makes the most sense to treat these types as inputs
@@ -1578,20 +1616,18 @@ class XmlApiDocParser(ApiDocParser):
             else:
                 raise ValueError("direction must be either 'in', 'out', 'inout', or 'in,out'. got {!r}".format(dir))
 
-            assert name in names
-            directions[name] = dir
-            docs[name] = doc.replace('\n\r', ' ').replace('\n', ' ')
+            paramInfo.direction = dir
+            paramInfo.doc = doc.replace('\n\r', ' ').replace('\n', ' ')
 
-        returnDoc = docs.pop('<returnDoc>')
-        return directions, docs, returnDoc
+        return paramInfos, returnInfo
 
     def getMethodNameAndOutput(self):
         methodName = self.currentRawMethod.find("name").text
 
         returnType = xmlText(self.currentRawMethod.find("type"))
-        returnType, returnQualifiers = self.parseType(returnType.split())
+        returnInfo = self.parseType(returnType.split())
 
-        return methodName, returnType, returnQualifiers
+        return methodName, returnInfo
 
     def getClassPath(self):
         self.baseFilename = self.getClassFilename()
@@ -1625,10 +1661,6 @@ class HtmlApiDocParser(ApiDocParser):
     _paramPostNameRe = re.compile('([^=]*)(?:\s*=\s*(.*))?')
 
     def parseArgTypes(self):
-        defaults = {}
-        names = []
-        types = {}
-        typeQualifiers = {}
         tmpTypes = []
         # TYPES
         for paramtype in self.currentRawMethod.findAll('td', **{'class': 'paramtype'}):
@@ -1639,13 +1671,15 @@ class HtmlApiDocParser(ApiDocParser):
             buf = [x.strip().encode('ascii', 'ignore') for x in buf if x.strip()]
             tmpTypes.append(self.parseType(buf))
 
+        paramInfos = []
+
         # ARGUMENT NAMES
         i = 0
         for paramname in self.currentRawMethod.findAll('td', **{'class': 'paramname'}):
             buf = [x.strip().encode('ascii', 'ignore') for x in paramname.findAll(text=True) if x.strip() not in['', ',']]
             if not buf:
                 continue
-            argname = buf[0]
+            defName = declName = buf[0]
             data = buf[1:]
 
             type, qualifiers = tmpTypes[i]
@@ -1681,14 +1715,13 @@ class HtmlApiDocParser(ApiDocParser):
                     # default must be set here, because 'NULL' may mean default is set to back to None,
                     # but in this case it is meaningful (ie, doesn't mean "there was no default")
                     self.xprint('DEFAULT', default)
-                    defaults[argname] = default
 
-            types[argname] = type
-            typeQualifiers[argname] = qualifiers
-            names.append(argname)
+            paramInfos.append(ParamInfo(defName=defName, declName=declName,
+                                        type=type,
+                                        typeQualifiers=qualifiers,
+                                        default=default))
             i += 1
-        assert sorted(names) == sorted(types.keys()), 'name-type mismatch %s %s' % (sorted(names), sorted(types.keys()))
-        return names, types, typeQualifiers, defaults
+        return paramInfos
 
     def _parseEnum(self, rawEnum):
         enumValues = {}
@@ -1907,20 +1940,20 @@ class HtmlApiDocParser(ApiDocParser):
             methodName = methodName.split('::')[-1]
             returnType, returnQualifiers = self.parseType(returnTypeToks)
 
-        return methodName, returnType, returnQualifiers
+        return methodName, ParamInfo(None, None, returnType, returnQualifiers)
 
-    def _parseMethod(self, returnType, returnQualifiers):
+    def _parseMethod(self, returnInfo):
         if self.currentMethodName == 'void(*':
             return
 
         # ENUMS
-        if returnType == 'enum':
-            self.xprint("ENUM", returnType)
+        if returnInfo.type == 'enum':
+            self.xprint("ENUM", returnInfo.type)
             # print returnType, methodName
             self.parseEnum(self.currentRawMethod)
             return
 
-        super(HtmlApiDocParser, self)._parseMethod(returnType, returnQualifiers)
+        super(HtmlApiDocParser, self)._parseMethod(returnInfo)
 
     DOXYGEN_VER_RE = re.compile('Generated by Doxygen ([0-9.]+)')
 
