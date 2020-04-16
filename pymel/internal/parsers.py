@@ -1146,7 +1146,7 @@ class XmlApiDocParser(ApiDocParser):
             paramName = xmlText(paramNameElem)
             if paramName == '':
                 if foundUnknownName:
-                    # if we find more than one uknown param name, we abort
+                    # if we find more than one unknown param name, we abort
                     return returnEmpty()
                 foundUnknownName = True
 
