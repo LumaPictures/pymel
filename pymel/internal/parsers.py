@@ -522,6 +522,15 @@ class ParamInfo(object):
             return self.defName
         return self.declName
 
+    # force standardizeWhitespace for doc
+    @property
+    def doc(self):
+        return self._doc
+
+    @doc.setter
+    def doc(self, rawVal):
+        self._doc = standardizeWhitespace(rawVal)
+
 
 class ApiDocParser(with_metaclass(ABCMeta, object)):
     NO_PYTHON_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
@@ -996,7 +1005,6 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             if not param.direction:
                 self.xprint("Warning: assuming direction is 'in'")
                 param.direction = 'in'
-            param.doc = standardizeWhitespace(param.doc)
             paramInfos.append(param)
 
         # correct bad outputs
@@ -1052,7 +1060,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
 
         methodInfo = {'argInfo': argInfo,
                       'returnInfo': {'type': returnInfo.type,
-                                     'doc': standardizeWhitespace(returnInfo.doc),
+                                     'doc': returnInfo.doc,
                                      'qualifiers': returnInfo.typeQualifiers},
                       'args': argList,
                       'returnType': returnInfo.type,
@@ -1617,7 +1625,7 @@ class XmlApiDocParser(ApiDocParser):
                 raise ValueError("direction must be either 'in', 'out', 'inout', or 'in,out'. got {!r}".format(dir))
 
             paramInfo.direction = dir
-            paramInfo.doc = doc.replace('\n\r', ' ').replace('\n', ' ')
+            paramInfo.doc = doc
 
         return paramInfos, returnInfo
 
