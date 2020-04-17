@@ -499,19 +499,37 @@ class NO_DEFAULT(object):
     '''Indicates that there was no default
 
     For situations where None is meaningful (ie, may be a standin for NULL)'''
-    pass
+    def __repr__(self):
+        return type(self).__name__
 
 
 class ParamInfo(object):
-    def __init__(self, defName, declName, type, typeQualifiers,
-                 default=NO_DEFAULT, direction=None, doc=''):
+    __slots__ = ('defName', 'declName', 'type', 'typeQualifiers', 'default',
+                 'direction', '_doc')
+
+    def __init__(self, defName=None, declName=None, type=None,
+                 typeQualifiers=(), default=NO_DEFAULT, direction=None, doc=''):
         self.defName = defName
         self.declName = declName
         self.type = type
-        self.typeQualifiers = typeQualifiers
+        self.typeQualifiers = tuple(typeQualifiers)
         self.default = default
         self.direction = direction
         self.doc = doc
+
+    def __repr__(self):
+        import inspect
+        argstrs = []
+        argspec = inspect.getargspec(self.__init__)
+        # ignore self
+        args = argspec.args[1:]
+        # all args have defaults
+        assert len(args) == len(argspec.defaults)
+        for name, default in zip(args, argspec.defaults):
+            val = getattr(self, name)
+            if val != default:
+                argstrs.append('{}={!r}'.format(name, val))
+        return '{}({})'.format(type(self).__name__, ', '.join(argstrs))
 
     # traditionally, we've preferred the defName, both because that name is
     # featured more prominently in the maya api help docs, and because it's
@@ -906,7 +924,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             argtype = 'u' + argtype
 
         argtype = self.handleEnums(argtype)
-        return ParamInfo(None, None, argtype, tokens)
+        return ParamInfo(type=argtype, typeQualifiers=tokens)
 
     def parseEnum(self, enumData):
         try:
@@ -1044,7 +1062,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             argInfo[param.name] = {'type': param.type, 'doc': param.doc}
             types[param.name] = param.type
             if param.typeQualifiers:
-                typeQualifiers[param.name] = param.typeQualifiers
+                typeQualifiers[param.name] = list(param.typeQualifiers)
             if param.default is not NO_DEFAULT:
                 defaults[param.name] = param.default
             argList.append((param.name, param.type, param.direction))
