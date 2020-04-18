@@ -11,6 +11,7 @@ import re
 import os.path
 import platform
 from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
 from html.parser import HTMLParser
 import xml.etree.cElementTree as ET
 
@@ -32,6 +33,17 @@ from keyword import iskeyword as _iskeyword
 FLAGMODES = ('create', 'query', 'edit', 'multiuse')
 
 _logger = plogging.getLogger(__name__)
+
+class MethodParseError(ValueError):
+    '''Signal that there was a error parsing a method
+
+    No cache data will be created for the current method, though parsing of
+    other methods in the class will continue (unless in strict mode)
+    '''
+    pass
+
+class UnmatchedNameError(ValueError):
+    pass
 
 
 def mayaIsRunning():
@@ -540,6 +552,11 @@ class ParamInfo(object):
             return self.defName
         return self.declName
 
+    @name.setter
+    def name(self, val):
+        self.defName = val
+        self.declName = val
+
     # force standardizeWhitespace for doc
     @property
     def doc(self):
@@ -1003,27 +1020,17 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             deprecated = self.isDeprecated()
             methodDoc = self.getMethodDoc()
             paramInfos, returnInfo = self.parseMethodArgs(paramInfos, returnInfo)
-        except AssertionError as msg:
+        except MethodParseError as msg:
             if self.strict:
                 raise
             _logger.error(self.formatMsg("FAILED", str(msg)))
             return
-        except AttributeError:
-            if self.strict:
-                raise
-            import traceback
-            _logger.error(self.formatMsg(traceback.format_exc()))
-            return
 
-        oldParamInfos = paramInfos
-        paramInfos = []
-        for param in oldParamInfos:
-            if param.type == 'MStatus':
-                continue
+        paramInfos = [x for x in paramInfos if x.type != 'MStatus']
+        for param in paramInfos:
             if not param.direction:
                 self.xprint("Warning: assuming direction is 'in'")
                 param.direction = 'in'
-            paramInfos.append(param)
 
         # correct bad outputs
         if self.isGetMethod() and not returnInfo.type \
@@ -1408,7 +1415,7 @@ class XmlApiDocParser(ApiDocParser):
     @classmethod
     def parseBackslashTags(cls, text):
         info = {
-            'params': {},
+            'params': OrderedDict(),
             'returnDoc': '',
         }
         foundSomething = False
@@ -1421,13 +1428,14 @@ class XmlApiDocParser(ApiDocParser):
                 if paramMatch is not None:
                     splitText = tagText.strip().split()
                     name = splitText[0]
-                    paramInfo = {
-                        'direction': paramMatch.group('dir'),
+                    paramInfo = ParamInfo(
+                        defName=name,
+                        direction=paramMatch.group('dir'),
                         # Because this didn't parse correctly, it may have some tags
                         # still in the text - ie, "<i>merged</i>" (which gets encoded
                         # in the xml as: "&lt;i&gt;merged&lt;/i&gt")
-                        'doc': strip_tags(' '.join(splitText[1:])),
-                    }
+                        doc=strip_tags(' '.join(splitText[1:]))
+                    )
                     info['params'][name] = paramInfo
                     foundSomething = True
                 elif tag == 'return':
@@ -1474,10 +1482,7 @@ class XmlApiDocParser(ApiDocParser):
                         break
         return doc
 
-    def parseMethodArgs(self, paramInfos, returnInfo):
-        directions = {}
-        docs = {
-        }
+    def parseMethodArgs(self, oldParamInfos, returnInfo):
         detail = self.findDetailedDescription()
 
         if returnInfo.type and detail is not None:
@@ -1491,161 +1496,292 @@ class XmlApiDocParser(ApiDocParser):
             for paramList in detail.findall(".//parameterlist[@kind='param']"):
                 paramDescriptions.extend(paramList.findall('parameteritem'))
 
-        def parseRawTagInfo(text):
-            parsedTags = self.parseBackslashTags(text)
-            foundSomething = False
-            if parsedTags:
-                for paramName, paramInfo in parsedTags['params'].items():
-                    if paramName not in docs:
-                        docs[paramName] = paramInfo['doc']
-                        directions[paramName] = paramInfo['direction']
-                        missingParamDocs.remove(paramName)
-                        foundSomething = True
-                if not returnInfo.doc:
-                    returnInfo.doc = parsedTags['returnDoc']
-                    foundSomething = True
-            if foundSomething:
-                return parsedTags['remainingText']
-
-        if len(paramDescriptions) > len(paramInfos):
+        if len(paramDescriptions) > len(oldParamInfos):
             msg = "found more ({}) parameter descriptions than parameter declarations ({})".format(
-                len(paramDescriptions), len(paramInfos))
+                len(paramDescriptions), len(oldParamInfos))
             raise ValueError(self.formatMsg(msg))
 
-        paramDescriptionNames = []
-        missingParamDocs = set(x.name for x in paramInfos)
-        foundParamNameOnce = {}
-        foundParamNameRepeated = {}
-
-        for i, param in enumerate(paramDescriptions):
-            allNames = param.find('parameternamelist').findall('parametername')
+        paramElemsAndInfos = []
+        paramsByName = {}
+        for paramElem in paramDescriptions:
+            allNames = paramElem.find('parameternamelist').findall('parametername')
 
             # Don't have an example of nameList > 1, so error for now
             if len(allNames) > 1:
                 raise ValueError(self.formatMsg("found more than 1 name for parameter {!r}".format(name)))
 
             name = xmlText(allNames[0])
-            paramDescriptionNames.append(name)
-            try:
-                missingParamDocs.remove(name)
-            except KeyError:
-                # if it's in foundParamNameOnce / foundParamNameRepeated,
-                # it's a repeat, we'll deal with that later
-                if name in foundParamNameRepeated:
-                    foundParamNameRepeated[name].append(i)
-                elif name in foundParamNameOnce:
-                    foundParamNameRepeated[name] = [foundParamNameOnce.pop(name), i]
-                else:
-                    # otherwise, we have a totally unexpected name...
-                    msg = "Found parameter description with name {}, but no matching declaration".format(name)
-                    raise ValueError(self.formatMsg(msg))
+            doc = xmlText(paramElem.find('parameterdescription'))
+            direction = allNames[0].attrib['direction']
+            paramInfo = ParamInfo(name, doc=doc, direction=direction)
+            paramsByName[name] = paramInfo
+            paramElemsAndInfos.append((paramElem, paramInfo))
+
+        paramsByPosition = []
+
+        def parseRawTagInfo(text, prepend=False):
+            # if we parse, and FIND an existing item, any new items we find
+            # should be inserted after that... otherwise, we insert at beginning
+            # if prepend=True, else append at end
+            if prepend:
+                insertPosition = 0
             else:
-                foundParamNameOnce[name] = i
+                insertPosition = None
+            parsedTags = self.parseBackslashTags(text)
+            foundSomething = False
+            if parsedTags:
+                for paramName, paramInfo in parsedTags['params'].items():
+                    existingParam = paramsByName.get(paramName)
+                    if not existingParam:
+                        paramsByName[paramName] = paramInfo
+                        if insertPosition is None:
+                            paramsByPosition.append(paramInfo)
+                        else:
+                            paramsByPosition.insert(insertPosition, paramInfo)
+                            insertPosition += 1
+                        foundSomething = True
+                    else:
+                        insertPosition = paramsByPosition.index(existingParam) + 1
 
-        # check for repeats
-        if foundParamNameRepeated:
-            # if all the names that show up onlyOnce match the names at the
-            # same positions of "paramInfos", then just use "paramInfos" to fill
-            # in the remaining names
-            uniquesMatch = True
-            for name, i in foundParamNameOnce.items():
-                if paramInfos[i].name != name:
-                    uniquesMatch = False
-                    break
-            if uniquesMatch:
-                nameList = [x.name for x in paramInfos]
-                paramDescriptionNames = nameList[:len(paramDescriptions)]
-                # note we may still have missing names if
-                # len(paramDescriptions) < len(names)
-                missingParamDocs = set(nameList) - set(paramDescriptionNames)
-            else:
-                # otherwise, we error (for now)
-                raise ValueError("Found repeated param names, and non-repated"
-                                 " name placement did not match declared names:"
-                                " {}".format(", ".join(sorted(foundParamNameRepeated))))
+                if not returnInfo.doc and parsedTags['returnDoc']:
+                    returnInfo.doc = parsedTags['returnDoc']
+                    foundSomething = True
+            if foundSomething:
+                return parsedTags['remainingText']
 
-        for name, param in zip(paramDescriptionNames, paramDescriptions):
-            allNames = param.find('parameternamelist').findall('parametername')
-
-            directions[name] = allNames[0].attrib['direction']
-            docs[name] = xmlText(param.find('parameterdescription'))
-
-            # sometimes backslash tags get placed in the description of other
-            # parameters. check for that...
-            #
-            # As an example, this happens in the 2019 xml docs,
-            # MCameraSetMessage.addCameraLayerCallback - the docs for
-            # 'clientData' appear inside the docs for 'func'
-            remainingText = parseRawTagInfo(docs[name])
+        # sometimes the param docs don't get parsed correctly, with the result
+        # that the parameter list jumps from param5 to param7, and the docstring
+        # for param5 contains the (unparsed) info for param6.
+        #
+        # As an example, this happens in the 2019 xml docs,
+        # MCameraSetMessage.addCameraLayerCallback - the docs for
+        # 'clientData' appear inside the docs for 'func'
+        #
+        # To deal with this, after doing an initial pass, where we record all
+        # the known names, we then go back and do a second pass, looking for
+        # missing params that can be parsed from the docstrings
+        for paramElem, paramInfo in paramElemsAndInfos:
+            paramsByPosition.append(paramInfo)
+            remainingText = parseRawTagInfo(paramInfo.doc)
             if remainingText:
-                docs[name] = remainingText
+                paramInfo.doc = remainingText
 
-        paramsByName = {x.name: x for x in paramInfos if x.name}
+        # Sometimes, "parameteritem" xml objects may not be properly created,
+        # but (manually) parsable information still exists in the
+        # detaileddescription ie, this happens in the 2019 MFnMesh.addPolygon
+        # 2nd overload (with 6 args)
+        if detail is not None:
+            # Params found this way generally need to go at start, so prepend
+            parseRawTagInfo(xmlText(detail), prepend=True)
 
-        assert len(paramsByName) == len(paramInfos)
+        assert len(paramsByPosition) <= len(oldParamInfos)
+        assert all(x.name for x in paramsByPosition)
 
-        if missingParamDocs or (returnInfo.type and not returnInfo.doc):
-            # Sometimes, "parameteritem" xml objects may not be properly created,
-            # but (manually) parsable information still exists in the detaileddescription
-            # ie, this happens in the 2019 MFnMesh.addPolygon 2nd overload (with 6 args)
-            if detail is not None:
-                parseRawTagInfo(xmlText(detail))
+        if len(paramsByPosition) != len(paramsByName):
+            # Ok, we have at least one name that was doubled - it's possible
+            # this is a type or copy / paste error, that can be fixed, if only
+            # one item was doubled, and we can safely map back to oldParamInfos
+            #
+            # For an example of where this correction applies, see docs for
+            # MFnNumericAttribute.getMin in 2019 - min3 is repeated twice
+            # (second should be min4)
+            #
+            # start by finding all doubles
+            positionsByName = {}
+            for i, paramInfo in enumerate(paramsByPosition):
+                positionsByName.setdefault(paramInfo.name, []).append(i)
 
-        if missingParamDocs:
-            wereMissingAll = len(missingParamDocs) == len(paramInfos)
-            for missing in list(missingParamDocs):
-                paramInfo = paramsByName[missing]
-                if (paramInfo.type == 'MStatus'
-                        and ('*' in paramInfo.typeQualifiers
-                             or '&' in paramInfo.typeQualifiers)):
-                    missingParamDocs.remove(missing)
-                    directions[missing] = 'out'
-                    continue
-            if not wereMissingAll and missingParamDocs:
-                msg = "found parameters that were missing documentation: {}".format(
-                    ", ".join(sorted(missingParamDocs)))
+            multiVals = [(name, positions) for name, positions
+                         in positionsByName.items() if len(positions) > 1]
+            if len(multiVals) > 1:
+                multiValNames = sorted(x[0] for x in multiVals)
+                msg = 'Found more than one param name in <parameterlist> that' \
+                      ' was repeated: {}'.format(', '.join(multiValNames))
+                raise ValueError(self.formatMsg(msg))
+            repeatedName, positions = multiVals[0]
+            if len(positions) > 2:
+                msg = 'Param repeated more than twice in <parameterlist>: {}' \
+                    .format(repeatedName)
                 raise ValueError(self.formatMsg(msg))
 
-        for name, dir in directions.items():
-            doc = docs.get(name, '')
+            # Ok, was only one param name that got repeated twice - see if
+            # we can find a param with a matching name at the same position
+            # within oldParamInfos, for only one of those positions
+            oldPositionMatches = [i for i, param in enumerate(oldParamInfos)
+                                  if (param.declName == repeatedName or
+                                      param.defName == repeatedName)]
+            if len(oldPositionMatches) == 1 \
+                    and oldPositionMatches[0] in positions:
+                # check to make sure the param at the other position has a name,
+                # that isn't used
+                matchedPos = oldPositionMatches[0]
+                positions.remove(matchedPos)
+                unmatchedPos = positions[0]
+                otherParam = oldParamInfos[unmatchedPos]
+                names = [x for x in [otherParam.declName, otherParam.defName]
+                         if x]
+                if names and all(x not in paramsByName for x in names):
+                    # ok, the param at the other position had a name we haven't
+                    # seen. Replace the name with this
+                    paramsByPosition[unmatchedPos].defName = otherParam.name
+                    paramsByName[otherParam.name] = paramsByPosition[unmatchedPos]
+                    # also make sure that the original, duped name refers to
+                    # the matched pos - it may be referring to the one whose
+                    # name we just fixed
+                    matchedParam = paramsByPosition[matchedPos]
+                    paramsByName[matchedParam.name] = matchedParam
+            assert len(paramsByPosition) == len(paramsByName)
 
-            paramInfo = paramsByName[name]
+        # Ok, we now have two ordered lists of parameters:
+        # - oldParamInfos
+        #   - parsed from <param> tags
+        #   - post 2019, missing <defname> - and may be missing declname too
+        #   - no docs
+        #   - information mostly filled in via C++ syntax parsing, so what's
+        #     there should be fairly reliable
+        # - paramsByPosition
+        #   - parsed from <parameteritem> within the <parameterlist>
+        #   - filled in from doxygen parsing of docstrings, so less reliable
+        #     (a lot of docstring formatting errors)
+        #   - however, usually may be only source of defnames (since Autodesk's
+        #     doxygen comments generally seem to be from the .cpp)... and pymel
+        #     prefers defnames (they're more emphasized in official docs, plus
+        #     the names are generally more descriptive... also, need to keep
+        #     using defnames for backward compatibility)
+        #   - should always have a name
+        #   - generally only source of doc (though may be missing)
+
+        # So, without defnames in oldParamInfos, there's no guaranteed way to
+        # link up the two lists, and we need to cross-correllate... so we hope
+        # that the number of parameters is the same
+
+        if len(oldParamInfos) != len(paramsByPosition):
+            # first, try removing MStatus params, since those will get stripped
+            # out later anyway
+            nonMStatus = [x for x in oldParamInfos if x.type != 'MStatus']
+            if len(nonMStatus) == len(paramsByPosition):
+                oldParamInfos = nonMStatus
+            elif len(paramsByPosition):
+                msg = "Was at least one <parameteritem> in <parameterlist>, " \
+                      "but total number did not match number found when " \
+                      "parsing <param> items"
+                raise ValueError(self.formatMsg(msg))
+
+        # if a param name appears in both lists, it should be at the same
+        # position...
+
+        try:
+            for i, oldParam in enumerate(oldParamInfos):
+                for nameType in ('declName', 'defName'):
+                    oldName = getattr(oldParam, nameType)
+                    if oldName in paramsByName:
+                        newName = paramsByPosition[i].defName
+                        if newName != oldName:
+                            msg = "param list names did not match - {i}'th " \
+                                  "<param> had {nameType} {oldName}, " \
+                                  "but {i}'th <parameteritem> had name " \
+                                  "{newName} "\
+                                .format(**locals())
+                            raise UnmatchedNameError(self.formatMsg(msg))
+                        break
+        except UnmatchedNameError as e:
+            # the oldParams have the definitive ordering, since they're pulled
+            # from C++ parsing.  See if there's at most one param in the new
+            # params that we can't definitively link to the old params, and if
+            # so, just use the old param ordering.
+
+            defIndices = {x.defName: i for i, x in enumerate(oldParamInfos)}
+            declIndices = {x.declName: i for i, x in enumerate(oldParamInfos)}
+            remappedPositions = [None] * len(paramsByPosition)
+            for i, newParam in enumerate(paramsByPosition):
+                defI = defIndices.pop(newParam.defName, None)
+                declI = declIndices.pop(newParam.defName, None)
+                bothIndices = set([defI, declI])
+                if defI is None:
+                    if declI is not None:
+                        remappedPositions[i] = declI
+                else:
+                    if declI is None or defI == declI:
+                        remappedPositions[i] = defI
+            canRemap = False
+            numMissing = remappedPositions.count(None)
+            if numMissing == 0:
+                canRemap = True
+            elif numMissing == 1:
+                missingIndex = set(range(len(oldParamInfos))) \
+                               - set(remappedPositions.values())
+                assert len(missingIndex) == 1
+                missingIndex = missingIndex.pop()
+                remappedPositions[remappedPositions.index(None)] = missingIndex
+                canRemap = True
+            if canRemap:
+                reorderedParams = [None] * len(paramsByPosition)
+                for i, param in enumerate(paramsByPosition):
+                    reorderedParams[remappedPositions[i]] = param
+                assert None not in reorderedParams
+                paramsByPosition = reorderedParams
+            else:
+                UnmatchedNameError.msg += ' (and could not reorder)'
+                raise UnmatchedNameError
+
+        # all the newParams and oldParams should line up now - go through
+        # and fill in all oldParams with names, directions, and docs from
+        # newParams
+        for newParam, oldParam in zip(paramsByPosition, oldParamInfos):
+            if oldParam.defName:
+                assert oldParam.defName == newParam.defName
+            else:
+                oldParam.defName = newParam.defName
+            assert oldParam.name
+            oldParam.doc = newParam.doc
 
             def methodNameWithArgs():
-                argNames = ', '.join(x.name for x in paramInfos)
+                argNames = ', '.join(x.name for x in oldParamInfos)
                 return "{}.{}({})".format(self.apiClassName,
                                           self.currentMethodName, argNames)
 
-            if dir == 'in':
+            if newParam.direction == 'in':
                 # attempt to correct bad in/out docs
-                if self._fillStorageResultRe.search(doc):
+                if self._fillStorageResultRe.search(newParam.doc):
                     _logger.warn(
                         "{}: Correcting suspected output argument '{}' based on doc '{}'".format(
-                        methodNameWithArgs(), name, doc))
-                    dir = 'out'
-                elif not self.isSetMethod() and '&' in paramInfo.typeQualifiers \
-                        and paramInfo.type in ['int', 'double', 'float', 'uint', 'uchar']:
+                        methodNameWithArgs(), newParam.name, newParam.doc))
+                    newParam.direction = 'out'
+                elif not self.isSetMethod() and '&' in oldParam.typeQualifiers \
+                        and oldParam.type in ['int', 'double', 'float', 'uint', 'uchar']:
                     _logger.warn(
                         "{}: Correcting suspected output argument '{}' based on reference type '{} &' ('{}')".format(
-                        methodNameWithArgs(), name, paramInfo.type, doc))
-                    dir = 'out'
-            elif dir == 'out':
-                if paramInfo.type == 'MAnimCurveChange':
+                        methodNameWithArgs(), newParam.name, oldParam.type, newParam.doc))
+                    newParam.direction = 'out'
+            elif newParam.direction == 'out':
+                if oldParam.type == 'MAnimCurveChange':
                     _logger.warn(
                         "{}: Setting MAnimCurveChange argument '{}' to an input arg (instead of output)".format(
-                        methodNameWithArgs(), name))
-                    dir = 'in'
-            elif dir in ('in,out', 'inout'):
+                        methodNameWithArgs(), newParam.name))
+                    newParam.direction = 'in'
+            elif newParam.direction in ('in,out', 'inout'):
                 # it makes the most sense to treat these types as inputs
                 # maybe someday we can deal with dual-direction args...?
-                dir = 'in'
+                newParam.direction = 'in'
+            elif newParam.direction is not None:
+                raise ValueError("direction must be either 'in', 'out', 'inout', or 'in,out'. got {!r}".format(newParam.direction))
+
+            if oldParam.direction:
+                assert not newParam.direction \
+                       or newParam.direction == oldParam.direction
             else:
-                raise ValueError("direction must be either 'in', 'out', 'inout', or 'in,out'. got {!r}".format(dir))
+                oldParam.direction = newParam.direction
 
-            paramInfo.direction = dir
-            paramInfo.doc = doc
+        if self.currentMethodName == 'objectChanged':
+            for i, p in enumerate(oldParamInfos):
+                print(i, oldParamInfos)
+        noNames = [i for i, param in enumerate(oldParamInfos) if not param.name]
+        if noNames:
+            msg = "unable to determine a name for parameters at these " \
+                  "indices: {}".format(', '.join(str(x) for x in noNames))
+            raise MethodParseError(self.formatMsg(msg))
 
-        return paramInfos, returnInfo
+        return oldParamInfos, returnInfo
 
     def getMethodNameAndOutput(self):
         methodName = self.currentRawMethod.find("name").text
@@ -1966,7 +2102,8 @@ class HtmlApiDocParser(ApiDocParser):
             methodName = methodName.split('::')[-1]
             returnType, returnQualifiers = self.parseType(returnTypeToks)
 
-        return methodName, ParamInfo(None, None, returnType, returnQualifiers)
+        return methodName, ParamInfo(type=returnType,
+                                     typeQualifiers=returnQualifiers)
 
     def _parseMethod(self, returnInfo):
         if self.currentMethodName == 'void(*':
