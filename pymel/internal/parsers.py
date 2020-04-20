@@ -1796,9 +1796,6 @@ class XmlApiDocParser(ApiDocParser):
             else:
                 oldParam.direction = newParam.direction
 
-        if self.currentMethodName == 'objectChanged':
-            for i, p in enumerate(oldParamInfos):
-                print(i, oldParamInfos)
         noNames = [i for i, param in enumerate(oldParamInfos) if not param.name]
         if noNames:
             msg = "unable to determine a name for parameters at these " \
