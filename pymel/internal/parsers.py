@@ -605,6 +605,24 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         ('MFnTransform', 'objectChanged'),
     }
 
+    CPP_OPERATOR_TO_PY = {
+        '*=': '__imul__',
+        '*': '__mul__',
+        '+=': '__iadd__',
+        '+': '__add__',
+        '-=': '__isub__',
+        '-': '__sub__',
+        '/=': '__itruediv__',
+        '/': '__truediv__',
+        '==': '__eq__',
+        '!=': '__ne__',
+        '[]': '__getitem__'
+    }
+
+    PY_OPERATOR_DEFAULT_NAMES = {val: 'other' for (key, val)
+                                 in CPP_OPERATOR_TO_PY.items()}
+    PY_OPERATOR_DEFAULT_NAMES['__getitem__'] = 'key'
+
     _anonymousEnumRe = re.compile(r'^@[0-9]+$')
     _bracketRe = re.compile(r'\[|\]')
     _capitalizedWithNumsRe = re.compile('([A-Z0-9][a-z0-9]*)')
@@ -889,18 +907,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             methodName = None
         else:
 
-            methodName = {
-                '*=': '__imul__',
-                '*': '__mul__',
-                '+=': '__iadd__',
-                '+': '__add__',
-                '-=': '__isub__',
-                '-': '__sub__',
-                '/=': '__itruediv__',
-                '/': '__truediv__',
-                '==': '__eq__',
-                '!=': '__ne__',
-                '[]': '__getitem__'}.get(op, None)
+            methodName = self.CPP_OPERATOR_TO_PY.get(op, None)
         return methodName
 
     def isSetMethod(self):
@@ -1748,6 +1755,9 @@ class XmlApiDocParser(ApiDocParser):
                 UnmatchedNameError.msg += ' (and could not reorder)'
                 raise UnmatchedNameError
 
+        assert (not paramsByPosition
+                or len(paramsByPosition) == len(oldParamInfos))
+
         # all the newParams and oldParams should line up now - go through
         # and fill in all oldParams with names, directions, and docs from
         # newParams
@@ -1798,9 +1808,14 @@ class XmlApiDocParser(ApiDocParser):
 
         noNames = [i for i, param in enumerate(oldParamInfos) if not param.name]
         if noNames:
-            msg = "unable to determine a name for parameters at these " \
-                  "indices: {}".format(', '.join(str(x) for x in noNames))
-            raise MethodParseError(self.formatMsg(msg))
+            defaultName = self.PY_OPERATOR_DEFAULT_NAMES.get(
+                self.currentMethodName)
+            if defaultName is not None and noNames == [0]:
+                oldParamInfos[0].name = defaultName
+            else:
+                msg = "unable to determine a name for parameters at these " \
+                      "indices: {}".format(', '.join(str(x) for x in noNames))
+                raise MethodParseError(self.formatMsg(msg))
 
         return oldParamInfos, returnInfo
 
