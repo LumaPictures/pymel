@@ -3764,10 +3764,10 @@ def addMayaType(mayaType, apiType=None):
         - mayaTypesToApiTypes
         - mayaTypesToApiEnums
     """
+    global _apiCacheInst
     if apiType is None:
         apiType = _apiCacheInst.mayaTypeToApiType(mayaType)
 
-    global _apiCacheInst
     _apiCacheInst.addMayaType(mayaType, apiType, globals())
     _setApiCacheGlobals()
 
