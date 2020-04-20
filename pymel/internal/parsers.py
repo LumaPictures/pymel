@@ -588,6 +588,23 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
                    'MString', 'MStringArray', 'MStatus']
     NOT_TYPES = ['MCallbackId']
 
+    SKIP_PARSING_CLASSES = {
+        # Not wrapped, and many funcs don't have names for params
+        'MGLFunctionTable',
+    }
+
+    SKIP_PARSING_METHODS = {
+        # Not documented anywhere at all, so presumably private, and no name
+        # available for params
+        ('MFnBase', 'objectChanged'),
+        ('MFnFluid', 'objectChanged'),
+        ('MFnLattice', 'objectChanged'),
+        ('MFnNurbsCurve', 'objectChanged'),
+        ('MFnNurbsSurface', 'objectChanged'),
+        ('MFnParticleSystem', 'objectChanged'),
+        ('MFnTransform', 'objectChanged'),
+    }
+
     _anonymousEnumRe = re.compile(r'^@[0-9]+$')
     _bracketRe = re.compile(r'\[|\]')
     _capitalizedWithNumsRe = re.compile('([A-Z0-9][a-z0-9]*)')
@@ -978,6 +995,9 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         if methodName is None:
             return
 
+        if (self.apiClassName, methodName) in self.SKIP_PARSING_METHODS:
+            return
+
         # Old html parser filtered these from returnQualifiers, so we enforce
         # this too, for consistency
         returnInfo.typeQualifiers = [x for x in returnInfo.typeQualifiers
@@ -1115,6 +1135,10 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         _logger.info("parsing file %s", self.docfile)
 
     def parse(self, apiClassName):
+        if (apiClassName.startswith('MPx')
+                or apiClassName in self.SKIP_PARSING_CLASSES):
+            return None
+
         self.setClass(apiClassName)
         try:
             self.parseBody()

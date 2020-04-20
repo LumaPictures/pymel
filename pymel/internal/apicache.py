@@ -1327,25 +1327,32 @@ class ApiCache(BaseApiClassInfoCache):
                               docLocation=self.docLocation, strict=self.strict)
 
         for name, obj in inspect.getmembers(api, lambda x: type(x) == type and x.__name__.startswith('M')):
-            if not name.startswith('MPx'):
-                try:
-                    info = parser.parse(name)
-                    self.apiClassInfo[name] = info
-                except (IOError, OSError, ValueError, IndexError) as e:
-                    import errno
-                    baseMsg = "failed to parse docs for %r:" % name
-                    if isinstance(e, (IOError, OSError)) and e.errno == errno.ENOENT:
-                        # If we couldn't parse because we couldn't find the
-                        # file, only raise a warning... there are many classes
-                        # (ie, MClothTriangle) that don't have a doc page...
-                        _logger.warning(baseMsg)
-                        _logger.warning("%s: %s" % (name, e))
-                    else:
-                        if self.strict:
-                            raise
-                        import traceback
-                        _logger.error(baseMsg)
-                        _logger.error(traceback.format_exc())
+            try:
+                info = parser.parse(name)
+                if info is None:
+                    # None is returned to signal class should be skipped
+                    continue
+                elif info is None:
+                    # This is an unknown error / bug
+                    raise RuntimeError(
+                        "ApiDocParser.parse should either return a valid"
+                        "info dict or ApiDocParseSkip, not None")
+                self.apiClassInfo[name] = info
+            except (IOError, OSError, ValueError, IndexError) as e:
+                import errno
+                baseMsg = "failed to parse docs for %r:" % name
+                if isinstance(e, (IOError, OSError)) and e.errno == errno.ENOENT:
+                    # If we couldn't parse because we couldn't find the
+                    # file, only raise a warning... there are many classes
+                    # (ie, MClothTriangle) that don't have a doc page...
+                    _logger.warning(baseMsg)
+                    _logger.warning("%s: %s" % (name, e))
+                else:
+                    if self.strict:
+                        raise
+                    import traceback
+                    _logger.error(baseMsg)
+                    _logger.error(traceback.format_exc())
 
         _logger.debug("...finished ApiCache._buildApiClassInfo")
 
