@@ -566,6 +566,19 @@ class ParamInfo(object):
     def doc(self, rawVal):
         self._doc = standardizeWhitespace(rawVal)
 
+    def qualifiedTypeName(self):
+        if not self.type:
+            raise ValueError('No type specified')
+        parts = [str(self.type)]
+        for qual in self.typeQualifiers:
+            if qual == 'unsigned':
+                parts.insert(0, 'unsigned ')
+            elif qual == 'const':
+                parts.append(' const')
+            else:
+                parts.append(qual)
+        return ''.join(parts)
+
 
 class ApiDocParser(with_metaclass(ABCMeta, object)):
     NO_PYTHON_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
@@ -705,10 +718,14 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
 
         return cached_getter
 
-    def fullMethodName(self):
+    def fullMethodName(self, paramInfos=None):
         className = self.apiClassName or "<no class>"
         methodName = self.currentMethodName or "<no method>"
-        return className + '.' + methodName
+        result = className + '.' + methodName
+        if paramInfos:
+            types = ', '.join(x.qualifiedTypeName() for x in paramInfos)
+            result = '{}({})'.format(result, types)
+        return result
 
     def formatMsg(self, *args):
         return self.fullMethodName() + ': ' + ' '.join([str(x) for x in args])
@@ -1213,9 +1230,9 @@ class XmlApiDocParser(ApiDocParser):
     _backslashTagRe = re.compile(r'(?:^|(?<=\s))\\(\S+)(?:$|\s+)', re.MULTILINE)
     _paramDirRe = re.compile(r'^param\[(?P<dir>in|out|in,out|inout)\]$')
 
-    def fullMethodName(self):
-        fullName = super(XmlApiDocParser, self).fullMethodName()
-        if self.currentRawMethod is not None:
+    def fullMethodName(self, paramInfos=None):
+        fullName = super(XmlApiDocParser, self).fullMethodName(paramInfos)
+        if not paramInfos and self.currentRawMethod is not None:
             line = ''
             location = self.currentRawMethod.find('location')
             if location is not None:
@@ -1769,29 +1786,26 @@ class XmlApiDocParser(ApiDocParser):
             assert oldParam.name
             oldParam.doc = newParam.doc
 
-            def methodNameWithArgs():
-                argNames = ', '.join(x.name for x in oldParamInfos)
-                return "{}.{}({})".format(self.apiClassName,
-                                          self.currentMethodName, argNames)
-
+            fullName = self.fullMethodName(oldParamInfos)
             if newParam.direction == 'in':
+
                 # attempt to correct bad in/out docs
                 if self._fillStorageResultRe.search(newParam.doc):
                     _logger.warn(
                         "{}: Correcting suspected output argument '{}' based on doc '{}'".format(
-                        methodNameWithArgs(), newParam.name, newParam.doc))
+                        fullName, newParam.name, newParam.doc))
                     newParam.direction = 'out'
                 elif not self.isSetMethod() and '&' in oldParam.typeQualifiers \
                         and oldParam.type in ['int', 'double', 'float', 'uint', 'uchar']:
                     _logger.warn(
                         "{}: Correcting suspected output argument '{}' based on reference type '{} &' ('{}')".format(
-                        methodNameWithArgs(), newParam.name, oldParam.type, newParam.doc))
+                        fullName, newParam.name, oldParam.type, newParam.doc))
                     newParam.direction = 'out'
             elif newParam.direction == 'out':
                 if oldParam.type == 'MAnimCurveChange':
                     _logger.warn(
                         "{}: Setting MAnimCurveChange argument '{}' to an input arg (instead of output)".format(
-                        methodNameWithArgs(), newParam.name))
+                        fullName, newParam.name))
                     newParam.direction = 'in'
             elif newParam.direction in ('in,out', 'inout'):
                 # it makes the most sense to treat these types as inputs
