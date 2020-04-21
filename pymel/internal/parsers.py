@@ -602,8 +602,11 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
     NOT_TYPES = ['MCallbackId']
 
     SKIP_PARSING_CLASSES = {
-        # Not wrapped, and many funcs don't have names for params
+        # These functions had one or more problematic methods, and they're not
+        # wrapped
         'MGLFunctionTable',
+        'MGlobal',
+        'MSceneMessage',
     }
 
     SKIP_PARSING_METHODS = {
@@ -635,6 +638,22 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
     PY_OPERATOR_DEFAULT_NAMES = {val: 'other' for (key, val)
                                  in CPP_OPERATOR_TO_PY.items()}
     PY_OPERATOR_DEFAULT_NAMES['__getitem__'] = 'key'
+
+    # Newer versions of maya are missing <defname> tags in the xmls for many
+    # classes; hardcode these to prevent parsing problems / changes in param
+    # names
+    DEFNAMES = {
+        'MColor.get(MColor.MColorType, float&, float&, float&)': [
+            'colorModel', 'c1', 'c2', 'c3'],
+        'MColor.get(MColor.MColorType, float&, float&, float&, float&)': [
+            'colorModel', 'c1', 'c2', 'c3', 'alpha'],
+        'MTransformationMatrix.getRotation(double__array3, MTransformationMatrix.RotationOrder&)': [
+            'rot', 'order'],
+        'MTransformationMatrix.getRotation(double__array3, MTransformationMatrix.RotationOrder&, MSpace.Space)': [
+            'rot', 'order', 'space'],
+        'MTransformationMatrix.setRotation(double__array3 const, MTransformationMatrix.RotationOrder, MSpace.Space)' : [
+            'rot', 'order', 'space'],
+    }
 
     _anonymousEnumRe = re.compile(r'^@[0-9]+$')
     _bracketRe = re.compile(r'\[|\]')
@@ -1544,11 +1563,6 @@ class XmlApiDocParser(ApiDocParser):
             for paramList in detail.findall(".//parameterlist[@kind='param']"):
                 paramDescriptions.extend(paramList.findall('parameteritem'))
 
-        if len(paramDescriptions) > len(oldParamInfos):
-            msg = "found more ({}) parameter descriptions than parameter declarations ({})".format(
-                len(paramDescriptions), len(oldParamInfos))
-            raise ValueError(self.formatMsg(msg))
-
         paramElemsAndInfos = []
         paramsByName = {}
         for paramElem in paramDescriptions:
@@ -1564,6 +1578,20 @@ class XmlApiDocParser(ApiDocParser):
             paramInfo = ParamInfo(name, doc=doc, direction=direction)
             paramsByName[name] = paramInfo
             paramElemsAndInfos.append((paramElem, paramInfo))
+
+        if len(paramDescriptions) > len(oldParamInfos):
+            # make sure there isn't an extra MStatus throwing things off - this
+            # happened in, ie, MDagPath::matchTransform
+            if (len(paramDescriptions) == len(oldParamInfos) + 1
+                    and paramElemsAndInfos[-1][1].defName == 'ReturnStatus'):
+                del paramsByName['ReturnStatus']
+                del paramDescriptions[-1]
+                del paramElemsAndInfos[-1]
+            else:
+                msg = "found more ({}) parameter descriptions than parameter " \
+                      "declarations ({})".format(
+                    len(paramDescriptions), len(oldParamInfos))
+                raise ValueError(self.formatMsg(msg))
 
         paramsByPosition = []
 
@@ -1820,6 +1848,13 @@ class XmlApiDocParser(ApiDocParser):
             else:
                 oldParam.direction = newParam.direction
 
+        methodSignature = self.fullMethodName(oldParamInfos)
+        bakedDefNames = self.DEFNAMES.get(methodSignature)
+        if bakedDefNames:
+            assert len(bakedDefNames) == len(oldParamInfos)
+            for param, defName in zip(oldParamInfos, bakedDefNames):
+                param.defName = defName
+
         noNames = [i for i, param in enumerate(oldParamInfos) if not param.name]
         if noNames:
             defaultName = self.PY_OPERATOR_DEFAULT_NAMES.get(
@@ -1832,6 +1867,7 @@ class XmlApiDocParser(ApiDocParser):
                 raise MethodParseError(self.formatMsg(msg))
 
         return oldParamInfos, returnInfo
+
 
     def getMethodNameAndOutput(self):
         methodName = self.currentRawMethod.find("name").text
