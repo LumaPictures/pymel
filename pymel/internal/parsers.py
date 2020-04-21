@@ -601,12 +601,28 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
                    'MString', 'MStringArray', 'MStatus']
     NOT_TYPES = ['MCallbackId']
 
-    SKIP_PARSING_CLASSES = {
-        # These functions had one or more problematic methods, and they're not
-        # wrapped
-        'MGLFunctionTable',
-        'MGlobal',
-        'MSceneMessage',
+    NON_MFN_FULL_PARSE_CLASSES = {
+        'MAngle',
+        'MBoundingBox',
+        'MColor',
+        'MDistance',
+        'MEulerRotation',
+        'MFloatMatrix',
+        'MFloatPoint',
+        'MFloatVector',
+        'MItCurveCV',
+        'MItMeshEdge',
+        'MItMeshPolygon',
+        'MItMeshVertex',
+        'MMatrix',
+        'MPlug',
+        'MPoint',
+        'MQuaternion',
+        'MSelectionList',
+        'MSpace',
+        'MTime',
+        'MTransformationMatrix',
+        'MVector',
     }
 
     SKIP_PARSING_METHODS = {
@@ -712,6 +728,19 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
                                                  self.enumClass.__module__,
                                                  self.enumClass.__name__,
                                                  self.docloc)
+
+    @classmethod
+    def shouldSkip(cls, apiClsName):
+        # in theroy, we could move these into shoudParseEnumOnly, but
+        # traditionally these were always skipped, and see no reason to increase
+        # the sizes of the caches...
+        return apiClsName.startswith('MPx')
+
+    @classmethod
+    def shouldParseEnumOnly(cls, apiClsName):
+        if apiClsName.startswith('MFn'):
+            return False
+        return apiClsName not in cls.NON_MFN_FULL_PARSE_CLASSES
 
     # We use a property here just to make sure that _methodCache is cleared
     # when method changes
@@ -1072,6 +1101,11 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         return result
 
     def _parseMethod(self, returnInfo):
+        # There's no central point (in both Html and Xml) before here where
+        # we know it's not an enum... so we do the check here
+        if self.shouldParseEnumOnly(self.apiClassName):
+            return
+
         self.xprint("RETURN", returnInfo.type)
 
         if self.hasNoPython():
@@ -1178,10 +1212,6 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         _logger.info("parsing file %s", self.docfile)
 
     def parse(self, apiClassName):
-        if (apiClassName.startswith('MPx')
-                or apiClassName in self.SKIP_PARSING_CLASSES):
-            return None
-
         self.setClass(apiClassName)
         try:
             self.parseBody()
@@ -1190,7 +1220,10 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             print(self.formatMsg("Unknown error"))
             raise
 
-        pymelNames, invertibles = self.getPymelMethodNames()
+        pymelNames = invertibles = None
+        if not self.shouldParseEnumOnly(apiClassName):
+            pymelNames, invertibles = self.getPymelMethodNames()
+
         parsed = {
             'methods': dict(self.methods),
             'enums': self.enums,
@@ -1889,6 +1922,13 @@ class XmlApiDocParser(ApiDocParser):
 
         for enumFunc in self.cdef.findall("./*/memberdef[@kind='function'][name='OPENMAYA_ENUM']"):
             self.parseEnum(enumFunc)
+
+        # This is an optimization - _parseMethod will skip all functions if
+        # shouldParseEnumOnly is True, but if we exit here, we can save some
+        # time (and potentially avoid some errors). Sadly, Html parser can't
+        # do a similar early exit
+        if self.shouldParseEnumOnly(self.apiClassName):
+            return
 
         for func in self.cdef.findall("./*/memberdef[@kind='function']"):
             # skip OPENMAYA_ENUM, those are handled by parseEnum, above

@@ -1327,16 +1327,12 @@ class ApiCache(BaseApiClassInfoCache):
                               docLocation=self.docLocation, strict=self.strict)
 
         for name, obj in inspect.getmembers(api, lambda x: type(x) == type and x.__name__.startswith('M')):
+            if parser.shouldSkip(name):
+                continue
             try:
                 info = parser.parse(name)
-                if info is None:
-                    # None is returned to signal class should be skipped
-                    continue
-                elif info is None:
-                    # This is an unknown error / bug
-                    raise RuntimeError(
-                        "ApiDocParser.parse should either return a valid"
-                        "info dict or ApiDocParseSkip, not None")
+                if not isinstance(info, dict):
+                    raise RuntimeError("ApiDocParser.parse must return a dict")
                 self.apiClassInfo[name] = info
             except (IOError, OSError, ValueError, IndexError) as e:
                 import errno
