@@ -4,6 +4,7 @@ import os
 import re
 import types
 
+import pymel.internal.parsers as parsers
 import pymel.internal.startup
 import pymel.util.arguments as arguments
 
@@ -13,14 +14,37 @@ cachedir = r'D:\Projects\Dev\pymel\pymel\cache'
 
 names = {
     'old': 'mayaApi2020.py',
-    'new': 'mayaApi2021.py',
+    'new': 'mayaApi2020.new.py',
 }
+
+def preprocess(cache):
+    apiClassInfo = cache[-1]
+    # remove skipped entries
+    for clsname in parsers.XmlApiDocParser.SKIP_PARSING_CLASSES:
+        apiClassInfo.pop(clsname, None)
+    for clsname, methName in parsers.XmlApiDocParser.SKIP_PARSING_METHODS:
+        apiClassInfo.get(clsname, {})['methods'].pop(methName, None)
+
+    for clsInfo in apiClassInfo.values():
+        for overloads in clsInfo['methods'].values():
+            for methInfo in overloads:
+                argInfo = methInfo['argInfo']
+                quals = methInfo.get('typeQualifiers', {})
+                for argName, argQuals in list(quals.items()):
+                    if argName not in argInfo or not argQuals:
+                        del quals[argName]
+
+    return cache
 
 caches = {}
 for key, cachename in names.items():
     cachepath = os.path.join(cachedir, cachename)
     cache_globals = {}
     data = pymel.internal.startup._pyload(cachepath)
+    data = preprocess(data)
+    cachepath_namebase, cachepath_ext = os.path.splitext(cachepath)
+    preprocessed_path = cachepath_namebase + '.preprocessed' + cachepath_ext
+    pymel.internal.startup._pydump(data, preprocessed_path)
     caches[key] = data
 
 # we only care about the diffs of the classInfo
@@ -194,28 +218,28 @@ for clsname, clsDiffs in diffs.items():
 
 # KNOWN PROBLEMS
 
-KNOWN_PROBLEMS = [
-    # These methods got removed - need to figure out why
-    ('MEulerRotation', 'methods', '__imul__'),
-    ('MEulerRotation', 'methods', '__mul__'),
-    ('MTime', 'methods', '__imul__'),
-    ('MTime', 'methods', '__isub__'),
-    ('MTime', 'methods', '__mul__'),
-    ('MTime', 'methods', '__ne__'),
-    ('MTime', 'methods', '__sub__'),
-]
-
-for probKey in KNOWN_PROBLEMS:
-    dictsAndKeys = []
-    currentItem = diffs
-    for piece in probKey:
-        dictsAndKeys.append((currentItem, piece))
-        currentItem = currentItem[piece]
-
-    for currentItem, piece in reversed(dictsAndKeys):
-        del currentItem[piece]
-        if currentItem:
-            break
+# KNOWN_PROBLEMS = [
+#     # These methods got removed - need to figure out why
+#     ('MEulerRotation', 'methods', '__imul__'),
+#     ('MEulerRotation', 'methods', '__mul__'),
+#     ('MTime', 'methods', '__imul__'),
+#     ('MTime', 'methods', '__isub__'),
+#     ('MTime', 'methods', '__mul__'),
+#     ('MTime', 'methods', '__ne__'),
+#     ('MTime', 'methods', '__sub__'),
+# ]
+#
+# for probKey in KNOWN_PROBLEMS:
+#     dictsAndKeys = []
+#     currentItem = diffs
+#     for piece in probKey:
+#         dictsAndKeys.append((currentItem, piece))
+#         currentItem = currentItem[piece]
+#
+#     for currentItem, piece in reversed(dictsAndKeys):
+#         del currentItem[piece]
+#         if currentItem:
+#             break
 
 ################################################################################
 
@@ -248,9 +272,14 @@ def pruneEmpty(diffs):
 # print(afterPrune)
 diffs = pruneEmpty(diffs)
 diff_classes = sorted(diffs)
-print(diff_classes)
-print(len(diffs))
 
+print('###########')
+print("Num diffs: {}".format(len(diffs)))
+print('###########')
+print("diff_classes:")
+for cls in diff_classes:
+    print("  " + str(cls))
 print('###########')
 print(diff_classes[0])
 pprint(diffs[diff_classes[0]])
+print('###########')
