@@ -345,6 +345,31 @@ for clsDiff in diffs.values():
 
 ################################################################################
 
+# Can ignore
+
+def delDiff(multiKey):
+    dictsAndKeys = []
+    currentItem = diffs
+    for piece in multiKey:
+        dictsAndKeys.append((currentItem, piece))
+        currentItem = currentItem[piece]
+
+    for currentItem, piece in reversed(dictsAndKeys):
+        del currentItem[piece]
+        if currentItem:
+            break
+
+KNOWN_IGNORABLE = [
+    # MFn.Type has a bunch of changes each year...
+    ('MFn', 'enums', 'Type'),
+    ('MFn', 'pymelEnums', 'Type'),
+]
+
+for multiKey in KNOWN_IGNORABLE:
+    delDiff(multiKey)
+
+################################################################################
+
 # KNOWN PROBLEMS
 
 KNOWN_PROBLEMS = [
@@ -366,17 +391,9 @@ KNOWN_PROBLEMS = [
     ('MTime', 'methods', '__sub__'),
 ]
 
-for probKey in KNOWN_PROBLEMS:
-    dictsAndKeys = []
-    currentItem = diffs
-    for piece in probKey:
-        dictsAndKeys.append((currentItem, piece))
-        currentItem = currentItem[piece]
+for multiKey in KNOWN_PROBLEMS:
+    delDiff(multiKey)
 
-    for currentItem, piece in reversed(dictsAndKeys):
-        del currentItem[piece]
-        if currentItem:
-            break
 
 ################################################################################
 
