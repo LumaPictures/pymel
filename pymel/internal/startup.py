@@ -673,50 +673,65 @@ class PymelCache(object):
         on disk, do it here'''
         return data
 
-    def read(self, ext=None, ignoreError=False):
-        if ext is not None:
-            formats = [self.EXTENSIONS[ext]]
-        else:
+    def read(self, path=None, ext=None, ignoreError=False):
+        if path is not None and ext is None:
+            ext = os.path.splitext(path)[1]
+            if not ext:
+                ext = None
+        if ext is None:
             formats = self.FORMATS
+        else:
+            formats = [self.EXTENSIONS[ext]]
+
         for format in formats:
-            newPath = self.path(ext=format.ext)
-            if not os.path.isfile(newPath):
-                _logger.debug(self._actionMessage('Unable to open', 'from nonexistant path', newPath))
+            # if the user provided an explicit ext (or path with ext), we want
+            # to use that EXACTLY (ie, might differ in case) - otherwise, we
+            # use the standard ext from format.ext
+            if path is not None:
+                formatPath = path
+            else:
+                formatPath = self.path(ext=format.ext)
+
+            if not os.path.isfile(formatPath):
+                _logger.debug(self._actionMessage('Unable to open', 'from nonexistant path', formatPath))
                 continue
 
             func = format.reader
-            _logger.debug(self._actionMessage('Loading', 'from', newPath))
+            _logger.debug(self._actionMessage('Loading', 'from', formatPath))
             try:
-                finalData = self.fromRawData(func(newPath))
+                finalData = self.fromRawData(func(formatPath))
             except Exception as e:
-                self._errorMsg('read', 'from', newPath, e)
+                self._errorMsg('read', 'from', formatPath, e)
                 if not ignoreError:
                     raise
             else:
-                self._lastReadPath = newPath
+                self._lastReadPath = formatPath
                 return finalData
 
-    def write(self, data, ext=None, ignoreError=False):
+    def write(self, data, path=None, ext=None, ignoreError=False):
         import copy
         # when writing data, we dont' actually want to modify the passed in
         # data, as it may be in use... so we make a deepcopy
         data = copy.deepcopy(data)
 
-        if ext is None:
+        if path is not None and ext is None:
+            ext = os.path.splitext(path)[1]
+        if not ext:
             ext = self.DEFAULT_EXT
-        newPath = self.path(ext=ext)
+        if not path:
+            path = self.path(ext=ext)
         format = self.EXTENSIONS[ext]
         func = format.writer
-        _logger.info(self._actionMessage('Saving', 'to', newPath))
+        _logger.info(self._actionMessage('Saving', 'to', path))
 
         try:
-            func(self.toRawData(data), newPath)
+            func(self.toRawData(data), path)
         except Exception as e:
-            self._errorMsg('write', 'to', newPath, e)
+            self._errorMsg('write', 'to', path, e)
             if not ignoreError:
                 raise
         else:
-            self._lastWritePath = newPath
+            self._lastWritePath = path
 
     @universalmethod
     def path(self, version=None, ext=None):
