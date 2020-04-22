@@ -11,6 +11,8 @@ import pymel.util.arguments as arguments
 
 from pprint import pprint
 
+from pymel.util.enum import Enum
+
 cachedir = r'D:\Projects\Dev\pymel\pymel\cache'
 
 names = {
@@ -205,6 +207,35 @@ for clsname, clsDiffs in diffs.items():
     if not clsDiffs:
         del diffs[clsname]
 
+################################################################################
+# Enums that have new values added are ok
+def enums_with_new_values(input):
+    if not isinstance(input, arguments.ChangedKey):
+        return False
+    oldVal = input.oldVal
+    newVal = input.newVal
+    if not (isinstance(oldVal, Enum) and isinstance(newVal, Enum)):
+        return False
+    if oldVal.name != newVal.name:
+        return False
+    oldKeys = set(oldVal._keys)
+    newKeys = set(newVal._keys)
+    if not newKeys.issuperset(oldKeys):
+        return False
+    onlyNewKeys = newKeys - oldKeys
+    prunedNewKeyDict = dict(newVal._keys)
+    prunedNewDocDict = dict(newVal._docs)
+    for k in onlyNewKeys:
+        del prunedNewKeyDict[k]
+        prunedNewDocDict.pop(k, None)
+    if not prunedNewKeyDict == oldVal._keys:
+        return False
+    if not prunedNewDocDict == oldVal._docs:
+        return False
+    return True
+
+
+arguments.deepPatchAltered(diffs, enums_with_new_values, returnNone)
 ################################################################################
 
 # new methods are ok
