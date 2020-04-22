@@ -144,6 +144,26 @@ arguments.deepPatchAltered(diffs, hasLongerDoc, removeDocDiff)
 
 ################################################################################
 
+# It's ok if the doc is now shorter, if it seems to have been truncated at a
+# sentence end.
+def wasTrimmedToSentence(arg):
+    if not isinstance(arg, dict):
+        return False
+    doc = arg.get('doc')
+    if not doc:
+        return False
+    if isinstance(doc, ChangedKey):
+        if not doc.oldVal.startswith(doc.newVal):
+            return False
+        if not doc.newVal.endswith('.'):
+            return False
+        return doc.oldVal[len(doc.newVal)] == ' '
+    return False
+
+arguments.deepPatchAltered(diffs, wasTrimmedToSentence, removeDocDiff)
+
+################################################################################
+
 # ignore changes in only capitalization or punctuation
 # ...also strip out any "\\li " or <b>/</b> items
 # ...or whitespace length...
