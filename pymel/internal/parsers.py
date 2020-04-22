@@ -520,7 +520,7 @@ class ParamInfo(object):
                  'direction', '_doc')
 
     def __init__(self, defName=None, declName=None, type=None,
-                 typeQualifiers=(), default=NO_DEFAULT, direction=None, doc=''):
+                 typeQualifiers=(), default=NO_DEFAULT, direction='in', doc=''):
         self.defName = defName
         self.declName = declName
         self.type = type
@@ -1124,10 +1124,6 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             return
 
         paramInfos = [x for x in paramInfos if x.type != 'MStatus']
-        for param in paramInfos:
-            if not param.direction:
-                self.xprint("Warning: assuming direction is 'in'")
-                param.direction = 'in'
 
         # correct bad outputs
         if self.isGetMethod() and not returnInfo.type \
@@ -1836,6 +1832,16 @@ class XmlApiDocParser(ApiDocParser):
         assert (not paramsByPosition
                 or len(paramsByPosition) == len(oldParamInfos))
 
+        methodSignature = self.fullMethodName(oldParamInfos)
+        bakedDefNames = self.DEFNAMES.get(methodSignature)
+        if bakedDefNames:
+            assert len(bakedDefNames) == len(oldParamInfos)
+            for param, defName in zip(oldParamInfos, bakedDefNames):
+                param.defName = defName
+            if not(paramsByPosition):
+                # do this so the arg direction correction code will run
+                paramsByPosition = list(oldParamInfos)
+
         # all the newParams and oldParams should line up now - go through
         # and fill in all oldParams with names, directions, and docs from
         # newParams
@@ -1875,18 +1881,7 @@ class XmlApiDocParser(ApiDocParser):
             elif newParam.direction is not None:
                 raise ValueError("direction must be either 'in', 'out', 'inout', or 'in,out'. got {!r}".format(newParam.direction))
 
-            if oldParam.direction:
-                assert not newParam.direction \
-                       or newParam.direction == oldParam.direction
-            else:
-                oldParam.direction = newParam.direction
-
-        methodSignature = self.fullMethodName(oldParamInfos)
-        bakedDefNames = self.DEFNAMES.get(methodSignature)
-        if bakedDefNames:
-            assert len(bakedDefNames) == len(oldParamInfos)
-            for param, defName in zip(oldParamInfos, bakedDefNames):
-                param.defName = defName
+            oldParam.direction = newParam.direction
 
         noNames = [i for i, param in enumerate(oldParamInfos) if not param.name]
         if noNames:
