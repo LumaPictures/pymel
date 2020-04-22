@@ -14,14 +14,17 @@ cachedir = r'D:\Projects\Dev\pymel\pymel\cache'
 
 names = {
     'old': 'mayaApi2020.py',
-    'new': 'mayaApi2020.new.py',
+    'new': 'mayaApi2021.py',
 }
+
+DO_PREPROCESS = False
 
 def preprocess(cache):
     apiClassInfo = cache[-1]
     # remove skipped entries
-    for clsname in parsers.XmlApiDocParser.SKIP_PARSING_CLASSES:
-        apiClassInfo.pop(clsname, None)
+    for clsname in list(apiClassInfo):
+        if parsers.ApiDocParser.shouldSkip(clsname):
+            apiClassInfo.pop(clsname, None)
     for clsname, methName in parsers.XmlApiDocParser.SKIP_PARSING_METHODS:
         apiClassInfo.get(clsname, {})['methods'].pop(methName, None)
 
@@ -41,10 +44,11 @@ for key, cachename in names.items():
     cachepath = os.path.join(cachedir, cachename)
     cache_globals = {}
     data = pymel.internal.startup._pyload(cachepath)
-    data = preprocess(data)
-    cachepath_namebase, cachepath_ext = os.path.splitext(cachepath)
-    preprocessed_path = cachepath_namebase + '.preprocessed' + cachepath_ext
-    pymel.internal.startup._pydump(data, preprocessed_path)
+    if DO_PREPROCESS:
+        data = preprocess(data)
+        cachepath_namebase, cachepath_ext = os.path.splitext(cachepath)
+        preprocessed_path = cachepath_namebase + '.preprocessed' + cachepath_ext
+        pymel.internal.startup._pydump(data, preprocessed_path)
     caches[key] = data
 
 # we only care about the diffs of the classInfo
@@ -216,30 +220,124 @@ for clsname, clsDiffs in diffs.items():
 
 ################################################################################
 
+# new classes are ok
+for clsname, clsDiffs in list(diffs.items()):
+    if isinstance(clsDiffs, arguments.AddedKey):
+        del diffs[clsname]
+
+################################################################################
+
+# Lost docs
+
+# these params or methods no longer have documentation in the xml... not great,
+# but nothing the xml parser can do about that
+
+# LOST_ALL_DETAIL_DOCS = {
+#     ('MColor', 'methods', 'get', 1,),
+#     ('MColor', 'methods', 'get', 2,),
+# }
+#
+# for multiKey in LOST_ALL_DETAIL_DOCS:
+#     try:
+#         overloadInfo = arguments.getCascadingDictItem(diffs, multiKey)
+#     except KeyError:
+#         continue
+#     if not isinstance(overloadInfo, dict):
+#         continue
+#
+#     # deal with missing returnInfo doc
+#     returnInfo = overloadInfo.get('returnInfo')
+#     if isinstance(returnInfo, dict):
+#         doc = returnInfo.get('doc')
+#         if (isinstance(doc, arguments.RemovedKey)
+#                 or (isinstance(doc, arguments.ChangedKey)
+#                     and not doc.newVal)):
+#             del returnInfo['doc']
+#
+#     # deal with missing param docs
+#     argInfo = overloadInfo.get('argInfo')
+#     if not isinstance(argInfo, dict):
+#         continue
+#     for argName, argDiff in argInfo.items():
+#         if not isinstance(argDiff, dict):
+#             continue
+#         doc = argDiff.get('doc')
+#         if (isinstance(doc, arguments.RemovedKey)
+#                 or (isinstance(doc, arguments.ChangedKey)
+#                     and not doc.newVal)):
+#             del argDiff['doc']
+
+# Temp - ignore all doc deletion diffs
+
+for clsDiff in diffs.values():
+    if not isinstance(clsDiff, dict):
+        continue
+    methods = clsDiff.get('methods')
+    if not isinstance(methods, dict):
+        continue
+    for methodsDiff in methods.values():
+        if not isinstance(methodsDiff, dict):
+            continue
+        for overloadDiff in methodsDiff.values():
+            if not isinstance(overloadDiff, dict):
+                continue
+            # ignore method doc removal
+            doc = overloadDiff.get('doc')
+            if (isinstance(doc, arguments.RemovedKey)
+                    or (isinstance(doc, arguments.ChangedKey)
+                        and not doc.newVal)):
+                del overloadDiff['doc']
+
+            # ignore returnInfo doc removal
+            returnInfo = overloadDiff.get('returnInfo')
+            if isinstance(returnInfo, dict):
+                doc = returnInfo.get('doc')
+                if (isinstance(doc, arguments.RemovedKey)
+                        or (isinstance(doc, arguments.ChangedKey)
+                            and not doc.newVal)):
+                    del returnInfo['doc']
+
+            # ignore param doc removal
+            argInfo = overloadDiff.get('argInfo')
+            if not isinstance(argInfo, dict):
+                continue
+            for argName, argDiff in argInfo.items():
+                if not isinstance(argDiff, dict):
+                    continue
+                doc = argDiff.get('doc')
+                if (isinstance(doc, arguments.RemovedKey)
+                        or (isinstance(doc, arguments.ChangedKey)
+                            and not doc.newVal)):
+                    del argDiff['doc']
+
+################################################################################
+
 # KNOWN PROBLEMS
 
-# KNOWN_PROBLEMS = [
-#     # These methods got removed - need to figure out why
-#     ('MEulerRotation', 'methods', '__imul__'),
-#     ('MEulerRotation', 'methods', '__mul__'),
-#     ('MTime', 'methods', '__imul__'),
-#     ('MTime', 'methods', '__isub__'),
-#     ('MTime', 'methods', '__mul__'),
-#     ('MTime', 'methods', '__ne__'),
-#     ('MTime', 'methods', '__sub__'),
-# ]
-#
-# for probKey in KNOWN_PROBLEMS:
-#     dictsAndKeys = []
-#     currentItem = diffs
-#     for piece in probKey:
-#         dictsAndKeys.append((currentItem, piece))
-#         currentItem = currentItem[piece]
-#
-#     for currentItem, piece in reversed(dictsAndKeys):
-#         del currentItem[piece]
-#         if currentItem:
-#             break
+KNOWN_PROBLEMS = [
+    # These methods got removed - need to figure out why
+    ('MColor', 'methods', '__imul__'),
+    ('MColor', 'methods', '__mul__'),
+    ('MEulerRotation', 'methods', '__imul__'),
+    ('MEulerRotation', 'methods', '__mul__'),
+    ('MTime', 'methods', '__imul__'),
+    ('MTime', 'methods', '__isub__'),
+    ('MTime', 'methods', '__mul__'),
+    ('MTime', 'methods', '__ne__'),
+    ('MTime', 'methods', '__sub__'),
+]
+
+for probKey in KNOWN_PROBLEMS:
+    dictsAndKeys = []
+    currentItem = diffs
+    for piece in probKey:
+        dictsAndKeys.append((currentItem, piece))
+        currentItem = currentItem[piece]
+
+    for currentItem, piece in reversed(dictsAndKeys):
+        del currentItem[piece]
+        if currentItem:
+            break
 
 ################################################################################
 
