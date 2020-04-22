@@ -12,6 +12,7 @@ import pymel.util.arguments as arguments
 from pprint import pprint
 
 from pymel.util.enum import Enum
+from pymel.util.arguments import AddedKey, ChangedKey, RemovedKey
 
 cachedir = r'D:\Projects\Dev\pymel\pymel\cache'
 
@@ -86,7 +87,7 @@ for clsname, clsDiffs in diffs.items():
         continue
     for overloadIndex, overloadDiffs in methodDiffs.iteritems():
         docDiff = overloadDiffs.get('doc')
-        if docDiff and isinstance(docDiff, arguments.ChangedKey):
+        if docDiff and isinstance(docDiff, ChangedKey):
             if set([
                         docDiff.oldVal.lower().rstrip('.'),
                         docDiff.newVal.lower().rstrip('.'),
@@ -96,7 +97,7 @@ for clsname, clsDiffs in diffs.items():
                     ]):
                 del overloadDiffs['doc']
         staticDiff = overloadDiffs.get('static')
-        if (isinstance(staticDiff, arguments.ChangedKey)
+        if (isinstance(staticDiff, ChangedKey)
                 and not staticDiff.oldVal
                 and staticDiff.newVal):
             del overloadDiffs['static']
@@ -110,9 +111,9 @@ def hasNewDoc(arg):
     doc = arg.get('doc')
     if not doc:
         return False
-    if isinstance(doc, arguments.AddedKey):
+    if isinstance(doc, AddedKey):
         return True
-    if isinstance(doc, arguments.ChangedKey):
+    if isinstance(doc, ChangedKey):
         if not doc.oldVal:
             return True
     return False
@@ -132,7 +133,7 @@ def hasLongerDoc(arg):
     doc = arg.get('doc')
     if not doc:
         return False
-    if isinstance(doc, arguments.ChangedKey):
+    if isinstance(doc, ChangedKey):
         if not doc.newVal.startswith(doc.oldVal):
             return False
         extraDoc = doc.newVal[len(doc.oldVal):]
@@ -162,7 +163,7 @@ def normalize_str(input):
     return result
 
 def same_after_normalize(input):
-    if not isinstance(input, arguments.ChangedKey):
+    if not isinstance(input, ChangedKey):
         return False
     if not isinstance(input.oldVal, basestring) or not isinstance(input.newVal, basestring):
         return False
@@ -210,7 +211,7 @@ for clsname, clsDiffs in diffs.items():
 ################################################################################
 # Enums that have new values added are ok
 def enums_with_new_values(input):
-    if not isinstance(input, arguments.ChangedKey):
+    if not isinstance(input, ChangedKey):
         return False
     oldVal = input.oldVal
     newVal = input.newVal
@@ -248,14 +249,14 @@ for clsname, clsDiffs in diffs.items():
     to_remove = []
     for methodName in list(methods):
         methodDiff = methods[methodName]
-        if isinstance(methodDiff, arguments.AddedKey):
+        if isinstance(methodDiff, AddedKey):
             del methods[methodName]
 
 ################################################################################
 
 # new classes are ok
 for clsname, clsDiffs in list(diffs.items()):
-    if isinstance(clsDiffs, arguments.AddedKey):
+    if isinstance(clsDiffs, AddedKey):
         del diffs[clsname]
 
 ################################################################################
@@ -283,7 +284,7 @@ for clsname, clsDiffs in list(diffs.items()):
 #     if isinstance(returnInfo, dict):
 #         doc = returnInfo.get('doc')
 #         if (isinstance(doc, arguments.RemovedKey)
-#                 or (isinstance(doc, arguments.ChangedKey)
+#                 or (isinstance(doc, ChangedKey)
 #                     and not doc.newVal)):
 #             del returnInfo['doc']
 #
@@ -296,7 +297,7 @@ for clsname, clsDiffs in list(diffs.items()):
 #             continue
 #         doc = argDiff.get('doc')
 #         if (isinstance(doc, arguments.RemovedKey)
-#                 or (isinstance(doc, arguments.ChangedKey)
+#                 or (isinstance(doc, ChangedKey)
 #                     and not doc.newVal)):
 #             del argDiff['doc']
 
@@ -317,7 +318,7 @@ for clsDiff in diffs.values():
             # ignore method doc removal
             doc = overloadDiff.get('doc')
             if (isinstance(doc, arguments.RemovedKey)
-                    or (isinstance(doc, arguments.ChangedKey)
+                    or (isinstance(doc, ChangedKey)
                         and not doc.newVal)):
                 del overloadDiff['doc']
 
@@ -326,7 +327,7 @@ for clsDiff in diffs.values():
             if isinstance(returnInfo, dict):
                 doc = returnInfo.get('doc')
                 if (isinstance(doc, arguments.RemovedKey)
-                        or (isinstance(doc, arguments.ChangedKey)
+                        or (isinstance(doc, ChangedKey)
                             and not doc.newVal)):
                     del returnInfo['doc']
 
@@ -339,7 +340,7 @@ for clsDiff in diffs.values():
                     continue
                 doc = argDiff.get('doc')
                 if (isinstance(doc, arguments.RemovedKey)
-                        or (isinstance(doc, arguments.ChangedKey)
+                        or (isinstance(doc, ChangedKey)
                             and not doc.newVal)):
                     del argDiff['doc']
 
