@@ -180,6 +180,10 @@ def strip_tags(html):
     return s.get_data()
 
 
+def standardizeDoc(input):
+    return standardizeWhitespace(strip_tags(input))
+
+
 #---------------------------------------------------------------
 #        Doc Parser
 #---------------------------------------------------------------
@@ -564,7 +568,7 @@ class ParamInfo(object):
 
     @doc.setter
     def doc(self, rawVal):
-        self._doc = standardizeWhitespace(rawVal)
+        self._doc = standardizeDoc(rawVal)
 
     def qualifiedTypeName(self):
         if not self.type:
@@ -1184,7 +1188,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
                       'returnType': returnInfo.type,
                       'inArgs': inArgs,
                       'outArgs': outArgs,
-                      'doc': standardizeWhitespace(methodDoc),
+                      'doc': standardizeDoc(methodDoc),
                       'defaults': defaults,
                       'types': types,
                       'static': self.isStaticMethod(),
