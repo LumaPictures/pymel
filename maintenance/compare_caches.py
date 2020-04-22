@@ -4,6 +4,7 @@ import os
 import re
 import types
 
+import pymel.internal.apicache as apicache
 import pymel.internal.parsers as parsers
 import pymel.internal.startup
 import pymel.util.arguments as arguments
@@ -43,12 +44,13 @@ caches = {}
 for key, cachename in names.items():
     cachepath = os.path.join(cachedir, cachename)
     cache_globals = {}
-    data = pymel.internal.startup._pyload(cachepath)
+    cacheInst = apicache.ApiCache()
+    data = cacheInst.read(path=cachepath)
     if DO_PREPROCESS:
         data = preprocess(data)
         cachepath_namebase, cachepath_ext = os.path.splitext(cachepath)
         preprocessed_path = cachepath_namebase + '.preprocessed' + cachepath_ext
-        pymel.internal.startup._pydump(data, preprocessed_path)
+        cacheInst.write(data, path=preprocessed_path)
     caches[key] = data
 
 # we only care about the diffs of the classInfo
