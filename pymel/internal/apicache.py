@@ -1475,7 +1475,15 @@ class ApiCache(BaseApiClassInfoCache):
         # (ie, node types that have a corresponding kSomeType entry on MFn,
         # and possibly even an MFnSomeType) are actually implemented in plugin
         # nodes, and we need to make sure we grab all of these.
-        plugins.loadAllMayaPlugins()
+
+        # However... bifrost takes a long time to load, and can significantly
+        # slow cache building... and doesn't seem to have any affect on the
+        # built caches. Add a way to skip it when testing.
+        if os.environ.get('PYMEL_SKIP_BIFROST_AT_APICACHE_BUILD'):
+            filters = ['bifmeshio', 'Boss', re.compile(r'bifrost.*')]
+        else:
+            filters = []
+        plugins.loadAllMayaPlugins(filters=filters)
 
         self._buildApiClassInfo()
 
