@@ -253,23 +253,23 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
         >>> node = pm.createNode('blinn')
 
         >>> pm.namespace(add='foo')
-        u'foo'
+        'foo'
         >>> pm.namespace(add='bar', parent='foo')
-        u'foo:bar'
+        'foo:bar'
         >>> pm.namespace(add='stuff', parent='foo:bar')
-        u'foo:bar:stuff'
+        'foo:bar:stuff'
 
         >>> node.rename(':foo:bar:stuff:blinn1')
-        nt.Blinn(u'foo:bar:stuff:blinn1')
+        nt.Blinn('foo:bar:stuff:blinn1')
 
         >>> node.name()
-        u'foo:bar:stuff:blinn1'
+        'foo:bar:stuff:blinn1'
         >>> node.name(stripNamespace=True)
-        u'blinn1'
+        'blinn1'
         >>> node.name(stripNamespace=True, levels=1)
-        u'bar:stuff:blinn1'
+        'bar:stuff:blinn1'
         >>> node.name(stripNamespace=True, levels=2)
-        u'stuff:blinn1'
+        'stuff:blinn1'
         '''
         if update or self._name is None:
             try:
@@ -900,7 +900,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         >>> from pymel.core import *
         >>> SCENE.lambert1.stripNum()
-        u'lambert'
+        'lambert'
 
         Returns
         -------
@@ -917,7 +917,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         >>> from pymel.core import *
         >>> SCENE.lambert1.extractNum()
-        u'1'
+        '1'
 
         Returns
         -------
@@ -1393,54 +1393,54 @@ class DagNode(Entity):
         >>> cube3Shape = cube3.getShape()
 
         >>> cube2.setParent(cube1)
-        nt.Transform(u'pCube2')
+        nt.Transform('pCube2')
         >>> cube3.setParent(cube2)
-        nt.Transform(u'pCube3')
+        nt.Transform('pCube3')
 
         >>> pm.namespace(add='foo')
-        u'foo'
+        'foo'
         >>> pm.namespace(add='bar', parent='foo')
-        u'foo:bar'
+        'foo:bar'
         >>> pm.namespace(add='stuff', parent='foo:bar')
-        u'foo:bar:stuff'
+        'foo:bar:stuff'
 
         >>> cube2.rename(':foo:pCube2')
-        nt.Transform(u'foo:pCube2')
+        nt.Transform('foo:pCube2')
         >>> cube3.rename(':foo:bar:pCube3')
-        nt.Transform(u'foo:bar:pCube3')
+        nt.Transform('foo:bar:pCube3')
         >>> cube3Shape.rename(':foo:bar:stuff:pCubeShape3')
-        nt.Mesh(u'foo:bar:stuff:pCubeShape3')
+        nt.Mesh('foo:bar:stuff:pCubeShape3')
 
         >>> cube3Shape.name()
-        u'foo:bar:stuff:pCubeShape3'
+        'foo:bar:stuff:pCubeShape3'
         >>> cube3Shape.name(stripNamespace=True)
-        u'pCubeShape3'
+        'pCubeShape3'
         >>> cube3Shape.name(long=True)
-        u'|pCube1|foo:pCube2|foo:bar:pCube3|foo:bar:stuff:pCubeShape3'
+        '|pCube1|foo:pCube2|foo:bar:pCube3|foo:bar:stuff:pCubeShape3'
         >>> cube3Shape.name(long=True, stripNamespace=True)
-        u'|pCube1|pCube2|pCube3|pCubeShape3'
+        '|pCube1|pCube2|pCube3|pCubeShape3'
         >>> cube3Shape.name(long=True, stripNamespace=True, levels=1)
-        u'|pCube1|pCube2|bar:pCube3|bar:stuff:pCubeShape3'
+        '|pCube1|pCube2|bar:pCube3|bar:stuff:pCubeShape3'
         >>> cube3Shape.name(long=True, stripNamespace=True, levels=2)
-        u'|pCube1|pCube2|pCube3|stuff:pCubeShape3'
+        '|pCube1|pCube2|pCube3|stuff:pCubeShape3'
 
         >>> cam = pm.camera()[0]
         >>> cam.setParent(cube2)
-        nt.Transform(u'camera1')
+        nt.Transform('camera1')
         >>> imagePlane = pm.imagePlane(camera=cam.getShape())[1]
         >>> imagePlane.rename('foo:bar:stuff:imagePlaneShape1')
-        nt.ImagePlane(u'cameraShape1->foo:bar:stuff:imagePlaneShape1')
+        nt.ImagePlane('cameraShape1->foo:bar:stuff:imagePlaneShape1')
 
         >>> imagePlane.name()
-        u'cameraShape1->foo:bar:stuff:imagePlaneShape1'
+        'cameraShape1->foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.name(stripUnderWorld=True)
-        u'foo:bar:stuff:imagePlaneShape1'
+        'foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.name(stripNamespace=True, levels=1)
-        u'cameraShape1->bar:stuff:imagePlaneShape1'
+        'cameraShape1->bar:stuff:imagePlaneShape1'
         >>> imagePlane.name(stripUnderWorld=True, long=True)
-        u'|imagePlane1|foo:bar:stuff:imagePlaneShape1'
+        '|imagePlane1|foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.name(stripUnderWorld=True, stripNamespace=True, long=True)
-        u'|imagePlane1|imagePlaneShape1'
+        '|imagePlane1|imagePlaneShape1'
         '''
         if update or long or self._name is None:
             exists = True
@@ -1527,48 +1527,48 @@ class DagNode(Entity):
         >>> cube3Shape = cube3.getShape()
 
         >>> cube2.setParent(cube1)
-        nt.Transform(u'pCube2')
+        nt.Transform('pCube2')
         >>> cube3.setParent(cube2)
-        nt.Transform(u'pCube3')
+        nt.Transform('pCube3')
 
         >>> pm.namespace(add='foo')
-        u'foo'
+        'foo'
         >>> pm.namespace(add='bar', parent='foo')
-        u'foo:bar'
+        'foo:bar'
         >>> pm.namespace(add='stuff', parent='foo:bar')
-        u'foo:bar:stuff'
+        'foo:bar:stuff'
 
         >>> cube2.rename(':foo:pCube2')
-        nt.Transform(u'foo:pCube2')
+        nt.Transform('foo:pCube2')
         >>> cube3.rename(':foo:bar:pCube3')
-        nt.Transform(u'foo:bar:pCube3')
+        nt.Transform('foo:bar:pCube3')
         >>> cube3Shape.rename(':foo:bar:stuff:pCubeShape3')
-        nt.Mesh(u'foo:bar:stuff:pCubeShape3')
+        nt.Mesh('foo:bar:stuff:pCubeShape3')
 
         >>> cube3Shape.longName()
-        u'|pCube1|foo:pCube2|foo:bar:pCube3|foo:bar:stuff:pCubeShape3'
+        '|pCube1|foo:pCube2|foo:bar:pCube3|foo:bar:stuff:pCubeShape3'
         >>> cube3Shape.longName(stripNamespace=True)
-        u'|pCube1|pCube2|pCube3|pCubeShape3'
+        '|pCube1|pCube2|pCube3|pCubeShape3'
         >>> cube3Shape.longName(stripNamespace=True, levels=1)
-        u'|pCube1|pCube2|bar:pCube3|bar:stuff:pCubeShape3'
+        '|pCube1|pCube2|bar:pCube3|bar:stuff:pCubeShape3'
         >>> cube3Shape.longName(stripNamespace=True, levels=2)
-        u'|pCube1|pCube2|pCube3|stuff:pCubeShape3'
+        '|pCube1|pCube2|pCube3|stuff:pCubeShape3'
 
         >>> cam = pm.camera()[0]
         >>> cam.setParent(cube2)
-        nt.Transform(u'camera1')
+        nt.Transform('camera1')
         >>> imagePlane = pm.imagePlane(camera=cam.getShape())[1]
         >>> imagePlane.rename('foo:bar:stuff:imagePlaneShape1')
-        nt.ImagePlane(u'cameraShape1->foo:bar:stuff:imagePlaneShape1')
+        nt.ImagePlane('cameraShape1->foo:bar:stuff:imagePlaneShape1')
 
         >>> imagePlane.longName()
-        u'|pCube1|foo:pCube2|camera1|cameraShape1->|imagePlane1|foo:bar:stuff:imagePlaneShape1'
+        '|pCube1|foo:pCube2|camera1|cameraShape1->|imagePlane1|foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.longName(stripUnderWorld=True)
-        u'|imagePlane1|foo:bar:stuff:imagePlaneShape1'
+        '|imagePlane1|foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.longName(stripNamespace=True, levels=1)
-        u'|pCube1|pCube2|camera1|cameraShape1->|imagePlane1|bar:stuff:imagePlaneShape1'
+        '|pCube1|pCube2|camera1|cameraShape1->|imagePlane1|bar:stuff:imagePlaneShape1'
         >>> imagePlane.longName(stripUnderWorld=True, stripNamespace=True)
-        u'|imagePlane1|imagePlaneShape1'
+        '|imagePlane1|imagePlaneShape1'
         """
         return self.name(long=True, **kwargs)
     fullPath = longName
@@ -1593,50 +1593,50 @@ class DagNode(Entity):
         >>> cube3Shape = cube3.getShape()
 
         >>> cube2.setParent(cube1)
-        nt.Transform(u'pCube2')
+        nt.Transform('pCube2')
         >>> cube3.setParent(cube2)
-        nt.Transform(u'pCube3')
+        nt.Transform('pCube3')
 
         >>> pm.namespace(add='foo')
-        u'foo'
+        'foo'
         >>> pm.namespace(add='bar', parent='foo')
-        u'foo:bar'
+        'foo:bar'
         >>> pm.namespace(add='stuff', parent='foo:bar')
-        u'foo:bar:stuff'
+        'foo:bar:stuff'
 
         >>> cube2.rename(':foo:pCube2')
-        nt.Transform(u'foo:pCube2')
+        nt.Transform('foo:pCube2')
         >>> cube3.rename(':foo:bar:pCube3')
-        nt.Transform(u'foo:bar:pCube3')
+        nt.Transform('foo:bar:pCube3')
         >>> cube3Shape.rename(':foo:bar:stuff:pCubeShape3')
-        nt.Mesh(u'foo:bar:stuff:pCubeShape3')
+        nt.Mesh('foo:bar:stuff:pCubeShape3')
 
         >>> cube3Shape.shortName()
-        u'foo:bar:stuff:pCubeShape3'
+        'foo:bar:stuff:pCubeShape3'
         >>> cube3Shape.shortName(stripNamespace=True)
-        u'pCubeShape3'
+        'pCubeShape3'
         >>> cube3Shape.shortName(stripNamespace=True, levels=1)
-        u'bar:stuff:pCubeShape3'
+        'bar:stuff:pCubeShape3'
         >>> cube3Shape.shortName(stripNamespace=True, levels=2)
-        u'stuff:pCubeShape3'
+        'stuff:pCubeShape3'
 
         >>> cam = pm.camera()[0]
         >>> cam.setParent(cube2)
-        nt.Transform(u'camera1')
+        nt.Transform('camera1')
         >>> imagePlane = pm.imagePlane(camera=cam.getShape())[1]
         >>> imagePlane.rename('foo:bar:stuff:imagePlaneShape1')
-        nt.ImagePlane(u'cameraShape1->foo:bar:stuff:imagePlaneShape1')
+        nt.ImagePlane('cameraShape1->foo:bar:stuff:imagePlaneShape1')
 
         >>> imagePlane.shortName()
-        u'cameraShape1->foo:bar:stuff:imagePlaneShape1'
+        'cameraShape1->foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.shortName(stripUnderWorld=True)
-        u'foo:bar:stuff:imagePlaneShape1'
+        'foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.shortName(stripNamespace=True, levels=1)
-        u'cameraShape1->bar:stuff:imagePlaneShape1'
+        'cameraShape1->bar:stuff:imagePlaneShape1'
         >>> imagePlane.shortName(stripUnderWorld=True)
-        u'foo:bar:stuff:imagePlaneShape1'
+        'foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.shortName(stripUnderWorld=True, stripNamespace=True)
-        u'imagePlaneShape1'
+        'imagePlaneShape1'
         """
         return self.name(long=False, **kwargs)
 
@@ -1662,69 +1662,69 @@ class DagNode(Entity):
         >>> cube3Shape = cube3.getShape()
 
         >>> cube2.setParent(cube1)
-        nt.Transform(u'pCube2')
+        nt.Transform('pCube2')
         >>> cube3.setParent(cube2)
-        nt.Transform(u'pCube3')
+        nt.Transform('pCube3')
 
         >>> pm.namespace(add='foo')
-        u'foo'
+        'foo'
         >>> pm.namespace(add='bar', parent='foo')
-        u'foo:bar'
+        'foo:bar'
         >>> pm.namespace(add='stuff', parent='foo:bar')
-        u'foo:bar:stuff'
+        'foo:bar:stuff'
 
         >>> cube2.rename(':foo:pCube2')
-        nt.Transform(u'foo:pCube2')
+        nt.Transform('foo:pCube2')
         >>> cube3.rename(':foo:bar:pCube3')
-        nt.Transform(u'foo:bar:pCube3')
+        nt.Transform('foo:bar:pCube3')
         >>> cube3Shape.rename(':foo:bar:stuff:pCubeShape3')
-        nt.Mesh(u'foo:bar:stuff:pCubeShape3')
+        nt.Mesh('foo:bar:stuff:pCubeShape3')
 
         >>> # create an object with the same name as pCube3 / pCube4
         >>> cube3Twin = pm.polyCube()[0]
         >>> cube3Twin.rename('foo:bar:pCube3')
-        nt.Transform(u'|foo:bar:pCube3')
+        nt.Transform('|foo:bar:pCube3')
         >>> cube3ShapeTwin = cube3Twin.getShape()
         >>> cube3ShapeTwin.rename('foo:bar:stuff:pCubeShape3')
-        nt.Mesh(u'|foo:bar:pCube3|foo:bar:stuff:pCubeShape3')
+        nt.Mesh('|foo:bar:pCube3|foo:bar:stuff:pCubeShape3')
 
         >>> cube3Shape.shortName()
-        u'foo:pCube2|foo:bar:pCube3|foo:bar:stuff:pCubeShape3'
+        'foo:pCube2|foo:bar:pCube3|foo:bar:stuff:pCubeShape3'
         >>> cube3Shape.nodeName()
-        u'foo:bar:stuff:pCubeShape3'
+        'foo:bar:stuff:pCubeShape3'
         >>> cube3Shape.nodeName(stripNamespace=True)
-        u'pCubeShape3'
+        'pCubeShape3'
         >>> cube3Shape.nodeName(stripNamespace=True, levels=1)
-        u'bar:stuff:pCubeShape3'
+        'bar:stuff:pCubeShape3'
         >>> cube3Shape.nodeName(stripNamespace=True, levels=2)
-        u'stuff:pCubeShape3'
+        'stuff:pCubeShape3'
 
         >>> cam = pm.camera()[0]
         >>> cam.setParent(cube2)
-        nt.Transform(u'camera1')
+        nt.Transform('camera1')
         >>> imagePlaneTrans, imagePlane = pm.imagePlane(camera=cam.getShape())
         >>> imagePlane.rename('foo:bar:stuff:imagePlaneShape1')
-        nt.ImagePlane(u'cameraShape1->foo:bar:stuff:imagePlaneShape1')
+        nt.ImagePlane('cameraShape1->foo:bar:stuff:imagePlaneShape1')
 
         >>> # create an object with the same name as cam
         >>> pm.camera()[0].setParent(cube3Twin).rename('camera1')
-        nt.Transform(u'|foo:bar:pCube3|camera1')
+        nt.Transform('|foo:bar:pCube3|camera1')
 
         >>> # create an object with the same name as imagePlane
         >>> imagePlaneTwinTrans, imagePlaneTwin = pm.imagePlane(camera=cam.getShape())
         >>> imagePlaneTwin.rename('foo:bar:stuff:imagePlaneShape1')
-        nt.ImagePlane(u'foo:pCube2|camera1|cameraShape1->imagePlane2|foo:bar:stuff:imagePlaneShape1')
+        nt.ImagePlane('foo:pCube2|camera1|cameraShape1->imagePlane2|foo:bar:stuff:imagePlaneShape1')
 
         >>> imagePlane.shortName()
-        u'foo:pCube2|camera1|cameraShape1->imagePlane1|foo:bar:stuff:imagePlaneShape1'
+        'foo:pCube2|camera1|cameraShape1->imagePlane1|foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.nodeName()
-        u'foo:bar:stuff:imagePlaneShape1'
+        'foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.nodeName(stripUnderWorld=False)
-        u'cameraShape1->foo:bar:stuff:imagePlaneShape1'
+        'cameraShape1->foo:bar:stuff:imagePlaneShape1'
         >>> imagePlane.nodeName(stripNamespace=True)
-        u'imagePlaneShape1'
+        'imagePlaneShape1'
         >>> imagePlane.nodeName(stripNamespace=True, levels=1)
-        u'bar:stuff:imagePlaneShape1'
+        'bar:stuff:imagePlaneShape1'
         """
         return self.name(long=None, stripUnderWorld=stripUnderWorld, **kwargs)
 
@@ -2055,13 +2055,13 @@ class DagNode(Entity):
         >>>
         >>> s = polyPlane()[0]
         >>> instance(s)
-        [nt.Transform(u'pPlane2')]
+        [nt.Transform('pPlane2')]
         >>> instance(s)
-        [nt.Transform(u'pPlane3')]
+        [nt.Transform('pPlane3')]
         >>> s.getShape().getInstances()
-        [nt.Mesh(u'pPlane1|pPlaneShape1'), nt.Mesh(u'pPlane2|pPlaneShape1'), nt.Mesh(u'pPlane3|pPlaneShape1')]
+        [nt.Mesh('pPlane1|pPlaneShape1'), nt.Mesh('pPlane2|pPlaneShape1'), nt.Mesh('pPlane3|pPlaneShape1')]
         >>> s.getShape().getInstances(includeSelf=False)
-        [nt.Mesh(u'pPlane2|pPlaneShape1'), nt.Mesh(u'pPlane3|pPlaneShape1')]
+        [nt.Mesh('pPlane2|pPlaneShape1'), nt.Mesh('pPlane3|pPlaneShape1')]
 
         """
         d = _api.MDagPathArray()
@@ -2178,20 +2178,20 @@ class DagNode(Entity):
                   >>> select(cl=1)
                   >>> bottom = group(n='bottom')
                   >>> group(n='almostThere')
-                  nt.Transform(u'almostThere')
+                  nt.Transform('almostThere')
                   >>> group(n='nextLevel')
-                  nt.Transform(u'nextLevel')
+                  nt.Transform('nextLevel')
                   >>> group(n='topLevel')
-                  nt.Transform(u'topLevel')
+                  nt.Transform('topLevel')
                   >>> bottom.longName()
-                  u'|topLevel|nextLevel|almostThere|bottom'
+                  '|topLevel|nextLevel|almostThere|bottom'
                   >>> bottom.getParent(2)
-                  nt.Transform(u'nextLevel')
+                  nt.Transform('nextLevel')
 
               Negative values will traverse from the top:
 
                   >>> bottom.getParent(generations=-3)
-                  nt.Transform(u'almostThere')
+                  nt.Transform('almostThere')
 
               A value of 0 will return the same node.
               The default value is 1.
@@ -2312,7 +2312,7 @@ class DagNode(Entity):
             >>> c = polyCube(name='cube')[0]
             >>> t = polyTorus(name='torus')[0]
             >>> s | c | t
-            nt.Transform(u'torus')
+            nt.Transform('torus')
             >>> print(t.fullPath())
             |sphere|cube|torus
 
@@ -5947,7 +5947,7 @@ if not _factories.building:
                 >>> # a periodic curve
                 >>> myCurve = curve(name='periodicCurve1', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
                 >>> myCurve.cv
-                NurbsCurveCV(u'periodicCurveShape1.cv[0:7]')
+                NurbsCurveCV('periodicCurveShape1.cv[0:7]')
                 >>> myCurve.numCVs()
                 8
                 >>> myCurve.numCVs(editableOnly=False)
@@ -5956,7 +5956,7 @@ if not _factories.building:
                 >>> # an open curve
                 >>> myCurve = curve(name='openCurve1', d=3, periodic=False, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
                 >>> myCurve.cv
-                NurbsCurveCV(u'openCurveShape1.cv[0:10]')
+                NurbsCurveCV('openCurveShape1.cv[0:10]')
                 >>> myCurve.numCVs()
                 11
                 >>> myCurve.numCVs(editableOnly=False)
@@ -5977,14 +5977,14 @@ if not _factories.building:
                 >>> # a periodic curve
                 >>> myCurve = curve(name='periodicCurve2', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
                 >>> myCurve.ep
-                NurbsCurveEP(u'periodicCurveShape2.ep[0:7]')
+                NurbsCurveEP('periodicCurveShape2.ep[0:7]')
                 >>> myCurve.numEPs()
                 8
                 >>>
                 >>> # an open curve
                 >>> myCurve = curve(name='openCurve2', d=3, periodic=False, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
                 >>> myCurve.ep
-                NurbsCurveEP(u'openCurveShape2.ep[0:8]')
+                NurbsCurveEP('openCurveShape2.ep[0:8]')
                 >>> myCurve.numEPs()
                 9
     
@@ -6718,30 +6718,30 @@ class Mesh(SurfaceShape):
         >>> from pymel.core import *
         >>> p = polySphere( name='theMoon', sa=7, sh=7 )[0]
         >>> p.vtx
-        MeshVertex(u'theMoonShape.vtx[0:43]')
+        MeshVertex('theMoonShape.vtx[0:43]')
         >>> p.e
-        MeshEdge(u'theMoonShape.e[0:90]')
+        MeshEdge('theMoonShape.e[0:90]')
         >>> p.f
-        MeshFace(u'theMoonShape.f[0:48]')
+        MeshFace('theMoonShape.f[0:48]')
 
     They are also accessible from their more descriptive alternatives:
 
         >>> p.verts
-        MeshVertex(u'theMoonShape.vtx[0:43]')
+        MeshVertex('theMoonShape.vtx[0:43]')
         >>> p.edges
-        MeshEdge(u'theMoonShape.e[0:90]')
+        MeshEdge('theMoonShape.e[0:90]')
         >>> p.faces
-        MeshFace(u'theMoonShape.f[0:48]')
+        MeshFace('theMoonShape.f[0:48]')
 
     As you'd expect, these components are all indexible:
 
         >>> p.vtx[0]
-        MeshVertex(u'theMoonShape.vtx[0]')
+        MeshVertex('theMoonShape.vtx[0]')
 
     The classes themselves contain methods for getting information about the component.
 
         >>> p.vtx[0].connectedEdges()
-        MeshEdge(u'theMoonShape.e[0,6,42,77]')
+        MeshEdge('theMoonShape.e[0,6,42,77]')
 
     This class provides support for python's extended slice notation. Typical maya ranges express a start and stop value separated
     by a colon.  Extended slices add a step parameter and can also represent multiple ranges separated by commas.
@@ -6763,16 +6763,16 @@ class Mesh(SurfaceShape):
     Negative indices can be used for getting indices relative to the end:
 
         >>> p.edges  # the full range
-        MeshEdge(u'theMoonShape.e[0:90]')
+        MeshEdge('theMoonShape.e[0:90]')
         >>> p.edges[5:-10]  # index 5 through to 10 from the last
-        MeshEdge(u'theMoonShape.e[5:80]')
+        MeshEdge('theMoonShape.e[5:80]')
 
     Just like with python ranges, you can leave an index out, and the logical result will follow:
 
         >>> p.edges[:-10]  # from the beginning
-        MeshEdge(u'theMoonShape.e[0:80]')
+        MeshEdge('theMoonShape.e[0:80]')
         >>> p.edges[20:]
-        MeshEdge(u'theMoonShape.e[20:90]')
+        MeshEdge('theMoonShape.e[20:90]')
 
     Or maybe you want the position of every tenth vert:
 
@@ -9024,24 +9024,24 @@ class ObjectSet(Entity):
         >>> s = sets()  # create an empty set
         >>> s.union( ls( type='camera') )  # add some cameras to it
         >>> s.members()  # doctest: +SKIP
-        [nt.Camera(u'sideShape'), nt.Camera(u'frontShape'), nt.Camera(u'topShape'), nt.Camera(u'perspShape')]
+        [nt.Camera('sideShape'), nt.Camera('frontShape'), nt.Camera('topShape'), nt.Camera('perspShape')]
         >>> sel = s.asSelectionSet() # or as a SelectionSet
         >>> sel # doctest: +SKIP
-        nt.SelectionSet([u'sideShape', u'frontShape', u'topShape', u'perspShape'])
+        nt.SelectionSet(['sideShape', 'frontShape', 'topShape', 'perspShape'])
         >>> sorted(sel) # as a sorted list
-        [nt.Camera(u'frontShape'), nt.Camera(u'perspShape'), nt.Camera(u'sideShape'), nt.Camera(u'topShape')]
+        [nt.Camera('frontShape'), nt.Camera('perspShape'), nt.Camera('sideShape'), nt.Camera('topShape')]
 
     Operations between sets result in `SelectionSet` objects:
 
         >>> t = sets()  # create another set
         >>> t.add( 'perspShape' )  # add the persp camera shape to it
         >>> s.getIntersection(t)
-        nt.SelectionSet([u'perspShape'])
+        nt.SelectionSet(['perspShape'])
         >>> diff = s.getDifference(t)
         >>> diff #doctest: +SKIP
-        nt.SelectionSet([u'sideShape', u'frontShape', u'topShape'])
+        nt.SelectionSet(['sideShape', 'frontShape', 'topShape'])
         >>> sorted(diff)
-        [nt.Camera(u'frontShape'), nt.Camera(u'sideShape'), nt.Camera(u'topShape')]
+        [nt.Camera('frontShape'), nt.Camera('sideShape'), nt.Camera('topShape')]
         >>> s.isSuperSet(t)
         True
 

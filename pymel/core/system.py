@@ -21,7 +21,7 @@ some of the new commands were changed slightly from their flag name to avoid nam
     >>> importFile( expFile )  # flag was called import, but that's a python keyword
     >>> ref = createReference( expFile )
     >>> ref # doctest: +ELLIPSIS
-    FileReference(u'...test.ma', refnode=u'testRN')
+    FileReference('...test.ma', refnode='testRN')
 
 Notice that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
 
@@ -190,7 +190,7 @@ class UndoChunk(object):
     ...     res = pm.createNode('transform', name="MyNode2")
     ...     res = pm.createNode('transform', name="MyNode3")
     >>> pm.ls("MyNode*", type='transform')
-    [nt.Transform(u'MyNode1'), nt.Transform(u'MyNode2'), nt.Transform(u'MyNode3')]
+    [nt.Transform('MyNode1'), nt.Transform('MyNode2'), nt.Transform('MyNode3')]
     >>> pm.undo() # Due to the undo chunk, all three are undone at once
     >>> pm.ls("MyNode*", type='transform')
     []
@@ -556,7 +556,7 @@ class Translator(object):
 
     >>> ascii = Translator('mayaAscii')
     >>> ascii.ext
-    u'ma'
+    'ma'
     >>> bin = Translator.fromExtension( 'mb' )
     >>> bin
     Translator('mayaBinary')
@@ -714,9 +714,9 @@ class Workspace(with_metaclass(_util.Singleton, object)):
 
         >>> from pymel.all import *
         >>> workspace.fileRules['mayaAscii']
-        u'scenes'
+        'scenes'
         >>> workspace.fileRules.keys() # doctest: +ELLIPSIS
-        [...u'mayaAscii', u'mayaBinary',...]
+        [...'mayaAscii', 'mayaBinary',...]
         >>> 'mayaBinary' in workspace.fileRules
         True
         >>> workspace.fileRules['super'] = 'data'
@@ -731,7 +731,7 @@ class Workspace(with_metaclass(_util.Singleton, object)):
     old way (still exists for backward compatibility)
         >>> proj = workspace(query=1, dir=1)
         >>> proj  # doctest: +ELLIPSIS
-        u'...'
+        '...'
         >>> workspace(create='mydir')
         >>> workspace(dir='mydir') # move into new dir
         >>> workspace(dir=proj) # change back to original dir
@@ -842,7 +842,7 @@ class FileInfo(with_metaclass(SingletonABCMeta, MutableMapping)):
         >>> fileInfo['cameras'] = str( ls( cameras=1) )
         >>> camList = eval(fileInfo['cameras'])
         >>> camList[0]
-        nt.Camera(u'frontShape')
+        nt.Camera('frontShape')
 
     for backward compatibility it retains it's original syntax as well:
 

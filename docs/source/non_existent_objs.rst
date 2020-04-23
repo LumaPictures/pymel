@@ -134,9 +134,9 @@ While `PyNode` serves to easily cast any string to its proper class in the node 
 same effect::
 
     >>> PyNode('lambert1')
-    nt.Lambert(u'lambert1')
+    nt.Lambert('lambert1')
     >>> DependNode('lambert1')
-    nt.Lambert(u'lambert1')
+    nt.Lambert('lambert1')
 
 If the determined type does not match the requested type, an error will be raised.  For example, a lambert node is not
 a DAG node::

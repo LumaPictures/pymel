@@ -662,23 +662,23 @@ def addAttr(*args, **kwargs):
 
             >>> addAttr('persp', ln='autoDouble', type='double', k=1)
             >>> addAttr('persp.autoDouble', query=1, attributeType=1)
-            u'double'
+            'double'
             >>> addAttr('persp.autoDouble', query=1, dataType=1)
-            u'TdataNumeric'
+            'TdataNumeric'
             >>> addAttr('persp', ln='autoMesh', type='mesh', k=1)
             >>> addAttr('persp.autoMesh', query=1, attributeType=1)
-            u'typed'
+            'typed'
             >>> addAttr('persp.autoMesh', query=1, dataType=1)
-            u'mesh'
+            'mesh'
             >>> addAttr('persp', ln='autoDouble3Vec', type='double3', k=1)
             >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoDouble3' in x.name()]
-            [u'autoDouble3Vec', u'autoDouble3VecX', u'autoDouble3VecY', u'autoDouble3VecZ']
+            ['autoDouble3Vec', 'autoDouble3VecX', 'autoDouble3VecY', 'autoDouble3VecZ']
             >>> addAttr('persp', ln='autoFloat3Col', type='float3', usedAsColor=1)
             >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoFloat3' in x.name()]
-            [u'autoFloat3Col', u'autoFloat3ColR', u'autoFloat3ColG', u'autoFloat3ColB']
+            ['autoFloat3Col', 'autoFloat3ColR', 'autoFloat3ColG', 'autoFloat3ColB']
             >>> addAttr('persp', ln='autoLong2', type='long2', childSuffixes=['_first', '_second'])
             >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoLong2' in x.name()]
-            [u'autoLong2', u'autoLong2_first', u'autoLong2_second']
+            ['autoLong2', 'autoLong2_first', 'autoLong2_second']
     """
     attributeTypes = ['bool', 'long', 'short', 'byte', 'char', 'enum',
                       'float', 'double', 'doubleAngle', 'doubleLinear',
@@ -913,9 +913,9 @@ def getEnums(attr):
     >>> addAttr( "persp", ln='numbers', at='enum', enumName="zero:one:two:thousand=1000:three")
     >>> numbers = Attribute('persp.numbers').getEnums()
     >>> sorted(numbers.items())
-    [(u'one', 1), (u'thousand', 1000), (u'three', 1001), (u'two', 2), (u'zero', 0)]
+    [('one', 1), ('thousand', 1000), ('three', 1001), ('two', 2), ('zero', 0)]
     >>> numbers[1]
-    u'one'
+    'one'
     >>> numbers['thousand']
     1000
     """
@@ -1153,19 +1153,19 @@ def ls(*args, **kwargs):
       - Added new keyword: 'regex' - pass a valid regular expression string, compiled regex pattern, or list thereof.
 
             >>> group('top')
-            nt.Transform(u'group1')
+            nt.Transform('group1')
             >>> duplicate('group1')
-            [nt.Transform(u'group2')]
+            [nt.Transform('group2')]
             >>> group('group2')
-            nt.Transform(u'group3')
+            nt.Transform('group3')
             >>> ls(regex=r'group\d+\|top') # don't forget to escape pipes `|`
-            [nt.Transform(u'group1|top'), nt.Transform(u'group2|top')]
+            [nt.Transform('group1|top'), nt.Transform('group2|top')]
             >>> ls(regex=r'group\d+\|top.*')
-            [nt.Transform(u'group1|top'), nt.Camera(u'group1|top|topShape'), nt.Transform(u'group2|top'), nt.Camera(u'group2|top|topShape')]
+            [nt.Transform('group1|top'), nt.Camera('group1|top|topShape'), nt.Transform('group2|top'), nt.Camera('group2|top|topShape')]
             >>> ls(regex=r'group\d+\|top.*', cameras=1)
-            [nt.Camera(u'group2|top|topShape'), nt.Camera(u'group1|top|topShape')]
+            [nt.Camera('group2|top|topShape'), nt.Camera('group1|top|topShape')]
             >>> ls(regex=r'\|group\d+\|top.*', cameras=1) # add a leading pipe to search for full path
-            [nt.Camera(u'group1|top|topShape')]
+            [nt.Camera('group1|top|topShape')]
 
         The regular expression will be used to search the full DAG path, starting from the right, in a similar fashion to how globs currently work.
         Technically speaking, your regular expression string is used like this::
@@ -1945,18 +1945,18 @@ Modifications
         >>>
         >>> shdr, sg = createSurfaceShader( 'blinn' )
         >>> shdr
-        nt.Blinn(u'blinn1')
+        nt.Blinn('blinn1')
         >>> sg
-        nt.ShadingEngine(u'blinn1SG')
+        nt.ShadingEngine('blinn1SG')
         >>> s,h = polySphere()
         >>> s
-        nt.Transform(u'pSphere1')
+        nt.Transform('pSphere1')
         >>> sets( sg, forceElement=s ) # add the sphere
-        nt.ShadingEngine(u'blinn1SG')
+        nt.ShadingEngine('blinn1SG')
         >>> sets( sg, q=1)  # check members
-        [nt.Mesh(u'pSphereShape1')]
+        [nt.Mesh('pSphereShape1')]
         >>> sets( sg, remove=s )
-        nt.ShadingEngine(u'blinn1SG')
+        nt.ShadingEngine('blinn1SG')
         >>> sets( sg, q=1)
         []
 
@@ -2282,9 +2282,9 @@ class PyNode(_util.ProxyUnicode):
     The names of nodes and attributes can be passed to this class, and the appropriate subclass will be determined.
 
         >>> PyNode('persp')
-        nt.Transform(u'persp')
+        nt.Transform('persp')
         >>> PyNode('persp.tx')
-        Attribute(u'persp.translateX')
+        Attribute('persp.translateX')
 
     If the passed node or attribute does not exist an error will be raised.
 
@@ -2965,11 +2965,11 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     python class then it will fail**.
 
         >>> cam  # continue from where we left off above
-        Transform(u'persp')
+        Transform('persp')
         >>> cam.visibility # long name access
-        Attribute(u'persp.visibility')
+        Attribute('persp.visibility')
         >>> cam.v # short name access
-        Attribute(u'persp.visibility')
+        Attribute('persp.visibility')
 
     Keep in mind, that regardless of whether you use the long or short name of the attribute, you are accessing the same underlying API object.
     If you need the attribute formatted as a string in a particular way, use `Attribute.name`, `Attribute.longName`, `Attribute.shortName`,
@@ -2983,7 +2983,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     is the name of the attribute to be accessed.
 
         >>> cam.attr('visibility')
-        Attribute(u'persp.visibility')
+        Attribute('persp.visibility')
 
     Unlike the shorthand syntax, this method is capable of being passed attributes which are passed in as variables:
 
@@ -2999,12 +2999,12 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     explicitly request an Attribute:
 
         >>> Attribute( 'persp.visibility' )
-        Attribute(u'persp.visibility')
+        Attribute('persp.visibility')
 
     let PyNode figure it out for you:
 
         >>> PyNode( 'persp.translate' )
-        Attribute(u'persp.translate')
+        Attribute('persp.translate')
 
 
     Setting Attributes Values
@@ -3058,7 +3058,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         >>> c = polyCube(name='testCube')[0]
         >>> cam.tx >> c.tx    # connect
         >>> cam.tx.outputs()
-        [nt.Transform(u'testCube')]
+        [nt.Transform('testCube')]
         >>> cam.tx // c.tx    # disconnect
         >>> cam.tx.outputs()
         []
@@ -3199,11 +3199,11 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             >>>
             >>> at = PyNode( 'defaultLightSet.dagSetMembers' )
             >>> nt.SpotLight()
-            nt.SpotLight(u'spotLightShape1')
+            nt.SpotLight('spotLightShape1')
             >>> nt.SpotLight()
-            nt.SpotLight(u'spotLightShape2')
+            nt.SpotLight('spotLightShape2')
             >>> nt.SpotLight()
-            nt.SpotLight(u'spotLightShape3')
+            nt.SpotLight('spotLightShape3')
             >>> for x in at: print(x)
             ... 
             defaultLightSet.dagSetMembers[0]
@@ -3317,25 +3317,25 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
             >>> tx = SCENE.persp.t.tx
             >>> tx.name()
-            u'persp.translateX'
+            'persp.translateX'
             >>> tx.name(includeNode=False)
-            u'translateX'
+            'translateX'
             >>> tx.name(longName=False)
-            u'persp.tx'
+            'persp.tx'
             >>> tx.name(fullAttrPath=True, includeNode=False)
-            u'translate.translateX'
+            'translate.translateX'
 
             >>> vis = SCENE.perspShape.visibility
             >>> vis.name()
-            u'perspShape.visibility'
+            'perspShape.visibility'
             >>> vis.name(fullDagPath=True)
-            u'|persp|perspShape.visibility'
+            '|persp|perspShape.visibility'
 
             >>> og = SCENE.persp.instObjGroups.objectGroups
             >>> og.name()
-            u'persp.instObjGroups[-1].objectGroups'
+            'persp.instObjGroups[-1].objectGroups'
             >>> og.name(placeHolderIndices=False)
-            u'persp.instObjGroups.objectGroups'
+            'persp.instObjGroups.objectGroups'
 
         Returns
         -------
@@ -3395,11 +3395,11 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
             >>> at.plugAttr(longName=False, fullPath=False)
-            u'tx'
+            'tx'
             >>> at.plugAttr(longName=False, fullPath=True)
-            u't.tx'
+            't.tx'
             >>> at.plugAttr(longName=True, fullPath=True)
-            u'translate.translateX'
+            'translate.translateX'
 
         Returns
         -------
@@ -3415,9 +3415,9 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
             >>> at.lastPlugAttr(longName=False)
-            u'tx'
+            'tx'
             >>> at.lastPlugAttr(longName=True)
-            u'translateX'
+            'translateX'
 
         Returns
         -------
@@ -3433,9 +3433,9 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
             >>> at.longName(fullPath=False)
-            u'translateX'
+            'translateX'
             >>> at.longName(fullPath=True)
-            u'translate.translateX'
+            'translate.translateX'
 
         Returns
         -------
@@ -3451,9 +3451,9 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
             >>> at.shortName(fullPath=False)
-            u'tx'
+            'tx'
             >>> at.shortName(fullPath=True)
-            u't.tx'
+            't.tx'
 
         Returns
         -------
@@ -3481,11 +3481,11 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
             >>> at = SCENE.persp.instObjGroups.objectGroups
             >>> at.name()
-            u'persp.instObjGroups[-1].objectGroups'
+            'persp.instObjGroups[-1].objectGroups'
             >>> at.attrName()
-            u'og'
+            'og'
             >>> at.attrName(longName=True)
-            u'objectGroups'
+            'objectGroups'
         """
         # Need to implement this with MFnAttribute - anything
         # with MPlug will have the [-1]...
@@ -3510,7 +3510,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             >>> n.isElement()
             True
             >>> n.array()
-            Attribute(u'initialShadingGroup.groupNodes')
+            Attribute('initialShadingGroup.groupNodes')
 
         This method will raise an error for attributes which are not elements of
         an array:
@@ -3598,11 +3598,11 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             >>> dls.dagSetMembers.numElements()
             0
             >>> nt.SpotLight() # create a light, which adds to the lightSet
-            nt.SpotLight(u'spotLightShape1')
+            nt.SpotLight('spotLightShape1')
             >>> dls.dagSetMembers.numElements()
             1
             >>> nt.SpotLight() # create another light, which adds to the lightSet
-            nt.SpotLight(u'spotLightShape2')
+            nt.SpotLight('spotLightShape2')
             >>> dls.dagSetMembers.numElements()
             2
 
@@ -8176,9 +8176,9 @@ class Scene(with_metaclass(_util.Singleton, object)):
 
         >>> SCENE = Scene()
         >>> SCENE.persp
-        nt.Transform(u'persp')
+        nt.Transform('persp')
         >>> SCENE.persp.t
-        Attribute(u'persp.translate')
+        Attribute('persp.translate')
 
     An instance of this class is provided for you with the name `SCENE`.
     """

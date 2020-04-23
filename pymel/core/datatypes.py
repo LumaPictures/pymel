@@ -2743,7 +2743,7 @@ class EulerRotation(with_metaclass(MetaMayaArrayTypeWrapper, Array)):
     >>> import pymel.core.datatypes as dt
     >>>
     >>> currentUnit(angle='degree')
-    u'degree'
+    'degree'
     >>> e = dt.EulerRotation([math.pi,0,0], unit='radians')
     >>> e
     dt.EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')

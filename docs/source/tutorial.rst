@@ -17,7 +17,7 @@ The code in these tutorials is formatted as you would see it in Maya's Script Ed
 In an external interpreter::
     
         >>> ls(type='camera')[0]
-        nt.Camera(u'frontShape')
+        nt.Camera('frontShape')
         
 Maya's script editor:: 
     

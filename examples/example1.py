@@ -56,16 +56,16 @@ that the changes could have just as easily been performed by the user interactin
     >>> print(cam)
     camera1
     >>> cam.rename('renderCam')
-    Transform(u'renderCam')
+    Transform('renderCam')
     >>> print(cam)
     renderCam
     >>> grp = group(cam)
     >>> instance(grp)
-    [Transform(u'group2')]
+    [Transform('group2')]
     >>> print(cam)
     group1|renderCam
     >>> cam.getInstances()
-    [Transform(u'group1|renderCam'), Transform(u'group2|renderCam')]
+    [Transform('group1|renderCam'), Transform('group2|renderCam')]
 
 Comparing attributes is just as easy. It doesn't matter what name you use to access an attribute:
 

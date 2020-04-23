@@ -296,10 +296,10 @@ class MelGlobals(MutableMapping, _Parent):
     To retrieve existing global variables, just use the name as a key:
 
     >>> melGlobals['gResourceFileList'] #doctest: +ELLIPSIS
-    [...u'defaultRunTimeCommands.res.mel', ...]
+    [...'defaultRunTimeCommands.res.mel', ...]
     >>> # works with or without $
     >>> melGlobals['$gFilterUIDefaultAttributeFilterList']  #doctest: +ELLIPSIS
-    [u'DefaultHiddenAttributesFilter', u'animCurveFilter', ..., u'publishedFilter']
+    ['DefaultHiddenAttributesFilter', 'animCurveFilter', ..., 'publishedFilter']
 
     Creating new variables requires the use of the `initVar` function to specify the type:
 
@@ -648,7 +648,7 @@ class OptionVarDict(MutableMapping):
         >>> from pymel.all import *
         >>> optionVar['test'] = 'dooder'
         >>> optionVar['test']
-        u'dooder'
+        'dooder'
 
         >>> if 'numbers' not in env.optionVars:
         ...     optionVar['numbers'] = [1,24,7]
@@ -1062,7 +1062,7 @@ class Mel(object):
         >>> mel.eval( 'attributeExists("persp", "translate")' )
         0
         >>> mel.eval( 'interToUI( "fooBarSpangle" )' )
-        u'Foo Bar Spangle'
+        'Foo Bar Spangle'
 
         """
         return cls._eval(cmd, None)

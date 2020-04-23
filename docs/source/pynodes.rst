@@ -50,9 +50,9 @@ Now lets take a look at our objects and see how our various comparisons turn out
 
         >>> # check out our objects
         >>> sphere1                            # the original
-        Transform(u'group1|mySphere')
+        Transform('group1|mySphere')
         >>> sphere2                            # the instance
-        Transform(u'group2|mySphere')
+        Transform('group2|mySphere')
         >>> # do some tests
         >>> # they aren't the same dag objects
         >>> sphere1 == sphere2
@@ -124,11 +124,11 @@ The ``%s`` means to format as a string.
 By default, the shortest unique name of the node is used when converting to a string. If you want more control over how the name is printed, use the various methods for retrieving the name as a string:
 
     >>> cam.shortName() # shortest unique
-    u'frontShape'
+    'frontShape'
     >>> cam.nodeName() # just the node, same as unique in this case
-    u'frontShape'
+    'frontShape'
     >>> cam.longName() # full dag path
-    u'|front|frontShape'
+    '|front|frontShape'
 
 Finally, be aware that string operations with PyNodes return strings not new PyNodes:
 
@@ -145,7 +145,7 @@ Maya nodes can be renamed, which means that each time the name of the node is re
     >>> print orig                    # print out the starting name
     myCube
     >>> orig.rename('crazyCube')      # rename it (the new name is returned)
-    Transform(u'crazyCube')
+    Transform('crazyCube')
     >>> print orig                    # the variable 'orig' reflects the name change
     crazyCube
     
@@ -362,7 +362,7 @@ For simplicity, PyMEL does away with this distinction: a PyNode instance is the 
     <maya.OpenMaya.MDagPath; proxy of <Swig Object of type 'MDagPath *' at ...> >
     >>> a = p.focalLength
     >>> a
-    Attribute(u'perspShape.focalLength')
+    Attribute('perspShape.focalLength')
     >>> a.__apimplug__() # doctest: +ELLIPSIS
     <maya.OpenMaya.MPlug; proxy of <Swig Object of type 'MPlug *' at ...> >
 

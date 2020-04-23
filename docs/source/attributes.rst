@@ -33,7 +33,7 @@ python methods and would therefore fail using shorthand syntax. This method is p
 is the name of the attribute to be accessed. 
     
     >>> cam.attr('visibility')
-    Attribute(u'persp.visibility')
+    Attribute('persp.visibility')
 
 Unlike the shorthand syntax below, this method is capable of being passed attributes as variables:        
     
@@ -46,11 +46,11 @@ Shorthand
 The shorthand method is the most visually appealing and readable -- you simply access the maya attribute as a normal python attribute -- but it has one major drawback: **if the attribute that you wish to acess has the same name as one of the attributes or methods of the python class then it will fail**. 
 
     >>> cam  # continue from where we left off above
-    Transform(u'persp')
+    Transform('persp')
     >>> cam.visibility # long name access
-    Attribute(u'persp.visibility')
+    Attribute('persp.visibility')
     >>> cam.v # short name access
-    Attribute(u'persp.visibility')
+    Attribute('persp.visibility')
     
 Keep in mind, that regardless of whether you use the long or short name of the attribute, you are accessing the same underlying API object.
 
@@ -65,12 +65,12 @@ The last way of getting an attribute is by directly instantiating the class with
 explicitly request an Attribute:
 
     >>> Attribute('persp.visibility')
-    Attribute(u'persp.visibility')
+    Attribute('persp.visibility')
     
 let `PyNode` figure it out for you:
 
     >>> PyNode('persp.translate') 
-    Attribute(u'persp.translate')
+    Attribute('persp.translate')
 
 
 Setting Attributes Values
@@ -126,7 +126,7 @@ there are also handy operators for `connection <Attribute.__rshift__>` and `disc
     >>> c = polyCube(name='testCube')[0]        
     >>> cam.tx >> c.tx    # connect
     >>> cam.tx.outputs()
-    [nt.Transform(u'testCube')]
+    [nt.Transform('testCube')]
     >>> cam.tx // c.tx    # disconnect
     >>> cam.tx.outputs()
     []
