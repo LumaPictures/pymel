@@ -1034,7 +1034,8 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             return {
                 'true': True,
                 'false': False,
-                'NULL': None
+                'NULL': None,
+                'nullptr': None,
             }[rawValue]
         except KeyError:
             pass
