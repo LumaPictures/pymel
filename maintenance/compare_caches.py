@@ -391,6 +391,25 @@ for multiKey in KNOWN_IGNORABLE:
 
 ################################################################################
 
+# MFnDependencyNode.isNameLocked/setNameLocked haven't existed on the node
+# since 2017 (though they still appeared in the xml in 2019). They never
+# seem to have been in the official docs...
+
+mfnDepDiffs = diffs.get('MFnDependencyNode', {})
+methodDiffs = mfnDepDiffs.get('methods', {})
+for methName in ('isNameLocked', 'setNameLocked'):
+    methDiff = methodDiffs.get(methName)
+    if isinstance(methDiff, arguments.RemovedKey):
+        del methodDiffs[methName]
+invertDiffs = mfnDepDiffs.get('invertibles', {})
+if (invertDiffs.get(4) == {0: ChangedKey('setNameLocked', 'setUuid'),
+                           1: ChangedKey('isNameLocked', 'uuid')}
+        and invertDiffs.get(5) == RemovedKey(('setUuid', 'uuid'))):
+    del invertDiffs[4]
+    del invertDiffs[5]
+
+################################################################################
+
 # KNOWN PROBLEMS
 
 KNOWN_PROBLEMS = [
