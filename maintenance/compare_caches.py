@@ -124,7 +124,7 @@ def hasNewDoc(arg):
 def removeDocDiff(arg):
     del arg['doc']
     return arg
-arguments.deepPatchAltered(diffs, hasNewDoc, removeDocDiff)
+arguments.deepPatch(diffs, hasNewDoc, removeDocDiff)
 
 ################################################################################
 
@@ -143,7 +143,7 @@ def hasLongerDoc(arg):
         return '\\param' not in extraDoc and '\\return' not in extraDoc
     return False
 
-arguments.deepPatchAltered(diffs, hasLongerDoc, removeDocDiff)
+arguments.deepPatch(diffs, hasLongerDoc, removeDocDiff)
 
 ################################################################################
 
@@ -163,7 +163,7 @@ def wasTrimmedToSentence(arg):
         return doc.oldVal[len(doc.newVal)] == ' '
     return False
 
-arguments.deepPatchAltered(diffs, wasTrimmedToSentence, removeDocDiff)
+arguments.deepPatch(diffs, wasTrimmedToSentence, removeDocDiff)
 
 ################################################################################
 
@@ -203,7 +203,7 @@ def same_after_normalize(input):
 def returnNone(input):
     return None
 
-arguments.deepPatchAltered(diffs, same_after_normalize, returnNone)
+arguments.deepPatch(diffs, same_after_normalize, returnNone)
 
 ################################################################################
 
@@ -267,7 +267,7 @@ def enums_with_new_values(input):
     return True
 
 
-arguments.deepPatchAltered(diffs, enums_with_new_values, returnNone)
+arguments.deepPatch(diffs, enums_with_new_values, returnNone)
 ################################################################################
 
 # new enums are ok
