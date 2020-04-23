@@ -300,6 +300,11 @@ for clsname, clsDiffs in diffs.items():
         if isinstance(methodDiff, AddedKey):
             del methods[methodName]
             newMethods.append(methodName)
+        # may not be an entirely new method, but maybe there's new overloads?
+        elif isinstance(methodDiff, dict):
+            for key, overloadDiff in list(methodDiff.items()):
+                if isinstance(overloadDiff, AddedKey):
+                    del methodDiff[key]
     # check if the new methods were invertibles, and clear up diffs due to that
     if len(newMethods) >= 2:
         invertibleDiffs = clsDiffs.get('invertibles')
