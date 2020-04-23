@@ -492,10 +492,6 @@ class PyUI(str):
         PyUI
         """
         buf = str(self).split('|')[:-1]
-        if len(buf) == 2 and buf[0] == buf[1] and _versions.current() < _versions.v2011:
-            # pre-2011, windows with menus can have a strange name:
-            # ex.  window1|window1|menu1
-            buf = buf[:1]
         if not buf:
             return None
         return PyUI('|'.join(buf))

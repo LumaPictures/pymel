@@ -3273,37 +3273,6 @@ class testCase_RenderLayer(TestCaseExtended):
         self.layer.removeMembers([self.sphere, self.cube])
         self.assertEqual(self.layer.listMembers(), [])
 
-    # can't use unittest.skipIf, because nose doesn't seem to recognize it...
-    if versions.current() < versions.v2018:
-        def test_setCurrent(self):
-            self.assertEqual(pm.nt.RenderLayer.defaultRenderLayer(),
-                             pm.nt.RenderLayer.currentLayer())
-            self.layer.setCurrent()
-            self.assertEqual(self.layer, pm.nt.RenderLayer.currentLayer())
-
-        def test_adjustments(self):
-            widthAttr = pm.PyNode("defaultResolution.width")
-            self.assertEqual(self.layer.listAdjustments(), [])
-            self.layer.addAdjustments(widthAttr)
-            self.assertEqual(self.layer.listAdjustments(), ["defaultResolution.width"])
-
-            origVal = widthAttr.get()
-            adjVal = origVal + 5
-
-            self.layer.setCurrent()
-            widthAttr.set(adjVal)
-            self.assertEqual(widthAttr.get(), adjVal)
-            pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
-            self.assertEqual(widthAttr.get(), origVal)
-            self.layer.setCurrent()
-            self.assertEqual(widthAttr.get(), adjVal)
-
-            self.layer.removeAdjustments(widthAttr)
-            self.assertEqual(self.layer.listAdjustments(), [])
-            self.assertEqual(widthAttr.get(), origVal)
-            pm.nt.RenderLayer.defaultRenderLayer().setCurrent()
-            self.assertEqual(widthAttr.get(), origVal)
-
     def test_create_addedToManager(self):
         layer = pm.nt.RenderLayer(name='myLayer')
         otherLayer = pm.createNode('renderLayer', name='otherLayer')
