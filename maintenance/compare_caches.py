@@ -270,6 +270,22 @@ def enums_with_new_values(input):
 arguments.deepPatchAltered(diffs, enums_with_new_values, returnNone)
 ################################################################################
 
+# new enums are ok
+for clsname, clsDiffs in diffs.items():
+    if not isinstance(clsDiffs, dict):
+        continue
+    for enumGroupName in ('enums', 'pymelEnums'):
+        enums = clsDiffs.get(enumGroupName)
+        if not enums or not isinstance(enums, dict):
+            continue
+        to_remove = []
+        for name in list(enums):
+            enumDiff = enums[name]
+            if isinstance(enumDiff, AddedKey):
+                del enums[name]
+
+################################################################################
+
 # new methods are ok
 for clsname, clsDiffs in diffs.items():
     if not isinstance(clsDiffs, dict):
@@ -278,10 +294,33 @@ for clsname, clsDiffs in diffs.items():
     if not methods or not isinstance(methods, dict):
         continue
     to_remove = []
+    newMethods = []
     for methodName in list(methods):
         methodDiff = methods[methodName]
         if isinstance(methodDiff, AddedKey):
             del methods[methodName]
+            newMethods.append(methodName)
+    # check if the new methods were invertibles, and clear up diffs due to that
+    if len(newMethods) >= 2:
+        invertibleDiffs = clsDiffs.get('invertibles')
+        if not invertibleDiffs or not isinstance(invertibleDiffs, dict):
+            continue
+        allInvertibles = {'old': set(), 'new': set()}
+        for oldNew in ('old', 'new'):
+            invertibles = caches[oldNew][-1][clsname]['invertibles']
+            for setGet in invertibles:
+                allInvertibles[oldNew].update(setGet)
+        newInvertMinusNewMethods = allInvertibles['new'].difference(newMethods)
+        if newInvertMinusNewMethods == allInvertibles['old']:
+            del clsDiffs['invertibles']
+
+    pymelMethodDiffs = clsDiffs.get('pymelMethods')
+    if not pymelMethodDiffs or not isinstance(pymelMethodDiffs, dict):
+        continue
+    for newMethod in newMethods:
+        if isinstance(pymelMethodDiffs.get(newMethod), AddedKey):
+            del pymelMethodDiffs[newMethod]
+
 
 ################################################################################
 
