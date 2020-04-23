@@ -1556,7 +1556,7 @@ class XmlApiDocParser(ApiDocParser):
         yield (currentTag, ''.join(currentTextChunks))
 
     @classmethod
-    def parseBackslashTags(cls, text):
+    def parseBackslashTags(cls, text, allTags=True):
         info = {
             'params': OrderedDict(),
             'returnDoc': '',
@@ -1585,7 +1585,11 @@ class XmlApiDocParser(ApiDocParser):
                     info['returnDoc'] = strip_tags(tagText)
                     foundSomething = True
                 else:
-                    remainingPieces.append('{} {}'.format(tag, tagText))
+                    if allTags:
+                        info.setdefault(tag, []).append(tagText)
+                        foundSomething = True
+                    else:
+                        remainingPieces.append('{} {}'.format(tag, tagText))
         if foundSomething:
             info['remainingText'] = strip_tags(''.join(remainingPieces)).strip()
             return info
@@ -1610,15 +1614,7 @@ class XmlApiDocParser(ApiDocParser):
                 paraText = getFirstText(para)
                 if paraText:
                     doc = paraText
-                    # note that if getFirstText(detail.find('para')) is the
-                    # same as xmlText(detail), then we will run
-                    # parseBackslashTags twice on the exact same input - once
-                    # here, to strip any parameters out of the method doc, and
-                    # once in parseMethodArgs, to get the parameters.
-                    # This is somewhat wasteful; I considered caching
-                    # parseBackslashTags, but decided not to bother, and leave
-                    # it simpler, since we don't really need the speed.
-                    info = self.parseBackslashTags(doc)
+                    info = self.parseBackslashTags(doc, allTags=True)
                     if info:
                         doc = info['remainingText']
                     if doc:
