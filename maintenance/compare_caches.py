@@ -428,7 +428,10 @@ def delDiff(multiKey):
     currentItem = diffs
     for piece in multiKey:
         dictsAndKeys.append((currentItem, piece))
-        currentItem = currentItem[piece]
+        try:
+            currentItem = currentItem[piece]
+        except Exception:
+            return
 
     for currentItem, piece in reversed(dictsAndKeys):
         del currentItem[piece]
