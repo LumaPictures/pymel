@@ -89,6 +89,7 @@ from __future__ import absolute_import
 
 
 from builtins import object
+import re
 import sys
 import os
 import inspect
@@ -1075,8 +1076,62 @@ class _DummyPluginNodesMaker(object):
 # Utility functions
 #==============================================================================
 
-def mayaPlugins():
-    '''all maya plugins in the maya install directory'''
+def filterPlugins(plugins, filters):
+    # type: (Iterable[str], Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]) -> [str]
+    '''Filters the given plugins against the given filter tests.
+
+    Parameters
+    ----------
+    plugins : Iterable[str]
+        List of plugin names to test
+    filters : Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]
+        If given, specifies plugins which should not be returned.  Can be
+        specified as a simple string (in which case a plugin name, stripped of
+        it's trailing extension, must match it in order to be skipped), a
+        compiled regular expression (whose 'match()' method must return a result
+        against a plugin in order for it to be skipped), or a callable (which
+        takes a plugin name as input, and returns True if it should be skipped)
+    '''
+    import logging
+    logger = logging.getLogger('pymel')
+
+    # turn into a list of tester methods
+    filterTests = []
+
+    def makeNameSkipper(skipName):
+        def matchesName(plugName):
+            return plugName.rsplit('.', 1)[0] == skipName
+
+        return matchesName
+
+    for filterItem in filters:
+        if isinstance(filterItem, str):
+            filterTests.append(makeNameSkipper(filterItem))
+        elif isinstance(filterItem, re._pattern_type):
+            filterTests.append(filterItem.match)
+        elif callable(filterItem):
+            filterTests.append(filterItem)
+        else:
+            raise TypeError(filterItem)
+    filteredPlugs = []
+    for plug in plugins:
+        if not any(test(plug) for test in filterTests):
+            filteredPlugs.append(plug)
+        else:
+            logger.debug("Filtering maya plugin: {}".format(plug))
+    return filteredPlugs
+
+
+def mayaPlugins(filters=()):
+    # type: (Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]) -> [str]
+    '''all maya plugins in the maya install directory
+
+    Parameters
+    ----------
+    filters : Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]
+        If given, specifies plugins which should not be returned.  Passed to
+        filterPlugins - see that function for a full description of this arg.
+    '''
     import pymel.mayautils
 
     mayaLoc = pymel.mayautils.getMayaLocation()
@@ -1103,11 +1158,20 @@ def mayaPlugins():
             if os.path.isfile(os.path.join(pluginPath, x)):
                 if not maya.cmds.pluginInfo(x, q=1, loaded=1):
                     plugins.append(x)
+    if filters:
+        plugins = filterPlugins(plugins, filters)
     return plugins
 
 
-def loadAllMayaPlugins():
+def loadAllMayaPlugins(filters=()):
+    # type: (Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]) -> None
     '''will load all maya-installed plugins
+
+    Parameters
+    ----------
+    filters : Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]
+        If given, specifies plugins which should not be loaded.  Passed to
+        filterPlugins - see that function for a full description of this arg.
 
     WARNING: tthe act of loading all the plugins may crash maya, especially if
     done from a non-GUI session
@@ -1118,7 +1182,7 @@ def loadAllMayaPlugins():
     # load until other plugins are loaded first... we stop if we've loaded all
     # plugins, or we went through a pass where no plugins were successfully
     # loaded
-    unloadedPlugins = set(mayaPlugins())
+    unloadedPlugins = set(mayaPlugins(filters=filters))
     loadedAPlugin = True
     passNum = 0
     while unloadedPlugins and loadedAPlugin:
@@ -1146,6 +1210,7 @@ def unloadAllPlugins(skipErrors=False, exclude=('DirectConnect',)):
 
     logger.debug("unloading all plugins...")
     loadedPlugins = maya.cmds.pluginInfo(q=True, listPlugins=True)
+    loadedPlugins = filterPlugins(loadedPlugins, exclude)
     # loadedPlugins may be None
     if loadedPlugins:
         # could just unload all plugins at once with:
@@ -1153,8 +1218,6 @@ def unloadAllPlugins(skipErrors=False, exclude=('DirectConnect',)):
         # ...but if we do one at a time, we can at least get debugging info
         # on which one crashed...
         for plug in loadedPlugins:
-            if plug in exclude:
-                continue
             logger.debug("...unloading: %s" % plug)
             try:
                 maya.cmds.unloadPlugin(plug, force=True)
