@@ -501,7 +501,42 @@ if (invertDiffs.get(4) == {0: ChangedKey('setNameLocked', 'setUuid'),
 
 ################################################################################
 
-# KNOWN PROBLEMS
+# New subclasses
+
+OK_NEW_VALS = {
+    'MCreatorFunction': ['MCustomEvaluatorCreatorFunction',
+                         'MTopologyEvaluatorCreatorFunction'],
+    'nullptr': [None],
+}
+
+def isOkChange(val):
+    if not isinstance(val, ChangedKey):
+        return False
+    if val.oldVal not in OK_NEW_VALS:
+        return False
+    return val.newVal in OK_NEW_VALS[val.oldVal]
+
+arguments.deepPatch(diffs, isOkChange, returnNone)
+
+
+################################################################################
+
+# CAN IGNORE - 2021
+
+CAN_IGNORE_2021 = [
+    # The docstring for MFnAirfield got messed up
+    ('MFnAirField', 'methods', 'setSpeed', 0, 'argInfo', 'value', 'doc'),
+    # docstring got messed up
+    ('MFnMesh', 'methods', 'create', 5, 'argInfo', 'edgeFaceDesc', 'doc'),
+    ('MFnMesh', 'methods', 'create', 6, 'argInfo', 'edgeFaceDesc', 'doc'),
+]
+
+for multiKey in CAN_IGNORE_2021:
+    delDiff(multiKey)
+
+################################################################################
+
+# KNOWN PROBLEMS - 2021
 
 KNOWN_PROBLEMS = [
     # These methods got removed - need to figure out why
