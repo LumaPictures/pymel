@@ -2,11 +2,12 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 from builtins import zip
-from builtins import range
+from builtins import chr, range
 from past.builtins import basestring
 from builtins import object
 import builtins
 import functools
+import html.entities
 import re
 import os.path
 import platform
@@ -106,18 +107,52 @@ def mayaDocsLocation(version=None):
     return os.path.realpath(docLocation)
 
 
+# The docs sometime contain entities as tags, like <lsquo />, instead of &lsquo;
+# these methods help deal with that
+def decodeEntity(tagname):
+    codepoint = html.entities.name2codepoint.get(tagname)
+    if codepoint is not None:
+        return chr(codepoint)
+
+
 def iterXmlTextAndElem(element):
-    '''Like Element.itertext, except returns a tuple of (text, element, isTail)'''
+    '''Like Element.itertext, except returns a tuple of (text, element, isEntity)
+
+    Also handles entity-refs-as-tags, like <lsquo />
+    '''
     tag = element.tag
     if not isinstance(tag, basestring) and tag is not None:
+        return
+    if len(element) == 0 and not element.text:
+        # If this is an empty element - no text, no children - check if it's an
+        # entity
+        entityChar = decodeEntity(tag)
+        if entityChar:
+            yield (entityChar, element, True)
         return
     if element.text:
         yield (element.text, element, False)
     for e in element:
+        isEntity = None
         for s in iterXmlTextAndElem(e):
             yield s
+            # if e is an entity, then it will yield exactly one result,
+            # whose isEntity will be True - so set isEntity based on first
+            # returned result
+            if isEntity is None:
+                isEntity = s[-1]
         if e.tail:
-            yield (e.tail, e, True)
+            # bool isEntity is just so we return False, not None
+            yield (e.tail, e, bool(isEntity))
+
+
+# The docs sometime contain entities as tags, like <lsquo />, instead of &lsquo;
+# these methods help deal with that
+def decodeEntity(tagname):
+    import html.entities
+    codepoint = html.entities.name2codepoint.get(tagname)
+    if codepoint is not None:
+        return chr(codepoint)
 
 
 def getFirstText(element, ignore=('ref', 'bold', 'emphasis', 'verbatim')):
@@ -127,18 +162,19 @@ def getFirstText(element, ignore=('ref', 'bold', 'emphasis', 'verbatim')):
     'Some text.'
     >>> getFirstText(ET.fromstring('<top><sub>Blah blah</sub> More stuff</top>'))
     'Blah blah'
-    >>> getFirstText(ET.fromstring('<top> <sub>Blah blah <ref>someRef</ref> More stuff</sub> The end</top>'))
-    'Blah blah someRef More stuff'
+    >>> getFirstText(ET.fromstring('<top> <sub>Blah blah <lsquo /><ref>someRef</ref><rsquo /> More stuff</sub> The end</top>'))
+    u'Blah blah \u2018someRef\u2019 More stuff'
     '''
     chunks = []
     foundText = False
 
-    for text, elem, isTail in iterXmlTextAndElem(element):
-        if foundText:
-            if elem.tag not in ignore:
-                break
-        elif text.strip():
-            foundText = True
+    for text, elem, isEntity in iterXmlTextAndElem(element):
+        if not isEntity:
+            if foundText:
+                if elem.tag not in ignore:
+                    break
+            elif text.strip():
+                foundText = True
         chunks.append(text)
 
     return ''.join(chunks).strip()
@@ -152,7 +188,9 @@ def xmlText(element, strip=True, allowNone=True):
     '''
     if allowNone and element is None:
         return ''
-    text = "".join(element.itertext())
+    # use iterXmlTextAndElem instead of element.itertext just so we decode
+    # things like <lsquo />
+    text = "".join(x[0] for x in iterXmlTextAndElem(element))
     if strip:
         text = text.strip()
     return text
@@ -169,6 +207,11 @@ class MLStripper(HTMLParser):
 
     def handle_data(self, d):
         self.fed.append(d)
+
+    def handle_startendtag(self, tag, attrs):
+        entityChar = decodeEntity(tag)
+        if entityChar:
+            self.fed.append(entityChar)
 
     def get_data(self):
         return ''.join(self.fed)
