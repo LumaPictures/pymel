@@ -167,6 +167,39 @@ arguments.deepPatch(diffs, wasTrimmedToSentence, removeDocDiff)
 
 ################################################################################
 
+# It's ok if the doc changed for a deprecated function
+
+for clsname, clsDiffs in diffs.items():
+    if not isinstance(clsDiffs, dict):
+        continue
+    methods = clsDiffs.get('methods')
+    if not methods or not isinstance(methods, dict):
+        continue
+    for methodName, methodDiff in methods.items():
+        if not isinstance(methodDiff, dict):
+            continue
+        for overloadI, overloadDiff in methodDiff.items():
+            if not isinstance(overloadDiff, dict):
+                continue
+            cacheKey = (clsname, 'methods', methodName, overloadI)
+            overloadData = arguments.getCascadingDictItem(caches['new'][-1],
+                                                          cacheKey)
+            if not overloadData.get('deprecated'):
+                continue
+
+            overloadDiff.pop('doc', None)
+
+            # check for changed docs for params
+            argInfoDiff = overloadDiff.get('argInfo')
+            if isinstance(argInfoDiff, dict):
+                for argDiffs in argInfoDiff.values():
+                    if not isinstance(argDiffs, dict):
+                        continue
+                    argDiffs.pop('doc', None)
+
+
+################################################################################
+
 # ignore changes in only capitalization or punctuation
 # ...also strip out any "\\li " or <b>/</b> items
 # ...or whitespace length...
