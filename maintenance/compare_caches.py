@@ -14,6 +14,9 @@ from pprint import pprint
 from pymel.util.enum import Enum
 from pymel.util.arguments import AddedKey, ChangedKey, RemovedKey
 
+from future.utils import PY2
+from past.builtins import unicode
+
 cachedir = r'D:\Projects\Dev\pymel\pymel\cache'
 
 names = {
@@ -167,9 +170,17 @@ arguments.deepPatchAltered(diffs, wasTrimmedToSentence, removeDocDiff)
 # ignore changes in only capitalization or punctuation
 # ...also strip out any "\\li " or <b>/</b> items
 # ...or whitespace length...
-PUNCTUATION = """;-'"`,."""
+ASCII_PUNCTUATION = """;-'"`,."""
+UNICODE_PUNCTUATION = (unicode(ASCII_PUNCTUATION) \
+                      # single left/right quote
+                      + u'\u2018\u2019')
+PUNCTUATION_TABLE = {ord(x): None for x in UNICODE_PUNCTUATION}
 def strip_punctuation(input):
-    return input.translate(None, PUNCTUATION)
+    if PY2:
+        if isinstance(input, str):
+            return input.translate(None, ASCII_PUNCTUATION)
+    return input.translate(PUNCTUATION_TABLE)
+
 
 MULTI_SPACE_RE = re.compile('\s+')
 
