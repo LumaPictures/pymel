@@ -1545,7 +1545,7 @@ class XmlApiDocParser(ApiDocParser):
             lastPosition = match.end()
             newTag = match.group(1)
             if newTag in subTags:
-                currentTextChunks.append(' ')
+                currentTextChunks.append(' - ')
                 continue
 
             yield (currentTag, ''.join(currentTextChunks))
@@ -1561,7 +1561,6 @@ class XmlApiDocParser(ApiDocParser):
             'params': OrderedDict(),
             'returnDoc': '',
         }
-        foundSomething = False
         remainingPieces = []
         for tag, tagText in cls.iterBackslashTags(text):
             if tag is None:
@@ -1580,19 +1579,15 @@ class XmlApiDocParser(ApiDocParser):
                         doc=strip_tags(' '.join(splitText[1:]))
                     )
                     info['params'][name] = paramInfo
-                    foundSomething = True
                 elif tag == 'return':
                     info['returnDoc'] = strip_tags(tagText)
-                    foundSomething = True
                 else:
                     if allTags:
                         info.setdefault(tag, []).append(tagText)
-                        foundSomething = True
                     else:
                         remainingPieces.append('{} {}'.format(tag, tagText))
-        if foundSomething:
-            info['remainingText'] = strip_tags(''.join(remainingPieces)).strip()
-            return info
+        info['remainingText'] = strip_tags(''.join(remainingPieces)).strip()
+        return info
 
     @ApiDocParser.methodcached
     def findDetailedDescription(self):
@@ -1614,9 +1609,7 @@ class XmlApiDocParser(ApiDocParser):
                 paraText = getFirstText(para)
                 if paraText:
                     doc = paraText
-                    info = self.parseBackslashTags(doc, allTags=True)
-                    if info:
-                        doc = info['remainingText']
+                    doc = self.parseBackslashTags(doc, allTags=True)['remainingText']
                     if doc:
                         break
         return doc
@@ -1676,26 +1669,21 @@ class XmlApiDocParser(ApiDocParser):
             else:
                 insertPosition = None
             parsedTags = self.parseBackslashTags(text)
-            foundSomething = False
-            if parsedTags:
-                for paramName, paramInfo in parsedTags['params'].items():
-                    existingParam = paramsByName.get(paramName)
-                    if not existingParam:
-                        paramsByName[paramName] = paramInfo
-                        if insertPosition is None:
-                            paramsByPosition.append(paramInfo)
-                        else:
-                            paramsByPosition.insert(insertPosition, paramInfo)
-                            insertPosition += 1
-                        foundSomething = True
+            for paramName, paramInfo in parsedTags['params'].items():
+                existingParam = paramsByName.get(paramName)
+                if not existingParam:
+                    paramsByName[paramName] = paramInfo
+                    if insertPosition is None:
+                        paramsByPosition.append(paramInfo)
                     else:
-                        insertPosition = paramsByPosition.index(existingParam) + 1
+                        paramsByPosition.insert(insertPosition, paramInfo)
+                        insertPosition += 1
+                else:
+                    insertPosition = paramsByPosition.index(existingParam) + 1
 
-                if not returnInfo.doc and parsedTags['returnDoc']:
-                    returnInfo.doc = parsedTags['returnDoc']
-                    foundSomething = True
-            if foundSomething:
-                return parsedTags['remainingText']
+            if not returnInfo.doc and parsedTags['returnDoc']:
+                returnInfo.doc = parsedTags['returnDoc']
+            return parsedTags['remainingText']
 
         # sometimes the param docs don't get parsed correctly, with the result
         # that the parameter list jumps from param5 to param7, and the docstring
@@ -1710,9 +1698,7 @@ class XmlApiDocParser(ApiDocParser):
         # missing params that can be parsed from the docstrings
         for paramElem, paramInfo in paramElemsAndInfos:
             paramsByPosition.append(paramInfo)
-            remainingText = parseRawTagInfo(paramInfo.doc)
-            if remainingText:
-                paramInfo.doc = remainingText
+            paramInfo.doc = parseRawTagInfo(paramInfo.doc)
 
         # Sometimes, "parameteritem" xml objects may not be properly created,
         # but (manually) parsable information still exists in the
