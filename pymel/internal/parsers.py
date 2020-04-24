@@ -710,10 +710,16 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             'colorModel', 'c1', 'c2', 'c3'],
         'MColor.get(MColor.MColorType, float&, float&, float&, float&)': [
             'colorModel', 'c1', 'c2', 'c3', 'alpha'],
+        'MFnDependencyNode.removeAttribute(MObject const&, MFnDependencyNode.MAttrClass)': [
+            'attribute', 'type'],
+        'MFnNurbsCurve.create(MPointArray const&, MDoubleArray const&, unsigned uint, MFnNurbsCurve.Form, bool, bool, MObject&, MStatus*)': [
+            'controlVertices', 'knots', 'degree', 'form', 'create2D', 'createRational', 'parentOrOwner', 'ReturnStatus'],
         'MTransformationMatrix.getRotation(double__array3, MTransformationMatrix.RotationOrder&)': [
             'rot', 'order'],
         'MTransformationMatrix.getRotation(double__array3, MTransformationMatrix.RotationOrder&, MSpace.Space)': [
             'rot', 'order', 'space'],
+        'MTransformationMatrix.setRotation(double__array3 const, MTransformationMatrix.RotationOrder)': [
+            'rot', 'order'],
         'MTransformationMatrix.setRotation(double__array3 const, MTransformationMatrix.RotationOrder, MSpace.Space)' : [
             'rot', 'order', 'space'],
     }
