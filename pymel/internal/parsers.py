@@ -647,6 +647,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
                    'long', 'long2', 'long3',
                    'MString', 'MStringArray', 'MStatus']
     NOT_TYPES = ['MCallbackId']
+    BASIC_NUMERIC_TYPES = ['int', 'double', 'float', 'uint', 'uchar']
 
     NON_MFN_FULL_PARSE_CLASSES = {
         'MAngle',
@@ -794,6 +795,38 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         if apiClsName.startswith('MFn'):
             return False
         return apiClsName not in cls.NON_MFN_FULL_PARSE_CLASSES
+
+    @classmethod
+    def splitArrayType(cls, origType):
+        # type: (Union[str, ApiEnum]) -> Tuple[str, Optional[int]]
+        '''Given a typeName like double__array3, returns ('double', 3)
+
+        Returns
+        -------
+        str
+            The base name of the type, without any array suffix
+        Optional[int]
+            The size of the array, or None if not an array type
+        '''
+        if isinstance(origType, str):
+            splitName = origType.rsplit('__array', 1)
+            if len(splitName) == 2:
+                try:
+                    arraySize = int(splitName[1])
+                    return (splitName[0], arraySize)
+                except ValueError:
+                    pass
+        return (origType, None)
+
+    @classmethod
+    def isGettableArg(cls, param):
+        # type: (ParamInfo) -> bool
+        if '&' in param.typeQualifiers:
+            return True
+        baseType, arraySize = cls.splitArrayType(param.type)
+        if arraySize is not None and baseType in cls.BASIC_NUMERIC_TYPES:
+            return True
+        return False
 
     # We use a property here just to make sure that _methodCache is cleared
     # when method changes
@@ -1180,10 +1213,11 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         paramInfos = [x for x in paramInfos if x.type != 'MStatus']
 
         # correct bad outputs
-        if self.isGetMethod() and not returnInfo.type \
-                and not any(x.direction == 'out' for x in paramInfos):
+        if (self.isGetMethod() and (not returnInfo.type
+                                    or returnInfo.type =='MStatus')
+                and not any(x.direction == 'out' for x in paramInfos)):
             for param in paramInfos:
-                if '&' in param.typeQualifiers:
+                if self.isGettableArg(param):
                     _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (
                         self.apiClassName, self.currentMethodName,
                         ', '.join(x.name for x in paramInfos), param.name,
@@ -1899,7 +1933,7 @@ class XmlApiDocParser(ApiDocParser):
                         fullName, newParam.name, newParam.doc))
                     newParam.direction = 'out'
                 elif not self.isSetMethod() and '&' in oldParam.typeQualifiers \
-                        and oldParam.type in ['int', 'double', 'float', 'uint', 'uchar']:
+                        and oldParam.type in self.BASIC_NUMERIC_TYPES:
                     _logger.warn(
                         "{}: Correcting suspected output argument '{}' based on reference type '{} &' ('{}')".format(
                         fullName, newParam.name, oldParam.type, newParam.doc))
