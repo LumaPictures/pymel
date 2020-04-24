@@ -222,9 +222,22 @@ def strip_tags(html):
     s.feed(html)
     return s.get_data()
 
+# This is mostly because python-2 doctest doesn't deal with unicode
+def standardizeUnicodeChars(input):
+    if PY2:
+        if isinstance(input, str):
+            return input
+    return input.translate({
+        0xb6: ord('\n'),  # the paragraph mark
+        0x2018: ord("'"),  # single left quote
+        0x2019: ord("'"),  # single right quote
+        0x201C: ord('"'),  # double left quote
+        0x201D: ord('"'),  # double right quote
+    })
+
 
 def standardizeDoc(input):
-    return standardizeWhitespace(strip_tags(input))
+    return standardizeWhitespace(standardizeUnicodeChars(strip_tags(input)))
 
 
 #---------------------------------------------------------------
