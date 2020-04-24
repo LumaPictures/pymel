@@ -624,6 +624,14 @@ CAN_IGNORE_2021 = [
     ('MFnIkJoint', 'methods', 'getPreferedAngle', 0, 'args', 0, 2),
     ('MFnIkJoint', 'methods', 'getPreferedAngle', 0, 'inArgs', 0),
     ('MFnIkJoint', 'methods', 'getPreferedAngle', 0, 'outArgs', 0),
+    # A valid fix - 'const unsigned short' was formerly parsed (in the xml)
+    # as a type of "const unsigned" and a name of "short"
+    ('MFloatPoint', 'methods', '__imul__', 4, 'argInfo', 'factor', 'type'),
+    ('MFloatPoint', 'methods', '__imul__', 4, 'args', 0, 1),
+    ('MFloatPoint', 'methods', '__imul__', 4, 'types', 'factor'),
+    ('MPoint', 'methods', '__imul__', 4, 'argInfo', 'factor', 'type'),
+    ('MPoint', 'methods', '__imul__', 4, 'args', 0, 1),
+    ('MPoint', 'methods', '__imul__', 4, 'types', 'factor'),
 ]
 if versions.current() // 10000 == cacheversions['new']:
     for multiKey in CAN_IGNORE_2021:
@@ -631,35 +639,11 @@ if versions.current() // 10000 == cacheversions['new']:
 
 ################################################################################
 
-# KNOWN PROBLEMS - 2021
+# KNOWN PROBLEMS
+
+# place to temporarily put issues that need fixing, but you want to filter
 
 KNOWN_PROBLEMS_2021 = [
-    # These methods got removed - need to figure out why
-    ('MColor', 'methods', '__imul__'),
-    ('MColor', 'methods', '__mul__'),
-    ('MEulerRotation', 'methods', '__imul__'),
-    ('MEulerRotation', 'methods', '__mul__'),
-    ('MFloatMatrix', 'methods', '__imul__'),
-    ('MFloatMatrix', 'methods', '__mul__'),
-    ('MFloatPoint', 'methods', '__imul__'),
-    ('MFloatPoint', 'methods', '__mul__'),
-    ('MFloatVector', 'methods', '__imul__'),
-    ('MFloatVector', 'methods', '__mul__'),
-    ('MMatrix', 'methods', '__imul__'),
-    ('MMatrix', 'methods', '__mul__'),
-    ('MPlug', 'methods', '__ne__'),
-    ('MPoint', 'methods', '__imul__'),
-    ('MPoint', 'methods', '__mul__'),
-    ('MQuaternion', 'methods', '__imul__'),
-    ('MQuaternion', 'methods', '__mul__'),
-    ('MTime', 'methods', '__imul__'),
-    ('MTime', 'methods', '__isub__'),
-    ('MTime', 'methods', '__mul__'),
-    ('MTime', 'methods', '__ne__'),
-    ('MTime', 'methods', '__sub__'),
-    ('MTransformationMatrix', 'methods', '__ne__'),
-    ('MVector', 'methods', '__imul__'),
-    ('MVector', 'methods', '__mul__'),
 ]
 
 if versions.current() // 10000 == cacheversions['new']:
