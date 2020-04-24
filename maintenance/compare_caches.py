@@ -693,6 +693,10 @@ print("diff_classes:")
 for cls in diff_classes:
     print("  " + str(cls))
 print('###########')
-print(diff_classes[0])
-pprint(diffs[diff_classes[0]])
+if len(diffs):
+    print("first class diff:")
+    print(diff_classes[0])
+    pprint(diffs[diff_classes[0]])
+else:
+    print("no diffs left! hooray!")
 print('###########')
