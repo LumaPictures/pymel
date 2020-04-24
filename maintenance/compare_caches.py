@@ -1,5 +1,4 @@
-#execfile(r'D:\Projects\Dev\pymel\maintenance\compare_caches.py')
-
+import inspect
 import os
 import re
 import types
@@ -18,7 +17,11 @@ from pymel.util.arguments import AddedKey, ChangedKey, RemovedKey
 from future.utils import PY2
 from past.builtins import basestring, unicode
 
-cachedir = r'D:\Projects\Dev\pymel\pymel\cache'
+THIS_FILE = inspect.getsourcefile(lambda: None)
+THIS_DIR = os.path.dirname(THIS_FILE)
+
+repodir = os.path.dirname(THIS_DIR)
+cachedir = os.path.join(repodir, 'pymel', 'cache')
 
 cacheversions = {
     'old': 2020,
