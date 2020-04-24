@@ -491,14 +491,19 @@ class Vector(with_metaclass(MetaMayaArrayTypeWrapper, VectorN)):
         """ u.__eq__(v) <==> u == v
             Equivalence test """
         try:
-            return bool(self.apicls.__eq__(self, other))
+            result = self.apicls.__eq__(self, other)
+            # starting in 2021, ie, MVector(1,2,3).__eq__(MPoint(1,2,3)) returns
+            # NotImplemented... which boolean evaluates to True!
+            if result is NotImplemented:
+                raise NotImplementedError
+            return result
         except Exception:
-            return bool(super(Vector, self).__eq__(other))
+            return super(Vector, self).__eq__(other)
 
     def __ne__(self, other):
         """ u.__ne__(v) <==> u != v
             Equivalence test """
-        return (not self.__eq__(other))
+        return (not self == other)
 
     def __neg__(self):
         """ u.__neg__() <==> -u
@@ -1927,14 +1932,19 @@ class Matrix(with_metaclass(MetaMayaArrayTypeWrapper, MatrixN)):
         """ m.__eq__(v) <==> m == v
             Equivalence test """
         try:
-            return bool(self.apicls.__eq__(self, other))
-        except:
-            return bool(super(Matrix, self).__eq__(other))
+            result = self.apicls.__eq__(self, other)
+            # starting in 2021, ie, MVector(1,2,3).__eq__(MPoint(1,2,3)) returns
+            # NotImplemented... which boolean evaluates to True!
+            if result is NotImplemented:
+                raise NotImplementedError
+            return result
+        except Exception:
+            return super(Matrix, self).__eq__(other)
 
     def __ne__(self, other):
         """ m.__ne__(v) <==> m != v
             Equivalence test """
-        return (not self.__eq__(other))
+        return (not self == other)
 
     def __neg__(self):
         """ m.__neg__() <==> -m
@@ -2935,14 +2945,19 @@ class EulerRotation(with_metaclass(MetaMayaArrayTypeWrapper, Array)):
         """ u.__eq__(v) <==> u == v
             Equivalence test """
         if isinstance(other, self.apicls):
-            return bool(self.apicls.__eq__(self, other))
+            result = self.apicls.__eq__(self, other)
+            # starting in 2021, ie, MVector(1,2,3).__eq__(MPoint(1,2,3)) returns
+            # NotImplemented... which boolean evaluates to True!
+            if result is NotImplemented:
+                raise NotImplementedError
+            return result
         else:
-            return bool(super(EulerRotation, self).__eq__(other))
+            return super(EulerRotation, self).__eq__(other)
 
     def __ne__(self, other):
         """ u.__ne__(v) <==> u != v
             Equivalence test """
-        return (not self.__eq__(other))
+        return (not self == other)
 
     def __neg__(self):
         """ u.__neg__() <==> -u
