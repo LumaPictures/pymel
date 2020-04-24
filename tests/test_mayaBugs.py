@@ -485,7 +485,7 @@ class TestFluidMFnCreation(unittest.TestCase):
 # nucleus node fixed in 2014
 # symmetryConstraint fixed in 2015
 # transferAttributes fixed <= 2016.5
-# jointFFd still broken as of 2019
+# jointFFd fixed in 2021
 class TestMFnCompatibility(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
@@ -530,7 +530,7 @@ class TestMFnCompatibility(unittest.TestCase):
             pass
         else:
             self.fail("{} passed inheritance test (for {} / {}), when it was"
-                      " expceted to fail".format(nodeType, mfnEnumName,
+                      " expected to fail".format(nodeType, mfnEnumName,
                                                  mfnType.__name__))
 
     def test_nucleus_MFnDagNode(self):
@@ -553,9 +553,15 @@ class TestMFnCompatibility(unittest.TestCase):
         self.assertInheritMFn('jointFfd', 'ffd', 'kFFD', oma.MFnLatticeDeformer)
 
     def test_jointFfd_geometryFilter(self):
-        self.assertNotInheritMFn(
-            'jointFfd', ('geometryFilter', 'softMod'),
-            'kGeometryFilt', oma.MFnGeometryFilter)
+        # fixed in 2021!
+        if pymel.versions.current() >= pymel.versions.v2021:
+            self.assertInheritMFn(
+                'jointFfd', ('geometryFilter', 'softMod'),
+                'kGeometryFilt', oma.MFnGeometryFilter)
+        else:
+            self.assertNotInheritMFn(
+                'jointFfd', ('geometryFilter', 'softMod'),
+                'kGeometryFilt', oma.MFnGeometryFilter)
 
     def test_transferAttributes_weightGeometryFilter(self):
         self.assertInheritMFn(
