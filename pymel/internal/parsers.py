@@ -1052,14 +1052,9 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         return default
 
     def getOperatorName(self, methodName):
-        op = methodName[8:]
+        op = methodName[len('operator'):].strip()
         # print "operator", methodName, op
-        if op == '=':
-            methodName = None
-        else:
-
-            methodName = self.CPP_OPERATOR_TO_PY.get(op, None)
-        return methodName
+        return self.CPP_OPERATOR_TO_PY.get(op, None)
 
     def isSetMethod(self):
         return bool(self._setMethodNameRe.match(self.currentMethodName))
