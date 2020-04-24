@@ -398,6 +398,66 @@ for multiKey, methods in iterDiffDictForKey(diffs, iterKey, onlyDicts=True):
 
 ################################################################################
 
+# new args are ok
+
+for multiKey, overloadDiff in iterOverloadDiffs(onlyDicts=True):
+    # check to see if the ONLY change to args is AddedKeys..
+    args = overloadDiff.get('args')
+    if not isinstance(args, dict):
+        continue
+
+    if not all(isinstance(x, AddedKey) for x in args.values()):
+        continue
+
+    # Ok, args only had added keys - get a list of the names...
+    newArgs = set(x.newVal[0] for x in args.values())
+
+    # the args MUST also appear as AddedKeys in argInfo
+    argInfo = overloadDiff.get('argInfo')
+    if not isinstance(argInfo, dict):
+        continue
+
+    if not all(isinstance(argInfo.get(x), AddedKey) for x in newArgs):
+        continue
+
+    # ok, everything seems to check out - start deleting
+
+    # we confirmed that all the diffs in args are AddedKey, remove them all!
+    del overloadDiff['args']
+
+    # remove newArgs from 'argInfo'
+    for newArg in newArgs:
+        del argInfo[newArg]
+
+    # remove newArgs from defaults, types, typeQualifiers - these all key on
+    # argName
+    for subItemName in ('defaults', 'types', 'typeQualifiers'):
+        subDict = overloadDiff.get(subItemName)
+        if isinstance(subDict, AddedKey):
+            subDict = subDict.newVal
+            if set(subDict) == newArgs:
+                del overloadDiff[subItemName]
+        elif isinstance(subDict, dict):
+            for newArg in newArgs:
+                argDiff = subDict.get(newArg)
+                if isinstance(argDiff, AddedKey):
+                    del subDict[newArg]
+
+    # remove newArgs from inArgs / outArgs - these are lists, and so key on
+    # arbitrary indices
+    for subItemName in ('inArgs', 'outArgs'):
+        subDict = overloadDiff.get(subItemName)
+        if isinstance(subDict, AddedKey):
+            subList = subDict.newVal
+            if set(subDict.newVal) == newArgs:
+                del overloadDiff[subItemName]
+        elif isinstance(subDict, dict):
+            for key, val in list(subDict.items()):
+                if isinstance(val, AddedKey) and val.newVal in newArgs:
+                    del subDict[key]
+
+################################################################################
+
 # new classes are ok
 for clsname, clsDiffs in list(diffs.items()):
     if isinstance(clsDiffs, AddedKey):
@@ -477,9 +537,12 @@ for _, overloadDiff in iterOverloadDiffs(onlyDicts=True):
 
 # Can ignore
 
-def delDiff(multiKey):
+def delDiff(multiKey, diffsDict=None):
     dictsAndKeys = []
-    currentItem = diffs
+    if diffsDict is None:
+        currentItem = diffs
+    else:
+        currentItem = diffsDict
     for piece in multiKey:
         dictsAndKeys.append((currentItem, piece))
         try:
