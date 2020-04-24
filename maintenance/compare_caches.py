@@ -8,6 +8,7 @@ import pymel.internal.apicache as apicache
 import pymel.internal.parsers as parsers
 import pymel.internal.startup
 import pymel.util.arguments as arguments
+import pymel.versions as versions
 
 from pprint import pprint
 
@@ -19,10 +20,13 @@ from past.builtins import basestring, unicode
 
 cachedir = r'D:\Projects\Dev\pymel\pymel\cache'
 
-names = {
-    'old': 'mayaApi2020.py',
-    'new': 'mayaApi2021.py',
+cacheversions = {
+    'old': 2020,
+    'new': 2021,
 }
+
+cachefiles = {key: 'mayaApi{}.py'.format(ver)
+              for key, ver in cacheversions.items()}
 
 DO_PREPROCESS = False
 
@@ -47,8 +51,8 @@ def preprocess(cache):
     return cache
 
 caches = {}
-for key, cachename in names.items():
-    cachepath = os.path.join(cachedir, cachename)
+for key, cachefile in cachefiles.items():
+    cachepath = os.path.join(cachedir, cachefile)
     cache_globals = {}
     cacheInst = apicache.ApiCache()
     data = cacheInst.read(path=cachepath)
@@ -613,16 +617,18 @@ CAN_IGNORE_2021 = [
     # docstring got messed up
     ('MFnMesh', 'methods', 'create', 5, 'argInfo', 'edgeFaceDesc', 'doc'),
     ('MFnMesh', 'methods', 'create', 6, 'argInfo', 'edgeFaceDesc', 'doc'),
+    # docstring changed
+    ('MFnSubdNames', 'methods', 'baseFaceIndexFromId', 0, 'doc'),
 ]
-
-for multiKey in CAN_IGNORE_2021:
-    delDiff(multiKey)
+if versions.current() // 10000 == cacheversions['new']:
+    for multiKey in CAN_IGNORE_2021:
+        delDiff(multiKey)
 
 ################################################################################
 
 # KNOWN PROBLEMS - 2021
 
-KNOWN_PROBLEMS = [
+KNOWN_PROBLEMS_2021 = [
     # These methods got removed - need to figure out why
     ('MColor', 'methods', '__imul__'),
     ('MColor', 'methods', '__mul__'),
@@ -634,15 +640,26 @@ KNOWN_PROBLEMS = [
     ('MFloatPoint', 'methods', '__mul__'),
     ('MFloatVector', 'methods', '__imul__'),
     ('MFloatVector', 'methods', '__mul__'),
+    ('MMatrix', 'methods', '__imul__'),
+    ('MMatrix', 'methods', '__mul__'),
+    ('MPlug', 'methods', '__ne__'),
+    ('MPoint', 'methods', '__imul__'),
+    ('MPoint', 'methods', '__mul__'),
+    ('MQuaternion', 'methods', '__imul__'),
+    ('MQuaternion', 'methods', '__mul__'),
     ('MTime', 'methods', '__imul__'),
     ('MTime', 'methods', '__isub__'),
     ('MTime', 'methods', '__mul__'),
     ('MTime', 'methods', '__ne__'),
     ('MTime', 'methods', '__sub__'),
+    ('MTransformationMatrix', 'methods', '__ne__'),
+    ('MVector', 'methods', '__imul__'),
+    ('MVector', 'methods', '__mul__'),
 ]
 
-for multiKey in KNOWN_PROBLEMS:
-    delDiff(multiKey)
+if versions.current() // 10000 == cacheversions['new']:
+    for multiKey in KNOWN_PROBLEMS_2021:
+        delDiff(multiKey)
 
 
 ################################################################################
