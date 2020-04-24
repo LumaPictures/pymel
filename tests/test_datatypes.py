@@ -1541,6 +1541,7 @@ class test_Units(unittest.TestCase):
     def setUpClass(cls):
         pm.newFile(f=1)
         cls.transform = pm.createNode('transform', name='testTrans')
+        cls.time = pm.createNode('time', name='testTime')
         cls.linearUnit = cmds.currentUnit(query=True, linear=True)
         cls.angleUnit = cmds.currentUnit(query=True, angle=True)
         cls.timeUnit = cmds.currentUnit(query=True, time=True)
@@ -1601,23 +1602,23 @@ class test_Units(unittest.TestCase):
         pm.dt.Time.setUIUnit('film')
         self.assertEqual(pm.dt.Time.getUIUnit(), 'film')
 
-        gre = self.transform.attr('ghostRangeEnd')
-        gre.set(24)
+        out = self.time.attr('outTime')
+        out.set(24)
 
-        self.assertEqual(gre.get(), 24)
-        greTime = pm.dt.getPlugValue(gre.__apimplug__())
-        self.assertIsInstance(greTime, pm.dt.Time)
-        self.assertEqual(greTime.unit, 'film')
-        self.assertEqual(float(greTime), 24)
+        self.assertEqual(out.get(), 24)
+        outTime = pm.dt.getPlugValue(out.__apimplug__())
+        self.assertIsInstance(outTime, pm.dt.Time)
+        self.assertEqual(outTime.unit, 'film')
+        self.assertEqual(float(outTime), 24)
 
         pm.dt.Time.setUIUnit('k48FPS')
         self.assertEqual(pm.dt.Time.getUIUnit(), 'k48FPS')
 
-        self.assertEqual(gre.get(), 48)
-        greTime = pm.dt.getPlugValue(gre.__apimplug__())
-        self.assertIsInstance(greTime, pm.dt.Time)
-        self.assertEqual(greTime.unit, 'k48FPS')
-        self.assertEqual(float(greTime), 48)
+        self.assertEqual(out.get(), 48)
+        outTime = pm.dt.getPlugValue(out.__apimplug__())
+        self.assertIsInstance(outTime, pm.dt.Time)
+        self.assertEqual(outTime.unit, 'k48FPS')
+        self.assertEqual(float(outTime), 48)
 
 
 
