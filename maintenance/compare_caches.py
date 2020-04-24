@@ -15,7 +15,7 @@ from pymel.util.enum import Enum
 from pymel.util.arguments import AddedKey, ChangedKey, RemovedKey
 
 from future.utils import PY2
-from past.builtins import unicode
+from past.builtins import basestring, unicode
 
 cachedir = r'D:\Projects\Dev\pymel\pymel\cache'
 
@@ -65,49 +65,100 @@ both, onlyOld, onlyNew, diffs = arguments.compareCascadingDicts(
     caches['new'][-1],
     useAddedKeys=True, useChangedKeys=True)
 
+################################################################################
+# iteration utils
+
+class AnyKey(object):
+    '''Sentinel value to indicate all keys should be iterated over'''
+    def __init__(self, comment):
+        '''Init does nothing, just allows you to add a comment visible in the
+        code'''
+        pass
+
+
+class NoValue(object):
+    '''Sentinel value (distinct from None) to indicate no value'''
+    pass
+
+
+def iterDiffDictForKey(cascadingDict, multiKey, onlyDicts=False):
+    '''Given a multiKey into a cascading dict, where each piece in the multiKey
+    is either a fixed value, list of fixed values, or AnyKey, meaning to iterate
+    over all keys at that level, yield the results gained from getting the last
+    key in the multiKey'''
+    if not multiKey:
+        raise ValueError("multiKey must have at least one item")
+
+    head, tail = multiKey[0], multiKey[1:]
+
+    if head is AnyKey or isinstance(head, AnyKey):
+        keyIter = cascadingDict.keys()
+    elif isinstance(head, list):
+        keyIter = head
+    else:
+        keyIter = [head]
+
+    for key in keyIter:
+        val = cascadingDict.get(key, NoValue)
+        if val is NoValue:
+            continue
+
+        if not tail:
+            # if there's no tail, we're done recursing...
+            if not onlyDicts or isinstance(val, dict):
+                yield (key,), val
+        elif isinstance(val, dict):
+            for subMultiKey, subItem in iterDiffDictForKey(val, tail,
+                                                           onlyDicts=onlyDicts):
+                yield (key,) + subMultiKey, subItem
+
+# convience iterators at specific levels
+
+def iterOverloadDiffs(onlyDicts=False):
+    iterKey = (
+        AnyKey('classname'),
+        'methods',
+        AnyKey('methodname'),
+        AnyKey('overloadIndex'),
+    )
+
+    for item in iterDiffDictForKey(diffs, iterKey, onlyDicts=onlyDicts):
+        yield item
+
 #eliminate known diffs
 
 ################################################################################
 
-# # {'methods': {'className': {0: {'doc': ChangedKey('Class name.', 'Returns the name of this class.'),
-#                                'returnInfo': {'doc': ChangedKey('', 'Name of this class.')},
-#                                'static': ChangedKey(False, True)}},
-#              'type': {0: {'doc': ChangedKey('Function set type.', 'Function set type'),
-#                           'returnInfo': {'doc': ChangedKey('', 'the class type.')}}}}}
-
-
 # Doc for 'className' method got more verbose, and it became static
 #'className': {0: {'doc': ChangedKey('Class name.', 'Returns the name of this class.')
 
-for clsname, clsDiffs in diffs.items():
-    if not isinstance(clsDiffs, dict):
-        continue
-    methods = clsDiffs.get('methods')
-    if not methods:
-        continue
-    methodDiffs = methods.get('className')
-    if not methodDiffs:
-        continue
-    for overloadIndex, overloadDiffs in methodDiffs.iteritems():
-        docDiff = overloadDiffs.get('doc')
-        if docDiff and isinstance(docDiff, ChangedKey):
-            if set([
-                        docDiff.oldVal.lower().rstrip('.'),
-                        docDiff.newVal.lower().rstrip('.'),
-                    ]) == set([
-                        'class name',
-                        'returns the name of this class',
-                    ]):
-                del overloadDiffs['doc']
-        staticDiff = overloadDiffs.get('static')
-        if (isinstance(staticDiff, ChangedKey)
-                and not staticDiff.oldVal
-                and staticDiff.newVal):
-            del overloadDiffs['static']
+iterKey = (
+    AnyKey('classname'),
+    'methods',
+    'className',  # this is potentially confusing - the methodName IS 'className'
+    AnyKey('overloadIndex'),
+)
+
+for _, overloadDiff in iterDiffDictForKey(diffs, iterKey):
+    docDiff = overloadDiff.get('doc')
+    if isinstance(docDiff, ChangedKey):
+        if set([
+                    docDiff.oldVal.lower().rstrip('.'),
+                    docDiff.newVal.lower().rstrip('.'),
+                ]) == set([
+                    'class name',
+                    'returns the name of this class',
+                ]):
+            del overloadDiff['doc']
+    staticDiff = overloadDiff.get('static')
+    if (isinstance(staticDiff, ChangedKey)
+            and not staticDiff.oldVal
+            and staticDiff.newVal):
+        del overloadDiff['static']
 
 ################################################################################
 
-# It's ok if it didn't use to have a doc, and now it does
+# It's ok if it didn't have a doc, and now it does
 def hasNewDoc(arg):
     if not isinstance(arg, dict):
         return False
@@ -169,34 +220,21 @@ arguments.deepPatch(diffs, wasTrimmedToSentence, removeDocDiff)
 
 # It's ok if the doc changed for a deprecated function
 
-for clsname, clsDiffs in diffs.items():
-    if not isinstance(clsDiffs, dict):
+for multiKey, overloadDiff in iterOverloadDiffs(onlyDicts=True):
+    overloadData = arguments.getCascadingDictItem(caches['new'][-1],
+                                                  multiKey)
+    if not overloadData.get('deprecated'):
         continue
-    methods = clsDiffs.get('methods')
-    if not methods or not isinstance(methods, dict):
-        continue
-    for methodName, methodDiff in methods.items():
-        if not isinstance(methodDiff, dict):
-            continue
-        for overloadI, overloadDiff in methodDiff.items():
-            if not isinstance(overloadDiff, dict):
+
+    overloadDiff.pop('doc', None)
+
+    # check for changed docs for params
+    argInfoDiff = overloadDiff.get('argInfo')
+    if isinstance(argInfoDiff, dict):
+        for argDiffs in argInfoDiff.values():
+            if not isinstance(argDiffs, dict):
                 continue
-            cacheKey = (clsname, 'methods', methodName, overloadI)
-            overloadData = arguments.getCascadingDictItem(caches['new'][-1],
-                                                          cacheKey)
-            if not overloadData.get('deprecated'):
-                continue
-
-            overloadDiff.pop('doc', None)
-
-            # check for changed docs for params
-            argInfoDiff = overloadDiff.get('argInfo')
-            if isinstance(argInfoDiff, dict):
-                for argDiffs in argInfoDiff.values():
-                    if not isinstance(argDiffs, dict):
-                        continue
-                    argDiffs.pop('doc', None)
-
+            argDiffs.pop('doc', None)
 
 ################################################################################
 
@@ -240,6 +278,8 @@ arguments.deepPatch(diffs, same_after_normalize, returnNone)
 
 ################################################################################
 
+# enums are now recorded in a way where there's no documentation for values...
+
 # {'enums': {'ColorTable': {'valueDocs': {'activeColors': RemovedKey('Colors for active objects.'),
 #                                         'backgroundColor': RemovedKey('Colors for background color.'),
 #                                         'dormantColors': RemovedKey('Colors for dormant objects.'),
@@ -249,28 +289,18 @@ arguments.deepPatch(diffs, same_after_normalize, returnNone)
 #                                         'kTemplateColor': RemovedKey('Colors for templated objects.'),
 #                                         'templateColor': RemovedKey('Colors for templated objects.')}},
 
-# enums are now recorded in a way where there's no documentation for values...
-for clsname, clsDiffs in diffs.items():
-    if not isinstance(clsDiffs, dict):
+iterKey = (
+    AnyKey('classname'),
+    'enums',
+    AnyKey('enumname'),
+)
+
+for _, enumDiffs in iterDiffDictForKey(diffs, iterKey, onlyDicts=True):
+    valueDocs = enumDiffs.get('valueDocs')
+    if not isinstance(valueDocs, dict):
         continue
-    enums = clsDiffs.get('enums')
-    if not enums:
-        continue
-    for enumName in list(enums):
-        enumDiffs = enums[enumName]
-        if not isinstance(enumDiffs, dict):
-            continue
-        valueDocs = enumDiffs.get('valueDocs')
-        if not valueDocs:
-            continue
-        if all(isinstance(val, arguments.RemovedKey) for val in valueDocs.values()):
-            del enumDiffs['valueDocs']
-        if not enumDiffs:
-            del enums[enumName]
-    if not enums:
-        del clsDiffs['enums']
-    if not clsDiffs:
-        del diffs[clsname]
+    if all(isinstance(val, arguments.RemovedKey) for val in valueDocs.values()):
+        del enumDiffs['valueDocs']
 
 ################################################################################
 # Enums that have new values added are ok
@@ -302,34 +332,30 @@ def enums_with_new_values(input):
 
 arguments.deepPatch(diffs, enums_with_new_values, returnNone)
 ################################################################################
-
 # new enums are ok
-for clsname, clsDiffs in diffs.items():
-    if not isinstance(clsDiffs, dict):
-        continue
-    for enumGroupName in ('enums', 'pymelEnums'):
-        enums = clsDiffs.get(enumGroupName)
-        if not enums or not isinstance(enums, dict):
-            continue
-        to_remove = []
-        for name in list(enums):
-            enumDiff = enums[name]
-            if isinstance(enumDiff, AddedKey):
-                del enums[name]
+
+iterKey = (
+    AnyKey('classname'),
+    ['enums', 'pymelEnums'],
+)
+
+for _, enums in iterDiffDictForKey(diffs, iterKey, onlyDicts=True):
+    for enumName, enumDiff in list(enums.items()):
+        if isinstance(enumDiff, AddedKey):
+            del enums[enumName]
 
 ################################################################################
 
 # new methods are ok
-for clsname, clsDiffs in diffs.items():
-    if not isinstance(clsDiffs, dict):
-        continue
-    methods = clsDiffs.get('methods')
-    if not methods or not isinstance(methods, dict):
-        continue
-    to_remove = []
+
+iterKey = (
+    AnyKey('classname'),
+    'methods',
+)
+
+for multiKey, methods in iterDiffDictForKey(diffs, iterKey, onlyDicts=True):
     newMethods = []
-    for methodName in list(methods):
-        methodDiff = methods[methodName]
+    for methodName, methodDiff in list(methods.items()):
         if isinstance(methodDiff, AddedKey):
             del methods[methodName]
             newMethods.append(methodName)
@@ -338,11 +364,22 @@ for clsname, clsDiffs in diffs.items():
             for key, overloadDiff in list(methodDiff.items()):
                 if isinstance(overloadDiff, AddedKey):
                     del methodDiff[key]
+
+    if not newMethods:
+        continue
+
+    clsname = multiKey[0]
+    clsDiffs = diffs[clsname]
+
     # check if the new methods were invertibles, and clear up diffs due to that
     if len(newMethods) >= 2:
         invertibleDiffs = clsDiffs.get('invertibles')
-        if not invertibleDiffs or not isinstance(invertibleDiffs, dict):
+        if not isinstance(invertibleDiffs, dict):
             continue
+        # build up a set of all the invertibles in the new and old cache. 
+        # Then, from the set of new invertibles, subtract out all new methods. 
+        # If what's left over is the same as the oldInvertibles, we can ignore
+        # the changes to the invertibles
         allInvertibles = {'old': set(), 'new': set()}
         for oldNew in ('old', 'new'):
             invertibles = caches[oldNew][-1][clsname]['invertibles']
@@ -353,12 +390,11 @@ for clsname, clsDiffs in diffs.items():
             del clsDiffs['invertibles']
 
     pymelMethodDiffs = clsDiffs.get('pymelMethods')
-    if not pymelMethodDiffs or not isinstance(pymelMethodDiffs, dict):
+    if not isinstance(pymelMethodDiffs, dict):
         continue
     for newMethod in newMethods:
         if isinstance(pymelMethodDiffs.get(newMethod), AddedKey):
             del pymelMethodDiffs[newMethod]
-
 
 ################################################################################
 
@@ -410,47 +446,32 @@ for clsname, clsDiffs in list(diffs.items()):
 #             del argDiff['doc']
 
 # Temp - ignore all doc deletion diffs
+for _, overloadDiff in iterOverloadDiffs(onlyDicts=True):
+    # ignore method doc removal
+    doc = overloadDiff.get('doc')
+    if (isinstance(doc, arguments.RemovedKey)
+            or (isinstance(doc, ChangedKey)
+                and not doc.newVal)):
+        del overloadDiff['doc']
 
-for clsDiff in diffs.values():
-    if not isinstance(clsDiff, dict):
-        continue
-    methods = clsDiff.get('methods')
-    if not isinstance(methods, dict):
-        continue
-    for methodsDiff in methods.values():
-        if not isinstance(methodsDiff, dict):
-            continue
-        for overloadDiff in methodsDiff.values():
-            if not isinstance(overloadDiff, dict):
-                continue
-            # ignore method doc removal
-            doc = overloadDiff.get('doc')
-            if (isinstance(doc, arguments.RemovedKey)
-                    or (isinstance(doc, ChangedKey)
-                        and not doc.newVal)):
-                del overloadDiff['doc']
+    # ignore returnInfo doc removal
+    returnInfo = overloadDiff.get('returnInfo')
+    if isinstance(returnInfo, dict):
+        doc = returnInfo.get('doc')
+        if (isinstance(doc, arguments.RemovedKey)
+                or (isinstance(doc, ChangedKey)
+                    and not doc.newVal)):
+            del returnInfo['doc']
 
-            # ignore returnInfo doc removal
-            returnInfo = overloadDiff.get('returnInfo')
-            if isinstance(returnInfo, dict):
-                doc = returnInfo.get('doc')
-                if (isinstance(doc, arguments.RemovedKey)
-                        or (isinstance(doc, ChangedKey)
-                            and not doc.newVal)):
-                    del returnInfo['doc']
-
-            # ignore param doc removal
-            argInfo = overloadDiff.get('argInfo')
-            if not isinstance(argInfo, dict):
-                continue
-            for argName, argDiff in argInfo.items():
-                if not isinstance(argDiff, dict):
-                    continue
-                doc = argDiff.get('doc')
-                if (isinstance(doc, arguments.RemovedKey)
-                        or (isinstance(doc, ChangedKey)
-                            and not doc.newVal)):
-                    del argDiff['doc']
+    # ignore param doc removal
+    for _, argDiff in iterDiffDictForKey(overloadDiff,
+                                         ('argInfo', AnyKey('argname')),
+                                         onlyDicts=True):
+        doc = argDiff.get('doc')
+        if (isinstance(doc, arguments.RemovedKey)
+                or (isinstance(doc, ChangedKey)
+                    and not doc.newVal)):
+            del argDiff['doc']
 
 ################################################################################
 
