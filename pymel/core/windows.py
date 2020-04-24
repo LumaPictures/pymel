@@ -3616,6 +3616,22 @@ def getPanel(*args, **kwargs):
 
 loadPrefObjects = _factories.getCmdFunc('loadPrefObjects')
 
+@_factories.addCmdDocs
+def soundPopup(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.soundPopup(*args, **kwargs)
+    return res
+
 disable = _factories.getCmdFunc('disable')
 
 scmh = _factories.getCmdFunc('scmh')

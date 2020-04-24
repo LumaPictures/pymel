@@ -435,6 +435,13 @@ defineDataServer = _factories.getCmdFunc('defineDataServer')
 
 defineVirtualDevice = _factories.getCmdFunc('defineVirtualDevice')
 
+@_factories.addCmdDocs
+def deformableShape(*args, **kwargs):
+    res = cmds.deformableShape(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, _general.PyNode)
+    return res
+
 deformer = _factories.addCmdDocs(deformer)
 
 deformerWeights = _factories.getCmdFunc('deformerWeights')
@@ -535,6 +542,8 @@ def geometryConstraint(*args, **kwargs):
     if isinstance(res, list) and len(res) == 1 and not kwargs.get('query', kwargs.get('q', False)):
         res = res[0]
     return res
+
+ghosting = _factories.getCmdFunc('ghosting')
 
 hikGlobals = _factories.getCmdFunc('hikGlobals')
 

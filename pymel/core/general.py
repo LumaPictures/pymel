@@ -8383,6 +8383,10 @@ exactWorldBoundingBox = _factories.getCmdFunc('exactWorldBoundingBox')
 
 expandedSelection = _factories.getCmdFunc('expandedSelection')
 
+filterInstances = _factories.getCmdFunc('filterInstances')
+
+geometryAttrInfo = _factories.getCmdFunc('geometryAttrInfo')
+
 getAttr = _factories.addCmdDocs(getAttr)
 
 getClassification = _factories.addCmdDocs(getClassification)

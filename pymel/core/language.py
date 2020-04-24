@@ -1251,6 +1251,8 @@ getLastError = _factories.getCmdFunc('getLastError')
 
 getProcArguments = _factories.getCmdFunc('getProcArguments')
 
+matrixUtil = _factories.getCmdFunc('matrixUtil')
+
 melOptions = _factories.getCmdFunc('melOptions')
 
 optionVar = _factories.addCmdDocs(optionVar, cmdName='optionVar')

@@ -1936,6 +1936,8 @@ Group = getattr(cmds, 'Group', None)
 
 GroupOptions = getattr(cmds, 'GroupOptions', None)
 
+GroupTagsEdit = getattr(cmds, 'GroupTagsEdit', None)
+
 GrowLoopPolygonSelectionRegion = getattr(cmds, 'GrowLoopPolygonSelectionRegion', None)
 
 GrowPolygonSelectionRegion = getattr(cmds, 'GrowPolygonSelectionRegion', None)
@@ -2737,8 +2739,6 @@ ModifyUVVectorRelease = getattr(cmds, 'ModifyUVVectorRelease', None)
 ModifyUpperRadiusPress = getattr(cmds, 'ModifyUpperRadiusPress', None)
 
 ModifyUpperRadiusRelease = getattr(cmds, 'ModifyUpperRadiusRelease', None)
-
-MotionLibraryEditor = getattr(cmds, 'MotionLibraryEditor', None)
 
 MoveCacheToInput = getattr(cmds, 'MoveCacheToInput', None)
 
@@ -4974,6 +4974,10 @@ SoftModTool = getattr(cmds, 'SoftModTool', None)
 
 SoftModToolOptions = getattr(cmds, 'SoftModToolOptions', None)
 
+Solidify = getattr(cmds, 'Solidify', None)
+
+SolidifyOptions = getattr(cmds, 'SolidifyOptions', None)
+
 SoloLastOutput = getattr(cmds, 'SoloLastOutput', None)
 
 SoloMaterial = getattr(cmds, 'SoloMaterial', None)
@@ -5661,6 +5665,8 @@ TwoPointArcToolOptions = getattr(cmds, 'TwoPointArcToolOptions', None)
 TwoSideBySideViewArrangement = getattr(cmds, 'TwoSideBySideViewArrangement', None)
 
 TwoStackedViewArrangement = getattr(cmds, 'TwoStackedViewArrangement', None)
+
+TypeToFind = getattr(cmds, 'TypeToFind', None)
 
 U3DBrushPressureOff = getattr(cmds, 'U3DBrushPressureOff', None)
 

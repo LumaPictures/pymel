@@ -184,6 +184,8 @@ filterButterworthCtx = _factories.getCmdFunc('filterButterworthCtx')
 
 filterKeyReducerCtx = _factories.getCmdFunc('filterKeyReducerCtx')
 
+filterPeakRemoverCtx = _factories.getCmdFunc('filterPeakRemoverCtx')
+
 graphDollyCtx = _factories.getCmdFunc('graphDollyCtx')
 
 graphSelectContext = _factories.getCmdFunc('graphSelectContext')

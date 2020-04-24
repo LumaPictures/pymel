@@ -2393,6 +2393,8 @@ namespaceInfo = _factories.addCmdDocs(namespaceInfo)
 
 ogs = _factories.getCmdFunc('ogs')
 
+openCLInfo = _factories.getCmdFunc('openCLInfo')
+
 openGLExtension = _factories.getCmdFunc('openGLExtension')
 
 openMayaPref = _factories.getCmdFunc('openMayaPref')

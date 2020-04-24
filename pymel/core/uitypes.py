@@ -2361,6 +2361,10 @@ class OptionMenu(PopupMenu):
     def changeCommand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenu, kwargs, 'changeCommand', val)
 
+    @_f.addMelDocs('optionMenu', 'deleteAllItems')
+    def deleteAllItems(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.optionMenu, kwargs, 'deleteAllItems', val)
+
     @_f.addMelDocs('optionMenu', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenu, kwargs, 'dragCallback', val)
@@ -2464,6 +2468,11 @@ class OptionMenu(PopupMenu):
         res = _f.asQuery(self, windows.optionMenu, kwargs, 'popupMenuArray')
         return res
 
+    @_f.addMelDocs('optionMenu', 'postMenuCommandOnce')
+    def getPostMenuCommandOnce(self, **kwargs):
+        res = _f.asQuery(self, windows.optionMenu, kwargs, 'postMenuCommandOnce')
+        return res
+
     @_f.addMelDocs('optionMenu', 'preventOverride')
     def getPreventOverride(self, **kwargs):
         res = _f.asQuery(self, windows.optionMenu, kwargs, 'preventOverride')
@@ -2497,6 +2506,10 @@ class OptionMenu(PopupMenu):
     @_f.addMelDocs('optionMenu', 'noBackground')
     def noBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenu, kwargs, 'noBackground', val)
+
+    @_f.addMelDocs('optionMenu', 'postMenuCommand')
+    def postMenuCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.optionMenu, kwargs, 'postMenuCommand', val)
 
     @_f.addMelDocs('optionMenu', 'annotation')
     def setAnnotation(self, val=True, **kwargs):
@@ -2541,6 +2554,10 @@ class OptionMenu(PopupMenu):
     @_f.addMelDocs('optionMenu', 'maxVisibleItems')
     def setMaxVisibleItems(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenu, kwargs, 'maxVisibleItems', val)
+
+    @_f.addMelDocs('optionMenu', 'postMenuCommandOnce')
+    def setPostMenuCommandOnce(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.optionMenu, kwargs, 'postMenuCommandOnce', val)
 
     @_f.addMelDocs('optionMenu', 'preventOverride')
     def setPreventOverride(self, val=True, **kwargs):
@@ -2719,6 +2736,10 @@ class OptionMenuGrp(RowLayout):
     def columnWidth6(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenuGrp, kwargs, 'columnWidth6', val)
 
+    @_f.addMelDocs('optionMenuGrp', 'deleteAllItems')
+    def deleteAllItems(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.optionMenuGrp, kwargs, 'deleteAllItems', val)
+
     @_f.addMelDocs('optionMenuGrp', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenuGrp, kwargs, 'dragCallback', val)
@@ -2817,6 +2838,11 @@ class OptionMenuGrp(RowLayout):
         res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'popupMenuArray')
         return res
 
+    @_f.addMelDocs('optionMenuGrp', 'postMenuCommandOnce')
+    def getPostMenuCommandOnce(self, **kwargs):
+        res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'postMenuCommandOnce')
+        return res
+
     @_f.addMelDocs('optionMenuGrp', 'preventOverride')
     def getPreventOverride(self, **kwargs):
         res = _f.asQuery(self, windows.optionMenuGrp, kwargs, 'preventOverride')
@@ -2850,6 +2876,10 @@ class OptionMenuGrp(RowLayout):
     @_f.addMelDocs('optionMenuGrp', 'noBackground')
     def noBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenuGrp, kwargs, 'noBackground', val)
+
+    @_f.addMelDocs('optionMenuGrp', 'postMenuCommand')
+    def postMenuCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.optionMenuGrp, kwargs, 'postMenuCommand', val)
 
     @_f.addMelDocs('optionMenuGrp', 'rowAttach')
     def rowAttach(self, val=True, **kwargs):
@@ -2898,6 +2928,10 @@ class OptionMenuGrp(RowLayout):
     @_f.addMelDocs('optionMenuGrp', 'manage')
     def setManage(self, val=True, **kwargs):
         return _f.asEdit(self, windows.optionMenuGrp, kwargs, 'manage', val)
+
+    @_f.addMelDocs('optionMenuGrp', 'postMenuCommandOnce')
+    def setPostMenuCommandOnce(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.optionMenuGrp, kwargs, 'postMenuCommandOnce', val)
 
     @_f.addMelDocs('optionMenuGrp', 'preventOverride')
     def setPreventOverride(self, val=True, **kwargs):
@@ -3130,6 +3164,11 @@ class CommandMenuItem(PyUI):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'version')
         return res
 
+    @_f.addMelDocs('menuItem', 'visible')
+    def getVisible(self, **kwargs):
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'visible')
+        return res
+
     @_f.addMelDocs('menuItem', 'runTimeCommand')
     def runTimeCommand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuItem, kwargs, 'runTimeCommand', val)
@@ -3225,6 +3264,10 @@ class CommandMenuItem(PyUI):
     @_f.addMelDocs('menuItem', 'version')
     def setVersion(self, val=True, **kwargs):
         return _f.asEdit(self, windows.menuItem, kwargs, 'version', val)
+
+    @_f.addMelDocs('menuItem', 'visible')
+    def setVisible(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.menuItem, kwargs, 'visible', val)
 # ------ Do not edit above this line --------
 
 
@@ -4781,6 +4824,11 @@ class AnimCurveEditor(PyUI):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'forceMainConnection')
         return res
 
+    @_f.addMelDocs('animCurveEditor', 'highlightAffectedCurves')
+    def getHighlightAffectedCurves(self, **kwargs):
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'highlightAffectedCurves')
+        return res
+
     @_f.addMelDocs('animCurveEditor', 'highlightConnection')
     def getHighlightConnection(self, **kwargs):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'highlightConnection')
@@ -4789,6 +4837,11 @@ class AnimCurveEditor(PyUI):
     @_f.addMelDocs('animCurveEditor', 'keyingTime')
     def getKeyingTime(self, **kwargs):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'keyingTime')
+        return res
+
+    @_f.addMelDocs('animCurveEditor', 'lockPlayRangeShades')
+    def getLockPlayRangeShades(self, **kwargs):
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'lockPlayRangeShades')
         return res
 
     @_f.addMelDocs('animCurveEditor', 'mainListConnection')
@@ -4846,6 +4899,11 @@ class AnimCurveEditor(PyUI):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'showCurveNames')
         return res
 
+    @_f.addMelDocs('animCurveEditor', 'showPlayRangeShades')
+    def getShowPlayRangeShades(self, **kwargs):
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'showPlayRangeShades')
+        return res
+
     @_f.addMelDocs('animCurveEditor', 'showResults')
     def getShowResults(self, **kwargs):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'showResults')
@@ -4854,6 +4912,11 @@ class AnimCurveEditor(PyUI):
     @_f.addMelDocs('animCurveEditor', 'showUpstreamCurves')
     def getShowUpstreamCurves(self, **kwargs):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'showUpstreamCurves')
+        return res
+
+    @_f.addMelDocs('animCurveEditor', 'simpleKeyView')
+    def getSimpleKeyView(self, **kwargs):
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'simpleKeyView')
         return res
 
     @_f.addMelDocs('animCurveEditor', 'smoothness')
@@ -4894,6 +4957,11 @@ class AnimCurveEditor(PyUI):
     @_f.addMelDocs('animCurveEditor', 'stateString')
     def getStateString(self, **kwargs):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'stateString')
+        return res
+
+    @_f.addMelDocs('animCurveEditor', 'timelinePositionTop')
+    def getTimelinePositionTop(self, **kwargs):
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'timelinePositionTop')
         return res
 
     @_f.addMelDocs('animCurveEditor', 'lockMainConnection')
@@ -4948,9 +5016,17 @@ class AnimCurveEditor(PyUI):
     def setForceMainConnection(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'forceMainConnection', val)
 
+    @_f.addMelDocs('animCurveEditor', 'highlightAffectedCurves')
+    def setHighlightAffectedCurves(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'highlightAffectedCurves', val)
+
     @_f.addMelDocs('animCurveEditor', 'highlightConnection')
     def setHighlightConnection(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'highlightConnection', val)
+
+    @_f.addMelDocs('animCurveEditor', 'lockPlayRangeShades')
+    def setLockPlayRangeShades(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'lockPlayRangeShades', val)
 
     @_f.addMelDocs('animCurveEditor', 'mainListConnection')
     def setMainListConnection(self, val=True, **kwargs):
@@ -4996,6 +5072,10 @@ class AnimCurveEditor(PyUI):
     def setShowCurveNames(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'showCurveNames', val)
 
+    @_f.addMelDocs('animCurveEditor', 'showPlayRangeShades')
+    def setShowPlayRangeShades(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'showPlayRangeShades', val)
+
     @_f.addMelDocs('animCurveEditor', 'showResults')
     def setShowResults(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'showResults', val)
@@ -5003,6 +5083,10 @@ class AnimCurveEditor(PyUI):
     @_f.addMelDocs('animCurveEditor', 'showUpstreamCurves')
     def setShowUpstreamCurves(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'showUpstreamCurves', val)
+
+    @_f.addMelDocs('animCurveEditor', 'simpleKeyView')
+    def setSimpleKeyView(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'simpleKeyView', val)
 
     @_f.addMelDocs('animCurveEditor', 'smoothness')
     def setSmoothness(self, val=True, **kwargs):
@@ -5031,6 +5115,10 @@ class AnimCurveEditor(PyUI):
     @_f.addMelDocs('animCurveEditor', 'stackedCurvesSpace')
     def setStackedCurvesSpace(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'stackedCurvesSpace', val)
+
+    @_f.addMelDocs('animCurveEditor', 'timelinePositionTop')
+    def setTimelinePositionTop(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'timelinePositionTop', val)
 
     @_f.addMelDocs('animCurveEditor', 'unParent')
     def unParent(self, val=True, **kwargs):
@@ -27318,6 +27406,11 @@ class OutlinerPanel(Panel):
         res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'control')
         return res
 
+    @_f.addMelDocs('outlinerPanel', 'divider')
+    def getDivider(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'divider')
+        return res
+
     @_f.addMelDocs('outlinerPanel', 'docTag')
     def getDocTag(self, **kwargs):
         res = _f.asQuery(self, windows.outlinerPanel, kwargs, 'docTag')
@@ -27370,6 +27463,10 @@ class OutlinerPanel(Panel):
     @_f.addMelDocs('outlinerPanel', 'replacePanel')
     def replacePanel(self, val=True, **kwargs):
         return _f.asEdit(self, windows.outlinerPanel, kwargs, 'replacePanel', val)
+
+    @_f.addMelDocs('outlinerPanel', 'divider')
+    def setDivider(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerPanel, kwargs, 'divider', val)
 
     @_f.addMelDocs('outlinerPanel', 'docTag')
     def setDocTag(self, val=True, **kwargs):

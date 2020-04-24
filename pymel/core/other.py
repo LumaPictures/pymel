@@ -584,13 +584,25 @@ dagCommandWrapper = _factories.getCmdFunc('dagCommandWrapper')
 
 dagObjectHit = _factories.getCmdFunc('dagObjectHit')
 
-debug = _factories.getCmdFunc('debug')
+@_factories.addCmdDocs
+def debug(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['cmd', 'commands']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.debug(*args, **kwargs)
+    return res
 
 debugNamespace = _factories.getCmdFunc('debugNamespace')
 
 debugVar = _factories.getCmdFunc('debugVar')
-
-deformableShape = _factories.getCmdFunc('deformableShape')
 
 dgControl = _factories.getCmdFunc('dgControl')
 
@@ -634,10 +646,6 @@ flushThumbnailCache = _factories.getCmdFunc('flushThumbnailCache')
 
 fontAttributes = _factories.getCmdFunc('fontAttributes')
 
-geometryAttrInfo = _factories.getCmdFunc('geometryAttrInfo')
-
-ghosting = _factories.getCmdFunc('ghosting')
-
 greasePencil = _factories.getCmdFunc('greasePencil')
 
 greasePencilHelper = _factories.getCmdFunc('greasePencilHelper')
@@ -680,8 +688,6 @@ manipComponentUpdate = _factories.getCmdFunc('manipComponentUpdate')
 
 matrix = _factories.getCmdFunc('matrix')
 
-matrixUtil = _factories.getCmdFunc('matrixUtil')
-
 mayaDpiSettingAction = _factories.getCmdFunc('mayaDpiSettingAction')
 
 memoryDiag = _factories.getCmdFunc('memoryDiag')
@@ -705,8 +711,6 @@ nop = _factories.getCmdFunc('nop')
 nurbsCurveRebuildPref = _factories.getCmdFunc('nurbsCurveRebuildPref')
 
 ogsdebug = _factories.getCmdFunc('ogsdebug')
-
-openCLInfo = _factories.getCmdFunc('openCLInfo')
 
 paint3d = _factories.getCmdFunc('paint3d')
 
@@ -770,22 +774,6 @@ def selectKeyframe(*args, **kwargs):
     res = cmds.selectKeyframe(*args, **kwargs)
     return res
 
-@_factories.addCmdDocs
-def soundPopup(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.soundPopup(*args, **kwargs)
-    return res
-
 subdDisplayMode = _factories.getCmdFunc('subdDisplayMode')
 
 subdToNurbs = _factories.getCmdFunc('subdToNurbs')
@@ -801,3 +789,5 @@ testPassContribution = _factories.getCmdFunc('testPassContribution')
 texSculptCacheSync = _factories.getCmdFunc('texSculptCacheSync')
 
 timeSliderCustomDraw = _factories.getCmdFunc('timeSliderCustomDraw')
+
+warnUserDialog = _factories.getCmdFunc('warnUserDialog')

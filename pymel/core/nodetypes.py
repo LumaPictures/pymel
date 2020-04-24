@@ -4780,11 +4780,11 @@ class Joint(Transform):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.maya_deprecated
-    def getPreferedAngle(self, rotation):
-        # type: (Tuple[float, float, float]) -> None
-        do, final_do, outTypes = _f.getDoArgs([rotation], [('rotation', 'double__array3', 'in', None)])
+    def getPreferedAngle(self):
+        # type: () -> Tuple[float, float, float]
+        do, final_do, outTypes = _f.getDoArgs([], [('rotation', 'double__array3', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'getPreferedAngle', final_do)
-        return res
+        return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnIkJoint, 'getPreferredAngle')
     def getPreferredAngle(self):
@@ -5008,7 +5008,7 @@ class Joint(Transform):
     @_f.maya_deprecated
     def setPreferedAngle(self, rotation):
         # type: (Tuple[float, float, float]) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([rotation], [('rotation', 'double__array3', 'in', None)], self.getPreferedAngle, self.setPreferedAngle, ['rotation'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([rotation], [('rotation', 'double__array3', 'in', None)], self.getPreferedAngle, self.setPreferedAngle, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setPreferedAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5598,7 +5598,7 @@ class DeformableShape(GeometryShape):
             _numEPs_generatedFunc.__doc__ = doc
         return _numEPs_generatedFunc
 # ------ Do not edit below this line --------
-    __melcmd__ = staticmethod(other.deformableShape)
+    __melcmd__ = staticmethod(animation.deformableShape)
     __melcmd_isinfo__ = False
     __melcmdname__ = u'deformableShape'
     __melnode__ = u'deformableShape'
@@ -8149,6 +8149,11 @@ class Lattice(ControlPoint):
         res = _f.asQuery(self, animation.lattice, kwargs, 'ldivisions')
         return res
 
+    @_f.addMelDocs('lattice', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.lattice, kwargs, 'useGroupTags')
+        return res
+
     @_f.addMelDocs('lattice', 'latticeReset')
     def latticeReset(self, val=True, **kwargs):
         return _f.asEdit(self, animation.lattice, kwargs, 'latticeReset', val)
@@ -10690,6 +10695,11 @@ class SkinCluster(GeometryFilter):
     @_f.addMelDocs('skinCluster', 'skinMethod')
     def getSkinMethod(self, **kwargs):
         res = _f.asQuery(self, animation.skinCluster, kwargs, 'skinMethod')
+        return res
+
+    @_f.addMelDocs('skinCluster', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.skinCluster, kwargs, 'useGroupTags')
         return res
 
     @_f.addMelDocs('skinCluster', 'weightDistribution')
@@ -25555,6 +25565,11 @@ class BlendShape(GeometryFilter):
         res = _f.asQuery(self, animation.blendShape, kwargs, 'transform')
         return res
 
+    @_f.addMelDocs('blendShape', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShape, kwargs, 'useGroupTags')
+        return res
+
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'weight')
     def getWeight(self, index):
         # type: (int) -> float
@@ -25783,6 +25798,11 @@ class BoneLattice(GeometryFilter):
         res = _f.asQuery(self, animation.boneLattice, kwargs, 'tricep')
         return res
 
+    @_f.addMelDocs('boneLattice', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.boneLattice, kwargs, 'useGroupTags')
+        return res
+
     @_f.addMelDocs('boneLattice', 'widthLeft')
     def getWidthLeft(self, **kwargs):
         res = _f.asQuery(self, animation.boneLattice, kwargs, 'widthLeft')
@@ -25906,6 +25926,11 @@ class JointLattice(GeometryFilter):
         res = _f.asQuery(self, animation.jointLattice, kwargs, 'rounding')
         return res
 
+    @_f.addMelDocs('jointLattice', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.jointLattice, kwargs, 'useGroupTags')
+        return res
+
     @_f.addMelDocs('jointLattice', 'widthLeft')
     def getWidthLeft(self, **kwargs):
         res = _f.asQuery(self, animation.jointLattice, kwargs, 'widthLeft')
@@ -26023,6 +26048,11 @@ class Sculpt(GeometryFilter):
     @_f.addMelDocs('sculpt', 'mode')
     def getMode(self, **kwargs):
         res = _f.asQuery(self, animation.sculpt, kwargs, 'mode')
+        return res
+
+    @_f.addMelDocs('sculpt', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.sculpt, kwargs, 'useGroupTags')
         return res
 
     @_f.addMelDocs('sculpt', 'parallel')
@@ -26153,6 +26183,11 @@ class Cluster(WeightGeometryFilter):
     @_f.addMelDocs('cluster', 'geometryIndices')
     def getGeometryIndices(self, **kwargs):
         res = _f.asQuery(self, animation.cluster, kwargs, 'geometryIndices')
+        return res
+
+    @_f.addMelDocs('cluster', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.cluster, kwargs, 'useGroupTags')
         return res
 
     @_f.addMelDocs('cluster', 'weightedNode')
@@ -26330,6 +26365,11 @@ class DeltaMush(WeightGeometryFilter):
         res = _f.asQuery(self, animation.deltaMush, kwargs, 'smoothingStep')
         return res
 
+    @_f.addMelDocs('deltaMush', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.deltaMush, kwargs, 'useGroupTags')
+        return res
+
     @_f.addMelDocs('deltaMush', 'parallel')
     def parallel(self, val=True, **kwargs):
         return _f.asEdit(self, animation.deltaMush, kwargs, 'parallel', val)
@@ -26476,6 +26516,11 @@ class NonLinear(WeightGeometryFilter):
         res = _f.asQuery(self, animation.nonLinear, kwargs, 'geometryIndices')
         return res
 
+    @_f.addMelDocs('nonLinear', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.nonLinear, kwargs, 'useGroupTags')
+        return res
+
     @_f.addMelDocs('nonLinear', 'parallel')
     def parallel(self, val=True, **kwargs):
         return _f.asEdit(self, animation.nonLinear, kwargs, 'parallel', val)
@@ -26546,6 +26591,11 @@ class SoftMod(WeightGeometryFilter):
         res = _f.asQuery(self, animation.softMod, kwargs, 'geometryIndices')
         return res
 
+    @_f.addMelDocs('softMod', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.softMod, kwargs, 'useGroupTags')
+        return res
+
     @_f.addMelDocs('softMod', 'weightedNode')
     def getWeightedNode(self, **kwargs):
         res = _f.asQuery(self, animation.softMod, kwargs, 'weightedNode')
@@ -26574,6 +26624,11 @@ class SoftMod(WeightGeometryFilter):
     @_f.addMelDocs('softMod', 'weightedNode')
     def setWeightedNode(self, val=True, **kwargs):
         return _f.asEdit(self, animation.softMod, kwargs, 'weightedNode', val)
+
+
+class Solidify(WeightGeometryFilter):
+    __melnode__ = u'solidify'
+    __slots__ = ()
 
 
 class Tension(WeightGeometryFilter):
@@ -26642,6 +26697,11 @@ class Tension(WeightGeometryFilter):
     @_f.addMelDocs('tension', 'smoothingStep')
     def getSmoothingStep(self, **kwargs):
         res = _f.asQuery(self, animation.tension, kwargs, 'smoothingStep')
+        return res
+
+    @_f.addMelDocs('tension', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.tension, kwargs, 'useGroupTags')
         return res
 
     @_f.addMelDocs('tension', 'parallel')
@@ -26724,6 +26784,11 @@ class TextureDeformer(WeightGeometryFilter):
         res = _f.asQuery(self, animation.textureDeformer, kwargs, 'geometryIndices')
         return res
 
+    @_f.addMelDocs('textureDeformer', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.textureDeformer, kwargs, 'useGroupTags')
+        return res
+
     @_f.addMelDocs('textureDeformer', 'parallel')
     def parallel(self, val=True, **kwargs):
         return _f.asEdit(self, animation.textureDeformer, kwargs, 'parallel', val)
@@ -26790,6 +26855,11 @@ class TransferAttributes(WeightGeometryFilter):
     @_f.addMelDocs('transferAttributes', 'geometryIndices')
     def getGeometryIndices(self, **kwargs):
         res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'geometryIndices')
+        return res
+
+    @_f.addMelDocs('transferAttributes', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'useGroupTags')
         return res
 
     @_f.addMelDocs('transferAttributes', 'matchChoice')
@@ -26960,6 +27030,11 @@ class Wire(WeightGeometryFilter):
         # type: () -> float
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'rotation')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addMelDocs('wire', 'useGroupTags')
+    def getUseGroupTags(self, **kwargs):
+        res = _f.asQuery(self, animation.wire, kwargs, 'useGroupTags')
+        return res
 
     @_f.addMelDocs('wire', 'wire')
     def getWire(self, **kwargs):
@@ -28614,6 +28689,11 @@ class MakeGroup(DependNode):
         return res
 
 
+class MaterialAssign(DependNode):
+    __melnode__ = u'materialAssign'
+    __slots__ = ()
+
+
 class MaterialInfo(DependNode):
     __melnode__ = u'materialInfo'
     __slots__ = ()
@@ -30183,6 +30263,11 @@ class PolyPrimitive(PolyCreator):
         res = _f.asQuery(self, modeling.polyPrimitive, kwargs, 'frozen')
         return res
 
+    @_f.addMelDocs('polyPrimitive', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPrimitive, kwargs, 'groupTagCreate')
+        return res
+
     @_f.addMelDocs('polyPrimitive', 'nodeState')
     def getNodeState(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPrimitive, kwargs, 'nodeState')
@@ -30220,6 +30305,10 @@ class PolyPrimitive(PolyCreator):
     @_f.addMelDocs('polyPrimitive', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPrimitive, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyPrimitive', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPrimitive, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPrimitive', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
@@ -30270,6 +30359,11 @@ class PolyCone(PolyPrimitive):
     @_f.addMelDocs('polyCone', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCone, kwargs, 'frozen')
+        return res
+
+    @_f.addMelDocs('polyCone', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCone, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyCone', 'height')
@@ -30351,6 +30445,10 @@ class PolyCone(PolyPrimitive):
     @_f.addMelDocs('polyCone', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCone, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyCone', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCone, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyCone', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -30436,6 +30534,11 @@ class PolyCube(PolyPrimitive):
         res = _f.asQuery(self, modeling.polyCube, kwargs, 'frozen')
         return res
 
+    @_f.addMelDocs('polyCube', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCube, kwargs, 'groupTagCreate')
+        return res
+
     @_f.addMelDocs('polyCube', 'height')
     def getHeight(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCube, kwargs, 'height')
@@ -30514,6 +30617,10 @@ class PolyCube(PolyPrimitive):
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCube, kwargs, 'frozen', val)
 
+    @_f.addMelDocs('polyCube', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCube, kwargs, 'groupTagCreate', val)
+
     @_f.addMelDocs('polyCube', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCube, kwargs, 'height', val)
@@ -30587,6 +30694,11 @@ class PolyCylinder(PolyPrimitive):
     @_f.addMelDocs('polyCylinder', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'frozen')
+        return res
+
+    @_f.addMelDocs('polyCylinder', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyCylinder', 'height')
@@ -30668,6 +30780,10 @@ class PolyCylinder(PolyPrimitive):
     @_f.addMelDocs('polyCylinder', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCylinder, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyCylinder', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCylinder, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyCylinder', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -30759,6 +30875,11 @@ class PolyHelix(PolyPrimitive):
         res = _f.asQuery(self, modeling.polyHelix, kwargs, 'frozen')
         return res
 
+    @_f.addMelDocs('polyHelix', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'groupTagCreate')
+        return res
+
     @_f.addMelDocs('polyHelix', 'height')
     def getHeight(self, **kwargs):
         res = _f.asQuery(self, modeling.polyHelix, kwargs, 'height')
@@ -30840,6 +30961,10 @@ class PolyHelix(PolyPrimitive):
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyHelix, kwargs, 'frozen', val)
 
+    @_f.addMelDocs('polyHelix', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyHelix, kwargs, 'groupTagCreate', val)
+
     @_f.addMelDocs('polyHelix', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyHelix, kwargs, 'height', val)
@@ -30915,6 +31040,11 @@ class PolyPipe(PolyPrimitive):
         res = _f.asQuery(self, modeling.polyPipe, kwargs, 'frozen')
         return res
 
+    @_f.addMelDocs('polyPipe', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'groupTagCreate')
+        return res
+
     @_f.addMelDocs('polyPipe', 'height')
     def getHeight(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPipe, kwargs, 'height')
@@ -30981,6 +31111,10 @@ class PolyPipe(PolyPrimitive):
     @_f.addMelDocs('polyPipe', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPipe, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyPipe', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPipe, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPipe', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -31053,6 +31187,11 @@ class PolyPlane(PolyPrimitive):
         res = _f.asQuery(self, modeling.polyPlane, kwargs, 'frozen')
         return res
 
+    @_f.addMelDocs('polyPlane', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlane, kwargs, 'groupTagCreate')
+        return res
+
     @_f.addMelDocs('polyPlane', 'height')
     def getHeight(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPlane, kwargs, 'height')
@@ -31115,6 +31254,10 @@ class PolyPlane(PolyPrimitive):
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlane, kwargs, 'frozen', val)
 
+    @_f.addMelDocs('polyPlane', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlane, kwargs, 'groupTagCreate', val)
+
     @_f.addMelDocs('polyPlane', 'height')
     def setHeight(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlane, kwargs, 'height', val)
@@ -31176,6 +31319,11 @@ class PolyPlatonicSolid(PolyPrimitive):
         res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'frozen')
         return res
 
+    @_f.addMelDocs('polyPlatonicSolid', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'groupTagCreate')
+        return res
+
     @_f.addMelDocs('polyPlatonicSolid', 'nodeState')
     def getNodeState(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'nodeState')
@@ -31203,6 +31351,10 @@ class PolyPlatonicSolid(PolyPrimitive):
     @_f.addMelDocs('polyPlatonicSolid', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyPlatonicSolid', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPlatonicSolid', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
@@ -31251,6 +31403,11 @@ class PolyPrism(PolyPrimitive):
     @_f.addMelDocs('polyPrism', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPrism, kwargs, 'frozen')
+        return res
+
+    @_f.addMelDocs('polyPrism', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPrism, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyPrism', 'length')
@@ -31304,6 +31461,10 @@ class PolyPrism(PolyPrimitive):
     @_f.addMelDocs('polyPrism', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPrism, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyPrism', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPrism, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPrism', 'length')
     def setLength(self, val=True, **kwargs):
@@ -31368,6 +31529,11 @@ class PolyPyramid(PolyPrimitive):
         res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'frozen')
         return res
 
+    @_f.addMelDocs('polyPyramid', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'groupTagCreate')
+        return res
+
     @_f.addMelDocs('polyPyramid', 'nodeState')
     def getNodeState(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'nodeState')
@@ -31424,6 +31590,10 @@ class PolyPyramid(PolyPrimitive):
     @_f.addMelDocs('polyPyramid', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPyramid, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyPyramid', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPyramid, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPyramid', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
@@ -31482,6 +31652,11 @@ class PolySphere(PolyPrimitive):
         res = _f.asQuery(self, modeling.polySphere, kwargs, 'frozen')
         return res
 
+    @_f.addMelDocs('polySphere', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polySphere, kwargs, 'groupTagCreate')
+        return res
+
     @_f.addMelDocs('polySphere', 'nodeState')
     def getNodeState(self, **kwargs):
         res = _f.asQuery(self, modeling.polySphere, kwargs, 'nodeState')
@@ -31528,6 +31703,10 @@ class PolySphere(PolyPrimitive):
     @_f.addMelDocs('polySphere', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polySphere, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polySphere', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polySphere, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polySphere', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
@@ -31586,6 +31765,11 @@ class PolyTorus(PolyPrimitive):
     @_f.addMelDocs('polyTorus', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyTorus, kwargs, 'frozen')
+        return res
+
+    @_f.addMelDocs('polyTorus', 'groupTagCreate')
+    def getGroupTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyTorus', 'nodeState')
@@ -31654,6 +31838,10 @@ class PolyTorus(PolyPrimitive):
     @_f.addMelDocs('polyTorus', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyTorus, kwargs, 'frozen', val)
+
+    @_f.addMelDocs('polyTorus', 'groupTagCreate')
+    def setGroupTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyTorus, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyTorus', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
@@ -36140,6 +36328,11 @@ class PolyRemesh(PolyModifierWorld):
         res = _f.asQuery(self, modeling.polyRemesh, kwargs, 'caching')
         return res
 
+    @_f.addMelDocs('polyRemesh', 'collapseThreshold')
+    def getCollapseThreshold(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyRemesh, kwargs, 'collapseThreshold')
+        return res
+
     @_f.addMelDocs('polyRemesh', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyRemesh, kwargs, 'constructionHistory')
@@ -36150,19 +36343,14 @@ class PolyRemesh(PolyModifierWorld):
         res = _f.asQuery(self, modeling.polyRemesh, kwargs, 'interpolationType')
         return res
 
+    @_f.addMelDocs('polyRemesh', 'maxEdgeLength')
+    def getMaxEdgeLength(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyRemesh, kwargs, 'maxEdgeLength')
+        return res
+
     @_f.addMelDocs('polyRemesh', 'nodeState')
     def getNodeState(self, **kwargs):
         res = _f.asQuery(self, modeling.polyRemesh, kwargs, 'nodeState')
-        return res
-
-    @_f.addMelDocs('polyRemesh', 'reduceThreshold')
-    def getReduceThreshold(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyRemesh, kwargs, 'reduceThreshold')
-        return res
-
-    @_f.addMelDocs('polyRemesh', 'refineThreshold')
-    def getRefineThreshold(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyRemesh, kwargs, 'refineThreshold')
         return res
 
     @_f.addMelDocs('polyRemesh', 'smoothStrength')
@@ -36175,25 +36363,30 @@ class PolyRemesh(PolyModifierWorld):
         res = _f.asQuery(self, modeling.polyRemesh, kwargs, 'tessellateBorders')
         return res
 
+    @_f.addMelDocs('polyRemesh', 'useRelativeValues')
+    def getUseRelativeValues(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyRemesh, kwargs, 'useRelativeValues')
+        return res
+
     @_f.addMelDocs('polyRemesh', 'caching')
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyRemesh, kwargs, 'caching', val)
+
+    @_f.addMelDocs('polyRemesh', 'collapseThreshold')
+    def setCollapseThreshold(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyRemesh, kwargs, 'collapseThreshold', val)
 
     @_f.addMelDocs('polyRemesh', 'interpolationType')
     def setInterpolationType(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyRemesh, kwargs, 'interpolationType', val)
 
+    @_f.addMelDocs('polyRemesh', 'maxEdgeLength')
+    def setMaxEdgeLength(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyRemesh, kwargs, 'maxEdgeLength', val)
+
     @_f.addMelDocs('polyRemesh', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyRemesh, kwargs, 'nodeState', val)
-
-    @_f.addMelDocs('polyRemesh', 'reduceThreshold')
-    def setReduceThreshold(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyRemesh, kwargs, 'reduceThreshold', val)
-
-    @_f.addMelDocs('polyRemesh', 'refineThreshold')
-    def setRefineThreshold(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyRemesh, kwargs, 'refineThreshold', val)
 
     @_f.addMelDocs('polyRemesh', 'smoothStrength')
     def setSmoothStrength(self, val=True, **kwargs):
@@ -36202,6 +36395,10 @@ class PolyRemesh(PolyModifierWorld):
     @_f.addMelDocs('polyRemesh', 'tessellateBorders')
     def setTessellateBorders(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyRemesh, kwargs, 'tessellateBorders', val)
+
+    @_f.addMelDocs('polyRemesh', 'useRelativeValues')
+    def setUseRelativeValues(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyRemesh, kwargs, 'useRelativeValues', val)
 
 
 class PolySewEdge(PolyModifierWorld):
@@ -40527,6 +40724,552 @@ class StandardSurface(ShadingDependNode):
     __melnode__ = u'standardSurface'
     __slots__ = ()
 
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'base')
+    def getBase(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'base')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'baseColor')
+    def getBaseColor(self):
+        # type: () -> datatypes.Color
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'baseColor')
+        return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'coat')
+    def getCoat(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'coat')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'coatAffectColor')
+    def getCoatAffectColor(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'coatAffectColor')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'coatAffectRoughness')
+    def getCoatAffectRoughness(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'coatAffectRoughness')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'coatAnisotropy')
+    def getCoatAnisotropy(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'coatAnisotropy')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'coatColor')
+    def getCoatColor(self):
+        # type: () -> datatypes.Color
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'coatColor')
+        return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'coatIOR')
+    def getCoatIOR(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'coatIOR')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'coatRotation')
+    def getCoatRotation(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'coatRotation')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'coatRoughness')
+    def getCoatRoughness(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'coatRoughness')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'diffuseRoughness')
+    def getDiffuseRoughness(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'diffuseRoughness')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'emission')
+    def getEmission(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'emission')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'emissionColor')
+    def getEmissionColor(self):
+        # type: () -> datatypes.Color
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'emissionColor')
+        return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'metalness')
+    def getMetalness(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'metalness')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'opacity')
+    def getOpacity(self):
+        # type: () -> datatypes.Color
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'opacity')
+        return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'sheen')
+    def getSheen(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'sheen')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'sheenColor')
+    def getSheenColor(self):
+        # type: () -> datatypes.Color
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'sheenColor')
+        return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'sheenRoughness')
+    def getSheenRoughness(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'sheenRoughness')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'specular')
+    def getSpecular(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'specular')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'specularAnisotropy')
+    def getSpecularAnisotropy(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'specularAnisotropy')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'specularColor')
+    def getSpecularColor(self):
+        # type: () -> datatypes.Color
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'specularColor')
+        return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'specularIOR')
+    def getSpecularIOR(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'specularIOR')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'specularRotation')
+    def getSpecularRotation(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'specularRotation')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'specularRoughness')
+    def getSpecularRoughness(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'specularRoughness')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'subsurface')
+    def getSubsurface(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'subsurface')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'subsurfaceAnisotropy')
+    def getSubsurfaceAnisotropy(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'subsurfaceAnisotropy')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'subsurfaceColor')
+    def getSubsurfaceColor(self):
+        # type: () -> datatypes.Color
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'subsurfaceColor')
+        return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'subsurfaceRadius')
+    def getSubsurfaceRadius(self):
+        # type: () -> datatypes.Color
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'subsurfaceRadius')
+        return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'subsurfaceScale')
+    def getSubsurfaceScale(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'subsurfaceScale')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'thinFilmIOR')
+    def getThinFilmIOR(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'thinFilmIOR')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'thinFilmThickness')
+    def getThinFilmThickness(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'thinFilmThickness')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'thinWalled')
+    def getThinWalled(self):
+        # type: () -> bool
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'thinWalled')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'transmission')
+    def getTransmission(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'transmission')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'transmissionColor')
+    def getTransmissionColor(self):
+        # type: () -> datatypes.Color
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'transmissionColor')
+        return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'transmissionDepth')
+    def getTransmissionDepth(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'transmissionDepth')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'transmissionDispersion')
+    def getTransmissionDispersion(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'transmissionDispersion')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'transmissionExtraRoughness')
+    def getTransmissionExtraRoughness(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'transmissionExtraRoughness')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'transmissionScatter')
+    def getTransmissionScatter(self):
+        # type: () -> datatypes.Color
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'transmissionScatter')
+        return _f.ApiArgUtil._castResult(self, res, 'MColor', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'transmissionScatterAnisotropy')
+    def getTransmissionScatterAnisotropy(self):
+        # type: () -> float
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'transmissionScatterAnisotropy')
+        return _f.ApiArgUtil._castResult(self, res, 'float', None)
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setBase')
+    def setBase(self, base):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([base], [('base', 'float', 'in', None)], self.getBase, self.setBase, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setBase', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setBaseColor')
+    def setBaseColor(self, base_color):
+        # type: (datatypes.Color) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([base_color], [('base_color', 'MColor', 'in', None)], self.getBaseColor, self.setBaseColor, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setBaseColor', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setCoat')
+    def setCoat(self, coat):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([coat], [('coat', 'float', 'in', None)], self.getCoat, self.setCoat, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setCoat', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setCoatAffectColor')
+    def setCoatAffectColor(self, coat_affect_color):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([coat_affect_color], [('coat_affect_color', 'float', 'in', None)], self.getCoatAffectColor, self.setCoatAffectColor, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setCoatAffectColor', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setCoatAffectRoughness')
+    def setCoatAffectRoughness(self, coat_affect_roughness):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([coat_affect_roughness], [('coat_affect_roughness', 'float', 'in', None)], self.getCoatAffectRoughness, self.setCoatAffectRoughness, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setCoatAffectRoughness', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setCoatAnisotropy')
+    def setCoatAnisotropy(self, coat_anisotropy):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([coat_anisotropy], [('coat_anisotropy', 'float', 'in', None)], self.getCoatAnisotropy, self.setCoatAnisotropy, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setCoatAnisotropy', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setCoatColor')
+    def setCoatColor(self, coat_color):
+        # type: (datatypes.Color) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([coat_color], [('coat_color', 'MColor', 'in', None)], self.getCoatColor, self.setCoatColor, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setCoatColor', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setCoatIOR')
+    def setCoatIOR(self, coat_i_o_r):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([coat_i_o_r], [('coat_i_o_r', 'float', 'in', None)], self.getCoatIOR, self.setCoatIOR, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setCoatIOR', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setCoatRotation')
+    def setCoatRotation(self, coat_rotation):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([coat_rotation], [('coat_rotation', 'float', 'in', None)], self.getCoatRotation, self.setCoatRotation, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setCoatRotation', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setCoatRoughness')
+    def setCoatRoughness(self, coat_roughness):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([coat_roughness], [('coat_roughness', 'float', 'in', None)], self.getCoatRoughness, self.setCoatRoughness, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setCoatRoughness', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setDiffuseRoughness')
+    def setDiffuseRoughness(self, diffuse_roughness):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([diffuse_roughness], [('diffuse_roughness', 'float', 'in', None)], self.getDiffuseRoughness, self.setDiffuseRoughness, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setDiffuseRoughness', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setEmission')
+    def setEmission(self, emission):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([emission], [('emission', 'float', 'in', None)], self.getEmission, self.setEmission, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setEmission', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setEmissionColor')
+    def setEmissionColor(self, emission_color):
+        # type: (datatypes.Color) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([emission_color], [('emission_color', 'MColor', 'in', None)], self.getEmissionColor, self.setEmissionColor, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setEmissionColor', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setMetalness')
+    def setMetalness(self, metalness):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([metalness], [('metalness', 'float', 'in', None)], self.getMetalness, self.setMetalness, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setMetalness', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setOpacity')
+    def setOpacity(self, opacity):
+        # type: (datatypes.Color) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([opacity], [('opacity', 'MColor', 'in', None)], self.getOpacity, self.setOpacity, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setOpacity', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSheen')
+    def setSheen(self, sheen):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([sheen], [('sheen', 'float', 'in', None)], self.getSheen, self.setSheen, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSheen', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSheenColor')
+    def setSheenColor(self, sheen_color):
+        # type: (datatypes.Color) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([sheen_color], [('sheen_color', 'MColor', 'in', None)], self.getSheenColor, self.setSheenColor, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSheenColor', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSheenRoughness')
+    def setSheenRoughness(self, sheen_roughness):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([sheen_roughness], [('sheen_roughness', 'float', 'in', None)], self.getSheenRoughness, self.setSheenRoughness, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSheenRoughness', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSpecular')
+    def setSpecular(self, specular):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([specular], [('specular', 'float', 'in', None)], self.getSpecular, self.setSpecular, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSpecular', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSpecularAnisotropy')
+    def setSpecularAnisotropy(self, specular_anisotropy):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([specular_anisotropy], [('specular_anisotropy', 'float', 'in', None)], self.getSpecularAnisotropy, self.setSpecularAnisotropy, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSpecularAnisotropy', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSpecularColor')
+    def setSpecularColor(self, specular_color):
+        # type: (datatypes.Color) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([specular_color], [('specular_color', 'MColor', 'in', None)], self.getSpecularColor, self.setSpecularColor, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSpecularColor', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSpecularIOR')
+    def setSpecularIOR(self, specular_i_o_r):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([specular_i_o_r], [('specular_i_o_r', 'float', 'in', None)], self.getSpecularIOR, self.setSpecularIOR, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSpecularIOR', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSpecularRotation')
+    def setSpecularRotation(self, specular_rotation):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([specular_rotation], [('specular_rotation', 'float', 'in', None)], self.getSpecularRotation, self.setSpecularRotation, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSpecularRotation', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSpecularRoughness')
+    def setSpecularRoughness(self, specular_roughness):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([specular_roughness], [('specular_roughness', 'float', 'in', None)], self.getSpecularRoughness, self.setSpecularRoughness, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSpecularRoughness', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSubsurface')
+    def setSubsurface(self, subsurface):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([subsurface], [('subsurface', 'float', 'in', None)], self.getSubsurface, self.setSubsurface, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSubsurface', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSubsurfaceAnisotropy')
+    def setSubsurfaceAnisotropy(self, subsurface_anisotropy):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([subsurface_anisotropy], [('subsurface_anisotropy', 'float', 'in', None)], self.getSubsurfaceAnisotropy, self.setSubsurfaceAnisotropy, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSubsurfaceAnisotropy', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSubsurfaceColor')
+    def setSubsurfaceColor(self, subsurface_color):
+        # type: (datatypes.Color) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([subsurface_color], [('subsurface_color', 'MColor', 'in', None)], self.getSubsurfaceColor, self.setSubsurfaceColor, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSubsurfaceColor', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSubsurfaceRadius')
+    def setSubsurfaceRadius(self, subsurface_radius):
+        # type: (datatypes.Color) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([subsurface_radius], [('subsurface_radius', 'MColor', 'in', None)], self.getSubsurfaceRadius, self.setSubsurfaceRadius, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSubsurfaceRadius', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setSubsurfaceScale')
+    def setSubsurfaceScale(self, subsurface_scale):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([subsurface_scale], [('subsurface_scale', 'float', 'in', None)], self.getSubsurfaceScale, self.setSubsurfaceScale, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setSubsurfaceScale', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setThinFilmIOR')
+    def setThinFilmIOR(self, thin_film_i_o_r):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([thin_film_i_o_r], [('thin_film_i_o_r', 'float', 'in', None)], self.getThinFilmIOR, self.setThinFilmIOR, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setThinFilmIOR', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setThinFilmThickness')
+    def setThinFilmThickness(self, thin_film_thickness):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([thin_film_thickness], [('thin_film_thickness', 'float', 'in', None)], self.getThinFilmThickness, self.setThinFilmThickness, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setThinFilmThickness', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setThinWalled')
+    def setThinWalled(self, thin_walled):
+        # type: (bool) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([thin_walled], [('thin_walled', 'bool', 'in', None)], self.getThinWalled, self.setThinWalled, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setThinWalled', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setTransmission')
+    def setTransmission(self, transmission):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([transmission], [('transmission', 'float', 'in', None)], self.getTransmission, self.setTransmission, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setTransmission', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setTransmissionColor')
+    def setTransmissionColor(self, transmission_color):
+        # type: (datatypes.Color) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([transmission_color], [('transmission_color', 'MColor', 'in', None)], self.getTransmissionColor, self.setTransmissionColor, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setTransmissionColor', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setTransmissionDepth')
+    def setTransmissionDepth(self, transmission_depth):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([transmission_depth], [('transmission_depth', 'float', 'in', None)], self.getTransmissionDepth, self.setTransmissionDepth, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setTransmissionDepth', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setTransmissionDispersion')
+    def setTransmissionDispersion(self, transmission_dispersion):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([transmission_dispersion], [('transmission_dispersion', 'float', 'in', None)], self.getTransmissionDispersion, self.setTransmissionDispersion, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setTransmissionDispersion', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setTransmissionExtraRoughness')
+    def setTransmissionExtraRoughness(self, transmission_extra_roughness):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([transmission_extra_roughness], [('transmission_extra_roughness', 'float', 'in', None)], self.getTransmissionExtraRoughness, self.setTransmissionExtraRoughness, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setTransmissionExtraRoughness', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setTransmissionScatter')
+    def setTransmissionScatter(self, transmission_scatter):
+        # type: (datatypes.Color) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([transmission_scatter], [('transmission_scatter', 'MColor', 'in', None)], self.getTransmissionScatter, self.setTransmissionScatter, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setTransmissionScatter', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'setTransmissionScatterAnisotropy')
+    def setTransmissionScatterAnisotropy(self, transmission_scatter_anisotropy):
+        # type: (float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([transmission_scatter_anisotropy], [('transmission_scatter_anisotropy', 'float', 'in', None)], self.getTransmissionScatterAnisotropy, self.setTransmissionScatterAnisotropy, [])
+        res = _f.getProxyResult(self, _api.MFnStandardSurfaceShader, 'setTransmissionScatterAnisotropy', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
 
 class Texture2d(ShadingDependNode):
     __melnode__ = u'texture2d'
@@ -43834,6 +44577,36 @@ class VolumeShader(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
+
+
+class WeightFalloff(DependNode):
+    __melnode__ = u'weightFalloff'
+    __slots__ = ()
+
+
+class GeomWeightFalloff(WeightFalloff):
+    __melnode__ = u'GeomWeightFalloff'
+    __slots__ = ()
+
+
+class BlendWeightFalloff(WeightFalloff):
+    __melnode__ = u'blendWeightFalloff'
+    __slots__ = ()
+
+
+class PlaneWeightFalloff(WeightFalloff):
+    __melnode__ = u'planeWeightFalloff'
+    __slots__ = ()
+
+
+class SphericalWeightFalloff(WeightFalloff):
+    __melnode__ = u'sphericalWeightFalloff'
+    __slots__ = ()
+
+
+class UniformWeightFalloff(WeightFalloff):
+    __melnode__ = u'uniformWeightFalloff'
+    __slots__ = ()
 
 
 class WtAddMatrix(DependNode):
