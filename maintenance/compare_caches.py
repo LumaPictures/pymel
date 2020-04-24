@@ -619,6 +619,11 @@ CAN_IGNORE_2021 = [
     ('MFnMesh', 'methods', 'create', 6, 'argInfo', 'edgeFaceDesc', 'doc'),
     # docstring changed
     ('MFnSubdNames', 'methods', 'baseFaceIndexFromId', 0, 'doc'),
+    # This is a valid fix - MFnIkJoint::getPreferedAngle (the mispelled,
+    # obsolete one) formerly had 'rotation' improperly marked as an in arg
+    ('MFnIkJoint', 'methods', 'getPreferedAngle', 0, 'args', 0, 2),
+    ('MFnIkJoint', 'methods', 'getPreferedAngle', 0, 'inArgs', 0),
+    ('MFnIkJoint', 'methods', 'getPreferedAngle', 0, 'outArgs', 0),
 ]
 if versions.current() // 10000 == cacheversions['new']:
     for multiKey in CAN_IGNORE_2021:
