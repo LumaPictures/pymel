@@ -1055,8 +1055,19 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
 
             # the enum is on another class
             if '::' in default:
-                apiClass, enumConst = default.split('::')
-                assert apiClass == type[0]
+                print("type: {}".format(type))
+                print("default: {}".format(default))
+                splitDefault = default.split('::')
+                apiClass = splitDefault[:-1]
+                enumConst = splitDefault[-1]
+                # For old-style (int-based) enums, we may have:
+                #    type = ('MSpace', 'Space')
+                #    default = 'MSpace::kObject'
+                # For new style (class-based) enums, we may have:
+                #    type = ('MFnGeometryData', 'GroupTagCategory')
+                #    default = 'MFnGeometryData::GroupTagCategory::kAuto'
+                # This check should work for either...
+                assert tuple(apiClass) == tuple(type)[:len(apiClass)]
             else:
                 enumConst = default
 
