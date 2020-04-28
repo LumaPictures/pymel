@@ -204,6 +204,7 @@ class MLStripper(HTMLParser):
     def __init__(self):
         self.reset()
         self.fed = []
+        super(MLStripper, self).__init__()
 
     def handle_data(self, d):
         self.fed.append(d)
