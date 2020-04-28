@@ -716,26 +716,9 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
                                  in CPP_OPERATOR_TO_PY.items()}
     PY_OPERATOR_DEFAULT_NAMES['__getitem__'] = 'key'
 
-    # Newer versions of maya are missing <defname> tags in the xmls for many
-    # classes; hardcode these to prevent parsing problems / changes in param
-    # names
+    # Sometimes the defnames don't show up in the xmls for some reason... can
+    # add manual (and hopefully temporary?) overrides here
     DEFNAMES = {
-        'MColor.get(MColor.MColorType, float&, float&, float&)': [
-            'colorModel', 'c1', 'c2', 'c3'],
-        'MColor.get(MColor.MColorType, float&, float&, float&, float&)': [
-            'colorModel', 'c1', 'c2', 'c3', 'alpha'],
-        'MFnDependencyNode.removeAttribute(MObject const&, MFnDependencyNode.MAttrClass)': [
-            'attribute', 'type'],
-        'MFnNurbsCurve.create(MPointArray const&, MDoubleArray const&, unsigned uint, MFnNurbsCurve.Form, bool, bool, MObject&, MStatus*)': [
-            'controlVertices', 'knots', 'degree', 'form', 'create2D', 'createRational', 'parentOrOwner', 'ReturnStatus'],
-        'MTransformationMatrix.getRotation(double__array3, MTransformationMatrix.RotationOrder&)': [
-            'rot', 'order'],
-        'MTransformationMatrix.getRotation(double__array3, MTransformationMatrix.RotationOrder&, MSpace.Space)': [
-            'rot', 'order', 'space'],
-        'MTransformationMatrix.setRotation(double__array3 const, MTransformationMatrix.RotationOrder)': [
-            'rot', 'order'],
-        'MTransformationMatrix.setRotation(double__array3 const, MTransformationMatrix.RotationOrder, MSpace.Space)' : [
-            'rot', 'order', 'space'],
     }
 
     _anonymousEnumRe = re.compile(r'^@[0-9]+$')
