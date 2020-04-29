@@ -204,6 +204,11 @@ class MLStripper(HTMLParser):
     def __init__(self):
         self.reset()
         self.fed = []
+        if PY2:
+            # python-2 won't error if we skip the init, while python-3 will
+            # However, in python-2, we can't call super, because HTMLParser
+            # is an "old-style" class
+            return
         super(MLStripper, self).__init__()
 
     def handle_data(self, d):
