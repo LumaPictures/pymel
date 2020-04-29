@@ -1039,8 +1039,6 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
 
             # the enum is on another class
             if '::' in default:
-                print("type: {}".format(type))
-                print("default: {}".format(default))
                 splitDefault = default.split('::')
                 apiClass = splitDefault[:-1]
                 enumConst = splitDefault[-1]
