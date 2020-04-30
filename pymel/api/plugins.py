@@ -232,6 +232,35 @@ mpxNamesToMayaNodes = {
     'MPxSkinCluster': u'THskinCluster',  # auto
 }
 
+# make reverse mapping...
+
+# it's possible that multiple mpxNames map to the same maya name  -
+# ie, we know multiple types map to 'THdependNode' ('MPxNode',
+# 'MPxRepresentation', 'MPxRepMgr', 'MPxPolyTrg'), and
+# 'THsurfaceShape' ('MPxSurfaceShape', 'MPxComponentShape').
+# Harcode these, and error if any other maya type has multiple
+# mpx names
+
+_knownRepeatedMayaNames = {
+    'THdependNode': 'MPxNode',
+    'THsurfaceShape': 'MPxSurfaceShape',
+    'THcustomTransform': 'MPxTransform',
+}
+
+mayaNodesToMpxNames = dict(_knownRepeatedMayaNames)
+
+for mpxName, mayaName in mpxNamesToMayaNodes.items():
+    if mayaName in _knownRepeatedMayaNames:
+        continue
+    existingMpxName = mayaNodesToMpxNames.get(mayaName)
+    if existingMpxName is not None:
+        msg = "Encountered unexpected mapping of multiple MPx nodes ({}, {})" \
+              " to the same maya node ({})".format(mpxName, existingMpxName,
+                                                   mayaName)
+        raise RuntimeError(msg)
+    mayaNodesToMpxNames[mayaName] = mpxName
+
+
 # remove entries from mpxNamesToEnumNames which are not in OpenMayaMPx, and add
 # those that are to mpxClassesToMpxEnums
 mpxClassesToMpxEnums = {}

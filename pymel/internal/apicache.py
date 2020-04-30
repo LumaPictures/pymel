@@ -1194,7 +1194,7 @@ class ApiCache(BaseApiClassInfoCache):
 
         # start with plugin types
         import pymel.api.plugins as plugins
-        for mpxName, mayaNode in plugins.mpxNamesToMayaNodes.items():
+        for mayaNode, mpxName in plugins.mayaNodesToMpxNames.items():
             reservedMayaTypes[mayaNode] = plugins.mpxNamesToApiEnumNames[mpxName]
 
         for mayaType in self.abstractMayaTypes:
@@ -1549,8 +1549,8 @@ class ApiCache(BaseApiClassInfoCache):
         except Exception:
             inheritance = None
         if inheritance:
-            for mayaType in reversed(inheritance[:-1]):
-                apiType = self.mayaTypesToApiTypes.get(mayaType)
+            for parentMayaType in reversed(inheritance[:-1]):
+                apiType = self.mayaTypesToApiTypes.get(parentMayaType)
                 if apiType:
                     break
 
@@ -1594,7 +1594,8 @@ class ApiCache(BaseApiClassInfoCache):
             if calcApiType != apiType:
                 _logger.raiseLog(_logger.WARNING,
                     "could not determine apiType for plugin node '{}' without"
-                    " creating it".format(mayaType))
+                    " creating it (cached apiType: {} - determined type: {})"
+                    .format(mayaType, apiType, calcApiType))
             else:
                 toRemove.append(mayaType)
         for mayaType in toRemove:
