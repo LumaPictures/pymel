@@ -561,10 +561,6 @@ def _pickleload(filename):
     return res
 
 
-def _pydump(data, filename, opener=open):
-    with opener(filename, mode='wb') as file:
-        file.write(pprint.pformat(data))
-
 # (1, 0) - initial version, that used "eval" instead of exec - didn't contain
 #          explicit version
 # (1, 1) - version that uses "exec" - ie, data = [...]; has a version as well
