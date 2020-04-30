@@ -619,7 +619,9 @@ def _pyczipdump(data, filename, pyc=True):
     if inZipPath.lower().endswith('.zip'):
         inZipPath = inZipPath[:-len('.zip')]
 
-    bytes = _getpycbytes(_pyformatdump(data))
+    bytes = _pyformatdump(data)
+    if pyc:
+        bytes = _getpycbytes(bytes)
     with zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.writestr(inZipPath, bytes)
 
