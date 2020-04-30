@@ -1141,7 +1141,6 @@ class ApiCache(BaseApiClassInfoCache):
             _logger.debug("...finished creating ghost nodes")
 
         if len(unknownTypes) > 0:
-            _logger.warn("Unable to get maya-to-api type info for the following nodes: %s" % ", ".join(unknownTypes))
             for mayaType in unknownTypes:
                 # For unknown types, use the parent type
                 try:
