@@ -40,29 +40,7 @@ gendir = os.path.join(sourcedir, 'generated')
 buildrootdir = os.path.join(docsdir, BUILD_ROOT)
 builddir = os.path.join(docsdir, BUILD)
 
-from pymel.internal.cmdcache import fixCodeExamples
-
-def get_internal_cmds():
-    cmds = []
-    # they first provided them as 'internalCmds.txt', then as
-    # internalCommandList.txt
-    notfound = []
-    for filename in ('internalCmds.txt', 'internalCommandList.txt'):
-        cmdlistPath = os.path.join(docsdir, filename)
-        if os.path.isfile(cmdlistPath):
-            break
-        else:
-            notfound.append(cmdlistPath)
-    else:
-        filepaths = ', '.join(notfound)
-        raise RuntimeError("could not find list of internal commands - tried: {}"
-                           .format(filepaths))
-    with open(os.path.join(docsdir, 'internalCmds.txt')) as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                cmds.append(line)
-    return set(cmds)
+from pymel.internal.cmdcache import fixCodeExamples, getInternalCmds
 
 def monkeypatch_autosummary():
     """
@@ -94,7 +72,7 @@ def monkeypatch_autosummary():
 
     _orig_safe_getattr = sphinx.util.inspect.safe_getattr
 
-    internal_cmds = get_internal_cmds()
+    internal_cmds = getInternalCmds()
 
     def safe_getattr(obj, name, *defargs):
         if name not in {'__get__', '__set__', '__delete__'}:
