@@ -208,8 +208,14 @@ util.setCascadingDictItem(cmdlistOverrides, ('keyframe', 'flags', 'index', 'args
 # it crashes testNodeCmd
 util.setCascadingDictItem(cmdlistOverrides, ('pointOnPolyConstraint', 'resultNeedsUnpacking', ), True)
 
+_internalCmds = None
 
-def getInternalCmds():
+def getInternalCmds(errorIfMissing=True):
+    global _internalCmds
+
+    if _internalCmds is not None:
+        return _internalCmds
+
     from .parsers import mayaDocsLocation
     docsdir = mayaDocsLocation()
     cmds = []
@@ -226,12 +232,13 @@ def getInternalCmds():
         filepaths = ', '.join(notfound)
         raise RuntimeError("could not find list of internal commands - tried: {}"
                            .format(filepaths))
-    with open(os.path.join(docsdir, 'internalCmds.txt')) as f:
+    with open(cmdlistPath) as f:
         for line in f:
             line = line.strip()
             if line:
                 cmds.append(line)
-    return set(cmds)
+    _internalCmds = set(cmds)
+    return _internalCmds
 
 
 def getCmdInfoBasic(command):
