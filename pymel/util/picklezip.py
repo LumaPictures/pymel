@@ -14,28 +14,22 @@ def dump(object, filename, protocol=-1):
     """
     Save an compressed pickle to disk.
     """
-    file = gzip.GzipFile(filename, 'wb')
-    try:
-        pickle.dump(object, file, protocol)
-    finally:
-        file.close()
+    with gzip.GzipFile(filename, 'wb') as f:
+        pickle.dump(object, f, protocol)
 
 
 def _loads(filename):
     """
     Load a compressed pickle from disk to an upicklable string
     """
-    file = gzip.GzipFile(filename, 'rb')
-    try:
-        buffer = ""
+    buffer = b""
+    with gzip.GzipFile(filename, 'rb') as f:
         while 1:
-            data = file.read()
-            if data == "":
+            data = f.read()
+            if data == b"":
                 break
             buffer += data
-        return buffer
-    finally:
-        file.close()
+    return buffer
 
 
 def load(filename):

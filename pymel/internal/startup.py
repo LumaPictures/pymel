@@ -560,17 +560,24 @@ def _pickleload(filename):
         res = pickle.load(file)
     return res
 
+# NOTE: currently, there is no support for pymel to read or write formats
+# other than the current.  This is here for documentation, and in case we want
+# to add that ability at some point in the future.
 
 # (1, 0) - initial version, that used "eval" instead of exec - didn't contain
 #          explicit version
 # (1, 1) - version that uses "exec" - ie, data = [...]; has a version as well
-PY_CACHE_FORMAT_VERSION = (1, 1)
+# (1, 2) - like (1, 2), but has potential unicode characters in utf-8 encoding
+PY_CACHE_FORMAT_VERSION = (1, 2)
 
 
 def _pyformatdump(data):
-    return 'version = {!r}\n\ndata = {}'.format(PY_CACHE_FORMAT_VERSION,
-                                                pprint.pformat(data))
-
+    strdata = 'version = {!r}\n\ndata = {}'.format(PY_CACHE_FORMAT_VERSION,
+                                                   pprint.pformat(data))
+    if PY2:
+        if not isinstance(strdata, unicode):
+            return strdata
+    return strdata.encode('utf-8')
 
 def _pycodeload(code):
     globs = {}
