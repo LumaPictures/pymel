@@ -988,7 +988,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         defaults = {}
         if apiToPymelNames is None:
             apiToPymelNames = self._apiEnumNamesToPymelEnumNames(apiEnum)
-        pymelKeyDict = {}
+        pymelKeyDict = OrderedDict()
         docs = dict(apiEnum._docs)
         for apiName, val in apiEnum._keys.items():
             # want to include docs, so make dict (key, doc) => val
@@ -1470,7 +1470,10 @@ class XmlApiDocParser(ApiDocParser):
         return results
 
     def _parseEnum_normal(self, enumData):
-        enumValues = {}
+        # use OrderedDict so that the first-parsed name for a given int-enum-
+        # value will become the default. This seems as good a pick as any for
+        # the default, and it will make python2+3 behavior consistent
+        enumValues = OrderedDict()
         enumDocs = {}
         enumName = xmlText(enumData.find('name'))
         self.currentMethodName = enumName
@@ -1504,7 +1507,10 @@ class XmlApiDocParser(ApiDocParser):
         '''Parse an OPENMAYA_ENUM style enum declaration'''
 
         enumName = None
-        enumValues = {}
+        # use OrderedDict so that the first-parsed name for a given int-enum-
+        # value will become the default. This seems as good a pick as any for
+        # the default, and it will make python2+3 behavior consistent
+        enumValues = OrderedDict()
 
         self.currentMethodName = 'OPENMAYA_ENUM' # placeholder
         self.xprint("ENUM", enumName)
@@ -2091,7 +2097,10 @@ class HtmlApiDocParser(ApiDocParser):
         return paramInfos
 
     def _parseEnum(self, rawEnum):
-        enumValues = {}
+        # use OrderedDict so that the first-parsed name for a given int-enum-
+        # value will become the default. This seems as good a pick as any for
+        # the default, and it will make python2+3 behavior consistent
+        enumValues = OrderedDict()
         enumDocs = {}
 
         # get the doc portion...
