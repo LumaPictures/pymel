@@ -324,7 +324,7 @@ def errorLevel():
     return ERRORLEVEL
 
 
-def raiseLog(logger, level, message, errorClass=RuntimeError):
+def raiseLog(logger, level, message, errorClass=RuntimeError, reraise=True):
     '''For use in situations in which you may wish to raise an error or simply
     print to a logger.
 
@@ -348,6 +348,14 @@ def raiseLog(logger, level, message, errorClass=RuntimeError):
     # is read in pymel.internal.startup, so an environment variable seemed the
     # only way to go
     if level >= errorLevel():
+        # If we're already handling an exception, we probably want to print
+        # using THAT traceback - however, we still want to print our custom
+        # message first
+        if reraise and sys.exc_info()[0] is not None:
+            # We're raising an exception, so we should print using at least
+            # ERROR formatting, so it gets seen
+            logger.log(max(level, logging.ERROR), message)
+            raise
         raise errorClass(message)
     else:
         logger.log(level, message)
