@@ -266,6 +266,7 @@ class CommandDocParser(HTMLParser):
         self.description = ''
         self.example = ''
         self.emptyModeFlags = []  # when flags are in a sequence ( lable1, label2, label3 ), only the last flag has queryedit modes. we must gather them up and fill them when the last one ends
+        self.internal = False  # True if this is marked as in the internal category
         HTMLParser.__init__(self)
 
     def __repr__(self):
@@ -366,6 +367,8 @@ class CommandDocParser(HTMLParser):
             #_logger.debug(self.currFlag, msg)
 
     def handle_starttag(self, tag, attrs):
+        from future.moves.urllib.parse import urlparse
+
         #_logger.debug("begin: %s tag: %s" % (tag, attrs))
         attrmap = dict(attrs)
         if not self.active:
@@ -377,6 +380,11 @@ class CommandDocParser(HTMLParser):
                 elif name == 'hExamples':
                     #_logger.debug("start examples")
                     self.active = 'examples'
+                else:
+                    path = urlparse(attrmap.get('href', '')).path
+                    if path.split('/')[-1] == 'cat_Internal.html':
+                        # this is an internal command, and should be skipped...
+                        self.internal = True
         elif tag == 'a' and 'name' in attrmap:
             self.endFlag()
             newFlag = attrmap['name'][4:]

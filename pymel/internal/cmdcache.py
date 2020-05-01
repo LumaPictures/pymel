@@ -330,6 +330,11 @@ def getCmdInfo(command, version, python=True):
 
     basicInfo = getCmdInfoBasic(command)
 
+    # for consistency, always just use basicInfo for internal commands -
+    # sometimes we get docs for them, sometimes we don't
+    if command in getInternalCmds():
+        return basicInfo
+
     docloc = mayaDocsLocation(version)
     if python:
         docloc = os.path.join(docloc, 'CommandsPython/%s.html' % (command))
@@ -342,6 +347,9 @@ def getCmdInfo(command, version, python=True):
             parser.feed(f.read())
     except IOError:
         _logger.debug("could not find docs for %s" % command)
+        return basicInfo
+
+    if parser.internal:
         return basicInfo
 
     example = parser.example
