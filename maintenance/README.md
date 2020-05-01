@@ -13,10 +13,10 @@ Building an Official PyMEL Release
     path, then:
 
     ```
-    # on windows, you'll need to download this script manually
-    curl -O https://bootstrap.pypa.io/get-pip.py
+    # on windows, if the below commands raise errors, you'll need to either run
+    # as administrator, or change permissions manually
     sudo chmod -R ugo+w $MAYA_LOCATION/
-    mayapy get-pip.py
+    mayapy -m ensurepip --upgrade
     mayapy -m pip install -r maintenance/requirements.txt
     ```
 
