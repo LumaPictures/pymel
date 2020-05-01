@@ -298,85 +298,81 @@ def getCmdInfo(command, version, python=True):
 
     basicInfo = getCmdInfoBasic(command)
 
-    try:
-        docloc = mayaDocsLocation(version)
-        if python:
-            docloc = os.path.join(docloc, 'CommandsPython/%s.html' % (command))
-        else:
-            docloc = os.path.join(docloc, 'Commands/%s.html' % (command))
+    docloc = mayaDocsLocation(version)
+    if python:
+        docloc = os.path.join(docloc, 'CommandsPython/%s.html' % (command))
+    else:
+        docloc = os.path.join(docloc, 'Commands/%s.html' % (command))
 
+    try:
         with open(docloc) as f:
             parser = CommandDocParser(command)
             parser.feed(f.read())
-
-        example = parser.example
-        example = example.rstrip()
-
-        if python:
-            pass
-
-        # start with basic info, gathered using mel help command, then update with info parsed from docs
-        # we copy because we need access to the original basic info below
-        basicFlags = basicInfo.get('flags', {})
-        flags = basicInfo['flags'].copy()
-        flags.update(parser.flags)
-
-        # if we have a "true" mel boolean flag, then getCmdInfoBasic will return
-        # numArgs == 0, but parsing the PYTHON docs will return a numArgs of 1;
-        # keep the numArgs of 0
-        for flag, flagInfo in parser.flags.items():
-            if flagInfo.get('args') == bool and flagInfo.get('numArgs') == 1:
-                basicFlagInfo = basicFlags.get(flag, {})
-                if (basicFlagInfo.get('args') == bool
-                        and basicFlagInfo.get('numArgs') == 0):
-                    flagInfo['numArgs'] = 0
-
-        if command in secondaryFlags:
-            for secondaryFlag, defaultValue, modifiedList in secondaryFlags[command]:
-                #_logger.debug(command, "2nd", secondaryFlag)
-                flags[secondaryFlag]['modified'] = modifiedList
-                #_logger.debug(sorted(modifiedList))
-                #_logger.debug(sorted(parser.flags.keys()))
-                for primaryFlag in modifiedList:
-                    #_logger.debug(command, "1st", primaryFlag)
-                    if 'secondaryFlags' in parser.flags[primaryFlag]:
-                        flags[primaryFlag]['secondaryFlags'].append(secondaryFlag)
-                    else:
-                        flags[primaryFlag]['secondaryFlags'] = [secondaryFlag]
-
-        # add shortname lookup
-        #_logger.debug((command, sorted( basicInfo['flags'].keys() )))
-        #_logger.debug((command, sorted( flags.keys() )))
-
-        # args and numArgs is more reliable from mel help command than from parsed docs,
-        # so, here we put that back in place and create shortflags.
-
-        # also use original 'multiuse' info...
-
-        for flag, flagData in flags.items():
-            basicFlagData = basicFlags.get(flag)
-            if basicFlagData:
-                if 'args' in basicFlagData and 'numargs' in basicFlagData:
-                    flagData['args'] = basicFlagData['args']
-                    flagData['numArgs'] = basicFlagData['numArgs']
-                    if ('multiuse' in basicFlagData.get('modes', [])
-                            and 'multiuse' not in flagData.get('modes', [])):
-                        flagData.setdefault('modes', []).append('multiuse')
-
-        shortFlags = basicInfo['shortFlags']
-        res = {'flags': flags,
-               'shortFlags': shortFlags,
-               'description': parser.description,
-               'example': example}
-        try:
-            res['removedFlags'] = basicInfo['removedFlags']
-        except KeyError:
-            pass
-        return res
-
     except IOError:
         _logger.debug("could not find docs for %s" % command)
         return basicInfo
+
+    example = parser.example
+    example = example.rstrip()
+
+    # start with basic info, gathered using mel help command, then update with info parsed from docs
+    # we copy because we need access to the original basic info below
+    basicFlags = basicInfo.get('flags', {})
+    flags = basicInfo['flags'].copy()
+    flags.update(parser.flags)
+
+    # if we have a "true" mel boolean flag, then getCmdInfoBasic will return
+    # numArgs == 0, but parsing the PYTHON docs will return a numArgs of 1;
+    # keep the numArgs of 0
+    for flag, flagInfo in parser.flags.items():
+        if flagInfo.get('args') == bool and flagInfo.get('numArgs') == 1:
+            basicFlagInfo = basicFlags.get(flag, {})
+            if (basicFlagInfo.get('args') == bool
+                    and basicFlagInfo.get('numArgs') == 0):
+                flagInfo['numArgs'] = 0
+
+    if command in secondaryFlags:
+        for secondaryFlag, defaultValue, modifiedList in secondaryFlags[command]:
+            #_logger.debug(command, "2nd", secondaryFlag)
+            flags[secondaryFlag]['modified'] = modifiedList
+            #_logger.debug(sorted(modifiedList))
+            #_logger.debug(sorted(parser.flags.keys()))
+            for primaryFlag in modifiedList:
+                #_logger.debug(command, "1st", primaryFlag)
+                if 'secondaryFlags' in parser.flags[primaryFlag]:
+                    flags[primaryFlag]['secondaryFlags'].append(secondaryFlag)
+                else:
+                    flags[primaryFlag]['secondaryFlags'] = [secondaryFlag]
+
+    # add shortname lookup
+    #_logger.debug((command, sorted( basicInfo['flags'].keys() )))
+    #_logger.debug((command, sorted( flags.keys() )))
+
+    # args and numArgs is more reliable from mel help command than from parsed docs,
+    # so, here we put that back in place and create shortflags.
+
+    # also use original 'multiuse' info...
+
+    for flag, flagData in flags.items():
+        basicFlagData = basicFlags.get(flag)
+        if basicFlagData:
+            if 'args' in basicFlagData and 'numargs' in basicFlagData:
+                flagData['args'] = basicFlagData['args']
+                flagData['numArgs'] = basicFlagData['numArgs']
+                if ('multiuse' in basicFlagData.get('modes', [])
+                        and 'multiuse' not in flagData.get('modes', [])):
+                    flagData.setdefault('modes', []).append('multiuse')
+
+    shortFlags = basicInfo['shortFlags']
+    res = {'flags': flags,
+           'shortFlags': shortFlags,
+           'description': parser.description,
+           'example': example}
+    try:
+        res['removedFlags'] = basicInfo['removedFlags']
+    except KeyError:
+        pass
+    return res
 
 
 def fixCodeExamples(style='maya', force=False):
