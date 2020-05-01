@@ -697,6 +697,7 @@ def getCallbackFlags(cmdInfo):
         for flag, data in flagDocs.items():
             if data['args'] in ['script', callable] or 'command' in flag.lower():
                 commandFlags += [flag, data['shortname']]
+    commandFlags.sort()
     return commandFlags
 
 
