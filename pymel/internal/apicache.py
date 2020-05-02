@@ -1182,6 +1182,24 @@ class ApiCache(BaseApiClassInfoCache):
         self.apiTypesToApiEnums = dict(inspect.getmembers(api.MFn, lambda x: type(x) is int))
         self.apiEnumsToApiTypes = dict((self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
 
+    def _fixApiEnumsToApiTypes(self):
+        # For the MFn.Type mappings, we can have multiple string names mapping
+        # to the same enum int value, and we need to determine which name is
+        # the "default" when building the mapping from int to string.
+
+        # We use the information parsed from the docs, for api.MFn.Type, to
+        # pick a default - the first entry defined is the default
+        numToNames = {}
+        for name, num in self.apiTypesToApiEnums.items():
+            numToNames.setdefault(num, []).append(name)
+        mfnTypeEnum = self.apiClassInfo['MFn']['enums']['Type']['values']
+        for num, names in numToNames.items():
+            if len(names) <= 1:
+                continue
+            defaultName = mfnTypeEnum[num].key
+            assert defaultName in names
+            self.apiEnumsToApiTypes[num] = defaultName
+
     def _buildMayaReservedTypes(self):
         """
         Build a list of Maya reserved types.
@@ -1485,6 +1503,7 @@ class ApiCache(BaseApiClassInfoCache):
         plugins.loadAllMayaPlugins(filters=filters)
 
         self._buildApiClassInfo()
+        self._fixApiEnumsToApiTypes()
 
         self._buildMayaToApiInfo(reservedOnly=False)
         self._buildApiTypeToApiClasses()
