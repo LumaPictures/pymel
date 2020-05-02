@@ -574,9 +574,39 @@ def _pickleload(filename):
 PY_CACHE_FORMAT_VERSION = (1, 2)
 
 
+# In python3, the PrettyPrinter will wrap long strings to match the width.
+# The string wrapping in some cases looks better, but in many cases it
+# results in strings with only a few characters per line, ie:
+#                                                               foo: "This "
+#                                                                    "is "
+#                                                                    "bad."
+# So, we use a custom PrettyPrinter to override string wrapping (giving results
+# like we used to get in python2)
+
+# Thanks to Martijn Pieters:
+#   https://stackoverflow.com/a/31485450/920545
+
+class NoStringWrappingPrettyPrinter(pprint.PrettyPrinter):
+    def _format(self, object, *args):
+        if isinstance(object, str):
+            width = self._width
+            self._width = sys.maxsize
+            try:
+                super()._format(object, *args)
+            finally:
+                self._width = width
+        else:
+            super()._format(object, *args)
+
+py_pformat = NoStringWrappingPrettyPrinter().pformat
+
+if PY2:
+    # just use the normal PrettyPrinter
+    py_pformat = pprint.pformat
+
 def _pyformatdump(data):
     strdata = 'version = {!r}\n\ndata = {}'.format(PY_CACHE_FORMAT_VERSION,
-                                                   pprint.pformat(data))
+                                                   py_pformat(data))
     if PY2:
         if not isinstance(strdata, unicode):
             return strdata
