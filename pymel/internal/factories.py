@@ -3112,105 +3112,8 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
                 # apicls was MFnDependencyNode
                 assert (apicls is parentApiClass or issubclass(parentApiClass, apicls)), (classname, apicls, parentApiClass)
 
-            #     if apicls is parentApiClass:
-            #         # If this class's api class is the same as the parent, the methods
-            #         # are already handled.
-            #         pass
-            #     else:
-            #         #------------------------
-            #         # API Wrap
-            #         #------------------------
-            #
-            #         # Find out methods herited from other bases than apicls to avoid
-            #         # unwanted overloading
-            #         herited = {}
-            #         for base in bases:
-            #             if base is not apicls:
-            #                 # basemro = inspect.getmro(base)
-            #                 for attr in dir(base):
-            #                     if attr not in herited:
-            #                         herited[attr] = base
-            #
-            #         ##_logger.debug("Methods info: %(methods)s" % classInfo)
-            #
-            #         # Class Methods
-            #
-            #         # iterate over the methods so that we get all non-deprecated
-            #         # methods first
-            #         # This is because, if two api methods map to the same pymel
-            #         # method name, then the first one "wins" - and we want to prefer
-            #         # non-deprecated.
-            #         def non_deprecated_methods_first():
-            #             deprecated = []
-            #             for methodName, info in classInfo['methods'].iteritems():
-            #                 # don't rewrap if already herited from a base class that is not the apicls
-            #                 # _logger.debug("Checking method %s" % (methodName))
-            #
-            #                 try:
-            #                     pymelName = classInfo.get('pymelMethods', {})[methodName]
-            #                     removeAttrs.append(methodName)
-            #                 except KeyError:
-            #                     pymelName = methodName
-            #                 pymelName, overrideData, _ = _getApiOverrideNameAndData(
-            #                     classname, pymelName)
-            #
-            #                 # if classname == 'DependNode' and pymelName in ('setName','getName'):
-            #                 #                        raise Exception('debug')
-            #                 overloadIndex = overrideData.get('overloadIndex', 0)
-            #                 if overloadIndex is None:
-            #                     #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
-            #                     continue
-            #                 if not overrideData.get('enabled', True):
-            #                     #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
-            #                     continue
-            #                 yieldTuple = (methodName, info, classname, pymelName,
-            #                               overloadIndex)
-            #                 if info[overloadIndex].get('deprecated', False):
-            #                     deprecated.append(yieldTuple)
-            #                 else:
-            #                     yield yieldTuple
-            #             for yieldTuple in deprecated:
-            #                 yield yieldTuple
-            #
-            #         for (methodName, info, classname, pymelName, overloadIndex) \
-            #                 in non_deprecated_methods_first():
-            #             assert isinstance(pymelName, str), "%s.%s: %r is not a valid name" % (classname, methodName, pymelName)
-            #
-            #             # TODO: some methods are being wrapped for the base class,
-            #             # and all their children - ie, MFnTransform.transformation()
-            #             # gets wrapped for Transform, Place3dTexture,
-            #             # HikGroundPlane, etc...
-            #             # Figure out why this happens, and stop it!
-            #             if pymelName not in herited:
-            #                 if pymelName not in classdict:
-            #                     #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
-            #                     method = wrapApiMethod(apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex)
-            #                     if method:
-            #                         _logger.info("%s.%s successfully created" % (classname, pymelName ))
-            #                         classdict[pymelName] = method
-            #                     # else: #_logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
-            #                 # else: #_logger.debug("%s.%s: already defined, skipping" % (apicls.__name__, methodName ))
-            #             # else: #_logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
-            #
-            #     if 'pymelEnums' in classInfo:
-            #         # Enumerators
-            #
-            #         for enumName, enum in classInfo['pymelEnums'].items():
-            #             classdict[enumName] = enum
-            #
-            # if not proxy:
-            #     if removeAttrs:
-            #         #_logger.debug( "%s: removing attributes %s" % (classname, removeAttrs) )
-            #         def __getattribute__(self, name):
-            #             #_logger.debug(name )
-            #             if name in removeAttrs and name not in EXCLUDE_METHODS:  # tmp fix
-            #                 #_logger.debug("raising error")
-            #                 raise AttributeError, "'" + classname + "' object has no attribute '" + name + "'"
-            #             #_logger.debug("getting from %s" % bases[0])
-            #             # newcls will be defined by the time this is called...
-            #             return super(newcls, self).__getattribute__(name)
-            #
-            #         classdict['__getattribute__'] = __getattribute__
+            # used to add api-wrapped methods here - now done via template
+            # building in maintenance.build
 
         # create the new class
         newcls = super(MetaMayaTypeWrapper, cls).__new__(cls, classname, bases, classdict)
@@ -3222,48 +3125,9 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
                 return MetaMayaTypeWrapper.ClassConstant(attr)
             except Exception as e:
                 _logger.warn("Failed creating %s class constant (%s): %s" % (classname, attr, e))
-        #------------------------
-        # Class Constants
-        #------------------------
-        # if hasattr(newcls, 'apicls'):
-        #     # type (api type) used for the storage of data
-        #     apicls = newcls.apicls
-        #     if apicls is not None:
-        #         # build some constants on the class
-        #         constant = {}
-        #         # constants in class definition will be converted from api class to created class
-        #         for name, attr in newcls.__dict__.iteritems():
-        #             # to add the wrapped api class constants as attributes on the wrapping class,
-        #             # convert them to own class
-        #             if isinstance(attr, apicls):
-        #                 if name not in constant:
-        #                     constant[name] = makeClassConstant(attr)
-        #         # we'll need the api clas dict to automate some of the wrapping
-        #         # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping
-        #         apiDict = dict(inspect.getmembers(apicls))
-        #         # defining class properties on the created class
-        #         for name, attr in apiDict.iteritems():
-        #             # to add the wrapped api class constants as attributes on the wrapping class,
-        #             # convert them to own class
-        #             if isinstance(attr, apicls):
-        #                 if name not in constant:
-        #                     constant[name] = makeClassConstant(attr)
-        #         # update the constant dict with herited constants
-        #         mro = inspect.getmro(newcls)
-        #         for parentCls in mro:
-        #             if isinstance(parentCls, MetaMayaTypeWrapper):
-        #                 for name, attr in parentCls.__dict__.iteritems():
-        #                     if isinstance(attr, MetaMayaTypeWrapper.ClassConstant):
-        #                         if not name in constant:
-        #                             constant[name] = makeClassConstant(attr.value)
-        #
-        #         # build the protected list to make some class ifo and the constants read only class attributes
-        #         # new.__slots__ = ['_data', '_shape', '_ndim', '_size']
-        #         # type.__setattr__(newcls, '__slots__', slots)
-        #
-        #         # store constants as class attributes
-        #         for name, attr in constant.iteritems():
-        #             type.__setattr__(newcls, name, attr)
+
+        # used to add api-wrapped class constants here - now done via template
+        # building in maintenance.build
 
         return newcls
 
@@ -3377,83 +3241,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             classdict['__melcmdname__'] = melCmdName
             classdict['__melcmd_isinfo__'] = infoCmd
 
-            # filterAttrs = ['name', 'getName', 'setName'] + classdict.keys()
-            # filterAttrs += overrideMethods.get(bases[0].__name__, [])
-            # #filterAttrs += newcls.__dict__.keys()
-            #
-            # parentClasses = [x.__name__ for x in inspect.getmro(newcls)[1:]]
-            # for flag, flagInfo in cmdInfo['flags'].items():
-            #     # don't create methods for query or edit, or for flags which only serve to modify other flags
-            #     if flag in ['query', 'edit'] or 'modified' in flagInfo:
-            #         continue
-            #
-            #     if flagInfo.has_key('modes'):
-            #         # flags which are not in maya docs will have not have a modes list unless they
-            #         # have passed through testNodeCmds
-            #         # continue
-            #         modes = flagInfo['modes']
-            #
-            #         # query command
-            #         if 'query' in modes:
-            #             methodName = 'get' + util.capitalize(flag)
-            #             classToMelMap[classname].append(methodName)
-            #
-            #             if methodName not in filterAttrs and \
-            #                     (not hasattr(newcls, methodName) or cls.isMelMethod(methodName, parentClasses)):
-            #
-            #                 # 'enabled' refers to whether the API version of this method will be used.
-            #                 # if the method is enabled that means we skip it here.
-            #                 if (not apiToMelData.has_key((classname, methodName))
-            #                         or apiToMelData[(classname, methodName)].get('melEnabled', False)
-            #                         or not apiToMelData[(classname, methodName)].get('enabled', True)):
-            #                     returnFunc = None
-            #
-            #                     if flagInfo.get('resultNeedsCasting', False):
-            #                         returnFunc = flagInfo['args']
-            #
-            #                     # don't unpack if the source i
-            #                     if (flagInfo.get('resultNeedsUnpacking', False)
-            #                             and not pmSourceFunc):
-            #                         if returnFunc:
-            #                             # can't do:
-            #                             #   returnFunc = lambda x: returnFunc(x[0])
-            #                             # ... as this would create a recursive function!
-            #                             origReturnFunc = returnFunc
-            #                             returnFunc = lambda x: origReturnFunc(x[0])
-            #                         else:
-            #                             returnFunc = lambda x: x[0]
-            #
-            #                     wrappedMelFunc = makeQueryFlagMethod(func, flag, methodName,
-            #                                                          returnFunc=returnFunc)
-            #
-            #                     _logger.info("Adding mel derived method %s.%s()" % (classname, methodName))
-            #                     classdict[methodName] = wrappedMelFunc
-            #                 # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
-            #             # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
-            #         # edit command:
-            #         if 'edit' in modes or (infoCmd and 'create' in modes):
-            #             # if there is a corresponding query we use the 'set' prefix.
-            #             if 'query' in modes:
-            #                 methodName = 'set' + util.capitalize(flag)
-            #             # if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
-            #             else:
-            #                 methodName = flag
-            #
-            #             classToMelMap[classname].append(methodName)
-            #
-            #             if methodName not in filterAttrs and \
-            #                     (not hasattr(newcls, methodName) or cls.isMelMethod(methodName, parentClasses)):
-            #                 if not apiToMelData.has_key((classname, methodName)) \
-            #                         or apiToMelData[(classname, methodName)].get('melEnabled', False) \
-            #                         or not apiToMelData[(classname, methodName)].get('enabled', True):
-            #                     # FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
-            #                     fixedFunc = fixCallbacks(func, melCmdName)
-            #
-            #                     wrappedMelFunc = makeEditFlagMethod(fixedFunc, flag, methodName)
-            #                     _logger.info("Adding mel derived method %s.%s()" % (classname, methodName))
-            #                     classdict[methodName] = wrappedMelFunc
-            #                 # else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
-            #             # else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+            # used to add mel-wrapped methods here - now done via template
+            # building in maintenance.build
 
         for name, attr in classdict.items():
             type.__setattr__(newcls, name, attr)
