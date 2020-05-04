@@ -280,10 +280,11 @@ class CommandDocParser(HTMLParser):
                                      'numArgs': None, 'docstring': '', 'modes': []}
 
     def addFlagData(self, data):
-        # encode our non-unicode 'data' string to unicode
-        data = data.decode('utf-8')
-        # now saftely encode it to non-unicode ascii, ignorning unknown characters
-        data = data.encode('ascii', 'ignore')
+        if PY2:
+            # encode our non-unicode 'data' string to unicode
+            data = data.decode('utf-8')
+            # now saftely encode it to non-unicode ascii, ignorning unknown characters
+            data = data.encode('ascii', 'ignore')
         # Shortname
         if self.iData == 0:
             self.flags[self.currFlag]['shortname'] = data.lstrip('-\r\n')
