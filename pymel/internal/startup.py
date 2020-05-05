@@ -542,15 +542,26 @@ def encodeFix():
 
 def getImportableObject(importableName):
     import importlib
-    assert '.' in importableName
-    modulename, objName = importableName.rsplit('.', 1)
+    if '.' in importableName:
+        modulename, objName = importableName.rsplit('.', 1)
+    else:
+        # if no module, it's in builtins
+        modulename = 'builtins'
+        if PY2:
+            modulename = '__builtin__'
+        objName = importableName
     moduleobj = importlib.import_module(modulename)
     return getattr(moduleobj, objName)
 
 
 def getImportableName(obj):
-    return '{}.{}'.format(
-        inspect.getmodule(obj).__name__, obj.__name__)
+    module = inspect.getmodule(obj)
+    import builtins
+    if PY2:
+        import __builtin__ as builtins
+    if module == builtins:
+        return obj.__name__
+    return '{}.{}'.format(module.__name__, obj.__name__)
 
 
 def _pickledump(data, filename, protocol=-1):
@@ -570,7 +581,9 @@ def _pickleload(filename):
 # (1, 0) - initial version, that used "eval" instead of exec - didn't contain
 #          explicit version
 # (1, 1) - version that uses "exec" - ie, data = [...]; has a version as well
-# (1, 2) - like (1, 2), but has potential unicode characters in utf-8 encoding
+# (1, 2) - like (1, 2), but has potential unicode characters in utf-8 encoding,
+#          and builtin types are now encoded as '<type bool>' instead of
+#          '<type __builtin__.bool>'
 PY_CACHE_FORMAT_VERSION = (1, 2)
 
 
