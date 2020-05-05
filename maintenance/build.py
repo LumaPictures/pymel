@@ -17,6 +17,7 @@ import re
 import sys
 import types
 from collections import defaultdict, OrderedDict
+from future.utils import PY2
 
 from jinja2 import Environment, PackageLoader
 
@@ -241,7 +242,7 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
             sourceFuncName = '_' + sourceFuncName
 
         template = env.get_template('commandfunc.py')
-        return result + template.render(
+        rendered = template.render(
             funcName=rename or funcName,
             commandName=funcName, timeRangeFlags=timeRangeFlags,
             sourceFuncName=sourceFuncName,
@@ -249,7 +250,10 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
             resultNeedsUnpacking=resultNeedsUnpacking,
             unpackFlags=unpackFlags,
             simpleWraps=wrapped,
-            callbackFlags=callbackFlags, uiWidget=uiWidget).encode()
+            callbackFlags=callbackFlags, uiWidget=uiWidget)
+        if PY2:
+            rendered = rendered.encode()
+        return result + rendered
     else:
         if existing:
             guessedName = factories._guessCmdName(inFunc)
