@@ -283,7 +283,7 @@ class CommandDocParser(HTMLParser):
         if PY2:
             # encode our non-unicode 'data' string to unicode
             data = data.decode('utf-8')
-            # now saftely encode it to non-unicode ascii, ignorning unknown characters
+            # now saftely encode it to non-unicode ascii, ignoring unknown characters
             data = data.encode('ascii', 'ignore')
         # Shortname
         if self.iData == 0:
@@ -415,15 +415,29 @@ class CommandDocParser(HTMLParser):
         elif self.active == 'examples' and tag == 'pre':
             self.active = False
 
-    def handle_entityref(self, name):
-        if self.active == 'examples':
-            result = self.unescape("&" + name + ";")
-            if isinstance(result, str):
-                try:
-                    result = result.encode("ascii")
-                except UnicodeEncodeError:
-                    pass
-            self.example += result
+    if PY2:
+        # Python-3 has a new convert_charrefs arg, which handles this much more
+        # elegantly...
+        def handle_entityref(self, name):
+            appendFunc = None
+
+            if self.active == 'examples':
+                def appendFunc(decodedEntity):
+                    self.example += decodedEntity
+            elif self.active == 'flag':
+                if self.currFlag and self.currFlag in self.flags and self.iData > 1:
+                    # we're decoding a flag docstring
+                    def appendFunc(decodedEntity):
+                        self.flags[self.currFlag]['docstring'] += decodedEntity
+
+            if appendFunc is not None:
+                result = self.unescape("&" + name + ";")
+                if isinstance(result, unicode):
+                    try:
+                        result = result.encode("ascii")
+                    except UnicodeEncodeError:
+                        pass
+                appendFunc(result)
 
     def handle_data(self, data):
         if not self.active:
