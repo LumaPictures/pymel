@@ -1232,7 +1232,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 class ContainerBase(DependNode):
     pass
 # ------ Do not edit below this line --------
-    __melnode__ = u'containerBase'
+    __melnode__ = 'containerBase'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -1240,7 +1240,7 @@ class ContainerBase(DependNode):
 class Entity(ContainerBase):
     pass
 # ------ Do not edit below this line --------
-    __melnode__ = u'entity'
+    __melnode__ = 'entity'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -2380,7 +2380,7 @@ class DagNode(Entity):
         else:
             cmds.makeLive(self)
 # ------ Do not edit below this line --------
-    __melnode__ = u'dagNode'
+    __melnode__ = 'dagNode'
     __slots__ = ()
     MObjectColorType = Enum('MObjectColorType', [('defaultColor', 0), ('kUseDefaultColor', 0), ('indexColor', 1), ('kUseIndexColor', 1), ('RGBColor', 2), ('kUseRGBColor', 2)], multiKeys=True)
 
@@ -2641,7 +2641,7 @@ class Shape(DagNode):
             kwargs['s'] = True
         super(Shape, self).setParent(*args, **kwargs)
 # ------ Do not edit below this line --------
-    __melnode__ = u'shape'
+    __melnode__ = 'shape'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -2724,8 +2724,8 @@ class Camera(Shape):
     __apicls__ = _api.MFnCamera
     __melcmd__ = staticmethod(rendering.camera)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'camera'
-    __melnode__ = u'camera'
+    __melcmdname__ = 'camera'
+    __melnode__ = 'camera'
     __slots__ = ()
     FilmFit = Enum('FilmFit', [('fillFilmFit', 0), ('kFillFilmFit', 0), ('horizontalFilmFit', 1), ('kHorizontalFilmFit', 1), ('verticalFilmFit', 2), ('kVerticalFilmFit', 2), ('overscanFilmFit', 3), ('kOverscanFilmFit', 3), ('invalid', 4), ('kInvalid', 4)], multiKeys=True)
     RollOrder = Enum('RollOrder', [('rotateTranslate', 0), ('kRotateTranslate', 0), ('translateRotate', 1), ('kTranslateRotate', 1)], multiKeys=True)
@@ -2733,7 +2733,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setNearFarClippingPlanes')
     def _setNearFarClippingPlanes(self, dNear, dFar):
         # type: (float, float) -> None
-        do, final_do, outTypes = _f.getDoArgs([dNear, dFar], [('dNear', 'double', 'in', u'linear'), ('dFar', 'double', 'in', u'linear')])
+        do, final_do, outTypes = _f.getDoArgs([dNear, dFar], [('dNear', 'double', 'in', 'linear'), ('dFar', 'double', 'in', 'linear')])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearFarClippingPlanes', final_do)
         return res
 
@@ -2867,7 +2867,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'getFilmFrustum')
     def getFilmFrustum(self, distance, applyPanZoom=False):
         # type: (float, bool) -> Tuple[float, float, float, float]
-        do, final_do, outTypes = _f.getDoArgs([distance, applyPanZoom], [('distance', 'double', 'in', u'linear'), ('hSize', 'double', 'out', None), ('vSize', 'double', 'out', None), ('hOffset', 'double', 'out', None), ('vOffset', 'double', 'out', None), ('applyPanZoom', 'bool', 'in', None)])
+        do, final_do, outTypes = _f.getDoArgs([distance, applyPanZoom], [('distance', 'double', 'in', 'linear'), ('hSize', 'double', 'out', None), ('vSize', 'double', 'out', None), ('hOffset', 'double', 'out', None), ('vOffset', 'double', 'out', None), ('applyPanZoom', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getFilmFrustum', final_do)
         return _f.processApiResult(res, outTypes, do)
 
@@ -3005,7 +3005,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'getPortFieldOfView')
     def getPortFieldOfView(self, width, height):
         # type: (int, int) -> Tuple[float, float]
-        do, final_do, outTypes = _f.getDoArgs([width, height], [('width', 'int', 'in', None), ('height', 'int', 'in', None), ('horizontalFOV', 'double', 'out', u'angular'), ('verticalFOV', 'double', 'out', u'angular')])
+        do, final_do, outTypes = _f.getDoArgs([width, height], [('width', 'int', 'in', None), ('height', 'int', 'in', None), ('horizontalFOV', 'double', 'out', 'angular'), ('verticalFOV', 'double', 'out', 'angular')])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getPortFieldOfView', final_do)
         return _f.processApiResult(res, outTypes, do)
 
@@ -3251,7 +3251,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setCenterOfInterest')
     def setCenterOfInterest(self, dist):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dist], [('dist', 'double', 'in', u'linear')], self.getCenterOfInterest, self.setCenterOfInterest, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dist], [('dist', 'double', 'in', 'linear')], self.getCenterOfInterest, self.setCenterOfInterest, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setCenterOfInterest', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3339,7 +3339,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFarClippingPlane')
     def setFarClippingPlane(self, dFar):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dFar], [('dFar', 'double', 'in', u'linear')], self.getFarClippingPlane, self.setFarClippingPlane, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dFar], [('dFar', 'double', 'in', 'linear')], self.getFarClippingPlane, self.setFarClippingPlane, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFarClippingPlane', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3348,7 +3348,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFarFocusDistance')
     def setFarFocusDistance(self, farFocusDistance):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([farFocusDistance], [('farFocusDistance', 'double', 'in', u'linear')], self.getFarFocusDistance, self.setFarFocusDistance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([farFocusDistance], [('farFocusDistance', 'double', 'in', 'linear')], self.getFarFocusDistance, self.setFarFocusDistance, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFarFocusDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3412,7 +3412,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setFocusDistance')
     def setFocusDistance(self, distance):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([distance], [('distance', 'double', 'in', u'linear')], self.getFocusDistance, self.setFocusDistance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([distance], [('distance', 'double', 'in', 'linear')], self.getFocusDistance, self.setFocusDistance, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setFocusDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3424,7 +3424,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalFieldOfView')
     def setHorizontalFieldOfView(self, fov):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([fov], [('fov', 'double', 'in', u'angular')], self.getHorizontalFieldOfView, self.setHorizontalFieldOfView, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([fov], [('fov', 'double', 'in', 'angular')], self.getHorizontalFieldOfView, self.setHorizontalFieldOfView, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalFieldOfView', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3456,7 +3456,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setHorizontalRollPivot')
     def setHorizontalRollPivot(self, horizontalRollPivot):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([horizontalRollPivot], [('horizontalRollPivot', 'double', 'in', u'linear')], self.getHorizontalRollPivot, self.setHorizontalRollPivot, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([horizontalRollPivot], [('horizontalRollPivot', 'double', 'in', 'linear')], self.getHorizontalRollPivot, self.setHorizontalRollPivot, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setHorizontalRollPivot', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3497,7 +3497,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setNearClippingPlane')
     def setNearClippingPlane(self, dNear):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dNear], [('dNear', 'double', 'in', u'linear')], self.getNearClippingPlane, self.setNearClippingPlane, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dNear], [('dNear', 'double', 'in', 'linear')], self.getNearClippingPlane, self.setNearClippingPlane, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearClippingPlane', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3506,7 +3506,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setNearFocusDistance')
     def setNearFocusDistance(self, nearFocusDistance):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([nearFocusDistance], [('nearFocusDistance', 'double', 'in', u'linear')], self.getNearFocusDistance, self.setNearFocusDistance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([nearFocusDistance], [('nearFocusDistance', 'double', 'in', 'linear')], self.getNearFocusDistance, self.setNearFocusDistance, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setNearFocusDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3594,7 +3594,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setShutterAngle')
     def setShutterAngle(self, shutterAngle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([shutterAngle], [('shutterAngle', 'double', 'in', u'angular')], self.getShutterAngle, self.setShutterAngle, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([shutterAngle], [('shutterAngle', 'double', 'in', 'angular')], self.getShutterAngle, self.setShutterAngle, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setShutterAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3638,7 +3638,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalFieldOfView')
     def setVerticalFieldOfView(self, fov):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([fov], [('fov', 'double', 'in', u'angular')], self.getVerticalFieldOfView, self.setVerticalFieldOfView, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([fov], [('fov', 'double', 'in', 'angular')], self.getVerticalFieldOfView, self.setVerticalFieldOfView, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalFieldOfView', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -3678,7 +3678,7 @@ class Camera(Shape):
     @_f.addApiDocs(_api.MFnCamera, 'setVerticalRollPivot')
     def setVerticalRollPivot(self, verticalRollPivot):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([verticalRollPivot], [('verticalRollPivot', 'double', 'in', u'linear')], self.getVerticalRollPivot, self.setVerticalRollPivot, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([verticalRollPivot], [('verticalRollPivot', 'double', 'in', 'linear')], self.getVerticalRollPivot, self.setVerticalRollPivot, [])
         res = _f.getProxyResult(self, _api.MFnCamera, 'setVerticalRollPivot', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4267,7 +4267,7 @@ class Transform(DagNode):
     __melcmd__ = staticmethod(general.xform)
     __melcmd_isinfo__ = True
     __melcmdname__ = 'xform'
-    __melnode__ = u'transform'
+    __melnode__ = 'transform'
     __slots__ = ()
     LimitType = Enum('LimitType', [('scaleMinX', 0), ('kScaleMinX', 0), ('scaleMaxX', 1), ('kScaleMaxX', 1), ('scaleMinY', 2), ('kScaleMinY', 2), ('scaleMaxY', 3), ('kScaleMaxY', 3), ('scaleMinZ', 4), ('kScaleMinZ', 4), ('scaleMaxZ', 5), ('kScaleMaxZ', 5), ('shearMinXY', 6), ('kShearMinXY', 6), ('shearMaxXY', 7), ('kShearMaxXY', 7), ('shearMinXZ', 8), ('kShearMinXZ', 8), ('shearMaxXZ', 9), ('kShearMaxXZ', 9), ('shearMinYZ', 10), ('kShearMinYZ', 10), ('shearMaxYZ', 11), ('kShearMaxYZ', 11), ('rotateMinX', 12), ('kRotateMinX', 12), ('rotateMaxX', 13), ('kRotateMaxX', 13), ('rotateMinY', 14), ('kRotateMinY', 14), ('rotateMaxY', 15), ('kRotateMaxY', 15), ('rotateMinZ', 16), ('kRotateMinZ', 16), ('rotateMaxZ', 17), ('kRotateMaxZ', 17), ('translateMinX', 18), ('kTranslateMinX', 18), ('translateMaxX', 19), ('kTranslateMaxX', 19), ('translateMinY', 20), ('kTranslateMinY', 20), ('translateMaxY', 21), ('kTranslateMaxY', 21), ('translateMinZ', 22), ('kTranslateMinZ', 22), ('translateMaxZ', 23), ('kTranslateMaxZ', 23)], multiKeys=True)
 
@@ -4366,7 +4366,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setRotatePivotTranslation')
     def _setRotatePivotTranslation(self, vector, space):
         # type: (datatypes.Vector, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getRotatePivotTranslation, self._setRotatePivotTranslation, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vector, space], [('vector', 'MVector', 'in', 'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getRotatePivotTranslation, self._setRotatePivotTranslation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotatePivotTranslation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4398,7 +4398,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setScalePivotTranslation')
     def _setScalePivotTranslation(self, vector, space):
         # type: (datatypes.Vector, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getScalePivotTranslation, self._setScalePivotTranslation, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vector, space], [('vector', 'MVector', 'in', 'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getScalePivotTranslation, self._setScalePivotTranslation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setScalePivotTranslation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4414,7 +4414,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setTranslation')
     def _setTranslation(self, vector, space):
         # type: (datatypes.Vector, datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getTranslation, self._setTranslation, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vector, space], [('vector', 'MVector', 'in', 'linear'), ('space', ('MSpace', 'Space'), 'in', None)], self._getTranslation, self._setTranslation, ['space'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setTranslation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4429,7 +4429,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'translateBy')
     def _translateBy(self, vector, space):
         # type: (datatypes.Vector, datatypes.Space.Space) -> None
-        do, final_do, outTypes = _f.getDoArgs([vector, space], [('vector', 'MVector', 'in', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)])
+        do, final_do, outTypes = _f.getDoArgs([vector, space], [('vector', 'MVector', 'in', 'linear'), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnTransform, 'translateBy', final_do)
         return res
 
@@ -4558,7 +4558,7 @@ class Transform(DagNode):
     @_f.addApiDocs(_api.MFnTransform, 'setLimit')
     def setLimit(self, type, value):
         # type: (Transform.LimitType, float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([type, value], [('type', ('MFnTransform', 'LimitType'), 'in', None), ('value', 'double', 'in', u'linear')], self.limitValue, self.setLimit, ['type'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([type, value], [('type', ('MFnTransform', 'LimitType'), 'in', None), ('value', 'double', 'in', 'linear')], self.limitValue, self.setLimit, ['type'])
         res = _f.getProxyResult(self, _api.MFnTransform, 'setLimit', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -4620,8 +4620,8 @@ class Joint(Transform):
     __apicls__ = _api.MFnIkJoint
     __melcmd__ = staticmethod(animation.joint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'joint'
-    __melnode__ = u'joint'
+    __melcmdname__ = 'joint'
+    __melnode__ = 'joint'
     __slots__ = ()
     if versions.current() >= versions.v2019:
         Axis = Enum('Axis', [('XAxis', 0), ('kXAxis', 0), ('YAxis', 1), ('kYAxis', 1), ('ZAxis', 2), ('kZAxis', 2), ('none', 3), ('kNone', 3)], multiKeys=True)
@@ -5036,7 +5036,7 @@ class Joint(Transform):
     @_f.addApiDocs(_api.MFnIkJoint, 'setScaleOrientation')
     def setScaleOrientation(self, quaternion):
         # type: (datatypes.Quaternion) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([quaternion], [(u'quaternion', 'MQuaternion', u'in', None)], self.getScaleOrientation, self.setScaleOrientation, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([quaternion], [('quaternion', 'MQuaternion', 'in', None)], self.getScaleOrientation, self.setScaleOrientation, [])
         res = _f.getProxyResult(self, _api.MFnIkJoint, 'setScaleOrientation', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -5086,7 +5086,7 @@ class Joint(Transform):
 class DynBase(Transform):
     pass
 # ------ Do not edit below this line --------
-    __melnode__ = u'dynBase'
+    __melnode__ = 'dynBase'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -5109,7 +5109,7 @@ class DynBase(Transform):
 class PointEmitter(DynBase):
     pass
 # ------ Do not edit below this line --------
-    __melnode__ = u'pointEmitter'
+    __melnode__ = 'pointEmitter'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -5125,8 +5125,8 @@ class FluidEmitter(PointEmitter):
 # ------ Do not edit below this line --------
     __melcmd__ = staticmethod(effects.fluidEmitter)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'fluidEmitter'
-    __melnode__ = u'fluidEmitter'
+    __melcmdname__ = 'fluidEmitter'
+    __melnode__ = 'fluidEmitter'
     __slots__ = ()
 
     @_f.addMelDocs('fluidEmitter', 'cycleEmission')
@@ -5306,7 +5306,7 @@ class RenderLayer(DependNode):
     __apicls__ = _api.MFnRenderLayer
     __melcmd__ = staticmethod(rendering.createRenderLayer)
     __melcmd_isinfo__ = False
-    __melnode__ = u'renderLayer'
+    __melnode__ = 'renderLayer'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnRenderLayer, 'adjustmentPlug')
@@ -5334,7 +5334,7 @@ class RenderLayer(DependNode):
     @_f.addApiDocs(_api.MFnRenderLayer, 'externalRenderPasses')
     def externalRenderPasses(self):
         # type: () -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([], [(u'renderPassArray', 'MObjectArray', u'out', None)])
+        do, final_do, outTypes = _f.getDoArgs([], [('renderPassArray', 'MObjectArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnRenderLayer, 'externalRenderPasses', final_do)
         return _f.processApiResult(res, outTypes, do)
 
@@ -5374,7 +5374,7 @@ class RenderLayer(DependNode):
     @_f.addApiDocs(_api.MFnRenderLayer, 'layerChildren')
     def layerChildren(self, recurse=False):
         # type: (bool) -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([recurse], [(u'array', 'MObjectArray', u'out', None), (u'recurse', 'bool', 'in', None)])
+        do, final_do, outTypes = _f.getDoArgs([recurse], [('array', 'MObjectArray', 'out', None), ('recurse', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnRenderLayer, 'layerChildren', final_do)
         return _f.processApiResult(res, outTypes, do)
 
@@ -5382,7 +5382,7 @@ class RenderLayer(DependNode):
     @_f.addApiDocs(_api.MFnRenderLayer, 'listAllRenderLayers')
     def listAllRenderLayers(self):
         # type: () -> List[general.PyNode]
-        do, final_do, outTypes = _f.getDoArgs([], [(u'array', 'MObjectArray', u'out', None)])
+        do, final_do, outTypes = _f.getDoArgs([], [('array', 'MObjectArray', 'out', None)])
         res = _api.MFnRenderLayer.listAllRenderLayers(*final_do)
         return _f.processApiResult(res, outTypes, do)
 
@@ -5433,7 +5433,7 @@ class DisplayLayer(DependNode):
 # ------ Do not edit below this line --------
     __melcmd__ = staticmethod(general.createDisplayLayer)
     __melcmd_isinfo__ = False
-    __melnode__ = u'displayLayer'
+    __melnode__ = 'displayLayer'
     __slots__ = ()
 
     @_f.deprecated
@@ -5511,7 +5511,7 @@ class Constraint(Transform):
         args = list(targetObjects) + [constraintObj]
         return inFunc(*args, **{'query': True, 'weight': True})
 # ------ Do not edit below this line --------
-    __melnode__ = u'constraint'
+    __melnode__ = 'constraint'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -5541,7 +5541,7 @@ class GeometryShape(Shape):
             # print "getting super", attr
             return super(GeometryShape, self).__getattr__(attr)
 # ------ Do not edit below this line --------
-    __melnode__ = u'geometryShape'
+    __melnode__ = 'geometryShape'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -5600,8 +5600,8 @@ class DeformableShape(GeometryShape):
 # ------ Do not edit below this line --------
     __melcmd__ = staticmethod(animation.deformableShape)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'deformableShape'
-    __melnode__ = u'deformableShape'
+    __melcmdname__ = 'deformableShape'
+    __melnode__ = 'deformableShape'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -5609,7 +5609,7 @@ class DeformableShape(GeometryShape):
 class ControlPoint(DeformableShape):
     pass
 # ------ Do not edit below this line --------
-    __melnode__ = u'controlPoint'
+    __melnode__ = 'controlPoint'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -5617,7 +5617,7 @@ class ControlPoint(DeformableShape):
 class CurveShape(DeformableShape):
     pass
 # ------ Do not edit below this line --------
-    __melnode__ = u'curveShape'
+    __melnode__ = 'curveShape'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -5635,7 +5635,7 @@ class NurbsCurve(CurveShape):
     __melcmd__ = staticmethod(modeling.curve)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'curve'
-    __melnode__ = u'nurbsCurve'
+    __melnode__ = 'nurbsCurve'
     __slots__ = ()
     Form = Enum('Form', [('invalid', 0), ('kInvalid', 0), ('open', 1), ('kOpen', 1), ('closed', 2), ('kClosed', 2), ('periodic', 3), ('kPeriodic', 3), ('last', 4), ('kLast', 4)], multiKeys=True)
 
@@ -5997,7 +5997,7 @@ if not _factories.building:
 class SurfaceShape(ControlPoint):
     pass
 # ------ Do not edit below this line --------
-    __melnode__ = u'surfaceShape'
+    __melnode__ = 'surfaceShape'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -6021,7 +6021,7 @@ class NurbsSurface(SurfaceShape):
     __melcmd__ = staticmethod(modeling.surface)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'surface'
-    __melnode__ = u'nurbsSurface'
+    __melnode__ = 'nurbsSurface'
     __slots__ = ()
     BoundaryType = Enum('BoundaryType', [('invalidBoundary', 0), ('kInvalidBoundary', 0), ('outer', 1), ('kOuter', 1), ('inner', 2), ('kInner', 2), ('segment', 3), ('kSegment', 3), ('closedSegment', 4), ('kClosedSegment', 4)], multiKeys=True)
     Form = Enum('Form', [('invalid', 0), ('kInvalid', 0), ('open', 1), ('kOpen', 1), ('closed', 2), ('kClosed', 2), ('periodic', 3), ('kPeriodic', 3), ('last', 4), ('kLast', 4)], multiKeys=True)
@@ -6496,7 +6496,7 @@ class NurbsSurface(SurfaceShape):
     @_f.addApiDocs(_api.MFnNurbsSurface, 'setKnotInU')
     def setKnotInU(self, index, param):
         # type: (int, float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, param], [(u'index', 'int', 'in', None), (u'param', 'double', u'in', None)], self.getKnotInU, self.setKnotInU, ['index'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([index, param], [('index', 'int', 'in', None), ('param', 'double', 'in', None)], self.getKnotInU, self.setKnotInU, ['index'])
         res = _f.getProxyResult(self, _api.MFnNurbsSurface, 'setKnotInU', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -6881,7 +6881,7 @@ class Mesh(SurfaceShape):
         return mfn.numColors(*args)
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnMesh
-    __melnode__ = u'mesh'
+    __melnode__ = 'mesh'
     __slots__ = ()
     BoolOperation = Enum('BoolOperation', [('union', 1), ('kUnion', 1), ('difference', 2), ('kDifference', 2), ('intersection', 3), ('kIntersection', 3)], multiKeys=True)
     MColorRepresentation = Enum('MColorRepresentation', [('alpha', 1), ('kAlpha', 1), ('RGB', 3), ('kRGB', 3), ('RGBA', 4), ('kRGBA', 4)], multiKeys=True)
@@ -7725,7 +7725,7 @@ class Mesh(SurfaceShape):
     @_f.addApiDocs(_api.MFnMesh, 'setPoints')
     def setPoints(self, vertexArray, space='preTransform'):
         # type: (List[datatypes.Point], datatypes.Space.Space) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vertexArray, space], [(u'vertexArray', 'MPointArray', u'in', None), (u'space', ('MSpace', 'Space'), 'in', None)], self.getPoints, self.setPoints, ['space'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([vertexArray, space], [('vertexArray', 'MPointArray', 'in', None), ('space', ('MSpace', 'Space'), 'in', None)], self.getPoints, self.setPoints, ['space'])
         res = _f.getProxyResult(self, _api.MFnMesh, 'setPoints', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -7871,8 +7871,8 @@ class Subdiv(SurfaceShape):
     __apicls__ = _api.MFnSubd
     __melcmd__ = staticmethod(modeling.subdiv)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'subdiv'
-    __melnode__ = u'subdiv'
+    __melcmdname__ = 'subdiv'
+    __melnode__ = 'subdiv'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnSubd, 'collapse')
@@ -8092,8 +8092,8 @@ class Lattice(ControlPoint):
     __apicls__ = _api.MFnLattice
     __melcmd__ = staticmethod(animation.lattice)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'lattice'
-    __melnode__ = u'lattice'
+    __melcmdname__ = 'lattice'
+    __melnode__ = 'lattice'
     __slots__ = ()
 
     @_f.addMelDocs('lattice', 'after')
@@ -8226,8 +8226,8 @@ class Particle(DeformableShape):
 # ------ Do not edit below this line --------
     __melcmd__ = staticmethod(effects.particle)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'particle'
-    __melnode__ = u'particle'
+    __melcmdname__ = 'particle'
+    __melnode__ = 'particle'
     __slots__ = ()
     RenderType = Enum('RenderType', [('cloud', 0), ('kCloud', 0), ('tube', 1), ('kTube', 1), ('blobby', 2), ('kBlobby', 2), ('multiPoint', 3), ('kMultiPoint', 3), ('multiStreak', 4), ('kMultiStreak', 4), ('numeric', 5), ('kNumeric', 5), ('points', 6), ('kPoints', 6), ('spheres', 7), ('kSpheres', 7), ('sprites', 8), ('kSprites', 8), ('streak', 9), ('kStreak', 9)], multiKeys=True)
 
@@ -9427,7 +9427,7 @@ class ObjectSet(Entity):
         return bool(cmds.sets(self, q=True, r=True))
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnSet
-    __melnode__ = u'objectSet'
+    __melnode__ = 'objectSet'
     __slots__ = ()
     Restriction = Enum('Restriction', [('none', 0), ('kNone', 0), ('verticesOnly', 1), ('kVerticesOnly', 1), ('edgesOnly', 2), ('kEdgesOnly', 2), ('facetsOnly', 3), ('kFacetsOnly', 3), ('editPointsOnly', 4), ('kEditPointsOnly', 4), ('renderableOnly', 5), ('kRenderableOnly', 5)], multiKeys=True)
 
@@ -9535,7 +9535,7 @@ class ShadingEngine(ObjectSet):
         else:
             return super(ShadingEngine, cls)._getApiObjs(item, tryCast=tryCast)
 # ------ Do not edit below this line --------
-    __melnode__ = u'shadingEngine'
+    __melnode__ = 'shadingEngine'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -9563,8 +9563,8 @@ class AnimLayer(ObjectSet):
 # ------ Do not edit below this line --------
     __melcmd__ = staticmethod(animation.animLayer)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'animLayer'
-    __melnode__ = u'animLayer'
+    __melcmdname__ = 'animLayer'
+    __melnode__ = 'animLayer'
     __slots__ = ()
 
     @_f.addMelDocs('animLayer', 'copy')
@@ -10002,7 +10002,7 @@ class AnimCurve(DependNode):
         return cls.AnimCurveType[res]
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnAnimCurve
-    __melnode__ = u'animCurve'
+    __melnode__ = 'animCurve'
     __slots__ = ()
     AnimCurveType = Enum('AnimCurveType', [('TA', 0), ('kAnimCurveTA', 0), ('TL', 1), ('kAnimCurveTL', 1), ('TT', 2), ('kAnimCurveTT', 2), ('TU', 3), ('kAnimCurveTU', 3), ('UA', 4), ('kAnimCurveUA', 4), ('UL', 5), ('kAnimCurveUL', 5), ('UT', 6), ('kAnimCurveUT', 6), ('UU', 7), ('kAnimCurveUU', 7), ('unknown', 8), ('kAnimCurveUnknown', 8)], multiKeys=True)
     InfinityType = Enum('InfinityType', [('constant', 0), ('kConstant', 0), ('linear', 1), ('kLinear', 1), ('cycle', 3), ('kCycle', 3), ('cycleRelative', 4), ('kCycleRelative', 4), ('oscillate', 5), ('kOscillate', 5)], multiKeys=True)
@@ -10267,7 +10267,7 @@ class AnimCurveTA(AnimCurve):
     evaluate = AnimCurve.evaluateTU
     findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
-    __melnode__ = u'animCurveTA'
+    __melnode__ = 'animCurveTA'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10277,7 +10277,7 @@ class AnimCurveTL(AnimCurve):
     evaluate = AnimCurve.evaluateTU
     findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
-    __melnode__ = u'animCurveTL'
+    __melnode__ = 'animCurveTL'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10287,7 +10287,7 @@ class AnimCurveTT(AnimCurve):
     evaluate = AnimCurve.evaluateTT
     findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
-    __melnode__ = u'animCurveTT'
+    __melnode__ = 'animCurveTT'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10297,7 +10297,7 @@ class AnimCurveTU(AnimCurve):
     evaluate = AnimCurve.evaluateTU
     findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
-    __melnode__ = u'animCurveTU'
+    __melnode__ = 'animCurveTU'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10307,7 +10307,7 @@ class AnimCurveUA(AnimCurve):
     evaluate = AnimCurve.evaluateUU
     findClosest = AnimCurve.findClosestU
 # ------ Do not edit below this line --------
-    __melnode__ = u'animCurveUA'
+    __melnode__ = 'animCurveUA'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10317,7 +10317,7 @@ class AnimCurveUL(AnimCurve):
     evaluate = AnimCurve.evaluateUU
     findClosest = AnimCurve.findClosestU
 # ------ Do not edit below this line --------
-    __melnode__ = u'animCurveUL'
+    __melnode__ = 'animCurveUL'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10327,7 +10327,7 @@ class AnimCurveUT(AnimCurve):
     evaluate = AnimCurve.evaluateUT
     findClosest = AnimCurve.findClosestU
 # ------ Do not edit below this line --------
-    __melnode__ = u'animCurveUT'
+    __melnode__ = 'animCurveUT'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10337,7 +10337,7 @@ class AnimCurveUU(AnimCurve):
     evaluate = AnimCurve.evaluateUU
     findClosest = AnimCurve.findClosestU
 # ------ Do not edit below this line --------
-    __melnode__ = u'animCurveUU'
+    __melnode__ = 'animCurveUU'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10346,7 +10346,7 @@ class AnimCurveUU(AnimCurve):
 class ResultCurve(AnimCurve):
     pass
 # ------ Do not edit below this line --------
-    __melnode__ = u'resultCurve'
+    __melnode__ = 'resultCurve'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10356,7 +10356,7 @@ class ResultCurveTimeToAngular(ResultCurve):
     evaluate = AnimCurve.evaluateTU
     findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
-    __melnode__ = u'resultCurveTimeToAngular'
+    __melnode__ = 'resultCurveTimeToAngular'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10366,7 +10366,7 @@ class ResultCurveTimeToLinear(ResultCurve):
     evaluate = AnimCurve.evaluateTU
     findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
-    __melnode__ = u'resultCurveTimeToLinear'
+    __melnode__ = 'resultCurveTimeToLinear'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10376,7 +10376,7 @@ class ResultCurveTimeToTime(ResultCurve):
     evaluate = AnimCurve.evaluateTT
     findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
-    __melnode__ = u'resultCurveTimeToTime'
+    __melnode__ = 'resultCurveTimeToTime'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10386,7 +10386,7 @@ class ResultCurveTimeToUnitless(ResultCurve):
     evaluate = AnimCurve.evaluateTU
     findClosest = AnimCurve.findClosestT
 # ------ Do not edit below this line --------
-    __melnode__ = u'resultCurveTimeToUnitless'
+    __melnode__ = 'resultCurveTimeToUnitless'
     __slots__ = ()
 # ------ Do not edit above this line --------
 
@@ -10395,7 +10395,7 @@ class GeometryFilter(DependNode):
     pass
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnGeometryFilter
-    __melnode__ = u'geometryFilter'
+    __melnode__ = 'geometryFilter'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'deformerSet')
@@ -10574,14 +10574,14 @@ class SkinCluster(GeometryFilter):
     __apicls__ = _api.MFnSkinCluster
     __melcmd__ = staticmethod(animation.skinCluster)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'skinCluster'
-    __melnode__ = u'skinCluster'
+    __melcmdname__ = 'skinCluster'
+    __melnode__ = 'skinCluster'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnSkinCluster, 'influenceObjects')
     def _influenceObjects(self):
         # type: () -> Tuple[int, List[general.PyNode]]
-        do, final_do, outTypes = _f.getDoArgs([], [(u'paths', 'MDagPathArray', u'out', None)])
+        do, final_do, outTypes = _f.getDoArgs([], [('paths', 'MDagPathArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnSkinCluster, 'influenceObjects', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return _f.processApiResult(res, outTypes, do)
@@ -10767,7 +10767,7 @@ class SkinCluster(GeometryFilter):
     @_f.addApiDocs(_api.MFnSkinCluster, 'setBlendWeights')
     def setBlendWeights(self, path, components, weights):
         # type: (general.PyNode, general.PyNode, List[float]) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([path, components, weights], [(u'path', 'MDagPath', 'in', None), (u'components', 'MObject', 'in', None), (u'weights', 'MDoubleArray', u'in', None)], self.getBlendWeights, self.setBlendWeights, ['path', 'components'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([path, components, weights], [('path', 'MDagPath', 'in', None), ('components', 'MObject', 'in', None), ('weights', 'MDoubleArray', 'in', None)], self.getBlendWeights, self.setBlendWeights, ['path', 'components'])
         res = _f.getProxyResult(self, _api.MFnSkinCluster, 'setBlendWeights', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -10840,7 +10840,7 @@ class SkinCluster(GeometryFilter):
 class HikHandle(Transform):
     pass
 # ------ Do not edit below this line --------
-    __melnode__ = u'hikHandle'
+    __melnode__ = 'hikHandle'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -10865,7 +10865,7 @@ class HikHandle(Transform):
 class JointFfd(DependNode):
     pass
 # ------ Do not edit below this line --------
-    __melnode__ = u'jointFfd'
+    __melnode__ = 'jointFfd'
     __slots__ = ()
 
     @_f.deprecated
@@ -10930,8 +10930,8 @@ class AngleBetween(DependNode):
         return cmds.angleBetween(*args, **kwargs)
 # ------ Do not edit below this line --------
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'angleBetween'
-    __melnode__ = u'angleBetween'
+    __melcmdname__ = 'angleBetween'
+    __melnode__ = 'angleBetween'
     __slots__ = ()
 
     @_f.deprecated
@@ -11006,7 +11006,7 @@ _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 
 # ------ Do not edit below this line --------
 class THdependNode(DependNode):
-    __melnode__ = u'THdependNode'
+    __melnode__ = 'THdependNode'
     __slots__ = ()
 
     @_f.deprecated
@@ -11064,22 +11064,22 @@ class THdependNode(DependNode):
 
 
 class TadskAssetInstanceNode_TdependNode(DependNode):
-    __melnode__ = u'TadskAssetInstanceNode_TdependNode'
+    __melnode__ = 'TadskAssetInstanceNode_TdependNode'
     __slots__ = ()
 
 
 class AdskMaterial(TadskAssetInstanceNode_TdependNode):
-    __melnode__ = u'adskMaterial'
+    __melnode__ = 'adskMaterial'
     __slots__ = ()
 
 
 class AboutToSetValueTestNode(DependNode):
-    __melnode__ = u'aboutToSetValueTestNode'
+    __melnode__ = 'aboutToSetValueTestNode'
     __slots__ = ()
 
 
 class AbstractBaseCreate(DependNode):
-    __melnode__ = u'abstractBaseCreate'
+    __melnode__ = 'abstractBaseCreate'
     __slots__ = ()
 
     @_f.deprecated
@@ -11137,15 +11137,15 @@ class AbstractBaseCreate(DependNode):
 
 
 class AbstractBaseNurbsConversion(AbstractBaseCreate):
-    __melnode__ = u'abstractBaseNurbsConversion'
+    __melnode__ = 'abstractBaseNurbsConversion'
     __slots__ = ()
 
 
 class NurbsToSubdiv(AbstractBaseNurbsConversion):
     __melcmd__ = staticmethod(modeling.nurbsToSubdiv)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'nurbsToSubdiv'
-    __melnode__ = u'nurbsToSubdiv'
+    __melcmdname__ = 'nurbsToSubdiv'
+    __melnode__ = 'nurbsToSubdiv'
     __slots__ = ()
 
     @_f.addMelDocs('nurbsToSubdiv', 'addUnderTransform')
@@ -11213,30 +11213,30 @@ class NurbsToSubdiv(AbstractBaseNurbsConversion):
 
 
 class NurbsToSubdivProc(NurbsToSubdiv):
-    __melnode__ = u'nurbsToSubdivProc'
+    __melnode__ = 'nurbsToSubdivProc'
     __slots__ = ()
 
 
 class ParentTessellate(AbstractBaseNurbsConversion):
-    __melnode__ = u'parentTessellate'
+    __melnode__ = 'parentTessellate'
     __slots__ = ()
 
 
 class NurbsTessellate(ParentTessellate):
-    __melnode__ = u'nurbsTessellate'
+    __melnode__ = 'nurbsTessellate'
     __slots__ = ()
 
 
 class ShellTessellate(ParentTessellate):
-    __melnode__ = u'shellTessellate'
+    __melnode__ = 'shellTessellate'
     __slots__ = ()
 
 
 class RebuildSurface(AbstractBaseNurbsConversion):
     __melcmd__ = staticmethod(modeling.rebuildSurface)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'rebuildSurface'
-    __melnode__ = u'rebuildSurface'
+    __melcmdname__ = 'rebuildSurface'
+    __melnode__ = 'rebuildSurface'
     __slots__ = ()
 
     @_f.addMelDocs('rebuildSurface', 'caching')
@@ -11369,8 +11369,8 @@ class RebuildSurface(AbstractBaseNurbsConversion):
 class AlignCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.alignCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'alignCurve'
-    __melnode__ = u'alignCurve'
+    __melcmdname__ = 'alignCurve'
+    __melnode__ = 'alignCurve'
     __slots__ = ()
 
     @_f.addMelDocs('alignCurve', 'caching')
@@ -11503,8 +11503,8 @@ class AlignCurve(AbstractBaseCreate):
 class AlignSurface(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.alignSurface)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'alignSurface'
-    __melnode__ = u'alignSurface'
+    __melcmdname__ = 'alignSurface'
+    __melnode__ = 'alignSurface'
     __slots__ = ()
 
     @_f.addMelDocs('alignSurface', 'caching')
@@ -11671,15 +11671,15 @@ class AlignSurface(AbstractBaseCreate):
 
 
 class ArubaTessellate(AbstractBaseCreate):
-    __melnode__ = u'arubaTessellate'
+    __melnode__ = 'arubaTessellate'
     __slots__ = ()
 
 
 class AttachCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.attachCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'attachCurve'
-    __melnode__ = u'attachCurve'
+    __melcmdname__ = 'attachCurve'
+    __melnode__ = 'attachCurve'
     __slots__ = ()
 
     @_f.addMelDocs('attachCurve', 'blendBias')
@@ -11767,8 +11767,8 @@ class AttachCurve(AbstractBaseCreate):
 class AttachSurface(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.attachSurface)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'attachSurface'
-    __melnode__ = u'attachSurface'
+    __melcmdname__ = 'attachSurface'
+    __melnode__ = 'attachSurface'
     __slots__ = ()
 
     @_f.addMelDocs('attachSurface', 'blendBias')
@@ -11890,25 +11890,25 @@ class AttachSurface(AbstractBaseCreate):
 
 
 class AvgCurves(AbstractBaseCreate):
-    __melnode__ = u'avgCurves'
+    __melnode__ = 'avgCurves'
     __slots__ = ()
 
 
 class AvgNurbsSurfacePoints(AbstractBaseCreate):
-    __melnode__ = u'avgNurbsSurfacePoints'
+    __melnode__ = 'avgNurbsSurfacePoints'
     __slots__ = ()
 
 
 class AvgSurfacePoints(AbstractBaseCreate):
-    __melnode__ = u'avgSurfacePoints'
+    __melnode__ = 'avgSurfacePoints'
     __slots__ = ()
 
 
 class Bevel(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.bevel)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'bevel'
-    __melnode__ = u'bevel'
+    __melcmdname__ = 'bevel'
+    __melnode__ = 'bevel'
     __slots__ = ()
 
     @_f.addMelDocs('bevel', 'bevelShapeType')
@@ -12005,8 +12005,8 @@ class Bevel(AbstractBaseCreate):
 class BevelPlus(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.bevelPlus)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'bevelPlus'
-    __melnode__ = u'bevelPlus'
+    __melcmdname__ = 'bevelPlus'
+    __melnode__ = 'bevelPlus'
     __slots__ = ()
 
     @_f.addMelDocs('bevelPlus', 'bevelInside')
@@ -12072,46 +12072,46 @@ class BevelPlus(AbstractBaseCreate):
 class BezierCurveToNurbs(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.bezierCurveToNurbs)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'bezierCurveToNurbs'
-    __melnode__ = u'bezierCurveToNurbs'
+    __melcmdname__ = 'bezierCurveToNurbs'
+    __melnode__ = 'bezierCurveToNurbs'
     __slots__ = ()
 
 
 class BirailSrf(AbstractBaseCreate):
-    __melnode__ = u'birailSrf'
+    __melnode__ = 'birailSrf'
     __slots__ = ()
 
 
 class DpBirailSrf(BirailSrf):
-    __melnode__ = u'dpBirailSrf'
+    __melnode__ = 'dpBirailSrf'
     __slots__ = ()
 
 
 class MpBirailSrf(BirailSrf):
-    __melnode__ = u'mpBirailSrf'
+    __melnode__ = 'mpBirailSrf'
     __slots__ = ()
 
 
 class SpBirailSrf(BirailSrf):
-    __melnode__ = u'spBirailSrf'
+    __melnode__ = 'spBirailSrf'
     __slots__ = ()
 
 
 class Boolean(AbstractBaseCreate):
-    __melnode__ = u'boolean'
+    __melnode__ = 'boolean'
     __slots__ = ()
 
 
 class BoundaryBase(AbstractBaseCreate):
-    __melnode__ = u'boundaryBase'
+    __melnode__ = 'boundaryBase'
     __slots__ = ()
 
 
 class Boundary(BoundaryBase):
     __melcmd__ = staticmethod(modeling.boundary)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'boundary'
-    __melnode__ = u'boundary'
+    __melcmdname__ = 'boundary'
+    __melnode__ = 'boundary'
     __slots__ = ()
 
     @_f.addMelDocs('boundary', 'caching')
@@ -12161,15 +12161,15 @@ class Boundary(BoundaryBase):
 
 
 class SquareSrf(BoundaryBase):
-    __melnode__ = u'squareSrf'
+    __melnode__ = 'squareSrf'
     __slots__ = ()
 
 
 class CloseCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.closeCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'closeCurve'
-    __melnode__ = u'closeCurve'
+    __melcmdname__ = 'closeCurve'
+    __melnode__ = 'closeCurve'
     __slots__ = ()
 
     @_f.addMelDocs('closeCurve', 'blendBias')
@@ -12230,8 +12230,8 @@ class CloseCurve(AbstractBaseCreate):
 class CloseSurface(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.closeSurface)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'closeSurface'
-    __melnode__ = u'closeSurface'
+    __melcmdname__ = 'closeSurface'
+    __melnode__ = 'closeSurface'
     __slots__ = ()
 
     @_f.addMelDocs('closeSurface', 'blendBias')
@@ -12299,20 +12299,20 @@ class CloseSurface(AbstractBaseCreate):
 
 
 class ClosestPointOnSurface(AbstractBaseCreate):
-    __melnode__ = u'closestPointOnSurface'
+    __melnode__ = 'closestPointOnSurface'
     __slots__ = ()
 
 
 class CurveInfo(AbstractBaseCreate):
-    __melnode__ = u'curveInfo'
+    __melnode__ = 'curveInfo'
     __slots__ = ()
 
 
 class CurveIntersect(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.curveIntersect)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'curveIntersect'
-    __melnode__ = u'curveIntersect'
+    __melcmdname__ = 'curveIntersect'
+    __melnode__ = 'curveIntersect'
     __slots__ = ()
 
     @_f.addMelDocs('curveIntersect', 'caching')
@@ -12389,55 +12389,55 @@ class CurveIntersect(AbstractBaseCreate):
 
 
 class CurveRange(AbstractBaseCreate):
-    __melnode__ = u'curveRange'
+    __melnode__ = 'curveRange'
     __slots__ = ()
 
 
 class CurveFromSubdiv(CurveRange):
-    __melnode__ = u'curveFromSubdiv'
+    __melnode__ = 'curveFromSubdiv'
     __slots__ = ()
 
 
 class CurveFromSubdivEdge(CurveFromSubdiv):
-    __melnode__ = u'curveFromSubdivEdge'
+    __melnode__ = 'curveFromSubdivEdge'
     __slots__ = ()
 
 
 class CurveFromSubdivFace(CurveFromSubdiv):
-    __melnode__ = u'curveFromSubdivFace'
+    __melnode__ = 'curveFromSubdivFace'
     __slots__ = ()
 
 
 class CurveFromSurface(CurveRange):
-    __melnode__ = u'curveFromSurface'
+    __melnode__ = 'curveFromSurface'
     __slots__ = ()
 
 
 class CurveFromSurfaceBnd(CurveFromSurface):
-    __melnode__ = u'curveFromSurfaceBnd'
+    __melnode__ = 'curveFromSurfaceBnd'
     __slots__ = ()
 
 
 class CurveFromSurfaceCoS(CurveFromSurface):
-    __melnode__ = u'curveFromSurfaceCoS'
+    __melnode__ = 'curveFromSurfaceCoS'
     __slots__ = ()
 
 
 class CurveFromSurfaceIso(CurveFromSurface):
-    __melnode__ = u'curveFromSurfaceIso'
+    __melnode__ = 'curveFromSurfaceIso'
     __slots__ = ()
 
 
 class SubCurve(CurveRange):
-    __melnode__ = u'subCurve'
+    __melnode__ = 'subCurve'
     __slots__ = ()
 
 
 class DetachCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.detachCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'detachCurve'
-    __melnode__ = u'detachCurve'
+    __melcmdname__ = 'detachCurve'
+    __melnode__ = 'detachCurve'
     __slots__ = ()
 
     @_f.addMelDocs('detachCurve', 'caching')
@@ -12480,8 +12480,8 @@ class DetachCurve(AbstractBaseCreate):
 class DetachSurface(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.detachSurface)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'detachSurface'
-    __melnode__ = u'detachSurface'
+    __melcmdname__ = 'detachSurface'
+    __melnode__ = 'detachSurface'
     __slots__ = ()
 
     @_f.addMelDocs('detachSurface', 'caching')
@@ -12531,15 +12531,15 @@ class DetachSurface(AbstractBaseCreate):
 
 
 class ExplodeNurbsShell(AbstractBaseCreate):
-    __melnode__ = u'explodeNurbsShell'
+    __melnode__ = 'explodeNurbsShell'
     __slots__ = ()
 
 
 class ExtendCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.extendCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'extendCurve'
-    __melnode__ = u'extendCurve'
+    __melcmdname__ = 'extendCurve'
+    __melnode__ = 'extendCurve'
     __slots__ = ()
 
     @_f.addMelDocs('extendCurve', 'caching')
@@ -12663,8 +12663,8 @@ class ExtendCurve(AbstractBaseCreate):
 class ExtendSurface(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.extendSurface)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'extendSurface'
-    __melnode__ = u'extendSurface'
+    __melcmdname__ = 'extendSurface'
+    __melnode__ = 'extendSurface'
     __slots__ = ()
 
     @_f.addMelDocs('extendSurface', 'caching')
@@ -12743,8 +12743,8 @@ class ExtendSurface(AbstractBaseCreate):
 class Extrude(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.extrude)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'extrude'
-    __melnode__ = u'extrude'
+    __melcmdname__ = 'extrude'
+    __melnode__ = 'extrude'
     __slots__ = ()
 
     @_f.addMelDocs('extrude', 'caching')
@@ -12902,25 +12902,25 @@ class Extrude(AbstractBaseCreate):
 
 
 class FfBlendSrf(AbstractBaseCreate):
-    __melnode__ = u'ffBlendSrf'
+    __melnode__ = 'ffBlendSrf'
     __slots__ = ()
 
 
 class FfBlendSrfObsolete(AbstractBaseCreate):
-    __melnode__ = u'ffBlendSrfObsolete'
+    __melnode__ = 'ffBlendSrfObsolete'
     __slots__ = ()
 
 
 class FfFilletSrf(AbstractBaseCreate):
-    __melnode__ = u'ffFilletSrf'
+    __melnode__ = 'ffFilletSrf'
     __slots__ = ()
 
 
 class FilletCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.filletCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'filletCurve'
-    __melnode__ = u'filletCurve'
+    __melcmdname__ = 'filletCurve'
+    __melnode__ = 'filletCurve'
     __slots__ = ()
 
     @_f.addMelDocs('filletCurve', 'bias')
@@ -13017,8 +13017,8 @@ class FilletCurve(AbstractBaseCreate):
 class FitBspline(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.fitBspline)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'fitBspline'
-    __melnode__ = u'fitBspline'
+    __melcmdname__ = 'fitBspline'
+    __melnode__ = 'fitBspline'
     __slots__ = ()
 
     @_f.addMelDocs('fitBspline', 'caching')
@@ -13052,8 +13052,8 @@ class FitBspline(AbstractBaseCreate):
 class GlobalStitch(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.globalStitch)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'globalStitch'
-    __melnode__ = u'globalStitch'
+    __melcmdname__ = 'globalStitch'
+    __melnode__ = 'globalStitch'
     __slots__ = ()
 
     @_f.addMelDocs('globalStitch', 'caching')
@@ -13148,15 +13148,15 @@ class GlobalStitch(AbstractBaseCreate):
 
 
 class HardenPoint(AbstractBaseCreate):
-    __melnode__ = u'hardenPoint'
+    __melnode__ = 'hardenPoint'
     __slots__ = ()
 
 
 class InsertKnotCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.insertKnotCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'insertKnotCurve'
-    __melnode__ = u'insertKnotCurve'
+    __melcmdname__ = 'insertKnotCurve'
+    __melnode__ = 'insertKnotCurve'
     __slots__ = ()
 
     @_f.addMelDocs('insertKnotCurve', 'addKnots')
@@ -13217,8 +13217,8 @@ class InsertKnotCurve(AbstractBaseCreate):
 class InsertKnotSurface(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.insertKnotSurface)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'insertKnotSurface'
-    __melnode__ = u'insertKnotSurface'
+    __melcmdname__ = 'insertKnotSurface'
+    __melnode__ = 'insertKnotSurface'
     __slots__ = ()
 
     @_f.addMelDocs('insertKnotSurface', 'addKnots')
@@ -13286,20 +13286,20 @@ class InsertKnotSurface(AbstractBaseCreate):
 
 
 class IntersectSurface(AbstractBaseCreate):
-    __melnode__ = u'intersectSurface'
+    __melnode__ = 'intersectSurface'
     __slots__ = ()
 
 
 class LeastSquaresModifier(AbstractBaseCreate):
-    __melnode__ = u'leastSquaresModifier'
+    __melnode__ = 'leastSquaresModifier'
     __slots__ = ()
 
 
 class Loft(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.loft)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'loft'
-    __melnode__ = u'loft'
+    __melcmdname__ = 'loft'
+    __melnode__ = 'loft'
     __slots__ = ()
 
     @_f.addMelDocs('loft', 'autoReverse')
@@ -13394,22 +13394,22 @@ class Loft(AbstractBaseCreate):
 
 
 class MakeCircularArc(AbstractBaseCreate):
-    __melnode__ = u'makeCircularArc'
+    __melnode__ = 'makeCircularArc'
     __slots__ = ()
 
 
 class MakeThreePointCircularArc(MakeCircularArc):
-    __melnode__ = u'makeThreePointCircularArc'
+    __melnode__ = 'makeThreePointCircularArc'
     __slots__ = ()
 
 
 class MakeTwoPointCircularArc(MakeCircularArc):
-    __melnode__ = u'makeTwoPointCircularArc'
+    __melnode__ = 'makeTwoPointCircularArc'
     __slots__ = ()
 
 
 class MakeIllustratorCurves(AbstractBaseCreate):
-    __melnode__ = u'makeIllustratorCurves'
+    __melnode__ = 'makeIllustratorCurves'
     __slots__ = ()
 
 
@@ -13417,7 +13417,7 @@ class MakeNurbCircle(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.circle)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'circle'
-    __melnode__ = u'makeNurbCircle'
+    __melnode__ = 'makeNurbCircle'
     __slots__ = ()
 
     @_f.addMelDocs('circle', 'caching')
@@ -13629,7 +13629,7 @@ class MakeNurbsSquare(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.nurbsSquare)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'nurbsSquare'
-    __melnode__ = u'makeNurbsSquare'
+    __melnode__ = 'makeNurbsSquare'
     __slots__ = ()
 
     @_f.addMelDocs('nurbsSquare', 'caching')
@@ -13773,33 +13773,33 @@ class MakeNurbsSquare(AbstractBaseCreate):
 
 
 class MakeTextCurves(AbstractBaseCreate):
-    __melnode__ = u'makeTextCurves'
+    __melnode__ = 'makeTextCurves'
     __slots__ = ()
 
 
 class NearestPointOnCurve(AbstractBaseCreate):
-    __melnode__ = u'nearestPointOnCurve'
+    __melnode__ = 'nearestPointOnCurve'
     __slots__ = ()
 
 
 class NurbsCurveToBezier(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.nurbsCurveToBezier)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'nurbsCurveToBezier'
-    __melnode__ = u'nurbsCurveToBezier'
+    __melcmdname__ = 'nurbsCurveToBezier'
+    __melnode__ = 'nurbsCurveToBezier'
     __slots__ = ()
 
 
 class OffsetCos(AbstractBaseCreate):
-    __melnode__ = u'offsetCos'
+    __melnode__ = 'offsetCos'
     __slots__ = ()
 
 
 class OffsetCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.offsetCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'offsetCurve'
-    __melnode__ = u'offsetCurve'
+    __melcmdname__ = 'offsetCurve'
+    __melnode__ = 'offsetCurve'
     __slots__ = ()
 
     @_f.addMelDocs('offsetCurve', 'caching')
@@ -13914,8 +13914,8 @@ class OffsetCurve(AbstractBaseCreate):
 class OffsetSurface(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.offsetSurface)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'offsetSurface'
-    __melnode__ = u'offsetSurface'
+    __melcmdname__ = 'offsetSurface'
+    __melnode__ = 'offsetSurface'
     __slots__ = ()
 
     @_f.addMelDocs('offsetSurface', 'caching')
@@ -13956,30 +13956,30 @@ class OffsetSurface(AbstractBaseCreate):
 
 
 class PlanarTrimSurface(AbstractBaseCreate):
-    __melnode__ = u'planarTrimSurface'
+    __melnode__ = 'planarTrimSurface'
     __slots__ = ()
 
 
 class PointOnCurveInfo(AbstractBaseCreate):
-    __melnode__ = u'pointOnCurveInfo'
+    __melnode__ = 'pointOnCurveInfo'
     __slots__ = ()
 
 
 class PointOnSurfaceInfo(AbstractBaseCreate):
-    __melnode__ = u'pointOnSurfaceInfo'
+    __melnode__ = 'pointOnSurfaceInfo'
     __slots__ = ()
 
 
 class PolyEdgeToCurve(AbstractBaseCreate):
-    __melnode__ = u'polyEdgeToCurve'
+    __melnode__ = 'polyEdgeToCurve'
     __slots__ = ()
 
 
 class PolyProjectCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.polyProjectCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyProjectCurve'
-    __melnode__ = u'polyProjectCurve'
+    __melcmdname__ = 'polyProjectCurve'
+    __melnode__ = 'polyProjectCurve'
     __slots__ = ()
 
     @_f.addMelDocs('polyProjectCurve', 'caching')
@@ -14047,7 +14047,7 @@ class PolyProjectCurve(AbstractBaseCreate):
 
 
 class Primitive(AbstractBaseCreate):
-    __melnode__ = u'primitive'
+    __melnode__ = 'primitive'
     __slots__ = ()
 
 
@@ -14055,7 +14055,7 @@ class MakeNurbCube(Primitive):
     __melcmd__ = staticmethod(modeling.nurbsCube)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'nurbsCube'
-    __melnode__ = u'makeNurbCube'
+    __melnode__ = 'makeNurbCube'
     __slots__ = ()
 
     @_f.addMelDocs('nurbsCube', 'axis')
@@ -14167,7 +14167,7 @@ class MakeNurbPlane(Primitive):
     __melcmd__ = staticmethod(modeling.nurbsPlane)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'nurbsPlane'
-    __melnode__ = u'makeNurbPlane'
+    __melnode__ = 'makeNurbPlane'
     __slots__ = ()
 
     @_f.addMelDocs('nurbsPlane', 'axis')
@@ -14267,7 +14267,7 @@ class MakeNurbPlane(Primitive):
 
 
 class RevolvedPrimitive(Primitive):
-    __melnode__ = u'revolvedPrimitive'
+    __melnode__ = 'revolvedPrimitive'
     __slots__ = ()
 
 
@@ -14275,7 +14275,7 @@ class MakeNurbCone(RevolvedPrimitive):
     __melcmd__ = staticmethod(modeling.cone)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'cone'
-    __melnode__ = u'makeNurbCone'
+    __melnode__ = 'makeNurbCone'
     __slots__ = ()
 
     @_f.addMelDocs('cone', 'axis')
@@ -14425,7 +14425,7 @@ class MakeNurbCylinder(RevolvedPrimitive):
     __melcmd__ = staticmethod(modeling.cylinder)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'cylinder'
-    __melnode__ = u'makeNurbCylinder'
+    __melnode__ = 'makeNurbCylinder'
     __slots__ = ()
 
     @_f.addMelDocs('cylinder', 'axis')
@@ -14565,7 +14565,7 @@ class MakeNurbSphere(RevolvedPrimitive):
     __melcmd__ = staticmethod(modeling.sphere)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'sphere'
-    __melnode__ = u'makeNurbSphere'
+    __melnode__ = 'makeNurbSphere'
     __slots__ = ()
 
     @_f.addMelDocs('sphere', 'axis')
@@ -14705,7 +14705,7 @@ class MakeNurbTorus(RevolvedPrimitive):
     __melcmd__ = staticmethod(modeling.torus)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'torus'
-    __melnode__ = u'makeNurbTorus'
+    __melnode__ = 'makeNurbTorus'
     __slots__ = ()
 
     @_f.addMelDocs('torus', 'axis')
@@ -14853,8 +14853,8 @@ class MakeNurbTorus(RevolvedPrimitive):
 class ProjectCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.projectCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'projectCurve'
-    __melnode__ = u'projectCurve'
+    __melcmdname__ = 'projectCurve'
+    __melnode__ = 'projectCurve'
     __slots__ = ()
 
     @_f.addMelDocs('projectCurve', 'caching')
@@ -14933,8 +14933,8 @@ class ProjectCurve(AbstractBaseCreate):
 class ProjectTangent(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.projectTangent)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'projectTangent'
-    __melnode__ = u'projectTangent'
+    __melcmdname__ = 'projectTangent'
+    __melnode__ = 'projectTangent'
     __slots__ = ()
 
     @_f.addMelDocs('projectTangent', 'caching')
@@ -15020,15 +15020,15 @@ class ProjectTangent(AbstractBaseCreate):
 
 
 class RbfSrf(AbstractBaseCreate):
-    __melnode__ = u'rbfSrf'
+    __melnode__ = 'rbfSrf'
     __slots__ = ()
 
 
 class RebuildCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.rebuildCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'rebuildCurve'
-    __melnode__ = u'rebuildCurve'
+    __melcmdname__ = 'rebuildCurve'
+    __melnode__ = 'rebuildCurve'
     __slots__ = ()
 
     @_f.addMelDocs('rebuildCurve', 'caching')
@@ -15152,8 +15152,8 @@ class RebuildCurve(AbstractBaseCreate):
 class ReverseCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.reverseCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'reverseCurve'
-    __melnode__ = u'reverseCurve'
+    __melcmdname__ = 'reverseCurve'
+    __melnode__ = 'reverseCurve'
     __slots__ = ()
 
     @_f.addMelDocs('reverseCurve', 'caching')
@@ -15178,8 +15178,8 @@ class ReverseCurve(AbstractBaseCreate):
 class ReverseSurface(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.reverseSurface)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'reverseSurface'
-    __melnode__ = u'reverseSurface'
+    __melcmdname__ = 'reverseSurface'
+    __melnode__ = 'reverseSurface'
     __slots__ = ()
 
     @_f.addMelDocs('reverseSurface', 'caching')
@@ -15213,8 +15213,8 @@ class ReverseSurface(AbstractBaseCreate):
 class Revolve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.revolve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'revolve'
-    __melnode__ = u'revolve'
+    __melcmdname__ = 'revolve'
+    __melnode__ = 'revolve'
     __slots__ = ()
 
     @_f.addMelDocs('revolve', 'autoCorrectNormal')
@@ -15428,16 +15428,16 @@ class Revolve(AbstractBaseCreate):
 class RoundConstantRadius(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.roundConstantRadius)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'roundConstantRadius'
-    __melnode__ = u'roundConstantRadius'
+    __melcmdname__ = 'roundConstantRadius'
+    __melnode__ = 'roundConstantRadius'
     __slots__ = ()
 
 
 class SmoothCurve(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.smoothCurve)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'smoothCurve'
-    __melnode__ = u'smoothCurve'
+    __melcmdname__ = 'smoothCurve'
+    __melnode__ = 'smoothCurve'
     __slots__ = ()
 
     @_f.addMelDocs('smoothCurve', 'caching')
@@ -15469,50 +15469,50 @@ class SmoothCurve(AbstractBaseCreate):
 
 
 class SmoothTangentSrf(AbstractBaseCreate):
-    __melnode__ = u'smoothTangentSrf'
+    __melnode__ = 'smoothTangentSrf'
     __slots__ = ()
 
 
 class StitchAsNurbsShell(AbstractBaseCreate):
-    __melnode__ = u'stitchAsNurbsShell'
+    __melnode__ = 'stitchAsNurbsShell'
     __slots__ = ()
 
 
 class StitchSrf(AbstractBaseCreate):
-    __melnode__ = u'stitchSrf'
+    __melnode__ = 'stitchSrf'
     __slots__ = ()
 
 
 class StyleCurve(AbstractBaseCreate):
-    __melnode__ = u'styleCurve'
+    __melnode__ = 'styleCurve'
     __slots__ = ()
 
 
 class SubSurface(AbstractBaseCreate):
-    __melnode__ = u'subSurface'
+    __melnode__ = 'subSurface'
     __slots__ = ()
 
 
 class SubdivToNurbs(AbstractBaseCreate):
-    __melnode__ = u'subdivToNurbs'
+    __melnode__ = 'subdivToNurbs'
     __slots__ = ()
 
 
 class SurfaceInfo(AbstractBaseCreate):
-    __melnode__ = u'surfaceInfo'
+    __melnode__ = 'surfaceInfo'
     __slots__ = ()
 
 
 class TransformGeometry(AbstractBaseCreate):
-    __melnode__ = u'transformGeometry'
+    __melnode__ = 'transformGeometry'
     __slots__ = ()
 
 
 class Trim(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.trim)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'trim'
-    __melnode__ = u'trim'
+    __melcmdname__ = 'trim'
+    __melnode__ = 'trim'
     __slots__ = ()
 
     @_f.addMelDocs('trim', 'caching')
@@ -15580,15 +15580,15 @@ class Trim(AbstractBaseCreate):
 
 
 class TrimWithBoundaries(AbstractBaseCreate):
-    __melnode__ = u'trimWithBoundaries'
+    __melnode__ = 'trimWithBoundaries'
     __slots__ = ()
 
 
 class Untrim(AbstractBaseCreate):
     __melcmd__ = staticmethod(modeling.untrim)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'untrim'
-    __melnode__ = u'untrim'
+    __melcmdname__ = 'untrim'
+    __melnode__ = 'untrim'
     __slots__ = ()
 
     @_f.addMelDocs('untrim', 'caching')
@@ -15629,7 +15629,7 @@ class Untrim(AbstractBaseCreate):
 
 
 class AddDoubleLinear(DependNode):
-    __melnode__ = u'addDoubleLinear'
+    __melnode__ = 'addDoubleLinear'
     __slots__ = ()
 
     @_f.deprecated
@@ -15687,7 +15687,7 @@ class AddDoubleLinear(DependNode):
 
 
 class AddMatrix(DependNode):
-    __melnode__ = u'addMatrix'
+    __melnode__ = 'addMatrix'
     __slots__ = ()
 
     @_f.deprecated
@@ -15745,12 +15745,12 @@ class AddMatrix(DependNode):
 
 
 class AimMatrix(DependNode):
-    __melnode__ = u'aimMatrix'
+    __melnode__ = 'aimMatrix'
     __slots__ = ()
 
 
 class AnimBlend(DependNode):
-    __melnode__ = u'animBlend'
+    __melnode__ = 'animBlend'
     __slots__ = ()
 
     @_f.deprecated
@@ -15808,12 +15808,12 @@ class AnimBlend(DependNode):
 
 
 class AnimBlendInOut(AnimBlend):
-    __melnode__ = u'animBlendInOut'
+    __melnode__ = 'animBlendInOut'
     __slots__ = ()
 
 
 class AnimBlendNodeBase(DependNode):
-    __melnode__ = u'animBlendNodeBase'
+    __melnode__ = 'animBlendNodeBase'
     __slots__ = ()
 
     @_f.deprecated
@@ -15871,73 +15871,73 @@ class AnimBlendNodeBase(DependNode):
 
 
 class AnimBlendNodeAdditive(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeAdditive'
+    __melnode__ = 'animBlendNodeAdditive'
     __slots__ = ()
 
 
 class AnimBlendNodeAdditiveDA(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeAdditiveDA'
+    __melnode__ = 'animBlendNodeAdditiveDA'
     __slots__ = ()
 
 
 class AnimBlendNodeAdditiveDL(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeAdditiveDL'
+    __melnode__ = 'animBlendNodeAdditiveDL'
     __slots__ = ()
 
 
 class AnimBlendNodeAdditiveF(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeAdditiveF'
+    __melnode__ = 'animBlendNodeAdditiveF'
     __slots__ = ()
 
 
 class AnimBlendNodeAdditiveFA(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeAdditiveFA'
+    __melnode__ = 'animBlendNodeAdditiveFA'
     __slots__ = ()
 
 
 class AnimBlendNodeAdditiveFL(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeAdditiveFL'
+    __melnode__ = 'animBlendNodeAdditiveFL'
     __slots__ = ()
 
 
 class AnimBlendNodeAdditiveI16(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeAdditiveI16'
+    __melnode__ = 'animBlendNodeAdditiveI16'
     __slots__ = ()
 
 
 class AnimBlendNodeAdditiveI32(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeAdditiveI32'
+    __melnode__ = 'animBlendNodeAdditiveI32'
     __slots__ = ()
 
 
 class AnimBlendNodeAdditiveRotation(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeAdditiveRotation'
+    __melnode__ = 'animBlendNodeAdditiveRotation'
     __slots__ = ()
 
 
 class AnimBlendNodeAdditiveScale(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeAdditiveScale'
+    __melnode__ = 'animBlendNodeAdditiveScale'
     __slots__ = ()
 
 
 class AnimBlendNodeBoolean(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeBoolean'
+    __melnode__ = 'animBlendNodeBoolean'
     __slots__ = ()
 
 
 class AnimBlendNodeEnum(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeEnum'
+    __melnode__ = 'animBlendNodeEnum'
     __slots__ = ()
 
 
 class AnimBlendNodeTime(AnimBlendNodeBase):
-    __melnode__ = u'animBlendNodeTime'
+    __melnode__ = 'animBlendNodeTime'
     __slots__ = ()
 
 
 class AnimClip(DependNode):
     __apicls__ = _api.MFnClip
-    __melnode__ = u'animClip'
+    __melnode__ = 'animClip'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnClip, 'getAbsoluteChannelSettings')
@@ -16094,8 +16094,8 @@ class AnimClip(DependNode):
 class ArrayMapper(DependNode):
     __melcmd__ = staticmethod(effects.arrayMapper)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'arrayMapper'
-    __melnode__ = u'arrayMapper'
+    __melcmdname__ = 'arrayMapper'
+    __melnode__ = 'arrayMapper'
     __slots__ = ()
 
     @_f.deprecated
@@ -16153,12 +16153,12 @@ class ArrayMapper(DependNode):
 
 
 class THarrayMapper(ArrayMapper):
-    __melnode__ = u'THarrayMapper'
+    __melnode__ = 'THarrayMapper'
     __slots__ = ()
 
 
 class AttrHierarchyTest(DependNode):
-    __melnode__ = u'attrHierarchyTest'
+    __melnode__ = 'attrHierarchyTest'
     __slots__ = ()
 
     @_f.deprecated
@@ -16216,7 +16216,7 @@ class AttrHierarchyTest(DependNode):
 
 
 class Audio(DependNode):
-    __melnode__ = u'audio'
+    __melnode__ = 'audio'
     __slots__ = ()
 
     @_f.deprecated
@@ -16276,8 +16276,8 @@ class Audio(DependNode):
 class Blend(DependNode):
     __melcmd__ = staticmethod(other.blend)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'blend'
-    __melnode__ = u'blend'
+    __melcmdname__ = 'blend'
+    __melnode__ = 'blend'
     __slots__ = ()
 
     @_f.deprecated
@@ -16335,15 +16335,15 @@ class Blend(DependNode):
 
 
 class BlendDevice(Blend):
-    __melnode__ = u'blendDevice'
+    __melnode__ = 'blendDevice'
     __slots__ = ()
 
 
 class BlendTwoAttr(Blend):
     __melcmd__ = staticmethod(animation.blendTwoAttr)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'blendTwoAttr'
-    __melnode__ = u'blendTwoAttr'
+    __melcmdname__ = 'blendTwoAttr'
+    __melnode__ = 'blendTwoAttr'
     __slots__ = ()
 
     @_f.addMelDocs('blendTwoAttr', 'attribute0')
@@ -16384,12 +16384,12 @@ class BlendTwoAttr(Blend):
 
 
 class BlendWeighted(Blend):
-    __melnode__ = u'blendWeighted'
+    __melnode__ = 'blendWeighted'
     __slots__ = ()
 
 
 class BlendColors(DependNode):
-    __melnode__ = u'blendColors'
+    __melnode__ = 'blendColors'
     __slots__ = ()
 
     @_f.deprecated
@@ -16447,12 +16447,12 @@ class BlendColors(DependNode):
 
 
 class BlendMatrix(DependNode):
-    __melnode__ = u'blendMatrix'
+    __melnode__ = 'blendMatrix'
     __slots__ = ()
 
 
 class BlindDataTemplate(DependNode):
-    __melnode__ = u'blindDataTemplate'
+    __melnode__ = 'blindDataTemplate'
     __slots__ = ()
 
     @_f.deprecated
@@ -16510,12 +16510,12 @@ class BlindDataTemplate(DependNode):
 
 
 class SubdHierBlind(BlindDataTemplate):
-    __melnode__ = u'subdHierBlind'
+    __melnode__ = 'subdHierBlind'
     __slots__ = ()
 
 
 class Brush(DependNode):
-    __melnode__ = u'brush'
+    __melnode__ = 'brush'
     __slots__ = ()
 
     @_f.deprecated
@@ -16573,7 +16573,7 @@ class Brush(DependNode):
 
 
 class Bump3d(DependNode):
-    __melnode__ = u'bump3d'
+    __melnode__ = 'bump3d'
     __slots__ = ()
 
     @_f.deprecated
@@ -16631,7 +16631,7 @@ class Bump3d(DependNode):
 
 
 class CacheBase(DependNode):
-    __melnode__ = u'cacheBase'
+    __melnode__ = 'cacheBase'
     __slots__ = ()
 
     @_f.deprecated
@@ -16689,15 +16689,15 @@ class CacheBase(DependNode):
 
 
 class CacheBlend(CacheBase):
-    __melnode__ = u'cacheBlend'
+    __melnode__ = 'cacheBlend'
     __slots__ = ()
 
 
 class CacheFile(CacheBase):
     __melcmd__ = staticmethod(system.cacheFile)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'cacheFile'
-    __melnode__ = u'cacheFile'
+    __melcmdname__ = 'cacheFile'
+    __melnode__ = 'cacheFile'
     __slots__ = ()
 
     @_f.addMelDocs('cacheFile', 'cacheFormat')
@@ -16796,8 +16796,8 @@ class CameraSet(DependNode):
     __apicls__ = _api.MFnCameraSet
     __melcmd__ = staticmethod(rendering.cameraSet)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'cameraSet'
-    __melnode__ = u'cameraSet'
+    __melcmdname__ = 'cameraSet'
+    __melnode__ = 'cameraSet'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnCameraSet, 'appendLayer')
@@ -16977,15 +16977,15 @@ class CameraSet(DependNode):
 
 
 class THcameraSet(CameraSet):
-    __melnode__ = u'THcameraSet'
+    __melnode__ = 'THcameraSet'
     __slots__ = ()
 
 
 class CameraView(DependNode):
     __melcmd__ = staticmethod(rendering.cameraView)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'cameraView'
-    __melnode__ = u'cameraView'
+    __melcmdname__ = 'cameraView'
+    __melnode__ = 'cameraView'
     __slots__ = ()
 
     @_f.addMelDocs('cameraView', 'addBookmark')
@@ -17069,8 +17069,8 @@ class CameraView(DependNode):
 class CharacterMap(DependNode):
     __melcmd__ = staticmethod(animation.characterMap)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'characterMap'
-    __melnode__ = u'characterMap'
+    __melcmdname__ = 'characterMap'
+    __melnode__ = 'characterMap'
     __slots__ = ()
 
     @_f.deprecated
@@ -17156,7 +17156,7 @@ class CharacterMap(DependNode):
 
 
 class CharacterOffset(DependNode):
-    __melnode__ = u'characterOffset'
+    __melnode__ = 'characterOffset'
     __slots__ = ()
 
     @_f.deprecated
@@ -17216,8 +17216,8 @@ class CharacterOffset(DependNode):
 class Choice(DependNode):
     __melcmd__ = staticmethod(animation.choice)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'choice'
-    __melnode__ = u'choice'
+    __melcmdname__ = 'choice'
+    __melnode__ = 'choice'
     __slots__ = ()
 
     @_f.deprecated
@@ -17285,7 +17285,7 @@ class Choice(DependNode):
 
 
 class Chooser(DependNode):
-    __melnode__ = u'chooser'
+    __melnode__ = 'chooser'
     __slots__ = ()
 
     @_f.deprecated
@@ -17343,7 +17343,7 @@ class Chooser(DependNode):
 
 
 class Clamp(DependNode):
-    __melnode__ = u'clamp'
+    __melnode__ = 'clamp'
     __slots__ = ()
 
     @_f.deprecated
@@ -17401,7 +17401,7 @@ class Clamp(DependNode):
 
 
 class ClipLibrary(DependNode):
-    __melnode__ = u'clipLibrary'
+    __melnode__ = 'clipLibrary'
     __slots__ = ()
 
     @_f.deprecated
@@ -17459,7 +17459,7 @@ class ClipLibrary(DependNode):
 
 
 class ClipScheduler(DependNode):
-    __melnode__ = u'clipScheduler'
+    __melnode__ = 'clipScheduler'
     __slots__ = ()
 
     @_f.deprecated
@@ -17517,12 +17517,12 @@ class ClipScheduler(DependNode):
 
 
 class ClipToGhostData(DependNode):
-    __melnode__ = u'clipToGhostData'
+    __melnode__ = 'clipToGhostData'
     __slots__ = ()
 
 
 class ClosestPointOnMesh(DependNode):
-    __melnode__ = u'closestPointOnMesh'
+    __melnode__ = 'closestPointOnMesh'
     __slots__ = ()
 
     @_f.deprecated
@@ -17580,12 +17580,12 @@ class ClosestPointOnMesh(DependNode):
 
 
 class ColorManagementGlobals(DependNode):
-    __melnode__ = u'colorManagementGlobals'
+    __melnode__ = 'colorManagementGlobals'
     __slots__ = ()
 
 
 class ColorProfile(DependNode):
-    __melnode__ = u'colorProfile'
+    __melnode__ = 'colorProfile'
     __slots__ = ()
 
     @_f.deprecated
@@ -17645,8 +17645,8 @@ class ColorProfile(DependNode):
 class CombinationShape(DependNode):
     __melcmd__ = staticmethod(animation.combinationShape)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'combinationShape'
-    __melnode__ = u'combinationShape'
+    __melcmdname__ = 'combinationShape'
+    __melnode__ = 'combinationShape'
     __slots__ = ()
 
     @_f.addMelDocs('combinationShape', 'allDrivers')
@@ -17670,17 +17670,17 @@ class CombinationShape(DependNode):
 
 
 class CompactPlugArrayTest(DependNode):
-    __melnode__ = u'compactPlugArrayTest'
+    __melnode__ = 'compactPlugArrayTest'
     __slots__ = ()
 
 
 class ComposeMatrix(DependNode):
-    __melnode__ = u'composeMatrix'
+    __melnode__ = 'composeMatrix'
     __slots__ = ()
 
 
 class Condition(DependNode):
-    __melnode__ = u'condition'
+    __melnode__ = 'condition'
     __slots__ = ()
 
     @_f.deprecated
@@ -17741,8 +17741,8 @@ class Container(ContainerBase):
     __apicls__ = _api.MFnContainerNode
     __melcmd__ = staticmethod(general.container)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'container'
-    __melnode__ = u'container'
+    __melcmdname__ = 'container'
+    __melnode__ = 'container'
     __slots__ = ()
     MPublishNodeType = Enum('MPublishNodeType', [('parentAnchor', 0), ('kParentAnchor', 0), ('childAnchor', 1), ('kChildAnchor', 1), ('generic', 2), ('kGeneric', 2)], multiKeys=True)
 
@@ -18011,62 +18011,62 @@ class Container(ContainerBase):
 
 
 class BaseLattice(Shape):
-    __melnode__ = u'baseLattice'
+    __melnode__ = 'baseLattice'
     __slots__ = ()
 
 
 class StereoRigCamera(Camera):
-    __melnode__ = u'stereoRigCamera'
+    __melnode__ = 'stereoRigCamera'
     __slots__ = ()
 
 
 class ClusterHandle(Shape):
-    __melnode__ = u'clusterHandle'
+    __melnode__ = 'clusterHandle'
     __slots__ = ()
 
 
 class DeformFunc(Shape):
-    __melnode__ = u'deformFunc'
+    __melnode__ = 'deformFunc'
     __slots__ = ()
 
 
 class DeformBend(DeformFunc):
-    __melnode__ = u'deformBend'
+    __melnode__ = 'deformBend'
     __slots__ = ()
 
 
 class DeformFlare(DeformFunc):
-    __melnode__ = u'deformFlare'
+    __melnode__ = 'deformFlare'
     __slots__ = ()
 
 
 class DeformSine(DeformFunc):
-    __melnode__ = u'deformSine'
+    __melnode__ = 'deformSine'
     __slots__ = ()
 
 
 class DeformSquash(DeformFunc):
-    __melnode__ = u'deformSquash'
+    __melnode__ = 'deformSquash'
     __slots__ = ()
 
 
 class DeformTwist(DeformFunc):
-    __melnode__ = u'deformTwist'
+    __melnode__ = 'deformTwist'
     __slots__ = ()
 
 
 class DeformWave(DeformFunc):
-    __melnode__ = u'deformWave'
+    __melnode__ = 'deformWave'
     __slots__ = ()
 
 
 class DimensionShape(Shape):
-    __melnode__ = u'dimensionShape'
+    __melnode__ = 'dimensionShape'
     __slots__ = ()
 
 
 class AngleDimension(DimensionShape):
-    __melnode__ = u'angleDimension'
+    __melnode__ = 'angleDimension'
     __slots__ = ()
 
 
@@ -18074,89 +18074,89 @@ class AnnotationShape(DimensionShape):
     __melcmd__ = staticmethod(windows.annotate)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'annotate'
-    __melnode__ = u'annotationShape'
+    __melnode__ = 'annotationShape'
     __slots__ = ()
 
 
 class DistanceDimShape(DimensionShape):
-    __melnode__ = u'distanceDimShape'
+    __melnode__ = 'distanceDimShape'
     __slots__ = ()
 
 
 class NurbsDimShape(DimensionShape):
-    __melnode__ = u'nurbsDimShape'
+    __melnode__ = 'nurbsDimShape'
     __slots__ = ()
 
 
 class ArcLengthDimension(NurbsDimShape):
     __melcmd__ = staticmethod(modeling.arcLengthDimension)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'arcLengthDimension'
-    __melnode__ = u'arcLengthDimension'
+    __melcmdname__ = 'arcLengthDimension'
+    __melnode__ = 'arcLengthDimension'
     __slots__ = ()
 
 
 class ParamDimension(NurbsDimShape):
     __melcmd__ = staticmethod(general.paramDimension)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'paramDimension'
-    __melnode__ = u'paramDimension'
+    __melcmdname__ = 'paramDimension'
+    __melnode__ = 'paramDimension'
     __slots__ = ()
 
 
 class DynHolder(Shape):
-    __melnode__ = u'dynHolder'
+    __melnode__ = 'dynHolder'
     __slots__ = ()
 
 
 class DynamicConstraint(Shape):
-    __melnode__ = u'dynamicConstraint'
+    __melnode__ = 'dynamicConstraint'
     __slots__ = ()
 
 
 class FlexorShape(Shape):
-    __melnode__ = u'flexorShape'
+    __melnode__ = 'flexorShape'
     __slots__ = ()
 
 
 class ClusterFlexorShape(FlexorShape):
-    __melnode__ = u'clusterFlexorShape'
+    __melnode__ = 'clusterFlexorShape'
     __slots__ = ()
 
 
 class Follicle(Shape):
-    __melnode__ = u'follicle'
+    __melnode__ = 'follicle'
     __slots__ = ()
 
 
 class GeoConnectable(Shape):
-    __melnode__ = u'geoConnectable'
+    __melnode__ = 'geoConnectable'
     __slots__ = ()
 
 
 class BezierCurve(NurbsCurve):
-    __melnode__ = u'bezierCurve'
+    __melnode__ = 'bezierCurve'
     __slots__ = ()
 
 
 class SnapshotShape(ControlPoint):
-    __melnode__ = u'snapshotShape'
+    __melnode__ = 'snapshotShape'
     __slots__ = ()
 
 
 class MotionTrailShape(SnapshotShape):
-    __melnode__ = u'motionTrailShape'
+    __melnode__ = 'motionTrailShape'
     __slots__ = ()
 
 
 class THsurfaceShape(SurfaceShape):
-    __melnode__ = u'THsurfaceShape'
+    __melnode__ = 'THsurfaceShape'
     __slots__ = ()
 
 
 class FluidShape(SurfaceShape):
     __apicls__ = _api.MFnFluid
-    __melnode__ = u'fluidShape'
+    __melnode__ = 'fluidShape'
     __slots__ = ()
     ColorMethod = Enum('ColorMethod', [('useShadingColor', 0), ('kUseShadingColor', 0), ('staticColorGrid', 1), ('kStaticColorGrid', 1), ('dynamicColorGrid', 2), ('kDynamicColorGrid', 2)], multiKeys=True)
     CoordinateMethod = Enum('CoordinateMethod', [('fixed', 0), ('kFixed', 0), ('grid', 1), ('kGrid', 1)], multiKeys=True)
@@ -18426,30 +18426,30 @@ class FluidShape(SurfaceShape):
 
 
 class FluidTexture2D(FluidShape):
-    __melnode__ = u'fluidTexture2D'
+    __melnode__ = 'fluidTexture2D'
     __slots__ = ()
 
 
 class FluidTexture3D(FluidShape):
-    __melnode__ = u'fluidTexture3D'
+    __melnode__ = 'fluidTexture3D'
     __slots__ = ()
 
 
 class HeightField(SurfaceShape):
-    __melnode__ = u'heightField'
+    __melnode__ = 'heightField'
     __slots__ = ()
 
 
 class GreasePlaneRenderShape(Mesh):
-    __melnode__ = u'greasePlaneRenderShape'
+    __melnode__ = 'greasePlaneRenderShape'
     __slots__ = ()
 
 
 class NBase(Particle):
     __melcmd__ = staticmethod(effects.nBase)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'nBase'
-    __melnode__ = u'nBase'
+    __melcmdname__ = 'nBase'
+    __melnode__ = 'nBase'
     __slots__ = ()
 
     @_f.addMelDocs('nBase', 'clearCachedTextureMap')
@@ -18470,15 +18470,15 @@ class NBase(Particle):
 
 
 class NCloth(NBase):
-    __melnode__ = u'nCloth'
+    __melnode__ = 'nCloth'
     __slots__ = ()
 
 
 class NParticle(NBase):
     __melcmd__ = staticmethod(effects.nParticle)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'nParticle'
-    __melnode__ = u'nParticle'
+    __melcmdname__ = 'nParticle'
+    __melnode__ = 'nParticle'
     __slots__ = ()
 
     @_f.addMelDocs('nParticle', 'floatValue')
@@ -18599,47 +18599,47 @@ class NParticle(NBase):
 
 
 class NRigid(NBase):
-    __melnode__ = u'nRigid'
+    __melnode__ = 'nRigid'
     __slots__ = ()
 
 
 class DirectedDisc(GeometryShape):
-    __melnode__ = u'directedDisc'
+    __melnode__ = 'directedDisc'
     __slots__ = ()
 
 
 class EnvironmentFog(GeometryShape):
-    __melnode__ = u'environmentFog'
+    __melnode__ = 'environmentFog'
     __slots__ = ()
 
 
 class ImplicitBox(GeometryShape):
-    __melnode__ = u'implicitBox'
+    __melnode__ = 'implicitBox'
     __slots__ = ()
 
 
 class RenderBox(ImplicitBox):
-    __melnode__ = u'renderBox'
+    __melnode__ = 'renderBox'
     __slots__ = ()
 
 
 class ImplicitCone(GeometryShape):
-    __melnode__ = u'implicitCone'
+    __melnode__ = 'implicitCone'
     __slots__ = ()
 
 
 class RenderCone(ImplicitCone):
-    __melnode__ = u'renderCone'
+    __melnode__ = 'renderCone'
     __slots__ = ()
 
 
 class ImplicitSphere(GeometryShape):
-    __melnode__ = u'implicitSphere'
+    __melnode__ = 'implicitSphere'
     __slots__ = ()
 
 
 class RenderSphere(ImplicitSphere):
-    __melnode__ = u'renderSphere'
+    __melnode__ = 'renderSphere'
     __slots__ = ()
 
 
@@ -18647,7 +18647,7 @@ class Locator(GeometryShape):
     __melcmd__ = staticmethod(general.spaceLocator)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'spaceLocator'
-    __melnode__ = u'locator'
+    __melnode__ = 'locator'
     __slots__ = ()
 
     @_f.addMelDocs('spaceLocator', 'absolute')
@@ -18669,76 +18669,76 @@ class Locator(GeometryShape):
 
 
 class THlocatorShape(Locator):
-    __melnode__ = u'THlocatorShape'
+    __melnode__ = 'THlocatorShape'
     __slots__ = ()
 
 
 class DropoffLocator(Locator):
     __melcmd__ = staticmethod(animation.dropoffLocator)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'dropoffLocator'
-    __melnode__ = u'dropoffLocator'
+    __melcmdname__ = 'dropoffLocator'
+    __melnode__ = 'dropoffLocator'
     __slots__ = ()
 
 
 class HikFloorContactMarker(Locator):
-    __melnode__ = u'hikFloorContactMarker'
+    __melnode__ = 'hikFloorContactMarker'
     __slots__ = ()
 
 
 class PositionMarker(Locator):
-    __melnode__ = u'positionMarker'
+    __melnode__ = 'positionMarker'
     __slots__ = ()
 
 
 class OrientationMarker(PositionMarker):
-    __melnode__ = u'orientationMarker'
+    __melnode__ = 'orientationMarker'
     __slots__ = ()
 
 
 class Plane(GeometryShape):
     __melcmd__ = staticmethod(modeling.plane)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'plane'
-    __melnode__ = u'plane'
+    __melcmdname__ = 'plane'
+    __melnode__ = 'plane'
     __slots__ = ()
 
 
 class SketchPlane(Plane):
-    __melnode__ = u'sketchPlane'
+    __melnode__ = 'sketchPlane'
     __slots__ = ()
 
 
 class GroundPlane(SketchPlane):
-    __melnode__ = u'groundPlane'
+    __melnode__ = 'groundPlane'
     __slots__ = ()
 
 
 class OrthoGrid(SketchPlane):
-    __melnode__ = u'orthoGrid'
+    __melnode__ = 'orthoGrid'
     __slots__ = ()
 
 
 class RenderRect(GeometryShape):
-    __melnode__ = u'renderRect'
+    __melnode__ = 'renderRect'
     __slots__ = ()
 
 
 class HairConstraint(Shape):
-    __melnode__ = u'hairConstraint'
+    __melnode__ = 'hairConstraint'
     __slots__ = ()
 
 
 class HairSystem(Shape):
-    __melnode__ = u'hairSystem'
+    __melnode__ = 'hairSystem'
     __slots__ = ()
 
 
 class ImagePlane(Shape):
     __melcmd__ = staticmethod(rendering.imagePlane)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'imagePlane'
-    __melnode__ = u'imagePlane'
+    __melcmdname__ = 'imagePlane'
+    __melnode__ = 'imagePlane'
     __slots__ = ()
 
     @_f.addMelDocs('imagePlane', 'detach')
@@ -18855,18 +18855,18 @@ class ImagePlane(Shape):
 
 
 class THimagePlane(ImagePlane):
-    __melnode__ = u'THimagePlane'
+    __melnode__ = 'THimagePlane'
     __slots__ = ()
 
 
 class GreasePlane(ImagePlane):
-    __melnode__ = u'greasePlane'
+    __melnode__ = 'greasePlane'
     __slots__ = ()
 
 
 class Light(Shape):
     __apicls__ = _api.MFnLight
-    __melnode__ = u'light'
+    __melnode__ = 'light'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnLight, 'centerOfIllumination')
@@ -18952,7 +18952,7 @@ class Light(Shape):
     @_f.addApiDocs(_api.MFnLight, 'setCenterOfIllumination')
     def setCenterOfIllumination(self, dist):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dist], [('dist', 'double', 'in', u'linear')], self.getCenterOfIllumination, self.setCenterOfIllumination, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dist], [('dist', 'double', 'in', 'linear')], self.getCenterOfIllumination, self.setCenterOfIllumination, [])
         res = _f.getProxyResult(self, _api.MFnLight, 'setCenterOfIllumination', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19015,12 +19015,12 @@ class Light(Shape):
 
 
 class TadskAssetInstanceNode_TlightShape(Light):
-    __melnode__ = u'TadskAssetInstanceNode_TlightShape'
+    __melnode__ = 'TadskAssetInstanceNode_TlightShape'
     __slots__ = ()
 
 
 class RenderLight(Light):
-    __melnode__ = u'renderLight'
+    __melnode__ = 'renderLight'
     __slots__ = ()
 
 
@@ -19028,8 +19028,8 @@ class AmbientLight(RenderLight):
     __apicls__ = _api.MFnAmbientLight
     __melcmd__ = staticmethod(rendering.ambientLight)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'ambientLight'
-    __melnode__ = u'ambientLight'
+    __melcmdname__ = 'ambientLight'
+    __melnode__ = 'ambientLight'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnAmbientLight, 'ambientShade')
@@ -19133,7 +19133,7 @@ class AmbientLight(RenderLight):
 
 class NonAmbientLightShapeNode(RenderLight):
     __apicls__ = _api.MFnNonAmbientLight
-    __melnode__ = u'nonAmbientLightShapeNode'
+    __melnode__ = 'nonAmbientLightShapeNode'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnNonAmbientLight, 'decayRate')
@@ -19153,7 +19153,7 @@ class NonAmbientLightShapeNode(RenderLight):
 
 class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
     __apicls__ = _api.MFnNonExtendedLight
-    __melnode__ = u'nonExtendedLightShapeNode'
+    __melnode__ = 'nonExtendedLightShapeNode'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnNonExtendedLight, 'castSoftShadows')
@@ -19285,7 +19285,7 @@ class NonExtendedLightShapeNode(NonAmbientLightShapeNode):
 
 class AreaLight(NonExtendedLightShapeNode):
     __apicls__ = _api.MFnAreaLight
-    __melnode__ = u'areaLight'
+    __melnode__ = 'areaLight'
     __slots__ = ()
 
 
@@ -19293,8 +19293,8 @@ class DirectionalLight(NonExtendedLightShapeNode):
     __apicls__ = _api.MFnDirectionalLight
     __melcmd__ = staticmethod(rendering.directionalLight)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'directionalLight'
-    __melnode__ = u'directionalLight'
+    __melcmdname__ = 'directionalLight'
+    __melnode__ = 'directionalLight'
     __slots__ = ()
 
     @_f.addMelDocs('directionalLight', 'discRadius')
@@ -19360,8 +19360,8 @@ class PointLight(NonExtendedLightShapeNode):
     __apicls__ = _api.MFnPointLight
     __melcmd__ = staticmethod(rendering.pointLight)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'pointLight'
-    __melnode__ = u'pointLight'
+    __melcmdname__ = 'pointLight'
+    __melnode__ = 'pointLight'
     __slots__ = ()
 
     @_f.addMelDocs('pointLight', 'discRadius')
@@ -19421,7 +19421,7 @@ class PointLight(NonExtendedLightShapeNode):
 
 class VolumeLight(PointLight):
     __apicls__ = _api.MFnVolumeLight
-    __melnode__ = u'volumeLight'
+    __melnode__ = 'volumeLight'
     __slots__ = ()
     MLightDirection = Enum('MLightDirection', [('outward', 0), ('kOutward', 0), ('inward', 1), ('kInward', 1), ('downAxis', 2), ('kDownAxis', 2)], multiKeys=True)
     MLightShape = Enum('MLightShape', [('boxVolume', 0), ('kBoxVolume', 0), ('sphereVolume', 1), ('kSphereVolume', 1), ('cylinderVolume', 2), ('kCylinderVolume', 2), ('coneVolume', 3), ('kConeVolume', 3)], multiKeys=True)
@@ -19515,8 +19515,8 @@ class SpotLight(NonExtendedLightShapeNode):
     __apicls__ = _api.MFnSpotLight
     __melcmd__ = staticmethod(rendering.spotLight)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'spotLight'
-    __melnode__ = u'spotLight'
+    __melcmdname__ = 'spotLight'
+    __melnode__ = 'spotLight'
     __slots__ = ()
     MBarnDoor = Enum('MBarnDoor', [('left', 0), ('kLeft', 0), ('right', 1), ('kRight', 1), ('top', 2), ('kTop', 2), ('bottom', 3), ('kBottom', 3)], multiKeys=True)
     MDecayRegion = Enum('MDecayRegion', [('first', 0), ('kFirst', 0), ('second', 1), ('kSecond', 1), ('third', 2), ('kThird', 2)], multiKeys=True)
@@ -19628,7 +19628,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setBarnDoorAngle')
     def setBarnDoorAngle(self, which_door, barn_door_angle):
         # type: (SpotLight.MBarnDoor, float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([which_door, barn_door_angle], [('which_door', ('MFnSpotLight', 'MBarnDoor'), 'in', None), ('barn_door_angle', 'double', 'in', u'angular')], self.getBarnDoorAngle, self.setBarnDoorAngle, ['which_door'])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([which_door, barn_door_angle], [('which_door', ('MFnSpotLight', 'MBarnDoor'), 'in', None), ('barn_door_angle', 'double', 'in', 'angular')], self.getBarnDoorAngle, self.setBarnDoorAngle, ['which_door'])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setBarnDoorAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19648,7 +19648,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setConeAngle')
     def setConeAngle(self, cone_angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([cone_angle], [('cone_angle', 'double', 'in', u'angular')], self.getConeAngle, self.setConeAngle, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([cone_angle], [('cone_angle', 'double', 'in', 'angular')], self.getConeAngle, self.setConeAngle, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setConeAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19676,7 +19676,7 @@ class SpotLight(NonExtendedLightShapeNode):
     @_f.addApiDocs(_api.MFnSpotLight, 'setPenumbraAngle')
     def setPenumbra(self, penumbra_angle):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([penumbra_angle], [('penumbra_angle', 'double', 'in', u'angular')], self.getPenumbra, self.setPenumbra, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([penumbra_angle], [('penumbra_angle', 'double', 'in', 'angular')], self.getPenumbra, self.setPenumbra, [])
         res = _f.getProxyResult(self, _api.MFnSpotLight, 'setPenumbraAngle', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -19707,13 +19707,13 @@ class SpotLight(NonExtendedLightShapeNode):
 
 
 class LineModifier(Shape):
-    __melnode__ = u'lineModifier'
+    __melnode__ = 'lineModifier'
     __slots__ = ()
 
 
 class PfxGeometry(Shape):
     __apicls__ = _api.MFnPfxGeometry
-    __melnode__ = u'pfxGeometry'
+    __melnode__ = 'pfxGeometry'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnPfxGeometry, 'getBoundingBox')
@@ -19725,28 +19725,28 @@ class PfxGeometry(Shape):
 
 
 class PfxHair(PfxGeometry):
-    __melnode__ = u'pfxHair'
+    __melnode__ = 'pfxHair'
     __slots__ = ()
 
 
 class PfxToon(PfxGeometry):
-    __melnode__ = u'pfxToon'
+    __melnode__ = 'pfxToon'
     __slots__ = ()
 
 
 class Stroke(PfxGeometry):
     __melcmd__ = staticmethod(effects.stroke)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'stroke'
-    __melnode__ = u'stroke'
+    __melcmdname__ = 'stroke'
+    __melnode__ = 'stroke'
     __slots__ = ()
 
 
 class RigidBody(Shape):
     __melcmd__ = staticmethod(effects.rigidBody)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'rigidBody'
-    __melnode__ = u'rigidBody'
+    __melcmdname__ = 'rigidBody'
+    __melnode__ = 'rigidBody'
     __slots__ = ()
 
     @_f.addMelDocs('rigidBody', 'deleteCache')
@@ -20000,15 +20000,15 @@ class RigidBody(Shape):
 
 
 class SoftModHandle(Shape):
-    __melnode__ = u'softModHandle'
+    __melnode__ = 'softModHandle'
     __slots__ = ()
 
 
 class Spring(Shape):
     __melcmd__ = staticmethod(effects.spring)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'spring'
-    __melnode__ = u'spring'
+    __melcmdname__ = 'spring'
+    __melnode__ = 'spring'
     __slots__ = ()
 
     @_f.addMelDocs('spring', 'allPoints')
@@ -20134,17 +20134,17 @@ class Spring(Shape):
 
 
 class THdynSpring(Spring):
-    __melnode__ = u'THdynSpring'
+    __melnode__ = 'THdynSpring'
     __slots__ = ()
 
 
 class THcustomTransform(Transform):
-    __melnode__ = u'THcustomTransform'
+    __melnode__ = 'THcustomTransform'
     __slots__ = ()
 
 
 class BaseGeometryVarGroup(Transform):
-    __melnode__ = u'baseGeometryVarGroup'
+    __melnode__ = 'baseGeometryVarGroup'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -20164,45 +20164,45 @@ class BaseGeometryVarGroup(Transform):
 
 
 class CurveVarGroup(BaseGeometryVarGroup):
-    __melnode__ = u'curveVarGroup'
+    __melnode__ = 'curveVarGroup'
     __slots__ = ()
 
 
 class GeometryVarGroup(BaseGeometryVarGroup):
-    __melnode__ = u'geometryVarGroup'
+    __melnode__ = 'geometryVarGroup'
     __slots__ = ()
 
 
 class MeshVarGroup(BaseGeometryVarGroup):
-    __melnode__ = u'meshVarGroup'
+    __melnode__ = 'meshVarGroup'
     __slots__ = ()
 
 
 class SubdivSurfaceVarGroup(BaseGeometryVarGroup):
-    __melnode__ = u'subdivSurfaceVarGroup'
+    __melnode__ = 'subdivSurfaceVarGroup'
     __slots__ = ()
 
 
 class SurfaceVarGroup(BaseGeometryVarGroup):
-    __melnode__ = u'surfaceVarGroup'
+    __melnode__ = 'surfaceVarGroup'
     __slots__ = ()
 
 
 class ClipGhostShape(Transform):
-    __melnode__ = u'clipGhostShape'
+    __melnode__ = 'clipGhostShape'
     __slots__ = ()
 
 
 class THconstraint(Constraint):
-    __melnode__ = u'THconstraint'
+    __melnode__ = 'THconstraint'
     __slots__ = ()
 
 
 class AimConstraint(Constraint):
     __melcmd__ = staticmethod(animation.aimConstraint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'aimConstraint'
-    __melnode__ = u'aimConstraint'
+    __melcmdname__ = 'aimConstraint'
+    __melnode__ = 'aimConstraint'
     __slots__ = ()
 
     @_f.addMelDocs('aimConstraint', 'aimVector')
@@ -20283,15 +20283,15 @@ class AimConstraint(Constraint):
 
 
 class LookAt(AimConstraint):
-    __melnode__ = u'lookAt'
+    __melnode__ = 'lookAt'
     __slots__ = ()
 
 
 class GeometryConstraint(Constraint):
     __melcmd__ = staticmethod(animation.geometryConstraint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'geometryConstraint'
-    __melnode__ = u'geometryConstraint'
+    __melcmdname__ = 'geometryConstraint'
+    __melnode__ = 'geometryConstraint'
     __slots__ = ()
 
     @_f.addMelDocs('geometryConstraint', 'targetList')
@@ -20316,8 +20316,8 @@ class GeometryConstraint(Constraint):
 class NormalConstraint(Constraint):
     __melcmd__ = staticmethod(animation.normalConstraint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'normalConstraint'
-    __melnode__ = u'normalConstraint'
+    __melcmdname__ = 'normalConstraint'
+    __melnode__ = 'normalConstraint'
     __slots__ = ()
 
     @_f.addMelDocs('normalConstraint', 'aimVector')
@@ -20385,20 +20385,20 @@ class NormalConstraint(Constraint):
 
 
 class OldNormalConstraint(Constraint):
-    __melnode__ = u'oldNormalConstraint'
+    __melnode__ = 'oldNormalConstraint'
     __slots__ = ()
 
 
 class OldTangentConstraint(Constraint):
-    __melnode__ = u'oldTangentConstraint'
+    __melnode__ = 'oldTangentConstraint'
     __slots__ = ()
 
 
 class OrientConstraint(Constraint):
     __melcmd__ = staticmethod(animation.orientConstraint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'orientConstraint'
-    __melnode__ = u'orientConstraint'
+    __melcmdname__ = 'orientConstraint'
+    __melnode__ = 'orientConstraint'
     __slots__ = ()
 
     @_f.addMelDocs('orientConstraint', 'createCache')
@@ -20444,8 +20444,8 @@ class OrientConstraint(Constraint):
 class ParentConstraint(Constraint):
     __melcmd__ = staticmethod(animation.parentConstraint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'parentConstraint'
-    __melnode__ = u'parentConstraint'
+    __melcmdname__ = 'parentConstraint'
+    __melnode__ = 'parentConstraint'
     __slots__ = ()
 
     @_f.addMelDocs('parentConstraint', 'createCache')
@@ -20478,8 +20478,8 @@ class ParentConstraint(Constraint):
 class PointConstraint(Constraint):
     __melcmd__ = staticmethod(animation.pointConstraint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'pointConstraint'
-    __melnode__ = u'pointConstraint'
+    __melcmdname__ = 'pointConstraint'
+    __melnode__ = 'pointConstraint'
     __slots__ = ()
 
     @_f.addMelDocs('pointConstraint', 'offset')
@@ -20517,8 +20517,8 @@ class PointConstraint(Constraint):
 class PoleVectorConstraint(PointConstraint):
     __melcmd__ = staticmethod(animation.poleVectorConstraint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'poleVectorConstraint'
-    __melnode__ = u'poleVectorConstraint'
+    __melcmdname__ = 'poleVectorConstraint'
+    __melnode__ = 'poleVectorConstraint'
     __slots__ = ()
 
     @_f.addMelDocs('poleVectorConstraint', 'targetList')
@@ -20543,8 +20543,8 @@ class PoleVectorConstraint(PointConstraint):
 class PointOnPolyConstraint(Constraint):
     __melcmd__ = staticmethod(animation.pointOnPolyConstraint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'pointOnPolyConstraint'
-    __melnode__ = u'pointOnPolyConstraint'
+    __melcmdname__ = 'pointOnPolyConstraint'
+    __melnode__ = 'pointOnPolyConstraint'
     __slots__ = ()
 
     @_f.addMelDocs('pointOnPolyConstraint', 'offset')
@@ -20582,8 +20582,8 @@ class PointOnPolyConstraint(Constraint):
 class ScaleConstraint(Constraint):
     __melcmd__ = staticmethod(animation.scaleConstraint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'scaleConstraint'
-    __melnode__ = u'scaleConstraint'
+    __melcmdname__ = 'scaleConstraint'
+    __melnode__ = 'scaleConstraint'
     __slots__ = ()
 
     @_f.addMelDocs('scaleConstraint', 'offset')
@@ -20623,15 +20623,15 @@ class ScaleConstraint(Constraint):
 
 
 class SymmetryConstraint(Constraint):
-    __melnode__ = u'symmetryConstraint'
+    __melnode__ = 'symmetryConstraint'
     __slots__ = ()
 
 
 class TangentConstraint(Constraint):
     __melcmd__ = staticmethod(animation.tangentConstraint)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'tangentConstraint'
-    __melnode__ = u'tangentConstraint'
+    __melcmdname__ = 'tangentConstraint'
+    __melnode__ = 'tangentConstraint'
     __slots__ = ()
 
     @_f.addMelDocs('tangentConstraint', 'aimVector')
@@ -20699,7 +20699,7 @@ class TangentConstraint(Constraint):
 
 
 class DagContainer(Transform):
-    __melnode__ = u'dagContainer'
+    __melnode__ = 'dagContainer'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -20722,8 +20722,8 @@ class Assembly(DagContainer):
     __apicls__ = _api.MFnAssembly
     __melcmd__ = staticmethod(general.assembly)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'assembly'
-    __melnode__ = u'assembly'
+    __melcmdname__ = 'assembly'
+    __melnode__ = 'assembly'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnAssembly, 'activate')
@@ -21058,18 +21058,18 @@ class Assembly(DagContainer):
 
 
 class THassembly(Assembly):
-    __melnode__ = u'THassembly'
+    __melnode__ = 'THassembly'
     __slots__ = ()
 
 
 class CollisionModel(DynBase):
-    __melnode__ = u'collisionModel'
+    __melnode__ = 'collisionModel'
     __slots__ = ()
 
 
 class Field(DynBase):
     __apicls__ = _api.MFnField
-    __melnode__ = u'field'
+    __melnode__ = 'field'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnField, 'falloffCurve')
@@ -21142,7 +21142,7 @@ class Field(DynBase):
     @_f.addApiDocs(_api.MFnField, 'setMaxDistance')
     def setMaxDistance(self, dist):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dist], [('dist', 'double', 'in', u'linear')], self.getMaxDistance, self.setMaxDistance, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([dist], [('dist', 'double', 'in', 'linear')], self.getMaxDistance, self.setMaxDistance, [])
         res = _f.getProxyResult(self, _api.MFnField, 'setMaxDistance', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21165,7 +21165,7 @@ class Field(DynBase):
 
 
 class THdynField(Field):
-    __melnode__ = u'THdynField'
+    __melnode__ = 'THdynField'
     __slots__ = ()
 
 
@@ -21174,7 +21174,7 @@ class AirField(Field):
     __melcmd__ = staticmethod(effects.air)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'air'
-    __melnode__ = u'airField'
+    __melnode__ = 'airField'
     __slots__ = ()
 
     @_f.addMelDocs('air', 'fanSetup')
@@ -21340,7 +21340,7 @@ class AirField(Field):
     @_f.addApiDocs(_api.MFnAirField, 'setSpread')
     def setSpread(self, value):
         # type: (float) -> None
-        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'double', 'in', u'angular')], self.getSpread, self.setSpread, [])
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([value], [('value', 'double', 'in', 'angular')], self.getSpread, self.setSpread, [])
         res = _f.getProxyResult(self, _api.MFnAirField, 'setSpread', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
@@ -21383,7 +21383,7 @@ class DragField(Field):
     __melcmd__ = staticmethod(effects.drag)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'drag'
-    __melnode__ = u'dragField'
+    __melnode__ = 'dragField'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnDragField, 'direction')
@@ -21492,7 +21492,7 @@ class GravityField(Field):
     __melcmd__ = staticmethod(effects.gravity)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'gravity'
-    __melnode__ = u'gravityField'
+    __melnode__ = 'gravityField'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnGravityField, 'direction')
@@ -21584,7 +21584,7 @@ class GravityField(Field):
 
 class NewtonField(Field):
     __apicls__ = _api.MFnNewtonField
-    __melnode__ = u'newtonField'
+    __melnode__ = 'newtonField'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnNewtonField, 'minDistance')
@@ -21604,7 +21604,7 @@ class NewtonField(Field):
 
 class RadialField(Field):
     __apicls__ = _api.MFnRadialField
-    __melnode__ = u'radialField'
+    __melnode__ = 'radialField'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnRadialField, 'radialType')
@@ -21627,7 +21627,7 @@ class TurbulenceField(Field):
     __melcmd__ = staticmethod(effects.turbulence)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'turbulence'
-    __melnode__ = u'turbulenceField'
+    __melnode__ = 'turbulenceField'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnTurbulenceField, 'frequency')
@@ -21755,7 +21755,7 @@ class UniformField(Field):
     __melcmd__ = staticmethod(effects.uniform)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'uniform'
-    __melnode__ = u'uniformField'
+    __melnode__ = 'uniformField'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnUniformField, 'direction')
@@ -21850,7 +21850,7 @@ class VolumeAxisField(Field):
     __melcmd__ = staticmethod(effects.volumeAxis)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'volumeAxis'
-    __melnode__ = u'volumeAxisField'
+    __melnode__ = 'volumeAxisField'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnVolumeAxisField, 'detailTurbulence')
@@ -22154,7 +22154,7 @@ class VortexField(Field):
     __melcmd__ = staticmethod(effects.vortex)
     __melcmd_isinfo__ = False
     __melcmdname__ = 'vortex'
-    __melnode__ = u'vortexField'
+    __melnode__ = 'vortexField'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnVortexField, 'axis')
@@ -22245,23 +22245,23 @@ class VortexField(Field):
 
 
 class THdynEmitter(PointEmitter):
-    __melnode__ = u'THdynEmitter'
+    __melnode__ = 'THdynEmitter'
     __slots__ = ()
 
 
 class THfluidEmitter(FluidEmitter):
-    __melnode__ = u'THfluidEmitter'
+    __melnode__ = 'THfluidEmitter'
     __slots__ = ()
 
 
 class FosterParent(Transform):
-    __melnode__ = u'fosterParent'
+    __melnode__ = 'fosterParent'
     __slots__ = ()
 
 
 class HikEffector(Transform):
     __apicls__ = _api.MFnHikEffector
-    __melnode__ = u'hikEffector'
+    __melnode__ = 'hikEffector'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnHikEffector, 'getAuxiliaryEffectors')
@@ -22301,7 +22301,7 @@ class HikEffector(Transform):
 
 
 class HikGroundPlane(Transform):
-    __melnode__ = u'hikGroundPlane'
+    __melnode__ = 'hikGroundPlane'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -22321,7 +22321,7 @@ class HikGroundPlane(Transform):
 
 
 class HikIKEffector(Transform):
-    __melnode__ = u'hikIKEffector'
+    __melnode__ = 'hikIKEffector'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -22342,7 +22342,7 @@ class HikIKEffector(Transform):
 
 class IkEffector(Transform):
     __apicls__ = _api.MFnIkEffector
-    __melnode__ = u'ikEffector'
+    __melnode__ = 'ikEffector'
     __slots__ = ()
 
 
@@ -22350,8 +22350,8 @@ class IkHandle(Transform):
     __apicls__ = _api.MFnIkHandle
     __melcmd__ = staticmethod(animation.ikHandle)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'ikHandle'
-    __melnode__ = u'ikHandle'
+    __melcmdname__ = 'ikHandle'
+    __melnode__ = 'ikHandle'
     __slots__ = ()
     Stickiness = Enum('Stickiness', [('stickyOff', 0), ('kStickyOff', 0), ('stickyOn', 1), ('kStickyOn', 1), ('superSticky', 2), ('kSuperSticky', 2)], multiKeys=True)
 
@@ -22580,8 +22580,8 @@ class Instancer(Transform):
     __apicls__ = _api.MFnInstancer
     __melcmd__ = staticmethod(general.instancer)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'instancer'
-    __melnode__ = u'instancer'
+    __melcmdname__ = 'instancer'
+    __melnode__ = 'instancer'
     __slots__ = ()
 
     @_f.addMelDocs('instancer', 'addObject')
@@ -22699,12 +22699,12 @@ class Instancer(Transform):
 
 
 class HikFKJoint(Joint):
-    __melnode__ = u'hikFKJoint'
+    __melnode__ = 'hikFKJoint'
     __slots__ = ()
 
 
 class LodGroup(Transform):
-    __melnode__ = u'lodGroup'
+    __melnode__ = 'lodGroup'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -22724,7 +22724,7 @@ class LodGroup(Transform):
 
 
 class Nucleus(Transform):
-    __melnode__ = u'nucleus'
+    __melnode__ = 'nucleus'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -22744,7 +22744,7 @@ class Nucleus(Transform):
 
 
 class Place3dTexture(Transform):
-    __melnode__ = u'place3dTexture'
+    __melnode__ = 'place3dTexture'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -22764,7 +22764,7 @@ class Place3dTexture(Transform):
 
 
 class RigidConstraint(Transform):
-    __melnode__ = u'rigidConstraint'
+    __melnode__ = 'rigidConstraint'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -22784,17 +22784,17 @@ class RigidConstraint(Transform):
 
 
 class TextureDeformerHandle(Transform):
-    __melnode__ = u'textureDeformerHandle'
+    __melnode__ = 'textureDeformerHandle'
     __slots__ = ()
 
 
 class UfeProxyTransform(Transform):
-    __melnode__ = u'ufeProxyTransform'
+    __melnode__ = 'ufeProxyTransform'
     __slots__ = ()
 
 
 class UnknownTransform(Transform):
-    __melnode__ = u'unknownTransform'
+    __melnode__ = 'unknownTransform'
     __slots__ = ()
 
     @_f.deprecated('Use getRotation(quaternion=True) instead.')
@@ -22813,28 +22813,53 @@ class UnknownTransform(Transform):
         return res
 
 
+class WeightFalloff(Transform):
+    __melnode__ = 'weightFalloff'
+    __slots__ = ()
+
+
+class BlendWeightFalloff(WeightFalloff):
+    __melnode__ = 'blendWeightFalloff'
+    __slots__ = ()
+
+
+class GeomWeightFalloff2(WeightFalloff):
+    __melnode__ = 'geomWeightFalloff'
+    __slots__ = ()
+
+
+class PrimitiveWeightFalloff(WeightFalloff):
+    __melnode__ = 'primitiveWeightFalloff'
+    __slots__ = ()
+
+
+class UniformWeightFalloff(WeightFalloff):
+    __melnode__ = 'uniformWeightFalloff'
+    __slots__ = ()
+
+
 class UnknownDag(DagNode):
-    __melnode__ = u'unknownDag'
+    __melnode__ = 'unknownDag'
     __slots__ = ()
 
 
 class THobjectSet(ObjectSet):
-    __melnode__ = u'THobjectSet'
+    __melnode__ = 'THobjectSet'
     __slots__ = ()
 
 
 class BakeSet(ObjectSet):
-    __melnode__ = u'bakeSet'
+    __melnode__ = 'bakeSet'
     __slots__ = ()
 
 
 class TextureBakeSet(BakeSet):
-    __melnode__ = u'textureBakeSet'
+    __melnode__ = 'textureBakeSet'
     __slots__ = ()
 
 
 class VertexBakeSet(BakeSet):
-    __melnode__ = u'vertexBakeSet'
+    __melnode__ = 'vertexBakeSet'
     __slots__ = ()
 
 
@@ -22842,8 +22867,8 @@ class Character(ObjectSet):
     __apicls__ = _api.MFnCharacter
     __melcmd__ = staticmethod(animation.character)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'character'
-    __melnode__ = u'character'
+    __melcmdname__ = 'character'
+    __melnode__ = 'character'
     __slots__ = ()
 
     @_f.addMelDocs('character', 'addElement')
@@ -23017,15 +23042,15 @@ class Character(ObjectSet):
 
 
 class CreaseSet(ObjectSet):
-    __melnode__ = u'creaseSet'
+    __melnode__ = 'creaseSet'
     __slots__ = ()
 
 
 class KeyingGroup(ObjectSet):
     __melcmd__ = staticmethod(animation.keyingGroup)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'keyingGroup'
-    __melnode__ = u'keyingGroup'
+    __melcmdname__ = 'keyingGroup'
+    __melnode__ = 'keyingGroup'
     __slots__ = ()
 
     @_f.addMelDocs('keyingGroup', 'addElement')
@@ -23142,8 +23167,8 @@ class Partition(Entity):
     __apicls__ = _api.MFnPartition
     __melcmd__ = staticmethod(general.partition)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'partition'
-    __melnode__ = u'partition'
+    __melcmdname__ = 'partition'
+    __melnode__ = 'partition'
     __slots__ = ()
     if versions.current() >= versions.v2019:
         Restriction = Enum('Restriction', [('none', 0), ('kNone', 0), ('verticesOnly', 1), ('kVerticesOnly', 1), ('edgesOnly', 2), ('kEdgesOnly', 2), ('facetsOnly', 3), ('kFacetsOnly', 3), ('editPointsOnly', 4), ('kEditPointsOnly', 4), ('renderableOnly', 5), ('kRenderableOnly', 5)], multiKeys=True)
@@ -23175,7 +23200,7 @@ class Partition(Entity):
 
 
 class Contrast(DependNode):
-    __melnode__ = u'contrast'
+    __melnode__ = 'contrast'
     __slots__ = ()
 
     @_f.deprecated
@@ -23235,8 +23260,8 @@ class Contrast(DependNode):
 class Controller(DependNode):
     __melcmd__ = staticmethod(animation.controller)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'controller'
-    __melnode__ = u'controller'
+    __melcmdname__ = 'controller'
+    __melnode__ = 'controller'
     __slots__ = ()
 
     @_f.addMelDocs('controller', 'allControllers')
@@ -23289,58 +23314,21 @@ class Controller(DependNode):
         res = _f.asQuery(self, animation.controller, kwargs, 'pickWalkUp')
         return res
 
-    @_f.addMelDocs('controller', 'unparent')
-    def getUnparent(self, **kwargs):
-        res = _f.asQuery(self, animation.controller, kwargs, 'unparent')
-        return res
-
-    @_f.addMelDocs('controller', 'allControllers')
-    def setAllControllers(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.controller, kwargs, 'allControllers', val)
-
-    @_f.addMelDocs('controller', 'children')
-    def setChildren(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.controller, kwargs, 'children', val)
-
-    @_f.addMelDocs('controller', 'group')
-    def setGroup(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.controller, kwargs, 'group', val)
-
     @_f.addMelDocs('controller', 'index')
     def setIndex(self, val=True, **kwargs):
         return _f.asEdit(self, animation.controller, kwargs, 'index', val)
-
-    @_f.addMelDocs('controller', 'isController')
-    def setIsController(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.controller, kwargs, 'isController', val)
 
     @_f.addMelDocs('controller', 'parent')
     def setParent(self, val=True, **kwargs):
         return _f.asEdit(self, animation.controller, kwargs, 'parent', val)
 
-    @_f.addMelDocs('controller', 'pickWalkDown')
-    def setPickWalkDown(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.controller, kwargs, 'pickWalkDown', val)
-
-    @_f.addMelDocs('controller', 'pickWalkLeft')
-    def setPickWalkLeft(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.controller, kwargs, 'pickWalkLeft', val)
-
-    @_f.addMelDocs('controller', 'pickWalkRight')
-    def setPickWalkRight(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.controller, kwargs, 'pickWalkRight', val)
-
-    @_f.addMelDocs('controller', 'pickWalkUp')
-    def setPickWalkUp(self, val=True, **kwargs):
-        return _f.asEdit(self, animation.controller, kwargs, 'pickWalkUp', val)
-
     @_f.addMelDocs('controller', 'unparent')
-    def setUnparent(self, val=True, **kwargs):
+    def unparent(self, val=True, **kwargs):
         return _f.asEdit(self, animation.controller, kwargs, 'unparent', val)
 
 
 class CopyColorSet(DependNode):
-    __melnode__ = u'copyColorSet'
+    __melnode__ = 'copyColorSet'
     __slots__ = ()
 
     @_f.deprecated
@@ -23398,7 +23386,7 @@ class CopyColorSet(DependNode):
 
 
 class CopyUVSet(DependNode):
-    __melnode__ = u'copyUVSet'
+    __melnode__ = 'copyUVSet'
     __slots__ = ()
 
     @_f.deprecated
@@ -23456,7 +23444,7 @@ class CopyUVSet(DependNode):
 
 
 class CreateColorSet(DependNode):
-    __melnode__ = u'createColorSet'
+    __melnode__ = 'createColorSet'
     __slots__ = ()
 
     @_f.deprecated
@@ -23514,7 +23502,7 @@ class CreateColorSet(DependNode):
 
 
 class CreateUVSet(DependNode):
-    __melnode__ = u'createUVSet'
+    __melnode__ = 'createUVSet'
     __slots__ = ()
 
     @_f.deprecated
@@ -23572,7 +23560,7 @@ class CreateUVSet(DependNode):
 
 
 class CurveFromMesh(DependNode):
-    __melnode__ = u'curveFromMesh'
+    __melnode__ = 'curveFromMesh'
     __slots__ = ()
 
     @_f.deprecated
@@ -23630,17 +23618,17 @@ class CurveFromMesh(DependNode):
 
 
 class CurveFromMeshCoM(CurveFromMesh):
-    __melnode__ = u'curveFromMeshCoM'
+    __melnode__ = 'curveFromMeshCoM'
     __slots__ = ()
 
 
 class CurveFromMeshEdge(CurveFromMesh):
-    __melnode__ = u'curveFromMeshEdge'
+    __melnode__ = 'curveFromMeshEdge'
     __slots__ = ()
 
 
 class CurveNormalizer(DependNode):
-    __melnode__ = u'curveNormalizer'
+    __melnode__ = 'curveNormalizer'
     __slots__ = ()
 
     @_f.deprecated
@@ -23698,20 +23686,20 @@ class CurveNormalizer(DependNode):
 
 
 class CurveNormalizerAngle(CurveNormalizer):
-    __melnode__ = u'curveNormalizerAngle'
+    __melnode__ = 'curveNormalizerAngle'
     __slots__ = ()
 
 
 class CurveNormalizerLinear(CurveNormalizer):
-    __melnode__ = u'curveNormalizerLinear'
+    __melnode__ = 'curveNormalizerLinear'
     __slots__ = ()
 
 
 class DagPose(DependNode):
     __melcmd__ = staticmethod(animation.dagPose)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'dagPose'
-    __melnode__ = u'dagPose'
+    __melcmdname__ = 'dagPose'
+    __melnode__ = 'dagPose'
     __slots__ = ()
 
     @_f.deprecated
@@ -23789,7 +23777,7 @@ class DagPose(DependNode):
 
 
 class DataBlockTest(DependNode):
-    __melnode__ = u'dataBlockTest'
+    __melnode__ = 'dataBlockTest'
     __slots__ = ()
 
     @_f.deprecated
@@ -23847,12 +23835,12 @@ class DataBlockTest(DependNode):
 
 
 class DecomposeMatrix(DependNode):
-    __melnode__ = u'decomposeMatrix'
+    __melnode__ = 'decomposeMatrix'
     __slots__ = ()
 
 
 class DefaultLightList(DependNode):
-    __melnode__ = u'defaultLightList'
+    __melnode__ = 'defaultLightList'
     __slots__ = ()
 
     @_f.deprecated
@@ -23910,7 +23898,7 @@ class DefaultLightList(DependNode):
 
 
 class DefaultRenderUtilityList(DependNode):
-    __melnode__ = u'defaultRenderUtilityList'
+    __melnode__ = 'defaultRenderUtilityList'
     __slots__ = ()
 
     @_f.deprecated
@@ -23968,7 +23956,7 @@ class DefaultRenderUtilityList(DependNode):
 
 
 class DefaultRenderingList(DependNode):
-    __melnode__ = u'defaultRenderingList'
+    __melnode__ = 'defaultRenderingList'
     __slots__ = ()
 
     @_f.deprecated
@@ -24026,7 +24014,7 @@ class DefaultRenderingList(DependNode):
 
 
 class DefaultShaderList(DependNode):
-    __melnode__ = u'defaultShaderList'
+    __melnode__ = 'defaultShaderList'
     __slots__ = ()
 
     @_f.deprecated
@@ -24084,7 +24072,7 @@ class DefaultShaderList(DependNode):
 
 
 class DefaultTextureList(DependNode):
-    __melnode__ = u'defaultTextureList'
+    __melnode__ = 'defaultTextureList'
     __slots__ = ()
 
     @_f.deprecated
@@ -24142,7 +24130,7 @@ class DefaultTextureList(DependNode):
 
 
 class DeleteColorSet(DependNode):
-    __melnode__ = u'deleteColorSet'
+    __melnode__ = 'deleteColorSet'
     __slots__ = ()
 
     @_f.deprecated
@@ -24200,7 +24188,7 @@ class DeleteColorSet(DependNode):
 
 
 class DeleteComponent(DependNode):
-    __melnode__ = u'deleteComponent'
+    __melnode__ = 'deleteComponent'
     __slots__ = ()
 
     @_f.deprecated
@@ -24258,7 +24246,7 @@ class DeleteComponent(DependNode):
 
 
 class DeleteUVSet(DependNode):
-    __melnode__ = u'deleteUVSet'
+    __melnode__ = 'deleteUVSet'
     __slots__ = ()
 
     @_f.deprecated
@@ -24318,8 +24306,8 @@ class DeleteUVSet(DependNode):
 class DiskCache(DependNode):
     __melcmd__ = staticmethod(system.diskCache)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'diskCache'
-    __melnode__ = u'diskCache'
+    __melcmdname__ = 'diskCache'
+    __melnode__ = 'diskCache'
     __slots__ = ()
 
     @_f.deprecated
@@ -24452,7 +24440,7 @@ class DiskCache(DependNode):
 
 
 class DisplacementShader(DependNode):
-    __melnode__ = u'displacementShader'
+    __melnode__ = 'displacementShader'
     __slots__ = ()
 
     @_f.deprecated
@@ -24510,7 +24498,7 @@ class DisplacementShader(DependNode):
 
 
 class DisplayLayerManager(DependNode):
-    __melnode__ = u'displayLayerManager'
+    __melnode__ = 'displayLayerManager'
     __slots__ = ()
 
     @_f.deprecated
@@ -24568,7 +24556,7 @@ class DisplayLayerManager(DependNode):
 
 
 class DistanceBetween(DependNode):
-    __melnode__ = u'distanceBetween'
+    __melnode__ = 'distanceBetween'
     __slots__ = ()
 
     @_f.deprecated
@@ -24626,7 +24614,7 @@ class DistanceBetween(DependNode):
 
 
 class Dof(DependNode):
-    __melnode__ = u'dof'
+    __melnode__ = 'dof'
     __slots__ = ()
 
     @_f.deprecated
@@ -24684,7 +24672,7 @@ class Dof(DependNode):
 
 
 class DynController(DependNode):
-    __melnode__ = u'dynController'
+    __melnode__ = 'dynController'
     __slots__ = ()
 
     @_f.deprecated
@@ -24744,8 +24732,8 @@ class DynController(DependNode):
 class DynGlobals(DependNode):
     __melcmd__ = staticmethod(effects.dynGlobals)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'dynGlobals'
-    __melnode__ = u'dynGlobals'
+    __melcmdname__ = 'dynGlobals'
+    __melnode__ = 'dynGlobals'
     __slots__ = ()
 
     @_f.deprecated
@@ -24824,8 +24812,8 @@ class DynGlobals(DependNode):
 class EditMetadata(DependNode):
     __melcmd__ = staticmethod(modeling.editMetadata)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'editMetadata'
-    __melnode__ = u'editMetadata'
+    __melcmdname__ = 'editMetadata'
+    __melnode__ = 'editMetadata'
     __slots__ = ()
 
     @_f.addMelDocs('editMetadata', 'channelName')
@@ -24860,7 +24848,7 @@ class EditMetadata(DependNode):
 
 
 class EditsManager(DependNode):
-    __melnode__ = u'editsManager'
+    __melnode__ = 'editsManager'
     __slots__ = ()
 
 
@@ -24868,8 +24856,8 @@ class Expression(DependNode):
     __apicls__ = _api.MFnExpression
     __melcmd__ = staticmethod(effects.expression)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'expression'
-    __melnode__ = u'expression'
+    __melcmdname__ = 'expression'
+    __melnode__ = 'expression'
     __slots__ = ()
     UnitConversion = Enum('UnitConversion', [('all', 0), ('kAll', 0), ('none', 1), ('kNone', 1), ('angularOnly', 2), ('kAngularOnly', 2)], multiKeys=True)
 
@@ -24999,7 +24987,7 @@ class Expression(DependNode):
 
 
 class Facade(DependNode):
-    __melnode__ = u'facade'
+    __melnode__ = 'facade'
     __slots__ = ()
 
     @_f.deprecated
@@ -25057,25 +25045,25 @@ class Facade(DependNode):
 
 
 class EnvFacade(Facade):
-    __melnode__ = u'envFacade'
+    __melnode__ = 'envFacade'
     __slots__ = ()
 
 
 class AISEnvFacade(EnvFacade):
-    __melnode__ = u'AISEnvFacade'
+    __melnode__ = 'AISEnvFacade'
     __slots__ = ()
 
 
 class MaterialFacade(Facade):
-    __melnode__ = u'materialFacade'
+    __melnode__ = 'materialFacade'
     __slots__ = ()
 
 
 class Flow(DependNode):
     __melcmd__ = staticmethod(animation.flow)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'flow'
-    __melnode__ = u'flow'
+    __melcmdname__ = 'flow'
+    __melnode__ = 'flow'
     __slots__ = ()
 
     @_f.deprecated
@@ -25153,7 +25141,7 @@ class Flow(DependNode):
 
 
 class FourByFourMatrix(DependNode):
-    __melnode__ = u'fourByFourMatrix'
+    __melnode__ = 'fourByFourMatrix'
     __slots__ = ()
 
     @_f.deprecated
@@ -25211,7 +25199,7 @@ class FourByFourMatrix(DependNode):
 
 
 class FrameCache(DependNode):
-    __melnode__ = u'frameCache'
+    __melnode__ = 'frameCache'
     __slots__ = ()
 
     @_f.deprecated
@@ -25269,7 +25257,7 @@ class FrameCache(DependNode):
 
 
 class GammaCorrect(DependNode):
-    __melnode__ = u'gammaCorrect'
+    __melnode__ = 'gammaCorrect'
     __slots__ = ()
 
     @_f.deprecated
@@ -25327,7 +25315,7 @@ class GammaCorrect(DependNode):
 
 
 class GeoConnector(DependNode):
-    __melnode__ = u'geoConnector'
+    __melnode__ = 'geoConnector'
     __slots__ = ()
 
     @_f.deprecated
@@ -25387,8 +25375,8 @@ class GeoConnector(DependNode):
 class GeomBind(DependNode):
     __melcmd__ = staticmethod(animation.geomBind)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'geomBind'
-    __melnode__ = u'geomBind'
+    __melcmdname__ = 'geomBind'
+    __melnode__ = 'geomBind'
     __slots__ = ()
 
     @_f.addMelDocs('geomBind', 'falloff')
@@ -25420,7 +25408,7 @@ class GeomBind(DependNode):
 
 
 class THgeometryFilter(GeometryFilter):
-    __melnode__ = u'THgeometryFilter'
+    __melnode__ = 'THgeometryFilter'
     __slots__ = ()
 
 
@@ -25428,8 +25416,8 @@ class BlendShape(GeometryFilter):
     __apicls__ = _api.MFnBlendShapeDeformer
     __melcmd__ = staticmethod(animation.blendShape)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'blendShape'
-    __melnode__ = u'blendShape'
+    __melcmdname__ = 'blendShape'
+    __melnode__ = 'blendShape'
     __slots__ = ()
     HistoryLocation = Enum('HistoryLocation', [('frontOfChain', 0), ('kFrontOfChain', 0), ('normal', 1), ('kNormal', 1), ('post', 2), ('kPost', 2), ('other', 3), ('kOther', 3)], multiKeys=True)
     Origin = Enum('Origin', [('localOrigin', 0), ('kLocalOrigin', 0), ('worldOrigin', 1), ('kWorldOrigin', 1)], multiKeys=True)
@@ -25726,15 +25714,15 @@ class BlendShape(GeometryFilter):
 
 
 class THblendShape(BlendShape):
-    __melnode__ = u'THblendShape'
+    __melnode__ = 'THblendShape'
     __slots__ = ()
 
 
 class BoneLattice(GeometryFilter):
     __melcmd__ = staticmethod(animation.boneLattice)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'boneLattice'
-    __melnode__ = u'boneLattice'
+    __melcmdname__ = 'boneLattice'
+    __melnode__ = 'boneLattice'
     __slots__ = ()
 
     @_f.addMelDocs('boneLattice', 'after')
@@ -25859,15 +25847,15 @@ class BoneLattice(GeometryFilter):
 
 
 class HistorySwitch(GeometryFilter):
-    __melnode__ = u'historySwitch'
+    __melnode__ = 'historySwitch'
     __slots__ = ()
 
 
 class JointLattice(GeometryFilter):
     __melcmd__ = staticmethod(animation.jointLattice)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'jointLattice'
-    __melnode__ = u'jointLattice'
+    __melcmdname__ = 'jointLattice'
+    __melnode__ = 'jointLattice'
     __slots__ = ()
 
     @_f.addMelDocs('jointLattice', 'after')
@@ -25985,8 +25973,8 @@ class JointLattice(GeometryFilter):
 class Sculpt(GeometryFilter):
     __melcmd__ = staticmethod(animation.sculpt)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'sculpt'
-    __melnode__ = u'sculpt'
+    __melcmdname__ = 'sculpt'
+    __melnode__ = 'sculpt'
     __slots__ = ()
 
     @_f.addMelDocs('sculpt', 'after')
@@ -26093,18 +26081,18 @@ class Sculpt(GeometryFilter):
 
 
 class THskinCluster(SkinCluster):
-    __melnode__ = u'THskinCluster'
+    __melnode__ = 'THskinCluster'
     __slots__ = ()
 
 
 class Tweak(GeometryFilter):
-    __melnode__ = u'tweak'
+    __melnode__ = 'tweak'
     __slots__ = ()
 
 
 class WeightGeometryFilter(GeometryFilter):
     __apicls__ = _api.MFnWeightGeometryFilter
-    __melnode__ = u'weightGeometryFilter'
+    __melnode__ = 'weightGeometryFilter'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnWeightGeometryFilter, 'getWeightPlugStrings')
@@ -26138,15 +26126,15 @@ class WeightGeometryFilter(GeometryFilter):
 
 
 class THdeformer(WeightGeometryFilter):
-    __melnode__ = u'THdeformer'
+    __melnode__ = 'THdeformer'
     __slots__ = ()
 
 
 class Cluster(WeightGeometryFilter):
     __melcmd__ = staticmethod(animation.cluster)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'cluster'
-    __melnode__ = u'cluster'
+    __melcmdname__ = 'cluster'
+    __melnode__ = 'cluster'
     __slots__ = ()
 
     @_f.addMelDocs('cluster', 'after')
@@ -26223,8 +26211,8 @@ class Cluster(WeightGeometryFilter):
 class JointCluster(Cluster):
     __melcmd__ = staticmethod(animation.jointCluster)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'jointCluster'
-    __melnode__ = u'jointCluster'
+    __melcmdname__ = 'jointCluster'
+    __melnode__ = 'jointCluster'
     __slots__ = ()
 
     @_f.addMelDocs('jointCluster', 'aboveBound')
@@ -26300,8 +26288,8 @@ class JointCluster(Cluster):
 class DeltaMush(WeightGeometryFilter):
     __melcmd__ = staticmethod(animation.deltaMush)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'deltaMush'
-    __melnode__ = u'deltaMush'
+    __melcmdname__ = 'deltaMush'
+    __melnode__ = 'deltaMush'
     __slots__ = ()
 
     @_f.addMelDocs('deltaMush', 'after')
@@ -26409,7 +26397,7 @@ class DeltaMush(WeightGeometryFilter):
 
 class Ffd(WeightGeometryFilter):
     __apicls__ = _api.MFnLatticeDeformer
-    __melnode__ = u'ffd'
+    __melnode__ = 'ffd'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnLatticeDeformer, 'addGeometry')
@@ -26469,15 +26457,15 @@ class Ffd(WeightGeometryFilter):
 
 
 class Jiggle(WeightGeometryFilter):
-    __melnode__ = u'jiggle'
+    __melnode__ = 'jiggle'
     __slots__ = ()
 
 
 class NonLinear(WeightGeometryFilter):
     __melcmd__ = staticmethod(animation.nonLinear)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'nonLinear'
-    __melnode__ = u'nonLinear'
+    __melcmdname__ = 'nonLinear'
+    __melnode__ = 'nonLinear'
     __slots__ = ()
 
     @_f.addMelDocs('nonLinear', 'after')
@@ -26539,20 +26527,20 @@ class NonLinear(WeightGeometryFilter):
 
 
 class ProximityWrap(WeightGeometryFilter):
-    __melnode__ = u'proximityWrap'
+    __melnode__ = 'proximityWrap'
     __slots__ = ()
 
 
 class ShrinkWrap(WeightGeometryFilter):
-    __melnode__ = u'shrinkWrap'
+    __melnode__ = 'shrinkWrap'
     __slots__ = ()
 
 
 class SoftMod(WeightGeometryFilter):
     __melcmd__ = staticmethod(animation.softMod)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'softMod'
-    __melnode__ = u'softMod'
+    __melcmdname__ = 'softMod'
+    __melnode__ = 'softMod'
     __slots__ = ()
 
     @_f.addMelDocs('softMod', 'after')
@@ -26627,15 +26615,15 @@ class SoftMod(WeightGeometryFilter):
 
 
 class Solidify(WeightGeometryFilter):
-    __melnode__ = u'solidify'
+    __melnode__ = 'solidify'
     __slots__ = ()
 
 
 class Tension(WeightGeometryFilter):
     __melcmd__ = staticmethod(animation.tension)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'tension'
-    __melnode__ = u'tension'
+    __melcmdname__ = 'tension'
+    __melnode__ = 'tension'
     __slots__ = ()
 
     @_f.addMelDocs('tension', 'after')
@@ -26744,8 +26732,8 @@ class Tension(WeightGeometryFilter):
 class TextureDeformer(WeightGeometryFilter):
     __melcmd__ = staticmethod(animation.textureDeformer)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'textureDeformer'
-    __melnode__ = u'textureDeformer'
+    __melcmdname__ = 'textureDeformer'
+    __melnode__ = 'textureDeformer'
     __slots__ = ()
 
     @_f.addMelDocs('textureDeformer', 'after')
@@ -26809,8 +26797,8 @@ class TextureDeformer(WeightGeometryFilter):
 class TransferAttributes(WeightGeometryFilter):
     __melcmd__ = staticmethod(modeling.transferAttributes)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'transferAttributes'
-    __melnode__ = u'transferAttributes'
+    __melcmdname__ = 'transferAttributes'
+    __melnode__ = 'transferAttributes'
     __slots__ = ()
 
     @_f.addMelDocs('transferAttributes', 'after')
@@ -26923,8 +26911,8 @@ class Wire(WeightGeometryFilter):
     __apicls__ = _api.MFnWireDeformer
     __melcmd__ = staticmethod(animation.wire)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'wire'
-    __melnode__ = u'wire'
+    __melcmdname__ = 'wire'
+    __melnode__ = 'wire'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnWireDeformer, 'addGeometry')
@@ -27185,12 +27173,12 @@ class Wire(WeightGeometryFilter):
 
 
 class Wrap(GeometryFilter):
-    __melnode__ = u'wrap'
+    __melnode__ = 'wrap'
     __slots__ = ()
 
 
 class GlobalCacheControl(DependNode):
-    __melnode__ = u'globalCacheControl'
+    __melnode__ = 'globalCacheControl'
     __slots__ = ()
 
     @_f.deprecated
@@ -27248,12 +27236,12 @@ class GlobalCacheControl(DependNode):
 
 
 class GreasePencilSequence(DependNode):
-    __melnode__ = u'greasePencilSequence'
+    __melnode__ = 'greasePencilSequence'
     __slots__ = ()
 
 
 class GroupId(DependNode):
-    __melnode__ = u'groupId'
+    __melnode__ = 'groupId'
     __slots__ = ()
 
     @_f.deprecated
@@ -27313,8 +27301,8 @@ class GroupId(DependNode):
 class GroupParts(DependNode):
     __melcmd__ = staticmethod(other.groupParts)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'groupParts'
-    __melnode__ = u'groupParts'
+    __melcmdname__ = 'groupParts'
+    __melnode__ = 'groupParts'
     __slots__ = ()
 
     @_f.deprecated
@@ -27372,7 +27360,7 @@ class GroupParts(DependNode):
 
 
 class Guide(DependNode):
-    __melnode__ = u'guide'
+    __melnode__ = 'guide'
     __slots__ = ()
 
     @_f.deprecated
@@ -27430,7 +27418,7 @@ class Guide(DependNode):
 
 
 class HardwareRenderGlobals(DependNode):
-    __melnode__ = u'hardwareRenderGlobals'
+    __melnode__ = 'hardwareRenderGlobals'
     __slots__ = ()
 
     @_f.deprecated
@@ -27488,7 +27476,7 @@ class HardwareRenderGlobals(DependNode):
 
 
 class HardwareRenderingGlobals(DependNode):
-    __melnode__ = u'hardwareRenderingGlobals'
+    __melnode__ = 'hardwareRenderingGlobals'
     __slots__ = ()
 
     @_f.deprecated
@@ -27546,7 +27534,7 @@ class HardwareRenderingGlobals(DependNode):
 
 
 class HierarchyTestNode1(DependNode):
-    __melnode__ = u'hierarchyTestNode1'
+    __melnode__ = 'hierarchyTestNode1'
     __slots__ = ()
 
     @_f.deprecated
@@ -27604,17 +27592,17 @@ class HierarchyTestNode1(DependNode):
 
 
 class HierarchyTestNode2(HierarchyTestNode1):
-    __melnode__ = u'hierarchyTestNode2'
+    __melnode__ = 'hierarchyTestNode2'
     __slots__ = ()
 
 
 class HierarchyTestNode3(HierarchyTestNode2):
-    __melnode__ = u'hierarchyTestNode3'
+    __melnode__ = 'hierarchyTestNode3'
     __slots__ = ()
 
 
 class HoldMatrix(DependNode):
-    __melnode__ = u'holdMatrix'
+    __melnode__ = 'holdMatrix'
     __slots__ = ()
 
     @_f.deprecated
@@ -27672,7 +27660,7 @@ class HoldMatrix(DependNode):
 
 
 class HsvToRgb(DependNode):
-    __melnode__ = u'hsvToRgb'
+    __melnode__ = 'hsvToRgb'
     __slots__ = ()
 
     @_f.deprecated
@@ -27732,8 +27720,8 @@ class HsvToRgb(DependNode):
 class HwReflectionMap(DependNode):
     __melcmd__ = staticmethod(rendering.hwReflectionMap)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'hwReflectionMap'
-    __melnode__ = u'hwReflectionMap'
+    __melcmdname__ = 'hwReflectionMap'
+    __melnode__ = 'hwReflectionMap'
     __slots__ = ()
 
     @_f.deprecated
@@ -27841,7 +27829,7 @@ class HwReflectionMap(DependNode):
 
 
 class HwRenderGlobals(DependNode):
-    __melnode__ = u'hwRenderGlobals'
+    __melnode__ = 'hwRenderGlobals'
     __slots__ = ()
 
     @_f.deprecated
@@ -27899,7 +27887,7 @@ class HwRenderGlobals(DependNode):
 
 
 class HyperGraphInfo(DependNode):
-    __melnode__ = u'hyperGraphInfo'
+    __melnode__ = 'hyperGraphInfo'
     __slots__ = ()
 
     @_f.deprecated
@@ -27957,7 +27945,7 @@ class HyperGraphInfo(DependNode):
 
 
 class HyperLayout(DependNode):
-    __melnode__ = u'hyperLayout'
+    __melnode__ = 'hyperLayout'
     __slots__ = ()
 
     @_f.deprecated
@@ -28015,7 +28003,7 @@ class HyperLayout(DependNode):
 
 
 class HyperView(DependNode):
-    __melnode__ = u'hyperView'
+    __melnode__ = 'hyperView'
     __slots__ = ()
 
     @_f.deprecated
@@ -28076,8 +28064,8 @@ class IkSolver(DependNode):
     __apicls__ = _api.MFnIkSolver
     __melcmd__ = staticmethod(animation.ikSolver)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'ikSolver'
-    __melnode__ = u'ikSolver'
+    __melcmdname__ = 'ikSolver'
+    __melnode__ = 'ikSolver'
     __slots__ = ()
 
     @_f.addMelDocs('ikSolver', 'epsilon')
@@ -28128,45 +28116,45 @@ class IkSolver(DependNode):
 
 
 class THikSolverNode(IkSolver):
-    __melnode__ = u'THikSolverNode'
+    __melnode__ = 'THikSolverNode'
     __slots__ = ()
 
 
 class HikSolver(IkSolver):
-    __melnode__ = u'hikSolver'
+    __melnode__ = 'hikSolver'
     __slots__ = ()
 
 
 class IkMCsolver(IkSolver):
-    __melnode__ = u'ikMCsolver'
+    __melnode__ = 'ikMCsolver'
     __slots__ = ()
 
 
 class IkPASolver(IkSolver):
-    __melnode__ = u'ikPASolver'
+    __melnode__ = 'ikPASolver'
     __slots__ = ()
 
 
 class IkSCsolver(IkSolver):
-    __melnode__ = u'ikSCsolver'
+    __melnode__ = 'ikSCsolver'
     __slots__ = ()
 
 
 class IkRPsolver(IkSCsolver):
-    __melnode__ = u'ikRPsolver'
+    __melnode__ = 'ikRPsolver'
     __slots__ = ()
 
 
 class IkSplineSolver(IkSolver):
-    __melnode__ = u'ikSplineSolver'
+    __melnode__ = 'ikSplineSolver'
     __slots__ = ()
 
 
 class IkSystem(DependNode):
     __melcmd__ = staticmethod(animation.ikSystem)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'ikSystem'
-    __melnode__ = u'ikSystem'
+    __melcmdname__ = 'ikSystem'
+    __melnode__ = 'ikSystem'
     __slots__ = ()
 
     @_f.addMelDocs('ikSystem', 'autoPriority')
@@ -28278,7 +28266,7 @@ class IkSystem(DependNode):
 
 class ImageSource(DependNode):
     __apicls__ = _api.MFnImageSource
-    __melnode__ = u'imageSource'
+    __melnode__ = 'imageSource'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnImageSource, 'sourceCamera')
@@ -28300,7 +28288,7 @@ class ImageSource(DependNode):
 
 class RenderPass(ImageSource):
     __apicls__ = _api.MFnRenderPass
-    __melnode__ = u'renderPass'
+    __melnode__ = 'renderPass'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnRenderPass, 'customTokenString')
@@ -28329,17 +28317,17 @@ class RenderPass(ImageSource):
 
 
 class RenderTarget(ImageSource):
-    __melnode__ = u'renderTarget'
+    __melnode__ = 'renderTarget'
     __slots__ = ()
 
 
 class RenderedImageSource(ImageSource):
-    __melnode__ = u'renderedImageSource'
+    __melnode__ = 'renderedImageSource'
     __slots__ = ()
 
 
 class LightInfo(DependNode):
-    __melnode__ = u'lightInfo'
+    __melnode__ = 'lightInfo'
     __slots__ = ()
 
     @_f.deprecated
@@ -28397,7 +28385,7 @@ class LightInfo(DependNode):
 
 
 class LightLinker(DependNode):
-    __melnode__ = u'lightLinker'
+    __melnode__ = 'lightLinker'
     __slots__ = ()
 
     @_f.deprecated
@@ -28457,8 +28445,8 @@ class LightLinker(DependNode):
 class LightList(DependNode):
     __melcmd__ = staticmethod(rendering.lightList)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'lightList'
-    __melnode__ = u'lightList'
+    __melcmdname__ = 'lightList'
+    __melnode__ = 'lightList'
     __slots__ = ()
 
     @_f.deprecated
@@ -28516,7 +28504,7 @@ class LightList(DependNode):
 
 
 class LodThresholds(DependNode):
-    __melnode__ = u'lodThresholds'
+    __melnode__ = 'lodThresholds'
     __slots__ = ()
 
     @_f.deprecated
@@ -28574,7 +28562,7 @@ class LodThresholds(DependNode):
 
 
 class Luminance(DependNode):
-    __melnode__ = u'luminance'
+    __melnode__ = 'luminance'
     __slots__ = ()
 
     @_f.deprecated
@@ -28632,7 +28620,7 @@ class Luminance(DependNode):
 
 
 class MakeGroup(DependNode):
-    __melnode__ = u'makeGroup'
+    __melnode__ = 'makeGroup'
     __slots__ = ()
 
     @_f.deprecated
@@ -28690,12 +28678,12 @@ class MakeGroup(DependNode):
 
 
 class MaterialAssign(DependNode):
-    __melnode__ = u'materialAssign'
+    __melnode__ = 'materialAssign'
     __slots__ = ()
 
 
 class MaterialInfo(DependNode):
-    __melnode__ = u'materialInfo'
+    __melnode__ = 'materialInfo'
     __slots__ = ()
 
     @_f.deprecated
@@ -28753,7 +28741,7 @@ class MaterialInfo(DependNode):
 
 
 class Membrane(DependNode):
-    __melnode__ = u'membrane'
+    __melnode__ = 'membrane'
     __slots__ = ()
 
     @_f.deprecated
@@ -28812,7 +28800,7 @@ class Membrane(DependNode):
 
 class MotionPath(DependNode):
     __apicls__ = _api.MFnMotionPath
-    __melnode__ = u'motionPath'
+    __melnode__ = 'motionPath'
     __slots__ = ()
     Axis = Enum('Axis', [('xaxis', 0), ('kXaxis', 0), ('yaxis', 1), ('kYaxis', 1), ('zaxis', 2), ('kZaxis', 2)], multiKeys=True)
 
@@ -29042,12 +29030,12 @@ class MotionPath(DependNode):
 
 
 class THmotionPath(MotionPath):
-    __melnode__ = u'THmotionPath'
+    __melnode__ = 'THmotionPath'
     __slots__ = ()
 
 
 class MultDoubleLinear(DependNode):
-    __melnode__ = u'multDoubleLinear'
+    __melnode__ = 'multDoubleLinear'
     __slots__ = ()
 
     @_f.deprecated
@@ -29105,7 +29093,7 @@ class MultDoubleLinear(DependNode):
 
 
 class MultMatrix(DependNode):
-    __melnode__ = u'multMatrix'
+    __melnode__ = 'multMatrix'
     __slots__ = ()
 
     @_f.deprecated
@@ -29163,7 +29151,7 @@ class MultMatrix(DependNode):
 
 
 class MultilisterLight(DependNode):
-    __melnode__ = u'multilisterLight'
+    __melnode__ = 'multilisterLight'
     __slots__ = ()
 
     @_f.deprecated
@@ -29223,8 +29211,8 @@ class MultilisterLight(DependNode):
 class Mute(DependNode):
     __melcmd__ = staticmethod(animation.mute)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'mute'
-    __melnode__ = u'mute'
+    __melcmdname__ = 'mute'
+    __melnode__ = 'mute'
     __slots__ = ()
 
     @_f.deprecated
@@ -29282,7 +29270,7 @@ class Mute(DependNode):
 
 
 class NComponent(DependNode):
-    __melnode__ = u'nComponent'
+    __melnode__ = 'nComponent'
     __slots__ = ()
 
     @_f.deprecated
@@ -29340,7 +29328,7 @@ class NComponent(DependNode):
 
 
 class Network(DependNode):
-    __melnode__ = u'network'
+    __melnode__ = 'network'
     __slots__ = ()
 
     @_f.deprecated
@@ -29398,22 +29386,22 @@ class Network(DependNode):
 
 
 class NodeGraphEditorBookmarkInfo(DependNode):
-    __melnode__ = u'nodeGraphEditorBookmarkInfo'
+    __melnode__ = 'nodeGraphEditorBookmarkInfo'
     __slots__ = ()
 
 
 class NodeGraphEditorBookmarks(DependNode):
-    __melnode__ = u'nodeGraphEditorBookmarks'
+    __melnode__ = 'nodeGraphEditorBookmarks'
     __slots__ = ()
 
 
 class NodeGraphEditorInfo(DependNode):
-    __melnode__ = u'nodeGraphEditorInfo'
+    __melnode__ = 'nodeGraphEditorInfo'
     __slots__ = ()
 
 
 class ObjectFilter(DependNode):
-    __melnode__ = u'objectFilter'
+    __melnode__ = 'objectFilter'
     __slots__ = ()
 
     @_f.deprecated
@@ -29471,42 +29459,42 @@ class ObjectFilter(DependNode):
 
 
 class ObjectAttrFilter(ObjectFilter):
-    __melnode__ = u'objectAttrFilter'
+    __melnode__ = 'objectAttrFilter'
     __slots__ = ()
 
 
 class ObjectBinFilter(ObjectFilter):
-    __melnode__ = u'objectBinFilter'
+    __melnode__ = 'objectBinFilter'
     __slots__ = ()
 
 
 class ObjectMultiFilter(ObjectFilter):
-    __melnode__ = u'objectMultiFilter'
+    __melnode__ = 'objectMultiFilter'
     __slots__ = ()
 
 
 class ObjectNameFilter(ObjectFilter):
-    __melnode__ = u'objectNameFilter'
+    __melnode__ = 'objectNameFilter'
     __slots__ = ()
 
 
 class ObjectRenderFilter(ObjectFilter):
-    __melnode__ = u'objectRenderFilter'
+    __melnode__ = 'objectRenderFilter'
     __slots__ = ()
 
 
 class ObjectScriptFilter(ObjectFilter):
-    __melnode__ = u'objectScriptFilter'
+    __melnode__ = 'objectScriptFilter'
     __slots__ = ()
 
 
 class ObjectTypeFilter(ObjectFilter):
-    __melnode__ = u'objectTypeFilter'
+    __melnode__ = 'objectTypeFilter'
     __slots__ = ()
 
 
 class OldBlindDataBase(DependNode):
-    __melnode__ = u'oldBlindDataBase'
+    __melnode__ = 'oldBlindDataBase'
     __slots__ = ()
 
     @_f.deprecated
@@ -29564,7 +29552,7 @@ class OldBlindDataBase(DependNode):
 
 
 class OldGeometryConstraint(DependNode):
-    __melnode__ = u'oldGeometryConstraint'
+    __melnode__ = 'oldGeometryConstraint'
     __slots__ = ()
 
     @_f.deprecated
@@ -29622,7 +29610,7 @@ class OldGeometryConstraint(DependNode):
 
 
 class OpticalFX(DependNode):
-    __melnode__ = u'opticalFX'
+    __melnode__ = 'opticalFX'
     __slots__ = ()
 
     @_f.deprecated
@@ -29682,8 +29670,8 @@ class OpticalFX(DependNode):
 class PairBlend(DependNode):
     __melcmd__ = staticmethod(animation.pairBlend)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'pairBlend'
-    __melnode__ = u'pairBlend'
+    __melcmdname__ = 'pairBlend'
+    __melnode__ = 'pairBlend'
     __slots__ = ()
 
     @_f.deprecated
@@ -29751,7 +29739,7 @@ class PairBlend(DependNode):
 
 
 class ParticleAgeMapper(DependNode):
-    __melnode__ = u'particleAgeMapper'
+    __melnode__ = 'particleAgeMapper'
     __slots__ = ()
 
     @_f.deprecated
@@ -29809,7 +29797,7 @@ class ParticleAgeMapper(DependNode):
 
 
 class ParticleColorMapper(DependNode):
-    __melnode__ = u'particleColorMapper'
+    __melnode__ = 'particleColorMapper'
     __slots__ = ()
 
     @_f.deprecated
@@ -29867,7 +29855,7 @@ class ParticleColorMapper(DependNode):
 
 
 class ParticleIncandMapper(DependNode):
-    __melnode__ = u'particleIncandMapper'
+    __melnode__ = 'particleIncandMapper'
     __slots__ = ()
 
     @_f.deprecated
@@ -29925,7 +29913,7 @@ class ParticleIncandMapper(DependNode):
 
 
 class ParticleTranspMapper(DependNode):
-    __melnode__ = u'particleTranspMapper'
+    __melnode__ = 'particleTranspMapper'
     __slots__ = ()
 
     @_f.deprecated
@@ -29983,7 +29971,7 @@ class ParticleTranspMapper(DependNode):
 
 
 class PassContributionMap(DependNode):
-    __melnode__ = u'passContributionMap'
+    __melnode__ = 'passContributionMap'
     __slots__ = ()
 
     @_f.deprecated
@@ -30041,7 +30029,7 @@ class PassContributionMap(DependNode):
 
 
 class PassMatrix(DependNode):
-    __melnode__ = u'passMatrix'
+    __melnode__ = 'passMatrix'
     __slots__ = ()
 
     @_f.deprecated
@@ -30099,12 +30087,12 @@ class PassMatrix(DependNode):
 
 
 class PickMatrix(DependNode):
-    __melnode__ = u'pickMatrix'
+    __melnode__ = 'pickMatrix'
     __slots__ = ()
 
 
 class PointMatrixMult(DependNode):
-    __melnode__ = u'pointMatrixMult'
+    __melnode__ = 'pointMatrixMult'
     __slots__ = ()
 
     @_f.deprecated
@@ -30162,7 +30150,7 @@ class PointMatrixMult(DependNode):
 
 
 class PolyBase(DependNode):
-    __melnode__ = u'polyBase'
+    __melnode__ = 'polyBase'
     __slots__ = ()
 
     @_f.deprecated
@@ -30220,20 +30208,20 @@ class PolyBase(DependNode):
 
 
 class PolyCreator(PolyBase):
-    __melnode__ = u'polyCreator'
+    __melnode__ = 'polyCreator'
     __slots__ = ()
 
 
 class PolyCreateFace(PolyCreator):
-    __melnode__ = u'polyCreateFace'
+    __melnode__ = 'polyCreateFace'
     __slots__ = ()
 
 
 class PolyPrimitive(PolyCreator):
     __melcmd__ = staticmethod(modeling.polyPrimitive)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyPrimitive'
-    __melnode__ = u'polyPrimitive'
+    __melcmdname__ = 'polyPrimitive'
+    __melnode__ = 'polyPrimitive'
     __slots__ = ()
 
     @_f.addMelDocs('polyPrimitive', 'axis')
@@ -30330,8 +30318,8 @@ class PolyPrimitive(PolyCreator):
 class PolyCone(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyCone)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyCone'
-    __melnode__ = u'polyCone'
+    __melcmdname__ = 'polyCone'
+    __melnode__ = 'polyCone'
     __slots__ = ()
 
     @_f.addMelDocs('polyCone', 'axis')
@@ -30498,8 +30486,8 @@ class PolyCone(PolyPrimitive):
 class PolyCube(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyCube)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyCube'
-    __melnode__ = u'polyCube'
+    __melcmdname__ = 'polyCube'
+    __melnode__ = 'polyCube'
     __slots__ = ()
 
     @_f.addMelDocs('polyCube', 'axis')
@@ -30665,8 +30653,8 @@ class PolyCube(PolyPrimitive):
 class PolyCylinder(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyCylinder)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyCylinder'
-    __melnode__ = u'polyCylinder'
+    __melcmdname__ = 'polyCylinder'
+    __melnode__ = 'polyCylinder'
     __slots__ = ()
 
     @_f.addMelDocs('polyCylinder', 'axis')
@@ -30833,8 +30821,8 @@ class PolyCylinder(PolyPrimitive):
 class PolyHelix(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyHelix)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyHelix'
-    __melnode__ = u'polyHelix'
+    __melcmdname__ = 'polyHelix'
+    __melnode__ = 'polyHelix'
     __slots__ = ()
 
     @_f.addMelDocs('polyHelix', 'axis')
@@ -31009,8 +30997,8 @@ class PolyHelix(PolyPrimitive):
 class PolyPipe(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyPipe)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyPipe'
-    __melnode__ = u'polyPipe'
+    __melcmdname__ = 'polyPipe'
+    __melnode__ = 'polyPipe'
     __slots__ = ()
 
     @_f.addMelDocs('polyPipe', 'axis')
@@ -31156,8 +31144,8 @@ class PolyPipe(PolyPrimitive):
 class PolyPlane(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyPlane)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyPlane'
-    __melnode__ = u'polyPlane'
+    __melcmdname__ = 'polyPlane'
+    __melnode__ = 'polyPlane'
     __slots__ = ()
 
     @_f.addMelDocs('polyPlane', 'axis')
@@ -31294,8 +31282,8 @@ class PolyPlane(PolyPrimitive):
 class PolyPlatonicSolid(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyPlatonicSolid)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyPlatonicSolid'
-    __melnode__ = u'polyPlatonicSolid'
+    __melcmdname__ = 'polyPlatonicSolid'
+    __melnode__ = 'polyPlatonicSolid'
     __slots__ = ()
 
     @_f.addMelDocs('polyPlatonicSolid', 'axis')
@@ -31372,16 +31360,16 @@ class PolyPlatonicSolid(PolyPrimitive):
 class PolyPrimitiveMisc(PolyPrimitive):
     __melcmd__ = staticmethod(other.polyPrimitiveMisc)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyPrimitiveMisc'
-    __melnode__ = u'polyPrimitiveMisc'
+    __melcmdname__ = 'polyPrimitiveMisc'
+    __melnode__ = 'polyPrimitiveMisc'
     __slots__ = ()
 
 
 class PolyPrism(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyPrism)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyPrism'
-    __melnode__ = u'polyPrism'
+    __melcmdname__ = 'polyPrism'
+    __melnode__ = 'polyPrism'
     __slots__ = ()
 
     @_f.addMelDocs('polyPrism', 'axis')
@@ -31498,8 +31486,8 @@ class PolyPrism(PolyPrimitive):
 class PolyPyramid(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyPyramid)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyPyramid'
-    __melnode__ = u'polyPyramid'
+    __melcmdname__ = 'polyPyramid'
+    __melnode__ = 'polyPyramid'
     __slots__ = ()
 
     @_f.addMelDocs('polyPyramid', 'axis')
@@ -31627,8 +31615,8 @@ class PolyPyramid(PolyPrimitive):
 class PolySphere(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polySphere)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polySphere'
-    __melnode__ = u'polySphere'
+    __melcmdname__ = 'polySphere'
+    __melnode__ = 'polySphere'
     __slots__ = ()
 
     @_f.addMelDocs('polySphere', 'axis')
@@ -31736,8 +31724,8 @@ class PolySphere(PolyPrimitive):
 class PolyTorus(PolyPrimitive):
     __melcmd__ = staticmethod(modeling.polyTorus)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyTorus'
-    __melnode__ = u'polyTorus'
+    __melcmdname__ = 'polyTorus'
+    __melnode__ = 'polyTorus'
     __slots__ = ()
 
     @_f.addMelDocs('polyTorus', 'axis')
@@ -31883,8 +31871,8 @@ class PolyTorus(PolyPrimitive):
 class PolyUnite(PolyCreator):
     __melcmd__ = staticmethod(modeling.polyUnite)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyUnite'
-    __melnode__ = u'polyUnite'
+    __melcmdname__ = 'polyUnite'
+    __melnode__ = 'polyUnite'
     __slots__ = ()
 
     @_f.addMelDocs('polyUnite', 'caching')
@@ -31909,8 +31897,8 @@ class PolyUnite(PolyCreator):
 class PolyBoolOp(PolyUnite):
     __melcmd__ = staticmethod(modeling.polyBoolOp)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyBoolOp'
-    __melnode__ = u'polyBoolOp'
+    __melcmdname__ = 'polyBoolOp'
+    __melnode__ = 'polyBoolOp'
     __slots__ = ()
 
     @_f.addMelDocs('polyBoolOp', 'caching')
@@ -31989,8 +31977,8 @@ class PolyBoolOp(PolyUnite):
 class PolyCBoolOp(PolyBoolOp):
     __melcmd__ = staticmethod(modeling.polyCBoolOp)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyCBoolOp'
-    __melnode__ = u'polyCBoolOp'
+    __melcmdname__ = 'polyCBoolOp'
+    __melnode__ = 'polyCBoolOp'
     __slots__ = ()
 
     @_f.addMelDocs('polyCBoolOp', 'caching')
@@ -32085,20 +32073,20 @@ class PolyCBoolOp(PolyBoolOp):
 
 
 class PolyModifier(PolyBase):
-    __melnode__ = u'polyModifier'
+    __melnode__ = 'polyModifier'
     __slots__ = ()
 
 
 class BlendColorSets(PolyModifier):
-    __melnode__ = u'blendColorSets'
+    __melnode__ = 'blendColorSets'
     __slots__ = ()
 
 
 class PolyAppend(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyAppend)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyAppend'
-    __melnode__ = u'polyAppend'
+    __melcmdname__ = 'polyAppend'
+    __melnode__ = 'polyAppend'
     __slots__ = ()
 
     @_f.addMelDocs('polyAppend', 'constructionHistory')
@@ -32128,8 +32116,8 @@ class PolyAppend(PolyModifier):
 class PolyAppendVertex(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyAppendVertex)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyAppendVertex'
-    __melnode__ = u'polyAppendVertex'
+    __melcmdname__ = 'polyAppendVertex'
+    __melnode__ = 'polyAppendVertex'
     __slots__ = ()
 
     @_f.addMelDocs('polyAppendVertex', 'constructionHistory')
@@ -32150,8 +32138,8 @@ class PolyAppendVertex(PolyModifier):
 class PolyClean(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyClean)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyClean'
-    __melnode__ = u'polyClean'
+    __melcmdname__ = 'polyClean'
+    __melnode__ = 'polyClean'
     __slots__ = ()
 
     @_f.addMelDocs('polyClean', 'caching')
@@ -32226,8 +32214,8 @@ class PolyClean(PolyModifier):
 class PolyCloseBorder(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyCloseBorder)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyCloseBorder'
-    __melnode__ = u'polyCloseBorder'
+    __melcmdname__ = 'polyCloseBorder'
+    __melnode__ = 'polyCloseBorder'
     __slots__ = ()
 
     @_f.addMelDocs('polyCloseBorder', 'caching')
@@ -32257,8 +32245,8 @@ class PolyCloseBorder(PolyModifier):
 class PolyCollapseEdge(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyCollapseEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyCollapseEdge'
-    __melnode__ = u'polyCollapseEdge'
+    __melcmdname__ = 'polyCollapseEdge'
+    __melnode__ = 'polyCollapseEdge'
     __slots__ = ()
 
     @_f.addMelDocs('polyCollapseEdge', 'caching')
@@ -32286,15 +32274,15 @@ class PolyCollapseEdge(PolyModifier):
 
 
 class PolyCollapseF(PolyModifier):
-    __melnode__ = u'polyCollapseF'
+    __melnode__ = 'polyCollapseF'
     __slots__ = ()
 
 
 class PolyColorDel(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyColorDel)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyColorDel'
-    __melnode__ = u'polyColorDel'
+    __melcmdname__ = 'polyColorDel'
+    __melnode__ = 'polyColorDel'
     __slots__ = ()
 
     @_f.addMelDocs('polyColorDel', 'caching')
@@ -32333,8 +32321,8 @@ class PolyColorDel(PolyModifier):
 class PolyColorMod(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyColorMod)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyColorMod'
-    __melnode__ = u'polyColorMod'
+    __melcmdname__ = 'polyColorMod'
+    __melnode__ = 'polyColorMod'
     __slots__ = ()
 
     @_f.addMelDocs('polyColorMod', 'alphaScale_FloatValue')
@@ -32526,8 +32514,8 @@ class PolyColorMod(PolyModifier):
 class PolyColorPerVertex(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyColorPerVertex)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyColorPerVertex'
-    __melnode__ = u'polyColorPerVertex'
+    __melcmdname__ = 'polyColorPerVertex'
+    __melnode__ = 'polyColorPerVertex'
     __slots__ = ()
 
     @_f.addMelDocs('polyColorPerVertex', 'alpha')
@@ -32633,8 +32621,8 @@ class PolyColorPerVertex(PolyModifier):
 class PolyConnectComponents(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyConnectComponents)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyConnectComponents'
-    __melnode__ = u'polyConnectComponents'
+    __melcmdname__ = 'polyConnectComponents'
+    __melnode__ = 'polyConnectComponents'
     __slots__ = ()
 
     @_f.addMelDocs('polyConnectComponents', 'adjustEdgeFlow')
@@ -32682,8 +32670,8 @@ class PolyConnectComponents(PolyModifier):
 class PolyDelEdge(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyDelEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyDelEdge'
-    __melnode__ = u'polyDelEdge'
+    __melcmdname__ = 'polyDelEdge'
+    __melnode__ = 'polyDelEdge'
     __slots__ = ()
 
     @_f.addMelDocs('polyDelEdge', 'caching')
@@ -32722,8 +32710,8 @@ class PolyDelEdge(PolyModifier):
 class PolyDelFacet(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyDelFacet)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyDelFacet'
-    __melnode__ = u'polyDelFacet'
+    __melcmdname__ = 'polyDelFacet'
+    __melnode__ = 'polyDelFacet'
     __slots__ = ()
 
     @_f.addMelDocs('polyDelFacet', 'caching')
@@ -32753,8 +32741,8 @@ class PolyDelFacet(PolyModifier):
 class PolyDelVertex(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyDelVertex)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyDelVertex'
-    __melnode__ = u'polyDelVertex'
+    __melcmdname__ = 'polyDelVertex'
+    __melnode__ = 'polyDelVertex'
     __slots__ = ()
 
     @_f.addMelDocs('polyDelVertex', 'caching')
@@ -32784,8 +32772,8 @@ class PolyDelVertex(PolyModifier):
 class PolyDuplicateEdge(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyDuplicateEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyDuplicateEdge'
-    __melnode__ = u'polyDuplicateEdge'
+    __melcmdname__ = 'polyDuplicateEdge'
+    __melnode__ = 'polyDuplicateEdge'
     __slots__ = ()
 
     @_f.addMelDocs('polyDuplicateEdge', 'adjustEdgeFlow')
@@ -32878,8 +32866,8 @@ class PolyDuplicateEdge(PolyModifier):
 class PolyEditEdgeFlow(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyEditEdgeFlow)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyEditEdgeFlow'
-    __melnode__ = u'polyEditEdgeFlow'
+    __melcmdname__ = 'polyEditEdgeFlow'
+    __melnode__ = 'polyEditEdgeFlow'
     __slots__ = ()
 
     @_f.addMelDocs('polyEditEdgeFlow', 'caching')
@@ -32909,16 +32897,16 @@ class PolyEditEdgeFlow(PolyModifier):
 class PolyFlipEdge(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyFlipEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyFlipEdge'
-    __melnode__ = u'polyFlipEdge'
+    __melcmdname__ = 'polyFlipEdge'
+    __melnode__ = 'polyFlipEdge'
     __slots__ = ()
 
 
 class PolyMapCut(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyMapCut)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyMapCut'
-    __melnode__ = u'polyMapCut'
+    __melcmdname__ = 'polyMapCut'
+    __melnode__ = 'polyMapCut'
     __slots__ = ()
 
     @_f.addMelDocs('polyMapCut', 'caching')
@@ -32957,8 +32945,8 @@ class PolyMapCut(PolyModifier):
 class PolyMapDel(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyMapDel)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyMapDel'
-    __melnode__ = u'polyMapDel'
+    __melcmdname__ = 'polyMapDel'
+    __melnode__ = 'polyMapDel'
     __slots__ = ()
 
     @_f.addMelDocs('polyMapDel', 'caching')
@@ -32988,8 +32976,8 @@ class PolyMapDel(PolyModifier):
 class PolyMapSew(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyMapSew)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyMapSew'
-    __melnode__ = u'polyMapSew'
+    __melcmdname__ = 'polyMapSew'
+    __melnode__ = 'polyMapSew'
     __slots__ = ()
 
     @_f.addMelDocs('polyMapSew', 'caching')
@@ -33019,8 +33007,8 @@ class PolyMapSew(PolyModifier):
 class PolyMergeEdge(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyMergeEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyMergeEdge'
-    __melnode__ = u'polyMergeEdge'
+    __melcmdname__ = 'polyMergeEdge'
+    __melnode__ = 'polyMergeEdge'
     __slots__ = ()
 
     @_f.addMelDocs('polyMergeEdge', 'caching')
@@ -33084,20 +33072,20 @@ class PolyMergeEdge(PolyModifier):
 
 
 class PolyMergeFace(PolyModifier):
-    __melnode__ = u'polyMergeFace'
+    __melnode__ = 'polyMergeFace'
     __slots__ = ()
 
 
 class PolyModifierWorld(PolyModifier):
-    __melnode__ = u'polyModifierWorld'
+    __melnode__ = 'polyModifierWorld'
     __slots__ = ()
 
 
 class PolyAverageVertex(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyAverageVertex)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyAverageVertex'
-    __melnode__ = u'polyAverageVertex'
+    __melcmdname__ = 'polyAverageVertex'
+    __melnode__ = 'polyAverageVertex'
     __slots__ = ()
 
     @_f.addMelDocs('polyAverageVertex', 'caching')
@@ -33145,8 +33133,8 @@ class PolyAverageVertex(PolyModifierWorld):
 class PolyBevel(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyBevel)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyBevel'
-    __melnode__ = u'polyBevel'
+    __melcmdname__ = 'polyBevel'
+    __melnode__ = 'polyBevel'
     __slots__ = ()
 
     @_f.addMelDocs('polyBevel', 'angleTolerance')
@@ -33300,15 +33288,15 @@ class PolyBevel(PolyModifierWorld):
 
 
 class PolyBevel2(PolyBevel):
-    __melnode__ = u'polyBevel2'
+    __melnode__ = 'polyBevel2'
     __slots__ = ()
 
 
 class PolyBevel3(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyBevel3)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyBevel3'
-    __melnode__ = u'polyBevel3'
+    __melcmdname__ = 'polyBevel3'
+    __melnode__ = 'polyBevel3'
     __slots__ = ()
 
     @_f.addMelDocs('polyBevel3', 'angleTolerance')
@@ -33491,8 +33479,8 @@ class PolyBevel3(PolyModifierWorld):
 class PolyBridgeEdge(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyBridgeEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyBridgeEdge'
-    __melnode__ = u'polyBridgeEdge'
+    __melcmdname__ = 'polyBridgeEdge'
+    __melnode__ = 'polyBridgeEdge'
     __slots__ = ()
 
     @_f.addMelDocs('polyBridgeEdge', 'bridgeOffset')
@@ -33630,8 +33618,8 @@ class PolyBridgeEdge(PolyModifierWorld):
 class PolyCircularize(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyCircularize)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyCircularize'
-    __melnode__ = u'polyCircularize'
+    __melcmdname__ = 'polyCircularize'
+    __melnode__ = 'polyCircularize'
     __slots__ = ()
 
     @_f.addMelDocs('polyCircularize', 'alignment')
@@ -33715,8 +33703,8 @@ class PolyCircularize(PolyModifierWorld):
 class PolyCrease(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyCrease)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyCrease'
-    __melnode__ = u'polyCrease'
+    __melcmdname__ = 'polyCrease'
+    __melnode__ = 'polyCrease'
     __slots__ = ()
 
     @_f.addMelDocs('polyCrease', 'createHistory')
@@ -33766,15 +33754,15 @@ class PolyCrease(PolyModifierWorld):
 
 
 class PolyCreaseEdge(PolyCrease):
-    __melnode__ = u'polyCreaseEdge'
+    __melnode__ = 'polyCreaseEdge'
     __slots__ = ()
 
 
 class PolyCut(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyCut)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyCut'
-    __melnode__ = u'polyCut'
+    __melcmdname__ = 'polyCut'
+    __melnode__ = 'polyCut'
     __slots__ = ()
 
     @_f.addMelDocs('polyCut', 'caching')
@@ -33973,15 +33961,15 @@ class PolyCut(PolyModifierWorld):
 
 
 class PolyCylProj(PolyModifierWorld):
-    __melnode__ = u'polyCylProj'
+    __melnode__ = 'polyCylProj'
     __slots__ = ()
 
 
 class PolyExtrudeVertex(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyExtrudeVertex)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyExtrudeVertex'
-    __melnode__ = u'polyExtrudeVertex'
+    __melcmdname__ = 'polyExtrudeVertex'
+    __melnode__ = 'polyExtrudeVertex'
     __slots__ = ()
 
     @_f.addMelDocs('polyExtrudeVertex', 'caching')
@@ -34045,40 +34033,40 @@ class PolyExtrudeVertex(PolyModifierWorld):
 
 
 class PolyHoleFace(PolyModifierWorld):
-    __melnode__ = u'polyHoleFace'
+    __melnode__ = 'polyHoleFace'
     __slots__ = ()
 
 
 class PolyMergeVert(PolyModifierWorld):
-    __melnode__ = u'polyMergeVert'
+    __melnode__ = 'polyMergeVert'
     __slots__ = ()
 
 
 class PolyMirror(PolyModifierWorld):
-    __melnode__ = u'polyMirror'
+    __melnode__ = 'polyMirror'
     __slots__ = ()
 
 
 class PolyModifierUV(PolyModifierWorld):
-    __melnode__ = u'polyModifierUV'
+    __melnode__ = 'polyModifierUV'
     __slots__ = ()
 
 
 class PolyAutoProj(PolyModifierUV):
-    __melnode__ = u'polyAutoProj'
+    __melnode__ = 'polyAutoProj'
     __slots__ = ()
 
 
 class PolyContourProj(PolyModifierUV):
-    __melnode__ = u'polyContourProj'
+    __melnode__ = 'polyContourProj'
     __slots__ = ()
 
 
 class PolyCopyUV(PolyModifierUV):
     __melcmd__ = staticmethod(modeling.polyCopyUV)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyCopyUV'
-    __melnode__ = u'polyCopyUV'
+    __melcmdname__ = 'polyCopyUV'
+    __melnode__ = 'polyCopyUV'
     __slots__ = ()
 
     @_f.addMelDocs('polyCopyUV', 'caching')
@@ -34126,8 +34114,8 @@ class PolyCopyUV(PolyModifierUV):
 class PolyFlipUV(PolyModifierUV):
     __melcmd__ = staticmethod(modeling.polyFlipUV)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyFlipUV'
-    __melnode__ = u'polyFlipUV'
+    __melcmdname__ = 'polyFlipUV'
+    __melnode__ = 'polyFlipUV'
     __slots__ = ()
 
     @_f.addMelDocs('polyFlipUV', 'caching')
@@ -34220,8 +34208,8 @@ class PolyFlipUV(PolyModifierUV):
 class PolyLayoutUV(PolyModifierUV):
     __melcmd__ = staticmethod(modeling.polyLayoutUV)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyLayoutUV'
-    __melnode__ = u'polyLayoutUV'
+    __melcmdname__ = 'polyLayoutUV'
+    __melnode__ = 'polyLayoutUV'
     __slots__ = ()
 
     @_f.addMelDocs('polyLayoutUV', 'caching')
@@ -34323,8 +34311,8 @@ class PolyLayoutUV(PolyModifierUV):
 class PolyMapSewMove(PolyModifierUV):
     __melcmd__ = staticmethod(modeling.polyMapSewMove)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyMapSewMove'
-    __melnode__ = u'polyMapSewMove'
+    __melcmdname__ = 'polyMapSewMove'
+    __melnode__ = 'polyMapSewMove'
     __slots__ = ()
 
     @_f.addMelDocs('polyMapSewMove', 'caching')
@@ -34381,8 +34369,8 @@ class PolyMapSewMove(PolyModifierUV):
 class PolyMergeUV(PolyModifierUV):
     __melcmd__ = staticmethod(modeling.polyMergeUV)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyMergeUV'
-    __melnode__ = u'polyMergeUV'
+    __melcmdname__ = 'polyMergeUV'
+    __melnode__ = 'polyMergeUV'
     __slots__ = ()
 
     @_f.addMelDocs('polyMergeUV', 'caching')
@@ -34430,8 +34418,8 @@ class PolyMergeUV(PolyModifierUV):
 class PolyNormalizeUV(PolyModifierUV):
     __melcmd__ = staticmethod(modeling.polyNormalizeUV)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyNormalizeUV'
-    __melnode__ = u'polyNormalizeUV'
+    __melcmdname__ = 'polyNormalizeUV'
+    __melnode__ = 'polyNormalizeUV'
     __slots__ = ()
 
     @_f.addMelDocs('polyNormalizeUV', 'caching')
@@ -34506,8 +34494,8 @@ class PolyNormalizeUV(PolyModifierUV):
 class PolyOptUvs(PolyModifierUV):
     __melcmd__ = staticmethod(modeling.polyOptUvs)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyOptUvs'
-    __melnode__ = u'polyOptUvs'
+    __melcmdname__ = 'polyOptUvs'
+    __melnode__ = 'polyOptUvs'
     __slots__ = ()
 
     @_f.addMelDocs('polyOptUvs', 'caching')
@@ -34546,8 +34534,8 @@ class PolyOptUvs(PolyModifierUV):
 class PolyPinUV(PolyModifierUV):
     __melcmd__ = staticmethod(modeling.polyPinUV)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyPinUV'
-    __melnode__ = u'polyPinUV'
+    __melcmdname__ = 'polyPinUV'
+    __melnode__ = 'polyPinUV'
     __slots__ = ()
 
     @_f.addMelDocs('polyPinUV', 'createHistory')
@@ -34599,8 +34587,8 @@ class PolyPinUV(PolyModifierUV):
 class PolyStraightenUVBorder(PolyModifierUV):
     __melcmd__ = staticmethod(modeling.polyStraightenUVBorder)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyStraightenUVBorder'
-    __melnode__ = u'polyStraightenUVBorder'
+    __melcmdname__ = 'polyStraightenUVBorder'
+    __melnode__ = 'polyStraightenUVBorder'
     __slots__ = ()
 
     @_f.addMelDocs('polyStraightenUVBorder', 'blendOriginal')
@@ -34659,8 +34647,8 @@ class PolyStraightenUVBorder(PolyModifierUV):
 class PolyMoveVertex(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyMoveVertex)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyMoveVertex'
-    __melnode__ = u'polyMoveVertex'
+    __melcmdname__ = 'polyMoveVertex'
+    __melnode__ = 'polyMoveVertex'
     __slots__ = ()
 
     @_f.addMelDocs('polyMoveVertex', 'caching')
@@ -34933,8 +34921,8 @@ class PolyMoveVertex(PolyModifierWorld):
 class PolyMoveEdge(PolyMoveVertex):
     __melcmd__ = staticmethod(modeling.polyMoveEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyMoveEdge'
-    __melnode__ = u'polyMoveEdge'
+    __melcmdname__ = 'polyMoveEdge'
+    __melnode__ = 'polyMoveEdge'
     __slots__ = ()
 
     @_f.addMelDocs('polyMoveEdge', 'caching')
@@ -35288,8 +35276,8 @@ class PolyMoveEdge(PolyMoveVertex):
 class PolyExtrudeEdge(PolyMoveEdge):
     __melcmd__ = staticmethod(modeling.polyExtrudeEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyExtrudeEdge'
-    __melnode__ = u'polyExtrudeEdge'
+    __melcmdname__ = 'polyExtrudeEdge'
+    __melnode__ = 'polyExtrudeEdge'
     __slots__ = ()
 
     @_f.addMelDocs('polyExtrudeEdge', 'caching')
@@ -35731,15 +35719,15 @@ class PolyExtrudeEdge(PolyMoveEdge):
 
 
 class PolyMoveFace(PolyMoveEdge):
-    __melnode__ = u'polyMoveFace'
+    __melnode__ = 'polyMoveFace'
     __slots__ = ()
 
 
 class PolyChipOff(PolyMoveFace):
     __melcmd__ = staticmethod(modeling.polyChipOff)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyChipOff'
-    __melnode__ = u'polyChipOff'
+    __melcmdname__ = 'polyChipOff'
+    __melnode__ = 'polyChipOff'
     __slots__ = ()
 
     @_f.addMelDocs('polyChipOff', 'attraction')
@@ -36181,25 +36169,25 @@ class PolyChipOff(PolyMoveFace):
 
 
 class PolyExtrudeFace(PolyMoveFace):
-    __melnode__ = u'polyExtrudeFace'
+    __melnode__ = 'polyExtrudeFace'
     __slots__ = ()
 
 
 class PolyPassThru(PolyModifierWorld):
-    __melnode__ = u'polyPassThru'
+    __melnode__ = 'polyPassThru'
     __slots__ = ()
 
 
 class PolyPlanarProj(PolyModifierWorld):
-    __melnode__ = u'polyPlanarProj'
+    __melnode__ = 'polyPlanarProj'
     __slots__ = ()
 
 
 class PolyPoke(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyPoke)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyPoke'
-    __melnode__ = u'polyPoke'
+    __melcmdname__ = 'polyPoke'
+    __melnode__ = 'polyPoke'
     __slots__ = ()
 
     @_f.addMelDocs('polyPoke', 'caching')
@@ -36236,15 +36224,15 @@ class PolyPoke(PolyModifierWorld):
 
 
 class PolyProj(PolyModifierWorld):
-    __melnode__ = u'polyProj'
+    __melnode__ = 'polyProj'
     __slots__ = ()
 
 
 class PolyQuad(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyQuad)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyQuad'
-    __melnode__ = u'polyQuad'
+    __melcmdname__ = 'polyQuad'
+    __melnode__ = 'polyQuad'
     __slots__ = ()
 
     @_f.addMelDocs('polyQuad', 'angle')
@@ -36319,8 +36307,8 @@ class PolyQuad(PolyModifierWorld):
 class PolyRemesh(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyRemesh)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyRemesh'
-    __melnode__ = u'polyRemesh'
+    __melcmdname__ = 'polyRemesh'
+    __melnode__ = 'polyRemesh'
     __slots__ = ()
 
     @_f.addMelDocs('polyRemesh', 'caching')
@@ -36404,8 +36392,8 @@ class PolyRemesh(PolyModifierWorld):
 class PolySewEdge(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polySewEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polySewEdge'
-    __melnode__ = u'polySewEdge'
+    __melcmdname__ = 'polySewEdge'
+    __melnode__ = 'polySewEdge'
     __slots__ = ()
 
     @_f.addMelDocs('polySewEdge', 'caching')
@@ -36462,8 +36450,8 @@ class PolySewEdge(PolyModifierWorld):
 class PolySoftEdge(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polySoftEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polySoftEdge'
-    __melnode__ = u'polySoftEdge'
+    __melcmdname__ = 'polySoftEdge'
+    __melnode__ = 'polySoftEdge'
     __slots__ = ()
 
     @_f.addMelDocs('polySoftEdge', 'angle')
@@ -36509,15 +36497,15 @@ class PolySoftEdge(PolyModifierWorld):
 
 
 class PolySphProj(PolyModifierWorld):
-    __melnode__ = u'polySphProj'
+    __melnode__ = 'polySphProj'
     __slots__ = ()
 
 
 class PolySplitRing(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polySplitRing)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polySplitRing'
-    __melnode__ = u'polySplitRing'
+    __melcmdname__ = 'polySplitRing'
+    __melnode__ = 'polySplitRing'
     __slots__ = ()
 
     @_f.addMelDocs('polySplitRing', 'adjustEdgeFlow')
@@ -36707,20 +36695,20 @@ class PolySplitRing(PolyModifierWorld):
 
 
 class PolySplitVert(PolyModifierWorld):
-    __melnode__ = u'polySplitVert'
+    __melnode__ = 'polySplitVert'
     __slots__ = ()
 
 
 class PolySubdEdge(PolyModifierWorld):
-    __melnode__ = u'polySubdEdge'
+    __melnode__ = 'polySubdEdge'
     __slots__ = ()
 
 
 class PolyWedgeFace(PolyModifierWorld):
     __melcmd__ = staticmethod(modeling.polyWedgeFace)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyWedgeFace'
-    __melnode__ = u'polyWedgeFace'
+    __melcmdname__ = 'polyWedgeFace'
+    __melnode__ = 'polyWedgeFace'
     __slots__ = ()
 
     @_f.addMelDocs('polyWedgeFace', 'caching')
@@ -36759,8 +36747,8 @@ class PolyWedgeFace(PolyModifierWorld):
 class PolyMoveUV(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyMoveUV)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyMoveUV'
-    __melnode__ = u'polyMoveUV'
+    __melcmdname__ = 'polyMoveUV'
+    __melnode__ = 'polyMoveUV'
     __slots__ = ()
 
     @_f.addMelDocs('polyMoveUV', 'axisLen')
@@ -36916,8 +36904,8 @@ class PolyMoveUV(PolyModifier):
 class PolyMoveFacetUV(PolyMoveUV):
     __melcmd__ = staticmethod(modeling.polyMoveFacetUV)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyMoveFacetUV'
-    __melnode__ = u'polyMoveFacetUV'
+    __melcmdname__ = 'polyMoveFacetUV'
+    __melnode__ = 'polyMoveFacetUV'
     __slots__ = ()
 
     @_f.addMelDocs('polyMoveFacetUV', 'axisLen')
@@ -37073,8 +37061,8 @@ class PolyMoveFacetUV(PolyMoveUV):
 class PolyNormal(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyNormal)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyNormal'
-    __melnode__ = u'polyNormal'
+    __melcmdname__ = 'polyNormal'
+    __melnode__ = 'polyNormal'
     __slots__ = ()
 
     @_f.addMelDocs('polyNormal', 'caching')
@@ -37122,8 +37110,8 @@ class PolyNormal(PolyModifier):
 class PolyNormalPerVertex(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyNormalPerVertex)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyNormalPerVertex'
-    __melnode__ = u'polyNormalPerVertex'
+    __melcmdname__ = 'polyNormalPerVertex'
+    __melnode__ = 'polyNormalPerVertex'
     __slots__ = ()
 
     @_f.addMelDocs('polyNormalPerVertex', 'allLocked')
@@ -37211,8 +37199,8 @@ class PolyNormalPerVertex(PolyModifier):
 class PolyReduce(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyReduce)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyReduce'
-    __melnode__ = u'polyReduce'
+    __melcmdname__ = 'polyReduce'
+    __melnode__ = 'polyReduce'
     __slots__ = ()
 
     @_f.addMelDocs('polyReduce', 'caching')
@@ -37571,16 +37559,16 @@ class PolyReduce(PolyModifier):
 class PolyRetopo(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyRetopo)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyRetopo'
-    __melnode__ = u'polyRetopo'
+    __melcmdname__ = 'polyRetopo'
+    __melnode__ = 'polyRetopo'
     __slots__ = ()
 
 
 class PolySmooth(PolyModifier):
     __melcmd__ = staticmethod(modeling.polySmooth)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polySmooth'
-    __melnode__ = u'polySmooth'
+    __melcmdname__ = 'polySmooth'
+    __melnode__ = 'polySmooth'
     __slots__ = ()
 
     @_f.addMelDocs('polySmooth', 'caching')
@@ -37716,28 +37704,28 @@ class PolySmooth(PolyModifier):
 
 
 class PolySmoothFace(PolyModifier):
-    __melnode__ = u'polySmoothFace'
+    __melnode__ = 'polySmoothFace'
     __slots__ = ()
 
 
 class PolySmoothProxy(PolyModifier):
-    __melnode__ = u'polySmoothProxy'
+    __melnode__ = 'polySmoothProxy'
     __slots__ = ()
 
 
 class PolySpinEdge(PolyModifier):
     __melcmd__ = staticmethod(other.polySpinEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polySpinEdge'
-    __melnode__ = u'polySpinEdge'
+    __melcmdname__ = 'polySpinEdge'
+    __melnode__ = 'polySpinEdge'
     __slots__ = ()
 
 
 class PolySplit(PolyModifier):
     __melcmd__ = staticmethod(modeling.polySplit)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polySplit'
-    __melnode__ = u'polySplit'
+    __melcmdname__ = 'polySplit'
+    __melnode__ = 'polySplit'
     __slots__ = ()
 
     @_f.addMelDocs('polySplit', 'adjustEdgeFlow')
@@ -37776,8 +37764,8 @@ class PolySplit(PolyModifier):
 class PolySplitEdge(PolyModifier):
     __melcmd__ = staticmethod(modeling.polySplitEdge)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polySplitEdge'
-    __melnode__ = u'polySplitEdge'
+    __melcmdname__ = 'polySplitEdge'
+    __melnode__ = 'polySplitEdge'
     __slots__ = ()
 
     @_f.addMelDocs('polySplitEdge', 'caching')
@@ -37814,15 +37802,15 @@ class PolySplitEdge(PolyModifier):
 
 
 class PolySubdFace(PolyModifier):
-    __melnode__ = u'polySubdFace'
+    __melnode__ = 'polySubdFace'
     __slots__ = ()
 
 
 class PolyTransfer(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyTransfer)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyTransfer'
-    __melnode__ = u'polyTransfer'
+    __melcmdname__ = 'polyTransfer'
+    __melnode__ = 'polyTransfer'
     __slots__ = ()
 
     @_f.addMelDocs('polyTransfer', 'alternateObject')
@@ -37888,8 +37876,8 @@ class PolyTransfer(PolyModifier):
 class PolyTriangulate(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyTriangulate)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyTriangulate'
-    __melnode__ = u'polyTriangulate'
+    __melcmdname__ = 'polyTriangulate'
+    __melnode__ = 'polyTriangulate'
     __slots__ = ()
 
     @_f.addMelDocs('polyTriangulate', 'caching')
@@ -37917,20 +37905,20 @@ class PolyTriangulate(PolyModifier):
 
 
 class PolyTweak(PolyModifier):
-    __melnode__ = u'polyTweak'
+    __melnode__ = 'polyTweak'
     __slots__ = ()
 
 
 class PolyTweakUV(PolyModifier):
-    __melnode__ = u'polyTweakUV'
+    __melnode__ = 'polyTweakUV'
     __slots__ = ()
 
 
 class PolyUVRectangle(PolyModifier):
     __melcmd__ = staticmethod(modeling.polyUVRectangle)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyUVRectangle'
-    __melnode__ = u'polyUVRectangle'
+    __melcmdname__ = 'polyUVRectangle'
+    __melnode__ = 'polyUVRectangle'
     __slots__ = ()
 
     @_f.addMelDocs('polyUVRectangle', 'caching')
@@ -37960,8 +37948,8 @@ class PolyUVRectangle(PolyModifier):
 class PolyBlindData(DependNode):
     __melcmd__ = staticmethod(modeling.polyBlindData)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyBlindData'
-    __melnode__ = u'polyBlindData'
+    __melcmdname__ = 'polyBlindData'
+    __melnode__ = 'polyBlindData'
     __slots__ = ()
 
     @_f.addMelDocs('polyBlindData', 'associationType')
@@ -38075,15 +38063,15 @@ class PolyBlindData(DependNode):
 
 
 class SubdBlindData(PolyBlindData):
-    __melnode__ = u'subdBlindData'
+    __melnode__ = 'subdBlindData'
     __slots__ = ()
 
 
 class PolySeparate(DependNode):
     __melcmd__ = staticmethod(modeling.polySeparate)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polySeparate'
-    __melnode__ = u'polySeparate'
+    __melcmdname__ = 'polySeparate'
+    __melnode__ = 'polySeparate'
     __slots__ = ()
 
     @_f.deprecated
@@ -38161,8 +38149,8 @@ class PolySeparate(DependNode):
 class PolyToSubdiv(DependNode):
     __melcmd__ = staticmethod(modeling.polyToSubdiv)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'polyToSubdiv'
-    __melnode__ = u'polyToSubdiv'
+    __melcmdname__ = 'polyToSubdiv'
+    __melnode__ = 'polyToSubdiv'
     __slots__ = ()
 
     @_f.deprecated
@@ -38328,12 +38316,12 @@ class PolyToSubdiv(DependNode):
 
 
 class PoseInterpolatorManager(DependNode):
-    __melnode__ = u'poseInterpolatorManager'
+    __melnode__ = 'poseInterpolatorManager'
     __slots__ = ()
 
 
 class PostProcessList(DependNode):
-    __melnode__ = u'postProcessList'
+    __melnode__ = 'postProcessList'
     __slots__ = ()
 
     @_f.deprecated
@@ -38391,7 +38379,7 @@ class PostProcessList(DependNode):
 
 
 class PrecompExport(DependNode):
-    __melnode__ = u'precompExport'
+    __melnode__ = 'precompExport'
     __slots__ = ()
 
     @_f.deprecated
@@ -38449,12 +38437,12 @@ class PrecompExport(DependNode):
 
 
 class ProximityPin(DependNode):
-    __melnode__ = u'proximityPin'
+    __melnode__ = 'proximityPin'
     __slots__ = ()
 
 
 class ProxyManager(DependNode):
-    __melnode__ = u'proxyManager'
+    __melnode__ = 'proxyManager'
     __slots__ = ()
 
     @_f.deprecated
@@ -38512,7 +38500,7 @@ class ProxyManager(DependNode):
 
 
 class Record(DependNode):
-    __melnode__ = u'record'
+    __melnode__ = 'record'
     __slots__ = ()
 
     @_f.deprecated
@@ -38573,8 +38561,8 @@ class Reference(DependNode):
     __apicls__ = _api.MFnReference
     __melcmd__ = staticmethod(system.reference)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'reference'
-    __melnode__ = u'reference'
+    __melcmdname__ = 'reference'
+    __melnode__ = 'reference'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnReference, 'associatedNamespace')
@@ -38672,7 +38660,7 @@ class Reference(DependNode):
 
 
 class RemapColor(DependNode):
-    __melnode__ = u'remapColor'
+    __melnode__ = 'remapColor'
     __slots__ = ()
 
     @_f.deprecated
@@ -38730,7 +38718,7 @@ class RemapColor(DependNode):
 
 
 class RemapHsv(DependNode):
-    __melnode__ = u'remapHsv'
+    __melnode__ = 'remapHsv'
     __slots__ = ()
 
     @_f.deprecated
@@ -38788,7 +38776,7 @@ class RemapHsv(DependNode):
 
 
 class RemapValue(DependNode):
-    __melnode__ = u'remapValue'
+    __melnode__ = 'remapValue'
     __slots__ = ()
 
     @_f.deprecated
@@ -38846,7 +38834,7 @@ class RemapValue(DependNode):
 
 
 class RenderGlobals(DependNode):
-    __melnode__ = u'renderGlobals'
+    __melnode__ = 'renderGlobals'
     __slots__ = ()
 
     @_f.deprecated
@@ -38904,7 +38892,7 @@ class RenderGlobals(DependNode):
 
 
 class RenderGlobalsList(DependNode):
-    __melnode__ = u'renderGlobalsList'
+    __melnode__ = 'renderGlobalsList'
     __slots__ = ()
 
     @_f.deprecated
@@ -38962,7 +38950,7 @@ class RenderGlobalsList(DependNode):
 
 
 class RenderLayerManager(DependNode):
-    __melnode__ = u'renderLayerManager'
+    __melnode__ = 'renderLayerManager'
     __slots__ = ()
 
     @_f.deprecated
@@ -39020,7 +39008,7 @@ class RenderLayerManager(DependNode):
 
 
 class RenderPassSet(DependNode):
-    __melnode__ = u'renderPassSet'
+    __melnode__ = 'renderPassSet'
     __slots__ = ()
 
     @_f.deprecated
@@ -39078,7 +39066,7 @@ class RenderPassSet(DependNode):
 
 
 class RenderQuality(DependNode):
-    __melnode__ = u'renderQuality'
+    __melnode__ = 'renderQuality'
     __slots__ = ()
 
     @_f.deprecated
@@ -39136,12 +39124,12 @@ class RenderQuality(DependNode):
 
 
 class ReorderUVSet(DependNode):
-    __melnode__ = u'reorderUVSet'
+    __melnode__ = 'reorderUVSet'
     __slots__ = ()
 
 
 class Resolution(DependNode):
-    __melnode__ = u'resolution'
+    __melnode__ = 'resolution'
     __slots__ = ()
 
     @_f.deprecated
@@ -39199,7 +39187,7 @@ class Resolution(DependNode):
 
 
 class Reverse(DependNode):
-    __melnode__ = u'reverse'
+    __melnode__ = 'reverse'
     __slots__ = ()
 
     @_f.deprecated
@@ -39257,7 +39245,7 @@ class Reverse(DependNode):
 
 
 class RgbToHsv(DependNode):
-    __melnode__ = u'rgbToHsv'
+    __melnode__ = 'rgbToHsv'
     __slots__ = ()
 
     @_f.deprecated
@@ -39317,8 +39305,8 @@ class RgbToHsv(DependNode):
 class RigidSolver(DependNode):
     __melcmd__ = staticmethod(effects.rigidSolver)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'rigidSolver'
-    __melnode__ = u'rigidSolver'
+    __melcmdname__ = 'rigidSolver'
+    __melnode__ = 'rigidSolver'
     __slots__ = ()
 
     @_f.deprecated
@@ -39579,7 +39567,7 @@ class RigidSolver(DependNode):
 
 
 class Sampler(DependNode):
-    __melnode__ = u'sampler'
+    __melnode__ = 'sampler'
     __slots__ = ()
 
     @_f.deprecated
@@ -39637,7 +39625,7 @@ class Sampler(DependNode):
 
 
 class Script(DependNode):
-    __melnode__ = u'script'
+    __melnode__ = 'script'
     __slots__ = ()
 
     @_f.deprecated
@@ -39695,7 +39683,7 @@ class Script(DependNode):
 
 
 class SelectionListOperator(DependNode):
-    __melnode__ = u'selectionListOperator'
+    __melnode__ = 'selectionListOperator'
     __slots__ = ()
 
     @_f.deprecated
@@ -39755,8 +39743,8 @@ class SelectionListOperator(DependNode):
 class SequenceManager(DependNode):
     __melcmd__ = staticmethod(animation.sequenceManager)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'sequenceManager'
-    __melnode__ = u'sequenceManager'
+    __melcmdname__ = 'sequenceManager'
+    __melnode__ = 'sequenceManager'
     __slots__ = ()
 
     @_f.deprecated
@@ -39839,7 +39827,7 @@ class SequenceManager(DependNode):
 
 
 class Sequencer(DependNode):
-    __melnode__ = u'sequencer'
+    __melnode__ = 'sequencer'
     __slots__ = ()
 
     @_f.deprecated
@@ -39897,7 +39885,7 @@ class Sequencer(DependNode):
 
 
 class SetRange(DependNode):
-    __melnode__ = u'setRange'
+    __melnode__ = 'setRange'
     __slots__ = ()
 
     @_f.deprecated
@@ -39955,7 +39943,7 @@ class SetRange(DependNode):
 
 
 class ShaderGlow(DependNode):
-    __melnode__ = u'shaderGlow'
+    __melnode__ = 'shaderGlow'
     __slots__ = ()
 
     @_f.deprecated
@@ -40013,7 +40001,7 @@ class ShaderGlow(DependNode):
 
 
 class ShadingDependNode(DependNode):
-    __melnode__ = u'shadingDependNode'
+    __melnode__ = 'shadingDependNode'
     __slots__ = ()
 
     @_f.deprecated
@@ -40071,53 +40059,53 @@ class ShadingDependNode(DependNode):
 
 
 class BaseShadingSwitch(ShadingDependNode):
-    __melnode__ = u'baseShadingSwitch'
+    __melnode__ = 'baseShadingSwitch'
     __slots__ = ()
 
 
 class DoubleShadingSwitch(BaseShadingSwitch):
-    __melnode__ = u'doubleShadingSwitch'
+    __melnode__ = 'doubleShadingSwitch'
     __slots__ = ()
 
 
 class QuadShadingSwitch(BaseShadingSwitch):
-    __melnode__ = u'quadShadingSwitch'
+    __melnode__ = 'quadShadingSwitch'
     __slots__ = ()
 
 
 class SingleShadingSwitch(BaseShadingSwitch):
-    __melnode__ = u'singleShadingSwitch'
+    __melnode__ = 'singleShadingSwitch'
     __slots__ = ()
 
 
 class TripleShadingSwitch(BaseShadingSwitch):
-    __melnode__ = u'tripleShadingSwitch'
+    __melnode__ = 'tripleShadingSwitch'
     __slots__ = ()
 
 
 class Bump2d(ShadingDependNode):
-    __melnode__ = u'bump2d'
+    __melnode__ = 'bump2d'
     __slots__ = ()
 
 
 class HwShader(ShadingDependNode):
-    __melnode__ = u'hwShader'
+    __melnode__ = 'hwShader'
     __slots__ = ()
 
 
 class THhardwareShader(HwShader):
-    __melnode__ = u'THhardwareShader'
+    __melnode__ = 'THhardwareShader'
     __slots__ = ()
 
 
 class THhwShader(HwShader):
-    __melnode__ = u'THhwShader'
+    __melnode__ = 'THhwShader'
     __slots__ = ()
 
 
 class Lambert(ShadingDependNode):
     __apicls__ = _api.MFnLambertShader
-    __melnode__ = u'lambert'
+    __melnode__ = 'lambert'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnLambertShader, 'ambientColor')
@@ -40277,7 +40265,7 @@ class Lambert(ShadingDependNode):
 
 class Reflect(Lambert):
     __apicls__ = _api.MFnReflectShader
-    __melnode__ = u'reflect'
+    __melnode__ = 'reflect'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnReflectShader, 'reflectedColor')
@@ -40339,7 +40327,7 @@ class Reflect(Lambert):
 
 class Anisotropic(Reflect):
     __apicls__ = _api.MFnAnisotropyShader
-    __melnode__ = u'anisotropic'
+    __melnode__ = 'anisotropic'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnAnisotropyShader, 'anisotropicReflectivity')
@@ -40457,7 +40445,7 @@ class Anisotropic(Reflect):
 
 class Blinn(Reflect):
     __apicls__ = _api.MFnBlinnShader
-    __melnode__ = u'blinn'
+    __melnode__ = 'blinn'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnBlinnShader, 'eccentricity')
@@ -40490,13 +40478,13 @@ class Blinn(Reflect):
 
 
 class HairTubeShader(Reflect):
-    __melnode__ = u'hairTubeShader'
+    __melnode__ = 'hairTubeShader'
     __slots__ = ()
 
 
 class Phong(Reflect):
     __apicls__ = _api.MFnPhongShader
-    __melnode__ = u'phong'
+    __melnode__ = 'phong'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnPhongShader, 'cosPower')
@@ -40516,7 +40504,7 @@ class Phong(Reflect):
 
 class PhongE(Reflect):
     __apicls__ = _api.MFnPhongEShader
-    __melnode__ = u'phongE'
+    __melnode__ = 'phongE'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnPhongEShader, 'highlightSize')
@@ -40564,7 +40552,7 @@ class PhongE(Reflect):
 
 class LayeredShader(ShadingDependNode):
     __apicls__ = _api.MFnLayeredShader
-    __melnode__ = u'layeredShader'
+    __melnode__ = 'layeredShader'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnLayeredShader, 'color')
@@ -40659,69 +40647,69 @@ class LayeredShader(ShadingDependNode):
 
 
 class LayeredTexture(ShadingDependNode):
-    __melnode__ = u'layeredTexture'
+    __melnode__ = 'layeredTexture'
     __slots__ = ()
 
 
 class LightFog(ShadingDependNode):
-    __melnode__ = u'lightFog'
+    __melnode__ = 'lightFog'
     __slots__ = ()
 
 
 class EnvFog(LightFog):
-    __melnode__ = u'envFog'
+    __melnode__ = 'envFog'
     __slots__ = ()
 
 
 class MultiplyDivide(ShadingDependNode):
-    __melnode__ = u'multiplyDivide'
+    __melnode__ = 'multiplyDivide'
     __slots__ = ()
 
 
 class OceanShader(ShadingDependNode):
-    __melnode__ = u'oceanShader'
+    __melnode__ = 'oceanShader'
     __slots__ = ()
 
 
 class ParticleCloud(ShadingDependNode):
-    __melnode__ = u'particleCloud'
+    __melnode__ = 'particleCloud'
     __slots__ = ()
 
 
 class ParticleSamplerInfo(ShadingDependNode):
-    __melnode__ = u'particleSamplerInfo'
+    __melnode__ = 'particleSamplerInfo'
     __slots__ = ()
 
 
 class Place2dTexture(ShadingDependNode):
-    __melnode__ = u'place2dTexture'
+    __melnode__ = 'place2dTexture'
     __slots__ = ()
 
 
 class PlusMinusAverage(ShadingDependNode):
-    __melnode__ = u'plusMinusAverage'
+    __melnode__ = 'plusMinusAverage'
     __slots__ = ()
 
 
 class RampShader(ShadingDependNode):
-    __melnode__ = u'rampShader'
+    __melnode__ = 'rampShader'
     __slots__ = ()
 
 
 class SamplerInfo(ShadingDependNode):
-    __melnode__ = u'samplerInfo'
+    __melnode__ = 'samplerInfo'
     __slots__ = ()
 
 
 class ShadingMap(ShadingDependNode):
-    __melnode__ = u'shadingMap'
+    __melnode__ = 'shadingMap'
     __slots__ = ()
 
 
 class StandardSurface(ShadingDependNode):
     if versions.current() >= versions.v2020:
         __apicls__ = _api.MFnStandardSurfaceShader
-    __melnode__ = u'standardSurface'
+    __melnode__ = 'standardSurface'
     __slots__ = ()
 
     @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'base')
@@ -41272,55 +41260,55 @@ class StandardSurface(ShadingDependNode):
 
 
 class Texture2d(ShadingDependNode):
-    __melnode__ = u'texture2d'
+    __melnode__ = 'texture2d'
     __slots__ = ()
 
 
 class TadskAssetInstanceNode_TdnTx2D(Texture2d):
-    __melnode__ = u'TadskAssetInstanceNode_TdnTx2D'
+    __melnode__ = 'TadskAssetInstanceNode_TdnTx2D'
     __slots__ = ()
 
 
 class Bulge(Texture2d):
-    __melnode__ = u'bulge'
+    __melnode__ = 'bulge'
     __slots__ = ()
 
 
 class Checker(Texture2d):
-    __melnode__ = u'checker'
+    __melnode__ = 'checker'
     __slots__ = ()
 
 
 class Cloth(Texture2d):
-    __melnode__ = u'cloth'
+    __melnode__ = 'cloth'
     __slots__ = ()
 
 
 class File(Texture2d):
-    __melnode__ = u'file'
+    __melnode__ = 'file'
     __slots__ = ()
 
 
 class Movie(File):
-    __melnode__ = u'movie'
+    __melnode__ = 'movie'
     __slots__ = ()
 
 
 class PsdFileTex(File):
-    __melnode__ = u'psdFileTex'
+    __melnode__ = 'psdFileTex'
     __slots__ = ()
 
 
 class Fractal(Texture2d):
-    __melnode__ = u'fractal'
+    __melnode__ = 'fractal'
     __slots__ = ()
 
 
 class Grid(Texture2d):
     __melcmd__ = staticmethod(modeling.grid)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'grid'
-    __melnode__ = u'grid'
+    __melcmdname__ = 'grid'
+    __melnode__ = 'grid'
     __slots__ = ()
 
     @_f.addMelDocs('grid', 'default')
@@ -41395,170 +41383,170 @@ class Grid(Texture2d):
 
 
 class Mandelbrot(Texture2d):
-    __melnode__ = u'mandelbrot'
+    __melnode__ = 'mandelbrot'
     __slots__ = ()
 
 
 class Mountain(Texture2d):
-    __melnode__ = u'mountain'
+    __melnode__ = 'mountain'
     __slots__ = ()
 
 
 class Noise(Texture2d):
-    __melnode__ = u'noise'
+    __melnode__ = 'noise'
     __slots__ = ()
 
 
 class Ocean(Texture2d):
-    __melnode__ = u'ocean'
+    __melnode__ = 'ocean'
     __slots__ = ()
 
 
 class Ramp(Texture2d):
-    __melnode__ = u'ramp'
+    __melnode__ = 'ramp'
     __slots__ = ()
 
 
 class Stencil(Texture2d):
-    __melnode__ = u'stencil'
+    __melnode__ = 'stencil'
     __slots__ = ()
 
 
 class Water(Texture2d):
-    __melnode__ = u'water'
+    __melnode__ = 'water'
     __slots__ = ()
 
 
 class Texture3d(ShadingDependNode):
-    __melnode__ = u'texture3d'
+    __melnode__ = 'texture3d'
     __slots__ = ()
 
 
 class Brownian(Texture3d):
-    __melnode__ = u'brownian'
+    __melnode__ = 'brownian'
     __slots__ = ()
 
 
 class Cloud(Texture3d):
-    __melnode__ = u'cloud'
+    __melnode__ = 'cloud'
     __slots__ = ()
 
 
 class Crater(Texture3d):
-    __melnode__ = u'crater'
+    __melnode__ = 'crater'
     __slots__ = ()
 
 
 class Granite(Texture3d):
-    __melnode__ = u'granite'
+    __melnode__ = 'granite'
     __slots__ = ()
 
 
 class Leather(Texture3d):
-    __melnode__ = u'leather'
+    __melnode__ = 'leather'
     __slots__ = ()
 
 
 class Mandelbrot3D(Texture3d):
-    __melnode__ = u'mandelbrot3D'
+    __melnode__ = 'mandelbrot3D'
     __slots__ = ()
 
 
 class Marble(Texture3d):
-    __melnode__ = u'marble'
+    __melnode__ = 'marble'
     __slots__ = ()
 
 
 class Projection(Texture3d):
-    __melnode__ = u'projection'
+    __melnode__ = 'projection'
     __slots__ = ()
 
 
 class Rock(Texture3d):
-    __melnode__ = u'rock'
+    __melnode__ = 'rock'
     __slots__ = ()
 
 
 class Snow(Texture3d):
-    __melnode__ = u'snow'
+    __melnode__ = 'snow'
     __slots__ = ()
 
 
 class SolidFractal(Texture3d):
-    __melnode__ = u'solidFractal'
+    __melnode__ = 'solidFractal'
     __slots__ = ()
 
 
 class Stucco(Texture3d):
-    __melnode__ = u'stucco'
+    __melnode__ = 'stucco'
     __slots__ = ()
 
 
 class VolumeNoise(Texture3d):
-    __melnode__ = u'volumeNoise'
+    __melnode__ = 'volumeNoise'
     __slots__ = ()
 
 
 class Wood(Texture3d):
-    __melnode__ = u'wood'
+    __melnode__ = 'wood'
     __slots__ = ()
 
 
 class TextureEnv(ShadingDependNode):
-    __melnode__ = u'textureEnv'
+    __melnode__ = 'textureEnv'
     __slots__ = ()
 
 
 class EnvBall(TextureEnv):
-    __melnode__ = u'envBall'
+    __melnode__ = 'envBall'
     __slots__ = ()
 
 
 class EnvChrome(TextureEnv):
-    __melnode__ = u'envChrome'
+    __melnode__ = 'envChrome'
     __slots__ = ()
 
 
 class EnvCube(TextureEnv):
-    __melnode__ = u'envCube'
+    __melnode__ = 'envCube'
     __slots__ = ()
 
 
 class EnvSky(TextureEnv):
-    __melnode__ = u'envSky'
+    __melnode__ = 'envSky'
     __slots__ = ()
 
 
 class EnvSphere(TextureEnv):
-    __melnode__ = u'envSphere'
+    __melnode__ = 'envSphere'
     __slots__ = ()
 
 
 class UseBackground(ShadingDependNode):
-    __melnode__ = u'useBackground'
+    __melnode__ = 'useBackground'
     __slots__ = ()
 
 
 class VectorProduct(ShadingDependNode):
-    __melnode__ = u'vectorProduct'
+    __melnode__ = 'vectorProduct'
     __slots__ = ()
 
 
 class VolumeFog(ShadingDependNode):
-    __melnode__ = u'volumeFog'
+    __melnode__ = 'volumeFog'
     __slots__ = ()
 
 
 class ShapeEditorManager(DependNode):
-    __melnode__ = u'shapeEditorManager'
+    __melnode__ = 'shapeEditorManager'
     __slots__ = ()
 
 
 class Shot(DependNode):
     __melcmd__ = staticmethod(animation.shot)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'shot'
-    __melnode__ = u'shot'
+    __melcmdname__ = 'shot'
+    __melnode__ = 'shot'
     __slots__ = ()
 
     @_f.addMelDocs('shot', 'createCustomAnim')
@@ -42053,7 +42041,7 @@ class Shot(DependNode):
 
 
 class SimpleTestNode(DependNode):
-    __melnode__ = u'simpleTestNode'
+    __melnode__ = 'simpleTestNode'
     __slots__ = ()
 
     @_f.deprecated
@@ -42111,7 +42099,7 @@ class SimpleTestNode(DependNode):
 
 
 class SimpleVolumeShader(DependNode):
-    __melnode__ = u'simpleVolumeShader'
+    __melnode__ = 'simpleVolumeShader'
     __slots__ = ()
 
     @_f.deprecated
@@ -42169,7 +42157,7 @@ class SimpleVolumeShader(DependNode):
 
 
 class SkinBinding(DependNode):
-    __melnode__ = u'skinBinding'
+    __melnode__ = 'skinBinding'
     __slots__ = ()
 
     @_f.deprecated
@@ -42229,8 +42217,8 @@ class SkinBinding(DependNode):
 class Snapshot(DependNode):
     __melcmd__ = staticmethod(animation.snapshot)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'snapshot'
-    __melnode__ = u'snapshot'
+    __melcmdname__ = 'snapshot'
+    __melnode__ = 'snapshot'
     __slots__ = ()
 
     @_f.deprecated
@@ -42329,12 +42317,12 @@ class Snapshot(DependNode):
 
 
 class MotionTrail(Snapshot):
-    __melnode__ = u'motionTrail'
+    __melnode__ = 'motionTrail'
     __slots__ = ()
 
 
 class StrokeGlobals(DependNode):
-    __melnode__ = u'strokeGlobals'
+    __melnode__ = 'strokeGlobals'
     __slots__ = ()
 
     @_f.deprecated
@@ -42392,7 +42380,7 @@ class StrokeGlobals(DependNode):
 
 
 class SubdBase(DependNode):
-    __melnode__ = u'subdBase'
+    __melnode__ = 'subdBase'
     __slots__ = ()
 
     @_f.deprecated
@@ -42450,28 +42438,28 @@ class SubdBase(DependNode):
 
 
 class SubdModifier(SubdBase):
-    __melnode__ = u'subdModifier'
+    __melnode__ = 'subdModifier'
     __slots__ = ()
 
 
 class SubdAddTopology(SubdModifier):
-    __melnode__ = u'subdAddTopology'
+    __melnode__ = 'subdAddTopology'
     __slots__ = ()
 
 
 class SubdCleanTopology(SubdModifier):
     __melcmd__ = staticmethod(modeling.subdCleanTopology)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'subdCleanTopology'
-    __melnode__ = u'subdCleanTopology'
+    __melcmdname__ = 'subdCleanTopology'
+    __melnode__ = 'subdCleanTopology'
     __slots__ = ()
 
 
 class SubdMapCut(SubdModifier):
     __melcmd__ = staticmethod(modeling.subdMapCut)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'subdMapCut'
-    __melnode__ = u'subdMapCut'
+    __melcmdname__ = 'subdMapCut'
+    __melnode__ = 'subdMapCut'
     __slots__ = ()
 
     @_f.addMelDocs('subdMapCut', 'caching')
@@ -42494,25 +42482,25 @@ class SubdMapCut(SubdModifier):
 
 
 class SubdModifierWorld(SubdModifier):
-    __melnode__ = u'subdModifierWorld'
+    __melnode__ = 'subdModifierWorld'
     __slots__ = ()
 
 
 class SubdModifierUV(SubdModifierWorld):
-    __melnode__ = u'subdModifierUV'
+    __melnode__ = 'subdModifierUV'
     __slots__ = ()
 
 
 class SubdAutoProj(SubdModifierUV):
-    __melnode__ = u'subdAutoProj'
+    __melnode__ = 'subdAutoProj'
     __slots__ = ()
 
 
 class SubdLayoutUV(SubdModifierUV):
     __melcmd__ = staticmethod(modeling.subdLayoutUV)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'subdLayoutUV'
-    __melnode__ = u'subdLayoutUV'
+    __melcmdname__ = 'subdLayoutUV'
+    __melnode__ = 'subdLayoutUV'
     __slots__ = ()
 
     @_f.addMelDocs('subdLayoutUV', 'caching')
@@ -42609,8 +42597,8 @@ class SubdLayoutUV(SubdModifierUV):
 class SubdMapSewMove(SubdModifierUV):
     __melcmd__ = staticmethod(modeling.subdMapSewMove)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'subdMapSewMove'
-    __melnode__ = u'subdMapSewMove'
+    __melcmdname__ = 'subdMapSewMove'
+    __melnode__ = 'subdMapSewMove'
     __slots__ = ()
 
     @_f.addMelDocs('subdMapSewMove', 'caching')
@@ -42660,22 +42648,22 @@ class SubdMapSewMove(SubdModifierUV):
 
 
 class SubdPlanarProj(SubdModifierWorld):
-    __melnode__ = u'subdPlanarProj'
+    __melnode__ = 'subdPlanarProj'
     __slots__ = ()
 
 
 class SubdTweak(SubdModifier):
-    __melnode__ = u'subdTweak'
+    __melnode__ = 'subdTweak'
     __slots__ = ()
 
 
 class SubdTweakUV(SubdModifier):
-    __melnode__ = u'subdTweakUV'
+    __melnode__ = 'subdTweakUV'
     __slots__ = ()
 
 
 class SubdivCollapse(DependNode):
-    __melnode__ = u'subdivCollapse'
+    __melnode__ = 'subdivCollapse'
     __slots__ = ()
 
     @_f.deprecated
@@ -42733,7 +42721,7 @@ class SubdivCollapse(DependNode):
 
 
 class SubdivComponentId(DependNode):
-    __melnode__ = u'subdivComponentId'
+    __melnode__ = 'subdivComponentId'
     __slots__ = ()
 
     @_f.deprecated
@@ -42791,7 +42779,7 @@ class SubdivComponentId(DependNode):
 
 
 class SubdivReverseFaces(DependNode):
-    __melnode__ = u'subdivReverseFaces'
+    __melnode__ = 'subdivReverseFaces'
     __slots__ = ()
 
     @_f.deprecated
@@ -42849,7 +42837,7 @@ class SubdivReverseFaces(DependNode):
 
 
 class SubdivToPoly(DependNode):
-    __melnode__ = u'subdivToPoly'
+    __melnode__ = 'subdivToPoly'
     __slots__ = ()
 
     @_f.deprecated
@@ -42907,7 +42895,7 @@ class SubdivToPoly(DependNode):
 
 
 class SurfaceLuminance(DependNode):
-    __melnode__ = u'surfaceLuminance'
+    __melnode__ = 'surfaceLuminance'
     __slots__ = ()
 
     @_f.deprecated
@@ -42965,7 +42953,7 @@ class SurfaceLuminance(DependNode):
 
 
 class SurfaceShader(DependNode):
-    __melnode__ = u'surfaceShader'
+    __melnode__ = 'surfaceShader'
     __slots__ = ()
 
     @_f.deprecated
@@ -43023,7 +43011,7 @@ class SurfaceShader(DependNode):
 
 
 class TexLattice(DependNode):
-    __melnode__ = u'texLattice'
+    __melnode__ = 'texLattice'
     __slots__ = ()
 
     @_f.deprecated
@@ -43081,7 +43069,7 @@ class TexLattice(DependNode):
 
 
 class TextureToGeom(DependNode):
-    __melnode__ = u'textureToGeom'
+    __melnode__ = 'textureToGeom'
     __slots__ = ()
 
     @_f.deprecated
@@ -43139,17 +43127,17 @@ class TextureToGeom(DependNode):
 
 
 class ThreadedDevice(DependNode):
-    __melnode__ = u'threadedDevice'
+    __melnode__ = 'threadedDevice'
     __slots__ = ()
 
 
 class ClientDevice(ThreadedDevice):
-    __melnode__ = u'clientDevice'
+    __melnode__ = 'clientDevice'
     __slots__ = ()
 
 
 class Time(DependNode):
-    __melnode__ = u'time'
+    __melnode__ = 'time'
     __slots__ = ()
 
     @_f.deprecated
@@ -43209,8 +43197,8 @@ class Time(DependNode):
 class TimeEditor(DependNode):
     __melcmd__ = staticmethod(animation.timeEditor)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'timeEditor'
-    __melnode__ = u'timeEditor'
+    __melcmdname__ = 'timeEditor'
+    __melnode__ = 'timeEditor'
     __slots__ = ()
 
     @_f.addMelDocs('timeEditor', 'mute')
@@ -43222,8 +43210,8 @@ class TimeEditor(DependNode):
 class TimeEditorAnimSource(DependNode):
     __melcmd__ = staticmethod(animation.timeEditorAnimSource)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'timeEditorAnimSource'
-    __melnode__ = u'timeEditorAnimSource'
+    __melcmdname__ = 'timeEditorAnimSource'
+    __melnode__ = 'timeEditorAnimSource'
     __slots__ = ()
 
     @_f.addMelDocs('timeEditorAnimSource', 'addSource')
@@ -43345,15 +43333,15 @@ class TimeEditorAnimSource(DependNode):
 
 
 class TimeEditorClipBase(DependNode):
-    __melnode__ = u'timeEditorClipBase'
+    __melnode__ = 'timeEditorClipBase'
     __slots__ = ()
 
 
 class TimeEditorClip(TimeEditorClipBase):
     __melcmd__ = staticmethod(animation.timeEditorClip)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'timeEditorClip'
-    __melnode__ = u'timeEditorClip'
+    __melcmdname__ = 'timeEditorClip'
+    __melnode__ = 'timeEditorClip'
     __slots__ = ()
 
     @_f.addMelDocs('timeEditorClip', 'addAttribute')
@@ -43864,20 +43852,20 @@ class TimeEditorClip(TimeEditorClipBase):
 
 
 class TimeEditorClipEvaluator(DependNode):
-    __melnode__ = u'timeEditorClipEvaluator'
+    __melnode__ = 'timeEditorClipEvaluator'
     __slots__ = ()
 
 
 class TimeEditorInterpolator(DependNode):
-    __melnode__ = u'timeEditorInterpolator'
+    __melnode__ = 'timeEditorInterpolator'
     __slots__ = ()
 
 
 class TimeEditorTracks(DependNode):
     __melcmd__ = staticmethod(animation.timeEditorTracks)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'timeEditorTracks'
-    __melnode__ = u'timeEditorTracks'
+    __melcmdname__ = 'timeEditorTracks'
+    __melnode__ = 'timeEditorTracks'
     __slots__ = ()
 
     @_f.addMelDocs('timeEditorTracks', 'addTrack')
@@ -44000,7 +43988,7 @@ class TimeEditorTracks(DependNode):
 
 
 class TimeFunction(DependNode):
-    __melnode__ = u'timeFunction'
+    __melnode__ = 'timeFunction'
     __slots__ = ()
 
     @_f.deprecated
@@ -44058,7 +44046,7 @@ class TimeFunction(DependNode):
 
 
 class TimeToUnitConversion(DependNode):
-    __melnode__ = u'timeToUnitConversion'
+    __melnode__ = 'timeToUnitConversion'
     __slots__ = ()
 
     @_f.deprecated
@@ -44118,8 +44106,8 @@ class TimeToUnitConversion(DependNode):
 class TimeWarp(DependNode):
     __melcmd__ = staticmethod(animation.timeWarp)
     __melcmd_isinfo__ = False
-    __melcmdname__ = u'timeWarp'
-    __melnode__ = u'timeWarp'
+    __melcmdname__ = 'timeWarp'
+    __melnode__ = 'timeWarp'
     __slots__ = ()
 
     @_f.addMelDocs('timeWarp', 'deleteFrame')
@@ -44164,7 +44152,7 @@ class TimeWarp(DependNode):
 
 
 class ToonLineAttributes(DependNode):
-    __melnode__ = u'toonLineAttributes'
+    __melnode__ = 'toonLineAttributes'
     __slots__ = ()
 
     @_f.deprecated
@@ -44222,12 +44210,12 @@ class ToonLineAttributes(DependNode):
 
 
 class TrackInfoManager(DependNode):
-    __melnode__ = u'trackInfoManager'
+    __melnode__ = 'trackInfoManager'
     __slots__ = ()
 
 
 class UnitConversion(DependNode):
-    __melnode__ = u'unitConversion'
+    __melnode__ = 'unitConversion'
     __slots__ = ()
 
     @_f.deprecated
@@ -44285,7 +44273,7 @@ class UnitConversion(DependNode):
 
 
 class UnitToTimeConversion(DependNode):
-    __melnode__ = u'unitToTimeConversion'
+    __melnode__ = 'unitToTimeConversion'
     __slots__ = ()
 
     @_f.deprecated
@@ -44343,7 +44331,7 @@ class UnitToTimeConversion(DependNode):
 
 
 class Unknown(DependNode):
-    __melnode__ = u'unknown'
+    __melnode__ = 'unknown'
     __slots__ = ()
 
     @_f.deprecated
@@ -44401,7 +44389,7 @@ class Unknown(DependNode):
 
 
 class UvChooser(DependNode):
-    __melnode__ = u'uvChooser'
+    __melnode__ = 'uvChooser'
     __slots__ = ()
 
     @_f.deprecated
@@ -44459,12 +44447,12 @@ class UvChooser(DependNode):
 
 
 class UvPin(DependNode):
-    __melnode__ = u'uvPin'
+    __melnode__ = 'uvPin'
     __slots__ = ()
 
 
 class ViewColorManager(DependNode):
-    __melnode__ = u'viewColorManager'
+    __melnode__ = 'viewColorManager'
     __slots__ = ()
 
     @_f.deprecated
@@ -44522,7 +44510,7 @@ class ViewColorManager(DependNode):
 
 
 class VolumeShader(DependNode):
-    __melnode__ = u'volumeShader'
+    __melnode__ = 'volumeShader'
     __slots__ = ()
 
     @_f.deprecated
@@ -44579,38 +44567,8 @@ class VolumeShader(DependNode):
         return res
 
 
-class WeightFalloff(DependNode):
-    __melnode__ = u'weightFalloff'
-    __slots__ = ()
-
-
-class GeomWeightFalloff(WeightFalloff):
-    __melnode__ = u'GeomWeightFalloff'
-    __slots__ = ()
-
-
-class BlendWeightFalloff(WeightFalloff):
-    __melnode__ = u'blendWeightFalloff'
-    __slots__ = ()
-
-
-class PlaneWeightFalloff(WeightFalloff):
-    __melnode__ = u'planeWeightFalloff'
-    __slots__ = ()
-
-
-class SphericalWeightFalloff(WeightFalloff):
-    __melnode__ = u'sphericalWeightFalloff'
-    __slots__ = ()
-
-
-class UniformWeightFalloff(WeightFalloff):
-    __melnode__ = u'uniformWeightFalloff'
-    __slots__ = ()
-
-
 class WtAddMatrix(DependNode):
-    __melnode__ = u'wtAddMatrix'
+    __melnode__ = 'wtAddMatrix'
     __slots__ = ()
 
     @_f.deprecated

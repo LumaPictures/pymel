@@ -584,21 +584,7 @@ dagCommandWrapper = _factories.getCmdFunc('dagCommandWrapper')
 
 dagObjectHit = _factories.getCmdFunc('dagObjectHit')
 
-@_factories.addCmdDocs
-def debug(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['cmd', 'commands']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.debug(*args, **kwargs)
-    return res
+debug = _factories.getCmdFunc('debug')
 
 debugNamespace = _factories.getCmdFunc('debugNamespace')
 
@@ -787,6 +773,18 @@ testPa = _factories.getCmdFunc('testPa')
 testPassContribution = _factories.getCmdFunc('testPassContribution')
 
 texSculptCacheSync = _factories.getCmdFunc('texSculptCacheSync')
+
+@_factories.addCmdDocs
+def timeRangeInfo(*args, **kwargs):
+    for flag in ['t', 'time']:
+        try:
+            rawVal = kwargs[flag]
+        except KeyError:
+            continue
+        else:
+            kwargs[flag] = _factories.convertTimeValues(rawVal)
+    res = cmds.timeRangeInfo(*args, **kwargs)
+    return res
 
 timeSliderCustomDraw = _factories.getCmdFunc('timeSliderCustomDraw')
 

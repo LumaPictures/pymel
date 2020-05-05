@@ -4481,7 +4481,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     @_f.addApiDocs(_api.MPlug, 'getExistingArrayAttributeIndices')
     def _getArrayIndices(self):
         # type: () -> Tuple[int, List[int]]
-        do, final_do, outTypes = _f.getDoArgs([], [(u'indices', 'MIntArray', u'out', None)])
+        do, final_do, outTypes = _f.getDoArgs([], [('indices', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MPlug, 'getExistingArrayAttributeIndices', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'uint', None)
         return _f.processApiResult(res, outTypes, do)
@@ -6546,7 +6546,7 @@ class MeshEdge(MItComponent1D):
     @_f.addApiDocs(_api.MItMeshEdge, 'getLength')
     def getLength(self, space='preTransform'):
         # type: (datatypes.Space.Space) -> float
-        do, final_do, outTypes = _f.getDoArgs([space], [('length', 'double', 'out', u'linear'), ('space', ('MSpace', 'Space'), 'in', None)])
+        do, final_do, outTypes = _f.getDoArgs([space], [('length', 'double', 'out', 'linear'), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MItMeshEdge, 'getLength', final_do)
         return _f.processApiResult(res, outTypes, do)
 
@@ -6589,7 +6589,7 @@ class MeshEdge(MItComponent1D):
     @_f.addApiDocs(_api.MItMeshEdge, 'numConnectedEdges')
     def numConnectedEdges(self):
         # type: () -> int
-        do, final_do, outTypes = _f.getDoArgs([], [(u'edgeCount', 'int', u'out', None)])
+        do, final_do, outTypes = _f.getDoArgs([], [('edgeCount', 'int', 'out', None)])
         res = _f.getProxyResult(self, _api.MItMeshEdge, 'numConnectedEdges', final_do)
         return _f.processApiResult(res, outTypes, do)
 
