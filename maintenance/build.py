@@ -7,6 +7,7 @@ from __future__ import absolute_import
 
 from builtins import zip
 from builtins import range
+from builtins import open
 from past.builtins import basestring
 from builtins import object
 import compileall
@@ -704,7 +705,7 @@ class ModuleGenerator(object):
         classLocations = self.getClassLocations(module)
 
         source = _getModulePath(module)
-        with open(source, 'r') as f:
+        with open(source, 'r', newline='\n') as f:
             text = f.read()
 
         lines = text.split('\n')
@@ -780,10 +781,9 @@ class ModuleGenerator(object):
         lines.append(START_MARKER)
 
         print("writing reset", source)
-        with open(source, 'w') as f:
+        with open(source, 'w', newline='\n') as f:
             f.write('\n'.join(lines))
         self.moduleLines[module] = lines
-
 
     def _writeToModule(self, new, module):
         if isinstance(module, types.ModuleType):
@@ -807,7 +807,7 @@ class ModuleGenerator(object):
 
         path = _getModulePath(module)
         print("writing to", path)
-        with open(path, 'w') as f:
+        with open(path, 'w', newline='\n') as f:
             f.write('\n'.join(lines))
 
 
@@ -903,7 +903,7 @@ class ModuleGenerator(object):
             text += suffix
 
         print("writing to", source)
-        with open(source, 'w') as f:
+        with open(source, 'w', newline='\n') as f:
             f.write(text)
 
 
