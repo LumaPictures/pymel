@@ -133,7 +133,7 @@ class test_PMTypes(unittest.TestCase):
         self.assertEqual(list(self.eu),[1.0, 2.0, 3.0] )
 
     def testMVector_len(self):
-        self.assertEquals(len(self.eu), 3)
+        self.assertEqual(len(self.eu), 3)
 
     # Ensure that isInstance recognizes u, tests inheritance
     def testMVector_isInstances(self):
@@ -192,9 +192,9 @@ class test_PMTypes(unittest.TestCase):
         self.assertEqual(self.w,pm.datatypes.Vector([1.0, 1.0, 0.0]))
 
         self.u = pm.datatypes.Vector.xAxis
-        self.assertEquals(self.u + 2,pm.datatypes.Vector([3.0, 2.0, 2.0]))
-        self.assertEquals(2 + self.u,pm.datatypes.Vector([3.0, 2.0, 2.0]))
-        self.assertEquals((self.u + [0.01, 0.01, 0.01]), pm.datatypes.Vector([1.01, 0.01, 0.01]))
+        self.assertEqual(self.u + 2,pm.datatypes.Vector([3.0, 2.0, 2.0]))
+        self.assertEqual(2 + self.u,pm.datatypes.Vector([3.0, 2.0, 2.0]))
+        self.assertEqual((self.u + [0.01, 0.01, 0.01]), pm.datatypes.Vector([1.01, 0.01, 0.01]))
 
     def testMVectorPoint_add(self):
         self.u = pm.datatypes.Vector.xAxis
@@ -203,23 +203,23 @@ class test_PMTypes(unittest.TestCase):
         self.q = self.u + self.p
         self.assertEqual(self.q, pm.datatypes.Point([2.0, 2.0, 3.0]))
         self.q = self.p + self.u
-        self.assertEquals(self.q, pm.datatypes.Point([2.0, 2.0, 3.0]))
+        self.assertEqual(self.q, pm.datatypes.Point([2.0, 2.0, 3.0]))
 
-        self.assertEquals((self.q + self.p), pm.datatypes.Point([3.0, 4.0, 6.0]))
-        self.assertEquals((self.p + self.q), pm.datatypes.Point([3.0, 4.0, 6.0]))
-        self.assertEquals((self.p + self.u), pm.datatypes.Point([2.0, 2.0, 3.0]))
+        self.assertEqual((self.q + self.p), pm.datatypes.Point([3.0, 4.0, 6.0]))
+        self.assertEqual((self.p + self.q), pm.datatypes.Point([3.0, 4.0, 6.0]))
+        self.assertEqual((self.p + self.u), pm.datatypes.Point([2.0, 2.0, 3.0]))
 
-        self.assertEquals(pm.datatypes.VectorN(1, 2, 3, 4) + self.u, pm.datatypes.VectorN([2.0, 2.0, 3.0, 4])) # TODO want Point returned, rather than VectorN
-        self.assertEquals([1, 2, 3] + self.u, pm.datatypes.Vector([2.0, 2.0, 3.0])) # TODO want Point returned, rather than Vector
+        self.assertEqual(pm.datatypes.VectorN(1, 2, 3, 4) + self.u, pm.datatypes.VectorN([2.0, 2.0, 3.0, 4])) # TODO want Point returned, rather than VectorN
+        self.assertEqual([1, 2, 3] + self.u, pm.datatypes.Vector([2.0, 2.0, 3.0])) # TODO want Point returned, rather than Vector
 
     def testMVector_and_VectorN(self):
         self.u = pm.datatypes.Vector.xAxis
         self.w = self.u + pm.datatypes.VectorN(1, 2, 3, 4)
-        self.assertEquals(self.w, pm.datatypes.VectorN([2.0, 2.0, 3.0, 4]))
+        self.assertEqual(self.w, pm.datatypes.VectorN([2.0, 2.0, 3.0, 4]))
 
     def testMVector_length(self):
         self.u = pm.datatypes.Vector(1, 2, 3)
-        self.assertEquals(self.u, pm.datatypes.Vector([1.0, 2.0, 3.0]))
+        self.assertEqual(self.u, pm.datatypes.Vector([1.0, 2.0, 3.0]))
         self.assertAlmostEquals(self.u.length(), 3.74165738677 )
         self.assertAlmostEquals(pm.datatypes.Vector.length(self.u), 3.74165738677 )
         #self.assertAlmostEquals(datatypes.Vector.length([1,2,3]), 3.74165738677 )  # TODO :: TypeError: unbound method length() must be called with Vector instance as first argument (got list instance instead)
@@ -227,7 +227,7 @@ class test_PMTypes(unittest.TestCase):
         self.assertAlmostEquals(pm.datatypes.VectorN(1,2,3).length(), 3.74165738677)
         self.assertAlmostEquals(pm.datatypes.VectorN.length(pm.datatypes.VectorN(1,2,3,4)), 5.47722557505)
         self.assertAlmostEquals(pm.datatypes.VectorN(1, 2, 3, 4).length(), 5.47722557505)
-        self.assertEquals(pm.datatypes.length(1), 1.0)
+        self.assertEqual(pm.datatypes.length(1), 1.0)
         self.assertAlmostEquals(pm.datatypes.length([1,2]),2.2360679775)
         self.assertAlmostEquals(pm.datatypes.length([1,2,3]), 3.74165738677)
         self.assertAlmostEquals(pm.datatypes.length([1,2,3,4]), 5.47722557505)
@@ -240,7 +240,7 @@ class test_PMTypes(unittest.TestCase):
 
     def testMVector_sqlength(self):
         self.u = pm.datatypes.Vector(1,2,3)
-        self.assertEquals(self.u.sqlength(), 14.0)
+        self.assertEqual(self.u.sqlength(), 14.0)
 
     def testMVector_axis(self):
         self.u = pm.datatypes.Vector(1, 0, 0)
@@ -267,7 +267,7 @@ class test_PMTypes(unittest.TestCase):
         self.assertAlmostEquals(pm.datatypes.angle(self.u,self.v), 0.785398163397 )
         self.assertAlmostEquals(self.v.angle(self.u), 0.785398163397 )
         self.assertAlmostEquals(pm.datatypes.angle(pm.datatypes.VectorN(self.u),pm.datatypes.VectorN(self.v)),0.785398163397 )
-        self.assertEquals(pm.datatypes.cotan(self.u, self.v), 1.0)
+        self.assertEqual(pm.datatypes.cotan(self.u, self.v), 1.0)
 
     def testMVector_angleRotateTo(self):
         self.u = pm.datatypes.Vector(1, 0, 0)
@@ -345,27 +345,27 @@ class test_PMTypes(unittest.TestCase):
 
     def testMPoint_list(self):
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertEquals(list(self.p),[1.0, 2.0, 3.0] )
+        self.assertEqual(list(self.p),[1.0, 2.0, 3.0] )
 
     def testMPoint_len(self):
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertEquals(len(self.p),3)
+        self.assertEqual(len(self.p),3)
 
     def testMPoint_size(self):
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertEquals(self.p.size,4)
+        self.assertEqual(self.p.size,4)
 
     def testMPoint_indiceAccess(self):
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertEquals(self.p.x, 1.0)
-        self.assertEquals(self.p.y, 2.0)
-        self.assertEquals(self.p.z, 3.0)
-        self.assertEquals(self.p.w, 1.0)
+        self.assertEqual(self.p.x, 1.0)
+        self.assertEqual(self.p.y, 2.0)
+        self.assertEqual(self.p.z, 3.0)
+        self.assertEqual(self.p.w, 1.0)
 
-        self.assertEquals(self.p[0], 1.0)
-        self.assertEquals(self.p[1], 2.0)
-        self.assertEquals(self.p[2], 3.0)
-        self.assertEquals(self.p[3], 1.0)
+        self.assertEqual(self.p[0], 1.0)
+        self.assertEqual(self.p[1], 2.0)
+        self.assertEqual(self.p[2], 3.0)
+        self.assertEqual(self.p[3], 1.0)
 
     def testMPoint_get(self):
         self.p = pm.datatypes.Point(1,2,3)
@@ -381,37 +381,37 @@ class test_PMTypes(unittest.TestCase):
     def testMPoint_NonCartesion_instance(self):
         # support for non cartesian points still there
         self.p = pm.datatypes.Point(1, 2, 3, 2)
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 2.0, 3.0, 2.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 3.0, 2.0]))
 
         self.v = pm.datatypes.Vector(self.p)
-        self.assertEquals(self.v, pm.datatypes.Vector([0.5, 1.0, 1.5]))
+        self.assertEqual(self.v, pm.datatypes.Vector([0.5, 1.0, 1.5]))
 
         self.V = pm.datatypes.VectorN(self.p)
-        self.assertEquals(self.V,pm.datatypes.VectorN([1.0, 2.0, 3.0, 2.0]))
+        self.assertEqual(self.V,pm.datatypes.VectorN([1.0, 2.0, 3.0, 2.0]))
 
     def testMPoint_NonCartesion_list(self):
         self.p = pm.datatypes.Point(1, 2, 3, 2)
-        self.assertEquals(list(self.p), [1.0, 2.0, 3.0, 2.0])
+        self.assertEqual(list(self.p), [1.0, 2.0, 3.0, 2.0])
 
     def testMPoint_NonCartesion_len(self):
         self.p = pm.datatypes.Point(1, 2, 3, 2)
-        self.assertEquals(len(self.p),4)
+        self.assertEqual(len(self.p),4)
 
     def testMPoint_NonCartesion_size(self):
         self.p = pm.datatypes.Point(1, 2, 3, 2)
-        self.assertEquals(self.p.size,4)
+        self.assertEqual(self.p.size,4)
 
     def testMPoint_NonCartesion_indexLetterAccess(self):
         self.p = pm.datatypes.Point(1, 2, 3, 2)
-        self.assertEquals(self.p.x, 1.0)
-        self.assertEquals(self.p.y, 2.0)
-        self.assertEquals(self.p.z, 3.0)
-        self.assertEquals(self.p.w, 2.0)
+        self.assertEqual(self.p.x, 1.0)
+        self.assertEqual(self.p.y, 2.0)
+        self.assertEqual(self.p.z, 3.0)
+        self.assertEqual(self.p.w, 2.0)
 
-        self.assertEquals(self.p[0], 1.0)
-        self.assertEquals(self.p[1], 2.0)
-        self.assertEquals(self.p[2], 3.0)
-        self.assertEquals(self.p[3], 2.0)
+        self.assertEqual(self.p[0], 1.0)
+        self.assertEqual(self.p[1], 2.0)
+        self.assertEqual(self.p[2], 3.0)
+        self.assertEqual(self.p[3], 2.0)
 
     def testMPoint_NonCartesion_Get(self):
         got = ""
@@ -423,247 +423,247 @@ class test_PMTypes(unittest.TestCase):
 ##############################################################
 
 #        self.q = api.MPoint()
-#        self.assertEquals(self.q.distanceTo(self.p), 1.87082869339)
+#        self.assertEqual(self.q.distanceTo(self.p), 1.87082869339)
 
 ##############################################################
 
 
         self.p = pm.datatypes.Point (pm.api.MPoint())
-        self.assertEquals(self.p, pm.datatypes.Point([0.0, 0.0, 0.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([0.0, 0.0, 0.0]))
 
         self.p = pm.datatypes.Point(1)
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 1.0, 1.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 1.0, 1.0]))
 
         self.p = pm.datatypes.Point(1, 2)
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 2.0, 0.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 0.0]))
 
         self.p = pm.datatypes.Point(1, 2, 3)
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
 
         self.p = pm.datatypes.Point(pm.api.MPoint(1, 2, 3))
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
 
         self.p = pm.datatypes.Point(pm.datatypes.VectorN(1,2))
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 2.0, 0.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 0.0]))
 
         self.p = pm.datatypes.Point(pm.datatypes.VectorN(1, 2, 3))
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
 
     def testMPoint_instance(self):
         self.p = pm.datatypes.Point()
-        self.assertEquals(self.p, pm.datatypes.Point([0.0, 0.0, 0.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([0.0, 0.0, 0.0]))
         self.assert_("<maya.OpenMaya.MPoint; proxy of <Swig Object of type 'MPoint *' at" in repr(self.p.data))
 
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
 
         self.v = pm.datatypes.Vector(self.p)
         self.assertNotEqual(self.p, self.v)
         self.assertTrue(self.p.isEquivalent(self.v))
         self.assertTrue(self.v.isEquivalent(self.p))
-        self.assertEquals(self.v, pm.datatypes.Vector([1.0, 2.0, 3.0]))
+        self.assertEqual(self.v, pm.datatypes.Vector([1.0, 2.0, 3.0]))
 
         self.V = pm.datatypes.VectorN(self.p)
-        self.assertEquals(self.V, pm.datatypes.VectorN([1.0, 2.0, 3.0, 1.0]))
+        self.assertEqual(self.V, pm.datatypes.VectorN([1.0, 2.0, 3.0, 1.0]))
 
         # Point from MVector
         self.p = pm.datatypes.Point(pm.api.MVector(1, 2, 3))
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
 
         # Point from datatypes.VectorN
         self.p = pm.datatypes.Point(pm.datatypes.VectorN(1, 2, 3, 4))
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 2.0, 3.0, 4.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 3.0, 4.0]))
 
         # Point from datatypes.Vector from Point
         self.p = pm.datatypes.Point(pm.datatypes.Vector(self.p))
-        self.assertEquals(self.p, pm.datatypes.Point([0.25, 0.5, 0.75]))
+        self.assertEqual(self.p, pm.datatypes.Point([0.25, 0.5, 0.75]))
 
         # VectorN from Point from VectorN
         self.p = pm.datatypes.Point(pm.datatypes.VectorN(1, 2, 3, 4))
             # notice the last minute, sneak conversion to VectorN.
-        self.assertEquals(pm.datatypes.VectorN(self.p), pm.datatypes.VectorN([1.0, 2.0, 3.0, 4.0]))
+        self.assertEqual(pm.datatypes.VectorN(self.p), pm.datatypes.VectorN([1.0, 2.0, 3.0, 4.0]))
 
         # Copy Constructor
         self.p = pm.datatypes.Point(self.p, w=1)
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
 
         # datatypes.Vector from Point
-        self.assertEquals(pm.datatypes.Vector(self.p), pm.datatypes.Vector([1.0, 2.0, 3.0])) # test Vector from Point
+        self.assertEqual(pm.datatypes.Vector(self.p), pm.datatypes.Vector([1.0, 2.0, 3.0])) # test Vector from Point
 
         # datatypes.VectorN from Point
-        self.assertEquals(pm.datatypes.VectorN(self.p), pm.datatypes.VectorN([1.0, 2.0, 3.0, 1.0]))
+        self.assertEqual(pm.datatypes.VectorN(self.p), pm.datatypes.VectorN([1.0, 2.0, 3.0, 1.0]))
 
         # origin test
         self.p = pm.datatypes.Point.origin
-        self.assertEquals(self.p, pm.datatypes.Point([0.0, 0.0, 0.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([0.0, 0.0, 0.0]))
 
         # xAxis test
         self.p = pm.datatypes.Point.xAxis
-        self.assertEquals(self.p, pm.datatypes.Point([1.0, 0.0, 0.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([1.0, 0.0, 0.0]))
 
         # yAxis test
         self.p = pm.datatypes.Point.yAxis
-        self.assertEquals(self.p, pm.datatypes.Point([0.0, 1.0, 0.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([0.0, 1.0, 0.0]))
 
         # zAxis test
         self.p = pm.datatypes.Point.zAxis
-        self.assertEquals(self.p, pm.datatypes.Point([0.0, 0.0, 1.0]))
+        self.assertEqual(self.p, pm.datatypes.Point([0.0, 0.0, 1.0]))
 
 
     def testMPoint_add(self):
         self.p = pm.datatypes.Point(1, 2, 3, 1)
-        self.assertEquals(self.p + 2, pm.datatypes.Point([3.0, 4.0, 5.0, 1.0]))
-        self.assertEquals(2 + self.p, pm.datatypes.Point([3.0, 4.0, 5.0, 1.0]))
+        self.assertEqual(self.p + 2, pm.datatypes.Point([3.0, 4.0, 5.0, 1.0]))
+        self.assertEqual(2 + self.p, pm.datatypes.Point([3.0, 4.0, 5.0, 1.0]))
 
         #reset vals
         self.p = pm.datatypes.Point(1, 2, 3)
 
         # Point and Vector :: returns Point
-        self.assertEquals(self.p + pm.datatypes.Vector([1, 2, 3]), pm.datatypes.Point([2.0, 4.0, 6.0]))
+        self.assertEqual(self.p + pm.datatypes.Vector([1, 2, 3]), pm.datatypes.Point([2.0, 4.0, 6.0]))
 
         # Point and Point :: returns Point
-        self.assertEquals(self.p + pm.datatypes.Point([1, 2, 3]), pm.datatypes.Point([2.0, 4.0, 6.0]))
+        self.assertEqual(self.p + pm.datatypes.Point([1, 2, 3]), pm.datatypes.Point([2.0, 4.0, 6.0]))
 
         # Point and list(3,) :: returns Point
-        self.assertEquals(self.p + [1, 2, 3], pm.datatypes.Point([2.0, 4.0, 6.0]))
+        self.assertEqual(self.p + [1, 2, 3], pm.datatypes.Point([2.0, 4.0, 6.0]))
 
         # Point(3,) and Point(4,) :: returns Point
-        self.assertEquals(self.p + pm.datatypes.Point([1, 2, 3, 1]), pm.datatypes.Point([2.0, 4.0, 6.0]))
-        self.assertEquals(self.p + pm.datatypes.Point([1, 2, 3, 2]), pm.datatypes.Point([1.5, 3.0, 4.5]))
+        self.assertEqual(self.p + pm.datatypes.Point([1, 2, 3, 1]), pm.datatypes.Point([2.0, 4.0, 6.0]))
+        self.assertEqual(self.p + pm.datatypes.Point([1, 2, 3, 2]), pm.datatypes.Point([1.5, 3.0, 4.5]))
 
         # Vector and Point :: returns Point
-        self.assertEquals((pm.datatypes.Vector([1, 2, 3]) + self.p), pm.datatypes.Point([2.0, 4.0, 6.0]))
+        self.assertEqual((pm.datatypes.Vector([1, 2, 3]) + self.p), pm.datatypes.Point([2.0, 4.0, 6.0]))
 
         # Point and List(4,) :: returns Point
-        self.assertEquals(self.p + [1, 2, 3, 2], pm.datatypes.Point([2.0, 4.0, 6.0, 3.0]))
+        self.assertEqual(self.p + [1, 2, 3, 2], pm.datatypes.Point([2.0, 4.0, 6.0, 3.0]))
 
         # Point(3,) and Point :: returns Point
-        self.assertEquals((pm.datatypes.Point([1, 2, 3]) + self.p), pm.datatypes.Point([2.0, 4.0, 6.0]))
+        self.assertEqual((pm.datatypes.Point([1, 2, 3]) + self.p), pm.datatypes.Point([2.0, 4.0, 6.0]))
 
         # List and Point :: returns Point
-        self.assertEquals(([1, 2, 3] + self.p), pm.datatypes.Point([2.0, 4.0, 6.0]))
+        self.assertEqual(([1, 2, 3] + self.p), pm.datatypes.Point([2.0, 4.0, 6.0]))
 
         # TODO : returns Vector - expected Point([2.0, 4.0, 6.0])) :: if w=1, it returns type Vector,otherwise returns Point
-        self.assertEquals(([1, 2, 3, 1] + self.p), pm.datatypes.Vector([2.0, 4.0, 6.0]))
+        self.assertEqual(([1, 2, 3, 1] + self.p), pm.datatypes.Vector([2.0, 4.0, 6.0]))
 
         # not sure what ths chunk is testing for?
         #self.p = datatypes.Point(1, 2, 3)  # reset for all
         #self.assertEquasls((datatypes.Point([1,2,3]) + self.p), datatypes.Point([2.0, 4.0, 6.0]))
-        #self.assertEquals([1,2,3,2] + self.p, datatypes.Point([2.0, 4.0, 6.0, 3.0]))
-        #self.assertEquals((datatypes.Point([1, 2, 3, 2]) + self.p), datatypes.Point([1.5, 3.0, 4.5]))
+        #self.assertEqual([1,2,3,2] + self.p, datatypes.Point([2.0, 4.0, 6.0, 3.0]))
+        #self.assertEqual((datatypes.Point([1, 2, 3, 2]) + self.p), datatypes.Point([1.5, 3.0, 4.5]))
 
     def testMPoint_operations(self):
         self.p = pm.datatypes.Point(1,2,3)
         self.q = pm.datatypes.Point(0.25, 0.5, 1.0)
 
         # divide point by scalar
-        self.assertEquals((self.p / 2),pm.datatypes.Point([0.5, 1.0, 1.5]))
+        self.assertEqual((self.p / 2),pm.datatypes.Point([0.5, 1.0, 1.5]))
 
         # multiply point by scalar
-        self.assertEquals((self.p * 2),pm.datatypes.Point([2.0, 4.0, 6.0]))
+        self.assertEqual((self.p * 2),pm.datatypes.Point([2.0, 4.0, 6.0]))
 
         # add point by scalar
-        self.assertEquals(self.q + 2,pm.datatypes.Point([2.25, 2.5, 3.0]))
+        self.assertEqual(self.q + 2,pm.datatypes.Point([2.25, 2.5, 3.0]))
 
         # divide point by scalar
-        self.assertEquals(self.q / 2,pm.datatypes.Point([0.125, 0.25, 0.5]))
+        self.assertEqual(self.q / 2,pm.datatypes.Point([0.125, 0.25, 0.5]))
 
         # add point to point
-        #self.assertEquals(self.p + self.q, datatypes.Point([1.25, 2.5, 4.0]))
+        #self.assertEqual(self.p + self.q, datatypes.Point([1.25, 2.5, 4.0]))
 
         # subtract point from point :: successfully returns Vector instance
-        self.assertEquals(self.p - self.q, pm.datatypes.Vector([0.75, 1.5, 2.0]))
-        self.assertEquals(self.q - self.p, pm.datatypes.Vector([-0.75, -1.5, -2.0]))
+        self.assertEqual(self.p - self.q, pm.datatypes.Vector([0.75, 1.5, 2.0]))
+        self.assertEqual(self.q - self.p, pm.datatypes.Vector([-0.75, -1.5, -2.0]))
 
         # subtract point from (point subtracted from point) :: nested/transitive subtraction
-        self.assertEquals(self.p-(self.p - self.q), pm.datatypes.Point([0.25, 0.5, 1.0]))
+        self.assertEqual(self.p-(self.p - self.q), pm.datatypes.Point([0.25, 0.5, 1.0]))
 
         # Multiply Vectors from Points
-        self.assertEquals(pm.datatypes.Vector(self.p) * pm.datatypes.Vector(self.q), 4.25)
+        self.assertEqual(pm.datatypes.Vector(self.p) * pm.datatypes.Vector(self.q), 4.25)
 
         # Point multiplication
-        self.assertEquals(self.p*self.q, 4.25)
+        self.assertEqual(self.p*self.q, 4.25)
 
         # divide point by point
-        self.assertEquals(self.p / self.q, pm.datatypes.Vector([4.0, 4.0, 3.0])) # TODO : Original expected Point([4.0, 4.0, 3.0])
+        self.assertEqual(self.p / self.q, pm.datatypes.Vector([4.0, 4.0, 3.0])) # TODO : Original expected Point([4.0, 4.0, 3.0])
 
         # divide point by scalar
-        self.assertEquals(self.p / 2, pm.datatypes.Point([0.5, 1.0, 1.5]))
+        self.assertEqual(self.p / 2, pm.datatypes.Point([0.5, 1.0, 1.5]))
 
         # multiply point by scalar
-        self.assertEquals(self.p * 2, pm.datatypes.Point([2.0, 4.0, 6.0]))
+        self.assertEqual(self.p * 2, pm.datatypes.Point([2.0, 4.0, 6.0]))
 
     def testMPoint_cartesianize(self):
         locCop = pm.datatypes.Point(self.r)
-        self.assertEquals(locCop.cartesian(),pm.datatypes.Point([0.5, 1.0, 2.0]))
-        self.assertEquals(locCop.cartesianize(),pm.datatypes.Point([0.5, 1.0, 2.0]))
+        self.assertEqual(locCop.cartesian(),pm.datatypes.Point([0.5, 1.0, 2.0]))
+        self.assertEqual(locCop.cartesianize(),pm.datatypes.Point([0.5, 1.0, 2.0]))
 
 #    def testMPoint_deepcopy(self):
-#        self.assertEquals(self.r, datatypes.Point([0.25, 0.5, 1.0, 0.5]))
-#        self.assertEquals(self.r, self.qc)
+#        self.assertEqual(self.r, datatypes.Point([0.25, 0.5, 1.0, 0.5]))
+#        self.assertEqual(self.r, self.qc)
 
     def testMPoint_rationalize(self):
         locCop = pm.datatypes.Point(self.r)
-        self.assertEquals(locCop.rational(), pm.datatypes.Point([0.5, 1.0, 2.0, 0.5]))
-        self.assertEquals(locCop.rationalize(), pm.datatypes.Point([0.5, 1.0, 2.0, 0.5])) # TODO :: currently returns Point([1.0, 2.0, 4.0, 0.5]
+        self.assertEqual(locCop.rational(), pm.datatypes.Point([0.5, 1.0, 2.0, 0.5]))
+        self.assertEqual(locCop.rationalize(), pm.datatypes.Point([0.5, 1.0, 2.0, 0.5])) # TODO :: currently returns Point([1.0, 2.0, 4.0, 0.5]
 
     def testMPoint_homegenize(self):
         locCop = pm.datatypes.Point(self.r)
-        self.assertEquals(locCop.homogen(), pm.datatypes.Point([0.125, 0.25, 0.5, 0.5]))
-        self.assertEquals(locCop.homogenize(), pm.datatypes.Point([0.125, 0.25, 0.5, 0.5])) # TODO :: homogen leaves self.r intact, returns homogenized
+        self.assertEqual(locCop.homogen(), pm.datatypes.Point([0.125, 0.25, 0.5, 0.5]))
+        self.assertEqual(locCop.homogenize(), pm.datatypes.Point([0.125, 0.25, 0.5, 0.5])) # TODO :: homogen leaves self.r intact, returns homogenized
 
     def testMPoint_VectorFromCartesianizedPoint(self):
         locCop = pm.datatypes.Point(self.r)
-        self.assertEquals(pm.datatypes.Vector(locCop.cartesian()), pm.datatypes.Vector([0.5, 1.0, 2.0])) #ignores 'w'
+        self.assertEqual(pm.datatypes.Vector(locCop.cartesian()), pm.datatypes.Vector([0.5, 1.0, 2.0])) #ignores 'w'
 
     def testMPoint_dividePointByScalar(self):
-        self.assertEquals(self.r / 2, pm.datatypes.Point([0.125, 0.25, 0.5, 0.5]))
+        self.assertEqual(self.r / 2, pm.datatypes.Point([0.125, 0.25, 0.5, 0.5]))
 
     def testMPoint_multPointByScalar(self):
-        self.assertEquals(self.r * 2, pm.datatypes.Point([0.5, 1.0, 2.0, 0.5]))
+        self.assertEqual(self.r * 2, pm.datatypes.Point([0.5, 1.0, 2.0, 0.5]))
 
     def testMPoint_addPointToScalar(self):
-        self.assertEquals(self.r + 2, pm.datatypes.Point([2.5, 3.0, 4.0]))  # cartesianize is done by datatypes.Vector's add
+        self.assertEqual(self.r + 2, pm.datatypes.Point([2.5, 3.0, 4.0]))  # cartesianize is done by datatypes.Vector's add
 
     def testMPoint_VectorInst_addition(self):
         self.p = pm.datatypes.Point(1,2,3)
         #self.q = datatypes.Point(0.25, 0.5, 1.0)
-        self.assertEquals((self.p + pm.datatypes.Vector(1, 2, 3)), pm.datatypes.Point([2.0, 4.0, 6.0]))
-        self.assertEquals((self.r + pm.datatypes.Vector(1, 2, 3)), pm.datatypes.Point([1.5, 3.0, 5.0]))
+        self.assertEqual((self.p + pm.datatypes.Vector(1, 2, 3)), pm.datatypes.Point([2.0, 4.0, 6.0]))
+        self.assertEqual((self.r + pm.datatypes.Vector(1, 2, 3)), pm.datatypes.Point([1.5, 3.0, 5.0]))
 
     def testMPoint_cartesion_VectorInst_addition(self):
-        self.assertEquals((self.r.cartesian() + pm.datatypes.Vector(1,2,3)), pm.datatypes.Point([1.5, 3.0, 5.0]))
+        self.assertEqual((self.r.cartesian() + pm.datatypes.Vector(1,2,3)), pm.datatypes.Point([1.5, 3.0, 5.0]))
 
     def testMPoint_subtractPointFromPoint(self):
         self.p = pm.datatypes.Point(1,2,3)
         self.q = pm.datatypes.Point(0.25, 0.5, 1.0)
-        self.assertEquals((self.p - self.r), pm.datatypes.Vector([0.5, 1.0, 1.0]))
-        self.assertEquals((self.r - self.p), pm.datatypes.Vector([-0.5, -1.0, -1.0]))
-        self.assertEquals(self.p - (self.p - self.r), pm.datatypes.Point([0.5, 1.0, 2.0]))
+        self.assertEqual((self.p - self.r), pm.datatypes.Vector([0.5, 1.0, 1.0]))
+        self.assertEqual((self.r - self.p), pm.datatypes.Vector([-0.5, -1.0, -1.0]))
+        self.assertEqual(self.p - (self.p - self.r), pm.datatypes.Point([0.5, 1.0, 2.0]))
 
     def testMPoint_cartesian_subtraction(self):
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertEquals((self.p-self.r.cartesian()), pm.datatypes.Vector([0.5, 1.0, 1.0]))
+        self.assertEqual((self.p-self.r.cartesian()), pm.datatypes.Vector([0.5, 1.0, 1.0]))
 
     def testMPoint_VectorMultiply_from_Points(self):
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertEquals(pm.datatypes.Vector(self.p) * pm.datatypes.Vector(self.r), 8.5)
+        self.assertEqual(pm.datatypes.Vector(self.p) * pm.datatypes.Vector(self.r), 8.5)
 
     def testMPoint_mult(self):
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertEquals(self.p * self.r, 8.5)
+        self.assertEqual(self.p * self.r, 8.5)
 
  #   def testMPoint_dividePoints(self):  # TODO : need explicit homogenize as division not handled by api
  #       homoP = self.p.homogenize()
  #       homoQ = self.q.homogenize()
- #       self.assertEquals(homoP / homoQ, datatypes.Vector([2.0, 2.0, 1.5])) # used to be Point([4.0, 4.0, 3.0, 2.0])
+ #       self.assertEqual(homoP / homoQ, datatypes.Vector([2.0, 2.0, 1.5])) # used to be Point([4.0, 4.0, 3.0, 2.0])
         #  TODO : what do we want here ?
 
     def testMPoint_length(self):
         self.p = pm.datatypes.Point(1,2,3)
         self.assertAlmostEquals(self.p.length(),3.74165738677)
-        self.assertEquals(self.p[:1].length(), 1.0)
-        self.assertEquals(pm.datatypes.length(self.p[:1]), 1.0)
+        self.assertEqual(self.p[:1].length(), 1.0)
+        self.assertEqual(pm.datatypes.length(self.p[:1]), 1.0)
         self.assertAlmostEquals(self.p[:2].length(), 2.2360679775)
         self.assertAlmostEquals(self.p[:3].length(), self.p.length())
         self.assertAlmostEquals(pm.datatypes.length(self.p),3.74165738677)
@@ -673,11 +673,11 @@ class test_PMTypes(unittest.TestCase):
         self.p = pm.datatypes.Point(1,2,3)
         self.q = pm.datatypes.Point(0.707, 0.0, -0.707)
         # returns Vector(- + -)
-        self.assertEquals(pm.datatypes.axis(pm.datatypes.Point.origin, self.p, self.q), pm.datatypes.Vector([-1.414, 2.828, -1.414]))
+        self.assertEqual(pm.datatypes.axis(pm.datatypes.Point.origin, self.p, self.q), pm.datatypes.Vector([-1.414, 2.828, -1.414]))
         # returns Vector(- + -)
-        self.assertEquals(pm.datatypes.Point.origin.axis(self.p, self.q), pm.datatypes.Vector([-1.414, 2.828, -1.414]))
+        self.assertEqual(pm.datatypes.Point.origin.axis(self.p, self.q), pm.datatypes.Vector([-1.414, 2.828, -1.414]))
         # returns Vector(+ - +)
-        self.assertEquals(pm.datatypes.Point.origin.axis(self.q, self.p), pm.datatypes.Vector([1.414, -2.828, 1.414]))
+        self.assertEqual(pm.datatypes.Point.origin.axis(self.q, self.p), pm.datatypes.Vector([1.414, -2.828, 1.414]))
 
     def testMPoint_angle(self): # TODO :: WONKY ass vals returned - do the math again
         self.p = pm.datatypes.Point(1,2,3)
@@ -690,7 +690,7 @@ class test_PMTypes(unittest.TestCase):
 
         self.assertAlmostEquals(pm.datatypes.Point.origin.angle(self.p, self.q), 1.9583930134500773)
         self.assertAlmostEquals(pm.datatypes.Point.origin.angle(self.p, self.r), 0.13078263384791716)
-        # self.assertEquals(datatypes.cotan(datatypes.Point.origin, self.p, self.q), 1.0)
+        # self.assertEqual(datatypes.cotan(datatypes.Point.origin, self.p, self.q), 1.0)
 
     def testMPoint_distance(self):
         self.q = pm.datatypes.Point(0.707, 0.0, -0.707)
@@ -720,12 +720,12 @@ class test_PMTypes(unittest.TestCase):
         locP = pm.datatypes.Point([1.0, 2.0, 3.0])
         locQ = pm.datatypes.Point([1.0, 2.0, 3.0, 1.0])
 
-        self.assertEquals(pm.datatypes.bWeights(self.r, pm.datatypes.Point.origin, locP, locQ), (0.0, 0.5, 0.5))
-        self.assertEquals(pm.datatypes.bWeights((.5,0,0), (0,0,0),(1,0,0),(1,1,0),(0,1,0)), (.5, .5, 0, 0))
+        self.assertEqual(pm.datatypes.bWeights(self.r, pm.datatypes.Point.origin, locP, locQ), (0.0, 0.5, 0.5))
+        self.assertEqual(pm.datatypes.bWeights((.5,0,0), (0,0,0),(1,0,0),(1,1,0),(0,1,0)), (.5, .5, 0, 0))
 
     def testMPoint_round(self):
         self.p = pm.datatypes.Point([0.33333, 0.66666, 1.333333, 0.33333])
-        self.assertEquals(pm.datatypes.round(self.p, 3), pm.datatypes.Point([0.333, 0.667, 1.333, 0.333]) )
+        self.assertEqual(pm.datatypes.round(self.p, 3), pm.datatypes.Point([0.333, 0.667, 1.333, 0.333]) )
 
 
 ##################################################################
@@ -740,59 +740,59 @@ class test_PMTypes(unittest.TestCase):
 
     def testMColor_instance(self):
         self.c = pm.datatypes.Color()
-        self.assertEquals(self.c, pm.datatypes.Color([0.0, 0.0, 0.0, 1.0]))
+        self.assertEqual(self.c, pm.datatypes.Color([0.0, 0.0, 0.0, 1.0]))
 
         self.c = pm.datatypes.Color(pm.api.MColor())
-        self.assertEquals(self.c, pm.datatypes.Color([0.0, 0.0, 0.0, 1.0])) # TODO - using api convention of single value would mean alpha
+        self.assertEqual(self.c, pm.datatypes.Color([0.0, 0.0, 0.0, 1.0])) # TODO - using api convention of single value would mean alpha
         # instead of datatypes.VectorN convention of filling all with value
         # which would yield # Color([0.5, 0.5, 0.5, 0.5]) instead
         # This would break coerce behavior for Color
 
         self.c = pm.datatypes.Color(0.5)
-        self.assertEquals(self.c ,pm.datatypes.Color([0.5, 0.5, 0.5, 0.5]))
+        self.assertEqual(self.c ,pm.datatypes.Color([0.5, 0.5, 0.5, 0.5]))
 
         self.c = pm.datatypes.Color(1, 1, 1)
-        self.assertEquals(self.c , pm.datatypes.Color([1.0, 1.0, 1.0, 1.0]))
+        self.assertEqual(self.c , pm.datatypes.Color([1.0, 1.0, 1.0, 1.0]))
 
         self.c = pm.datatypes.Color(1, 0.5, 2, 0.5)
-        self.assertEquals(self.c,pm.datatypes.Color([1.0, 0.5, 2.0, 0.5]))
+        self.assertEqual(self.c,pm.datatypes.Color([1.0, 0.5, 2.0, 0.5]))
 
         self.c = pm.datatypes.Color(128, quantize=255)
-        self.assertEquals(self.c , pm.datatypes.Color([0.501960813999, 0.501960813999, 0.501960813999, 0.501960813999]))
+        self.assertEqual(self.c , pm.datatypes.Color([0.501960813999, 0.501960813999, 0.501960813999, 0.501960813999]))
 
         self.c = pm.datatypes.Color(255, 128, b=64, a=32, quantize=255)
-        self.assertEquals(self.c , pm.datatypes.Color([1.0, 0.501960813999, 0.250980407, 0.1254902035]))
+        self.assertEqual(self.c , pm.datatypes.Color([1.0, 0.501960813999, 0.250980407, 0.1254902035]))
 
         self.c = pm.datatypes.Color(0, 65535, 65535, quantize=65535, mode='hsv')
-        self.assertEquals(self.c , pm.datatypes.Color([1.0, 0.0, 0.0, 1.0]))
+        self.assertEqual(self.c , pm.datatypes.Color([1.0, 0.0, 0.0, 1.0]))
 
         self.c = pm.datatypes.Color(self.c, v=0.5, mode='hsv')
-        self.assertEquals(self.c , pm.datatypes.Color([0.5, 0.0, 0.0, 1.0]))
+        self.assertEqual(self.c , pm.datatypes.Color([0.5, 0.0, 0.0, 1.0]))
 
     def testMColor_CopyConstructor(self):
         self.c = pm.datatypes.Color(pm.datatypes.Color.blue, v=0.5)
-        self.assertEquals(self.c , pm.datatypes.Color([0.0, 0.0, 0.5, 1.0]))
+        self.assertEqual(self.c , pm.datatypes.Color([0.0, 0.0, 0.5, 1.0]))
 
     def testMColor_round(self):
         self.c = pm.datatypes.round(pm.datatypes.Color(255, 0, 255, g=128, quantize=255, mode='rgb'), 2)
-        self.assertEquals(self.c , pm.datatypes.Color([1.0, 0.5, 1.0, 1.0]))
+        self.assertEqual(self.c , pm.datatypes.Color([1.0, 0.5, 1.0, 1.0]))
 
         self.c = pm.datatypes.round(pm.datatypes.Color(255, b=128, quantize=255, mode='rgb'), 2)
-        self.assertEquals(self.c , pm.datatypes.Color([1.0, 1.0, 0.5, 1.0]))
+        self.assertEqual(self.c , pm.datatypes.Color([1.0, 1.0, 0.5, 1.0]))
 
     def testMColor_rgb(self):
         self.c = pm.datatypes.Color(0, 65535, 65535, quantize=65535, mode='hsv')
-        self.assertEquals(self.c.rgb, (1.0, 0.0, 0.0))
+        self.assertEqual(self.c.rgb, (1.0, 0.0, 0.0))
 
     def testMColor_hsv(self):
         self.c = pm.datatypes.Color(0, 65535, 65535, quantize=65535, mode='hsv')
-        self.assertEquals(self.c.hsv, (0.0, 1.0, 1.0))
+        self.assertEqual(self.c.hsv, (0.0, 1.0, 1.0))
 
         self.d = pm.datatypes.Color(self.c, v=0.5, mode='hsv')
-        self.assertEquals(self.d.hsv,(0.0, 1.0, 0.5))
+        self.assertEqual(self.d.hsv,(0.0, 1.0, 0.5))
 
         self.c = pm.datatypes.Color(pm.datatypes.Color.blue, v=0.5)
-        self.assertEquals(self.c.hsv,(0.66666666666666663, 1.0, 0.5))
+        self.assertEqual(self.c.hsv,(0.66666666666666663, 1.0, 0.5))
 
     def testMColor_rgbIndex_access(self):
         self.c = pm.datatypes.Color(pm.datatypes.Color.blue, v=0.5)
@@ -801,81 +801,81 @@ class test_PMTypes(unittest.TestCase):
         self.c.b = 3.0
         self.c.a = 0.5
 
-        self.assertEquals(self.c , pm.datatypes.Color([1.0, 2.0, 3.0, 0.5]))
-        self.assertEquals(self.c.hsv, (0.0, 0.0, 1.0))
+        self.assertEqual(self.c , pm.datatypes.Color([1.0, 2.0, 3.0, 0.5]))
+        self.assertEqual(self.c.hsv, (0.0, 0.0, 1.0))
 
     def testMColor_RGB_Constructor_Clamp(self):
         self.c = pm.datatypes.Color(1, 0.5, 2, 0.5).clamp()
-        self.assertEquals(self.c, pm.datatypes.Color([1.0, 0.5, 1.0, 0.5]) )
-        self.assertEquals(self.c.hsv, (0.83333333333333337, 0.5, 1.0))
+        self.assertEqual(self.c, pm.datatypes.Color([1.0, 0.5, 1.0, 0.5]) )
+        self.assertEqual(self.c.hsv, (0.83333333333333337, 0.5, 1.0))
 
     def testMColor_Copy_Constructor(self):
         self.c = pm.datatypes.Color(1, 0.5, 2, 0.5).clamp()
         self.d = pm.datatypes.Color(self.c,v=0.5)
-        self.assertEquals(self.d, pm.datatypes.Color([0.5, 0.25, 0.5, 0.5]))
-        self.assertEquals(self.d.hsv, (0.83333333333333337, 0.5, 0.5))
+        self.assertEqual(self.d, pm.datatypes.Color([0.5, 0.25, 0.5, 0.5]))
+        self.assertEqual(self.d.hsv, (0.83333333333333337, 0.5, 0.5))
 
     def testMColor_RGB_Constructor(self):
         self.c = pm.datatypes.Color(0.0, 0.5, 1.0, 0.5)
-        self.assertEquals(self.c, pm.datatypes.Color(0.0, 0.5, 1.0, 0.5))
+        self.assertEqual(self.c, pm.datatypes.Color(0.0, 0.5, 1.0, 0.5))
 
     def testMColor_Gamma(self):
         self.c = pm.datatypes.Color(0.0, 0.5, 1.0, 0.5)
         self.d = self.c.gamma(2.0)
-        self.assertEquals(self.d, pm.datatypes.Color([0.0, 0.25, 1.0, 0.5]))
+        self.assertEqual(self.d, pm.datatypes.Color([0.0, 0.25, 1.0, 0.5]))
 
     def testMColor_Blend(self):
         self.c = pm.datatypes.Color.red.blend(pm.datatypes.Color.blue, 0.5)
-        self.assertEquals(self.c.hsv, (0.83333333333333337, 1.0, 0.5))
+        self.assertEqual(self.c.hsv, (0.83333333333333337, 1.0, 0.5))
 
     def testMColor_HsvBlend(self):
         self.c = pm.datatypes.Color.red.hsvblend(pm.datatypes.Color.blue, 0.5)
-        self.assertEquals(self.c.hsv, (0.83333333333333337, 1.0, 1.0))
+        self.assertEqual(self.c.hsv, (0.83333333333333337, 1.0, 1.0))
 
     def testMColor_Over(self):
         self.c = pm.datatypes.Color(0.25, 0.5, 0.75, 0.5)
         self.d = pm.datatypes.Color.black
-        self.assertEquals(self.c.over(self.d), pm.datatypes.Color([0.125, 0.25, 0.375, 1.0]) )
-        self.assertEquals(self.d.over(self.c), pm.datatypes.Color([0.0, 0.0, 0.0, 0.5]))
+        self.assertEqual(self.c.over(self.d), pm.datatypes.Color([0.125, 0.25, 0.375, 1.0]) )
+        self.assertEqual(self.d.over(self.c), pm.datatypes.Color([0.0, 0.0, 0.0, 0.5]))
 
     def testMColor_RGB_Constructor_Premult(self):
         self.c = pm.datatypes.Color(0.25, 0.5, 0.75, 0.5)
-        self.assertEquals(self.c.premult(), pm.datatypes.Color([0.125, 0.25, 0.375, 1.0]))
+        self.assertEqual(self.c.premult(), pm.datatypes.Color([0.125, 0.25, 0.375, 1.0]))
 
     def testMColor_VectorInheritance(self):
         self.c = pm.datatypes.Color(0.25, 0.5, 1.0, 1.0)
         self.d = pm.datatypes.Color(2.0, 1.0, 0.5, 0.25)
-        self.assertEquals(self.c, pm.datatypes.Color([0.25, 0.5, 1.0, 1.0]))
-        self.assertEquals(self.d, pm.datatypes.Color([2.0, 1.0, 0.5, 0.25]))
+        self.assertEqual(self.c, pm.datatypes.Color([0.25, 0.5, 1.0, 1.0]))
+        self.assertEqual(self.d, pm.datatypes.Color([2.0, 1.0, 0.5, 0.25]))
 
         # Negative assignment
-        self.assertEquals(-(self.c), pm.datatypes.Color([-0.25, -0.5, -1.0, 1.0]))
+        self.assertEqual(-(self.c), pm.datatypes.Color([-0.25, -0.5, -1.0, 1.0]))
 
         # Multiply two colors
         self.e = self.c * self.d
-        self.assertEquals(self.e, pm.datatypes.Color([0.5, 0.5, 0.5, 0.25]))
+        self.assertEqual(self.e, pm.datatypes.Color([0.5, 0.5, 0.5, 0.25]))
 
         # Addition with constant
-        self.assertEquals((self.e + 2), pm.datatypes.Color([2.5, 2.5, 2.5, 0.25]))
+        self.assertEqual((self.e + 2), pm.datatypes.Color([2.5, 2.5, 2.5, 0.25]))
 
         # Multiply by scalar float
         # (defined in api for colors and also multiplies alpha)
-        self.assertEquals((self.e * 2.0), pm.datatypes.Color([1.0, 1.0, 1.0, 0.5]))
+        self.assertEqual((self.e * 2.0), pm.datatypes.Color([1.0, 1.0, 1.0, 0.5]))
 
         # Divide by scalar float
         # TODO as is divide, that ignores alpha now for some reason
-        self.assertEquals((self.e/2.0), pm.datatypes.Color([0.25, 0.25, 0.25, 0.25]))
+        self.assertEqual((self.e/2.0), pm.datatypes.Color([0.25, 0.25, 0.25, 0.25]))
 
         # Addition with Vector Instance
-        self.assertEquals(self.e + pm.datatypes.Vector(1,2,3), pm.datatypes.Color([1.5, 2.5, 3.5, 0.25]))
+        self.assertEqual(self.e + pm.datatypes.Vector(1,2,3), pm.datatypes.Color([1.5, 2.5, 3.5, 0.25]))
         # TODO Come correct? Here, behaves like API.
 
         # Addition with self
-        self.assertEquals((self.c + self.c), pm.datatypes.Color([0.5, 1.0, 2.0, 1.0]))
+        self.assertEqual((self.c + self.c), pm.datatypes.Color([0.5, 1.0, 2.0, 1.0]))
         # Addition with Color
-        self.assertEquals((self.c + self.d), pm.datatypes.Color([2.25, 1.5, 1.5, 1.0]))
+        self.assertEqual((self.c + self.d), pm.datatypes.Color([2.25, 1.5, 1.5, 1.0]))
         # Subtraction with Color
-        self.assertEquals((self.d - self.c), pm.datatypes.Color([1.75, 0.5, -0.5, 0.25]))
+        self.assertEqual((self.d - self.c), pm.datatypes.Color([1.75, 0.5, -0.5, 0.25]))
         #print "end tests Color" - TODO go through classes and make sure all methods are represented
 
 #===============================================================================
@@ -887,10 +887,10 @@ class test_PMTypes(unittest.TestCase):
             pm.datatypes.Angle.setUIUnit('degrees')
             inDegrees = [10,20,30]
             eDeg = pm.datatypes.EulerRotation(inDegrees)
-            self.assertEquals(eDeg, pm.datatypes.EulerRotation(inDegrees, unit='degrees'))
+            self.assertEqual(eDeg, pm.datatypes.EulerRotation(inDegrees, unit='degrees'))
             eRad = pm.datatypes.EulerRotation(eDeg)
             eRad.unit = 'radians'
-            self.assertEquals(eDeg, eRad)
+            self.assertEqual(eDeg, eRad)
             inRadians = [pm.datatypes.Angle(x, unit='degrees').asRadians() for x in inDegrees]
             eRad2 = pm.datatypes.EulerRotation(inRadians, unit='radians')
             self.assertEqual(eRad2, eDeg)
@@ -927,9 +927,9 @@ class test_PMTypes(unittest.TestCase):
 
     def testMatrix_Instance(self) :
         self.m = pm.datatypes.Matrix()
-        self.assertEquals(self.m.shape, pm.datatypes.Matrix.shape)
-        self.assertEquals(self.m.ndim,  pm.datatypes.Matrix.ndim)
-        self.assertEquals(self.m.size,  pm.datatypes.Matrix.size)
+        self.assertEqual(self.m.shape, pm.datatypes.Matrix.shape)
+        self.assertEqual(self.m.ndim,  pm.datatypes.Matrix.ndim)
+        self.assertEqual(self.m.size,  pm.datatypes.Matrix.size)
 
     def testIdentityMatrix_IsInstance(self) :
         self.m = pm.datatypes.Matrix.identity
@@ -956,20 +956,20 @@ class test_PMTypes(unittest.TestCase):
 
     def testMatrix_formated(self) :
         self.m = pm.datatypes.Matrix()
-        self.assertEquals(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
+        self.assertEqual(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
 
     def testMatrix_IndexAccess(self) :
         self.m = pm.datatypes.Matrix()
 
 
         # Single Index
-        self.assertEquals(self.m[0][0], 1.0)
-        #self.assertEquals(self.m[0:0][0:2],[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]) ## TODO :: WTF?
+        self.assertEqual(self.m[0][0], 1.0)
+        #self.assertEqual(self.m[0:0][0:2],[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]) ## TODO :: WTF?
         # Multi Index
-        self.assertEquals(self.m[1:2][0:1], pm.datatypes.MatrixN([[0.0, 1.0, 0.0, 0.0]]))
+        self.assertEqual(self.m[1:2][0:1], pm.datatypes.MatrixN([[0.0, 1.0, 0.0, 0.0]]))
 
         # paren indice access
-        self.assertEquals(self.m(0,0), 1.0)
+        self.assertEqual(self.m(0,0), 1.0)
 
     def testMMatrix_API_Calls(self) :
         # should be accepted directly by API methods
@@ -981,17 +981,17 @@ class test_PMTypes(unittest.TestCase):
 
         # Make MAtrix instance from range()
         self.m = pm.datatypes.Matrix(list(range(16)))
-        self.assertEquals(self.m.formated(), '[[0.0, 1.0, 2.0, 3.0],\n [4.0, 5.0, 6.0, 7.0],\n [8.0, 9.0, 10.0, 11.0],\n [12.0, 13.0, 14.0, 15.0]]')
+        self.assertEqual(self.m.formated(), '[[0.0, 1.0, 2.0, 3.0],\n [4.0, 5.0, 6.0, 7.0],\n [8.0, 9.0, 10.0, 11.0],\n [12.0, 13.0, 14.0, 15.0]]')
 
         # Make Matrix instance from Array from range()
         self.M = pm.datatypes.Array(list(range(16)), shape=(8, 2))
         self.m = pm.datatypes.Matrix(self.M)
-        self.assertEquals(self.m.formated(), '[[0.0, 1.0, 2.0, 3.0],\n [4.0, 5.0, 6.0, 7.0],\n [8.0, 9.0, 10.0, 11.0],\n [12.0, 13.0, 14.0, 15.0]]')
+        self.assertEqual(self.m.formated(), '[[0.0, 1.0, 2.0, 3.0],\n [4.0, 5.0, 6.0, 7.0],\n [8.0, 9.0, 10.0, 11.0],\n [12.0, 13.0, 14.0, 15.0]]')
 
         # Make Matrix instance from MatrixN from range()
         self.M = pm.datatypes.MatrixN(list(range(9)), shape=(3, 3))
         self.m = pm.datatypes.Matrix(self.M)
-        self.assertEquals(self.m.formated(),'[[0.0, 1.0, 2.0, 0.0],\n [3.0, 4.0, 5.0, 0.0],\n [6.0, 7.0, 8.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
+        self.assertEqual(self.m.formated(),'[[0.0, 1.0, 2.0, 0.0],\n [3.0, 4.0, 5.0, 0.0],\n [6.0, 7.0, 8.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
 
         # inherits from Array and MatrixN
         self.assertTrue(isinstance(self.m, pm.datatypes.MatrixN))
@@ -1006,21 +1006,21 @@ class test_PMTypes(unittest.TestCase):
         self.t = pm.api.MTransformationMatrix()
         self.t.setTranslation(pm.datatypes.Vector(1,2,3), pm.api.MSpace.kWorld)
         self.m = pm.datatypes.Matrix(self.t)
-        self.assertEquals(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [1.0, 2.0, 3.0, 1.0]]')
+        self.assertEqual(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [1.0, 2.0, 3.0, 1.0]]')
 
         self.m = pm.datatypes.Matrix(self.m, a30=10)
-        self.assertEquals(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [10.0, 2.0, 3.0, 1.0]]')
+        self.assertEqual(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [10.0, 2.0, 3.0, 1.0]]')
 
 
     def testMatrix_Trimmed(self):
         self.m = pm.datatypes.Matrix.identity
         self.M = self.m.trimmed(shape=(3, 3))
-        self.assertEquals(self.M.formated(),'[[1.0, 0.0, 0.0],\n [0.0, 1.0, 0.0],\n [0.0, 0.0, 1.0]]') # TODO goto the docs, tool
+        self.assertEqual(self.M.formated(),'[[1.0, 0.0, 0.0],\n [0.0, 1.0, 0.0],\n [0.0, 0.0, 1.0]]') # TODO goto the docs, tool
 
     def testMatrix_issingular(self):
         self.M = pm.datatypes.Matrix.identity
         self.M = self.m.trimmed(shape=(3,3))
-        self.assertEquals(self.M, pm.datatypes.MatrixN([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
+        self.assertEqual(self.M, pm.datatypes.MatrixN([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
 
         def Matrix_badTrim_Test():
             self.m.trim(shape=(3,3)) # TODO should fail
@@ -1028,49 +1028,49 @@ class test_PMTypes(unittest.TestCase):
 
     def testMatrix_columnAccess(self):
         self.m = pm.datatypes.Matrix.identity
-        self.assertEquals(self.m.ncol, 4)
+        self.assertEqual(self.m.ncol, 4)
 
         def Matrix_badRow():
             self.m.nrow = 3
         self.assertRaises(TypeError, Matrix_badRow)
 
     def testMatrix_rowAccess(self):
-        self.assertEquals(self.m.nrow, 4)
+        self.assertEqual(self.m.nrow, 4)
 
 # for i in range(0,4):print m.col[i]
 
     def testMatrix_list(self):
-        self.assertEquals(list(self.m.row), [pm.datatypes.Array([1.0, 0.0, 0.0, 0.0]), pm.datatypes.Array([0.0, 1.0, 0.0, 0.0]), pm.datatypes.Array([0.0, 0.0, 1.0, 0.0]), pm.datatypes.Array([0.0, 0.0, 0.0, 1.0])] )
+        self.assertEqual(list(self.m.row), [pm.datatypes.Array([1.0, 0.0, 0.0, 0.0]), pm.datatypes.Array([0.0, 1.0, 0.0, 0.0]), pm.datatypes.Array([0.0, 0.0, 1.0, 0.0]), pm.datatypes.Array([0.0, 0.0, 0.0, 1.0])] )
 
-        self.assertEquals(list(self.m.col), [pm.datatypes.Array([1.0, 0.0, 0.0, 0.0]), pm.datatypes.Array([0.0, 1.0, 0.0, 0.0]), pm.datatypes.Array([0.0, 0.0, 1.0, 0.0]), pm.datatypes.Array([0.0, 0.0, 0.0, 1.0])] )
+        self.assertEqual(list(self.m.col), [pm.datatypes.Array([1.0, 0.0, 0.0, 0.0]), pm.datatypes.Array([0.0, 1.0, 0.0, 0.0]), pm.datatypes.Array([0.0, 0.0, 1.0, 0.0]), pm.datatypes.Array([0.0, 0.0, 0.0, 1.0])] )
 
     def testMMatrix_fromTrimmedMatrixN(self):
         self.m  = pm.datatypes.Matrix(pm.datatypes.MatrixN(list(range(9)), shape=(3,3)).trimmed(shape=(4,4), value=10))
-        self.assertEquals(self.m.formated(), '[[0.0, 1.0, 2.0, 10.0],\n [3.0, 4.0, 5.0, 10.0],\n [6.0, 7.0, 8.0, 10.0],\n [10.0, 10.0, 10.0, 10.0]]')
+        self.assertEqual(self.m.formated(), '[[0.0, 1.0, 2.0, 10.0],\n [3.0, 4.0, 5.0, 10.0],\n [6.0, 7.0, 8.0, 10.0],\n [10.0, 10.0, 10.0, 10.0]]')
 
     def testMMatrix_getAccess(self):
         self.m = pm.datatypes.Matrix(pm.datatypes.MatrixN(list(range(9)), shape=(3,3)).trimmed(shape=(4,4), value=10))
-        self.assertEquals(self.m.get(), ((0.0, 1.0, 2.0, 10.0), (3.0, 4.0, 5.0, 10.0), (6.0, 7.0, 8.0, 10.0), (10.0, 10.0, 10.0, 10.0)))
+        self.assertEqual(self.m.get(), ((0.0, 1.0, 2.0, 10.0), (3.0, 4.0, 5.0, 10.0), (6.0, 7.0, 8.0, 10.0), (10.0, 10.0, 10.0, 10.0)))
 
     def testMMatrix_indexAccess(self):
         self.m = pm.datatypes.Matrix(pm.datatypes.MatrixN(list(range(9)), shape=(3,3)).trimmed(shape=(4,4), value=10))
-        self.assertEquals(self.m[0], pm.datatypes.Array([0.0, 1.0, 2.0, 10.0]))
+        self.assertEqual(self.m[0], pm.datatypes.Array([0.0, 1.0, 2.0, 10.0]))
 
         self.m[0] = 10
-        self.assertEquals(self.m.formated(), '[[10.0, 10.0, 10.0, 10.0],\n [3.0, 4.0, 5.0, 10.0],\n [6.0, 7.0, 8.0, 10.0],\n [10.0, 10.0, 10.0, 10.0]]')
+        self.assertEqual(self.m.formated(), '[[10.0, 10.0, 10.0, 10.0],\n [3.0, 4.0, 5.0, 10.0],\n [6.0, 7.0, 8.0, 10.0],\n [10.0, 10.0, 10.0, 10.0]]')
 
         # list
         self.assertTrue(10 in self.m)
-        self.assertEquals(list(self.m), [pm.datatypes.Array([10.0, 10.0, 10.0, 10.0]), pm.datatypes.Array([3.0, 4.0, 5.0, 10.0]), pm.datatypes.Array([6.0, 7.0, 8.0, 10.0]), pm.datatypes.Array([10.0, 10.0, 10.0, 10.0])])
+        self.assertEqual(list(self.m), [pm.datatypes.Array([10.0, 10.0, 10.0, 10.0]), pm.datatypes.Array([3.0, 4.0, 5.0, 10.0]), pm.datatypes.Array([6.0, 7.0, 8.0, 10.0]), pm.datatypes.Array([10.0, 10.0, 10.0, 10.0])])
 
         # list flat
-        self.assertEquals(list(self.m.flat), [10.0, 10.0, 10.0, 10.0, 3.0, 4.0, 5.0, 10.0, 6.0, 7.0, 8.0, 10.0, 10.0, 10.0, 10.0, 10.0])
+        self.assertEqual(list(self.m.flat), [10.0, 10.0, 10.0, 10.0, 3.0, 4.0, 5.0, 10.0, 6.0, 7.0, 8.0, 10.0, 10.0, 10.0, 10.0, 10.0])
 
     def testMMatrix_AxisAccess(self):
         self.u = pm.datatypes.Vector.xAxis
         self.v = pm.datatypes.Vector.yAxis
-        self.assertEquals(self.v, pm.datatypes.Vector.yAxis)
-        self.assertEquals(self.u, pm.datatypes.Vector.xAxis)
+        self.assertEqual(self.v, pm.datatypes.Vector.yAxis)
+        self.assertEqual(self.u, pm.datatypes.Vector.xAxis)
 
     def testMMatrix_rounded(self):
         ## TODO round(m, 2) returns
@@ -1093,7 +1093,7 @@ class test_PMTypes(unittest.TestCase):
         self.u = pm.datatypes.Vector(1, 2, 3)
 
         # start check
-        self.assertEquals(self.u, pm.datatypes.Vector([1, 2, 3]))
+        self.assertEqual(self.u, pm.datatypes.Vector([1, 2, 3]))
 
         # multiply Matrix by Vector
         first = self.u * self.m
@@ -1119,7 +1119,7 @@ class test_PMTypes(unittest.TestCase):
         first = pm.datatypes.VectorN([1, 2, 3])* self.m
         last = pm.datatypes.VectorN([6.31319304795, 0.378937381963, -0.5])
         #self.assert_(self.v.isEquivalent(last)) # AssertionError
-        #self.assertEquals(first, last) # AssertionError: VectorN([6.31319304795, 0.378937381963, -0.5]) != VectorN([6.31319304795, 0.378937381963, -0.5])
+        #self.assertEqual(first, last) # AssertionError: VectorN([6.31319304795, 0.378937381963, -0.5]) != VectorN([6.31319304795, 0.378937381963, -0.5])
 
         fd = first.data
         ld = last.data
@@ -1134,38 +1134,38 @@ class test_PMTypes(unittest.TestCase):
 
         # element wise multiplication
         self.m = pm.datatypes.Matrix(list(range(1, 17)))
-        self.assertEquals(self.m.formated(), '[[1.0, 2.0, 3.0, 4.0],\n [5.0, 6.0, 7.0, 8.0],\n [9.0, 10.0, 11.0, 12.0],\n [13.0, 14.0, 15.0, 16.0]]')
-        self.assertEquals(([1, 10, 100] * self.m), pm.datatypes.Matrix([[1.0, 20.0, 300.0, 0.0], [5.0, 60.0, 700.0, 0.0], [9.0, 100.0, 1100.0, 0.0], [13.0, 140.0, 1500.0, 0.0]]) )
+        self.assertEqual(self.m.formated(), '[[1.0, 2.0, 3.0, 4.0],\n [5.0, 6.0, 7.0, 8.0],\n [9.0, 10.0, 11.0, 12.0],\n [13.0, 14.0, 15.0, 16.0]]')
+        self.assertEqual(([1, 10, 100] * self.m), pm.datatypes.Matrix([[1.0, 20.0, 300.0, 0.0], [5.0, 60.0, 700.0, 0.0], [9.0, 100.0, 1100.0, 0.0], [13.0, 140.0, 1500.0, 0.0]]) )
 
         self.M = pm.datatypes.MatrixN(list(range(1, 21)), shape=(4, 5))
-        self.assertEquals(self.M.formated(), '[[1, 2, 3, 4, 5],\n [6, 7, 8, 9, 10],\n [11, 12, 13, 14, 15],\n [16, 17, 18, 19, 20]]')
+        self.assertEqual(self.M.formated(), '[[1, 2, 3, 4, 5],\n [6, 7, 8, 9, 10],\n [11, 12, 13, 14, 15],\n [16, 17, 18, 19, 20]]')
 
         self.n = self.m * self.M
-        self.assertEquals(self.n.formated(),'[[110.0, 120.0, 130.0, 140.0, 150.0],\n [246.0, 272.0, 298.0, 324.0, 350.0],\n [382.0, 424.0, 466.0, 508.0, 550.0],\n [518.0, 576.0, 634.0, 692.0, 750.0]]')
+        self.assertEqual(self.n.formated(),'[[110.0, 120.0, 130.0, 140.0, 150.0],\n [246.0, 272.0, 298.0, 324.0, 350.0],\n [382.0, 424.0, 466.0, 508.0, 550.0],\n [518.0, 576.0, 634.0, 692.0, 750.0]]')
 
         # check class name
-        self.assertEquals(pm.util.clsname(self.n), 'MatrixN')
+        self.assertEqual(pm.util.clsname(self.n), 'MatrixN')
 
         # multiply by integer - should return a Matrix
         self.n = (self.m * 2)
-        self.assertEquals(self.n.formated(), '[[2.0, 4.0, 6.0, 8.0],\n [10.0, 12.0, 14.0, 16.0],\n [18.0, 20.0, 22.0, 24.0],\n [26.0, 28.0, 30.0, 32.0]]')
+        self.assertEqual(self.n.formated(), '[[2.0, 4.0, 6.0, 8.0],\n [10.0, 12.0, 14.0, 16.0],\n [18.0, 20.0, 22.0, 24.0],\n [26.0, 28.0, 30.0, 32.0]]')
         # and then double-check class
-        self.assertEquals(pm.util.clsname(self.n), 'Matrix')
+        self.assertEqual(pm.util.clsname(self.n), 'Matrix')
 
         # multiply integer by matrix - should return a Matrix
         self.n = (2 * self.m)
-        self.assertEquals(self.n.formated(), '[[2.0, 4.0, 6.0, 8.0],\n [10.0, 12.0, 14.0, 16.0],\n [18.0, 20.0, 22.0, 24.0],\n [26.0, 28.0, 30.0, 32.0]]')
-        self.assertEquals(pm.util.clsname(self.n), 'Matrix')
+        self.assertEqual(self.n.formated(), '[[2.0, 4.0, 6.0, 8.0],\n [10.0, 12.0, 14.0, 16.0],\n [18.0, 20.0, 22.0, 24.0],\n [26.0, 28.0, 30.0, 32.0]]')
+        self.assertEqual(pm.util.clsname(self.n), 'Matrix')
 
         # add matrix to integer - should return a Matrix
         self.n = self.m + 2
-        self.assertEquals(self.n.formated(),'[[3.0, 4.0, 5.0, 6.0],\n [7.0, 8.0, 9.0, 10.0],\n [11.0, 12.0, 13.0, 14.0],\n [15.0, 16.0, 17.0, 18.0]]')
-        self.assertEquals(pm.util.clsname(self.n), 'Matrix')
+        self.assertEqual(self.n.formated(),'[[3.0, 4.0, 5.0, 6.0],\n [7.0, 8.0, 9.0, 10.0],\n [11.0, 12.0, 13.0, 14.0],\n [15.0, 16.0, 17.0, 18.0]]')
+        self.assertEqual(pm.util.clsname(self.n), 'Matrix')
 
          # add integer to matrix
         self.n = 2 + self.m
-        self.assertEquals(self.n.formated(),'[[3.0, 4.0, 5.0, 6.0],\n [7.0, 8.0, 9.0, 10.0],\n [11.0, 12.0, 13.0, 14.0],\n [15.0, 16.0, 17.0, 18.0]]')
-        self.assertEquals(pm.util.clsname(self.n), 'Matrix')
+        self.assertEqual(self.n.formated(),'[[3.0, 4.0, 5.0, 6.0],\n [7.0, 8.0, 9.0, 10.0],\n [11.0, 12.0, 13.0, 14.0],\n [15.0, 16.0, 17.0, 18.0]]')
+        self.assertEqual(pm.util.clsname(self.n), 'Matrix')
 
         def setToProduct_test():
             self.m.setToProduct(self.m, self.M)
@@ -1179,40 +1179,40 @@ class test_PMTypes(unittest.TestCase):
         self.m = pm.datatypes.Matrix([0.0, 4.1633363423443383e-17, -0.5, 0.0, 0.25881904510252079, 0.96592582628906831, 1.3877787807814459e-16, 0.0, 1.9318516525781366, -0.51763809020504159, 0.0, 0.0, 1.0, 2.0, 3.0, 1.0])
 
         # round() matrix values # TODO round from chad
-        #self.assertEquals(round(self.m, 2).formated(), '[[0.0, 0.0, -0.5, 0.0],\n [0.26, 0.97, 0.0, 0.0],\n [1.93, -0.52, 0.0, 0.0],\n [1.0, 2.0, 3.0, 1.0]]')
+        #self.assertEqual(round(self.m, 2).formated(), '[[0.0, 0.0, -0.5, 0.0],\n [0.26, 0.97, 0.0, 0.0],\n [1.93, -0.52, 0.0, 0.0],\n [1.0, 2.0, 3.0, 1.0]]')
 
         # round() the transposed() the matrix # TODO round from chad
-        #self.assertEquals(round(self.m.transpose(),2).formated(), '[[0.0, 0.26, 1.93, 1.0],\n [0.0, 0.97, -0.52, 2.0],\n [-0.5, 0.0, 0.0, 3.0],\n [0.0, 0.0, 0.0, 1.0]]')
+        #self.assertEqual(round(self.m.transpose(),2).formated(), '[[0.0, 0.26, 1.93, 1.0],\n [0.0, 0.97, -0.52, 2.0],\n [-0.5, 0.0, 0.0, 3.0],\n [0.0, 0.0, 0.0, 1.0]]')
 
         # issingular() - make sure (not) no inverse - yay, assertFalse!
         self.assertFalse(self.m.isSingular())
 
         # so lets check that inverse matrix# TODO round from chad
-        #self.assertEquals(round(self.m.inverse(),2).formated(), '[[0.0, 0.26, 0.48, 0.0],\n [0.0, 0.97, -0.13, 0.0],\n [-2.0, 0.0, 0.0, 0.0],\n [6.0, -2.19, -0.22, 1.0]]')
+        #self.assertEqual(round(self.m.inverse(),2).formated(), '[[0.0, 0.26, 0.48, 0.0],\n [0.0, 0.97, -0.13, 0.0],\n [-2.0, 0.0, 0.0, 0.0],\n [6.0, -2.19, -0.22, 1.0]]')
 
         # adjoint() - should be the same as the inverse, as they are *almost the same thing # TODO round from chad
-        #self.assertEquals(round(self.m.adjoint(),2).formated(), '[[0.0, 0.26, 0.48, 0.0],\n [0.0, 0.97, -0.13, 0.0],\n [-2.0, 0.0, -0.0, 0.0],\n [6.0, -2.19, -0.22, 1.0]]')
+        #self.assertEqual(round(self.m.adjoint(),2).formated(), '[[0.0, 0.26, 0.48, 0.0],\n [0.0, 0.97, -0.13, 0.0],\n [-2.0, 0.0, -0.0, 0.0],\n [6.0, -2.19, -0.22, 1.0]]')
 
         # adjugate() - should be identical to the adoint matrix# TODO round from chad
-        #self.assertEquals(round(self.m.adjugate(),2).formated(), '[[0.0, 0.26, 0.48, 0.0],\n [0.0, 0.97, -0.13, 0.0],\n [-2.0, 0.0, -0.0, 0.0],\n [6.0, -2.19, -0.22, 1.0]]')
+        #self.assertEqual(round(self.m.adjugate(),2).formated(), '[[0.0, 0.26, 0.48, 0.0],\n [0.0, 0.97, -0.13, 0.0],\n [-2.0, 0.0, -0.0, 0.0],\n [6.0, -2.19, -0.22, 1.0]]')
 
         # homogenize()# TODO round from chad
-        #self.assertEquals(round(self.m.homogenize(),2).formated(), '[[0.0, 0.0, -1.0, 0.0],\n [0.26, 0.97, 0.0, 0.0],\n [0.97, -0.26, -0.0, 0.0],\n [1.0, 2.0, 3.0, 1.0]]')
+        #self.assertEqual(round(self.m.homogenize(),2).formated(), '[[0.0, 0.0, -1.0, 0.0],\n [0.26, 0.97, 0.0, 0.0],\n [0.97, -0.26, -0.0, 0.0],\n [1.0, 2.0, 3.0, 1.0]]')
 
         # determinant()
-        self.assertEquals(self.m.det(), 1.0)
+        self.assertEqual(self.m.det(), 1.0)
 
         # determinant for this matrix:4x4
-        self.assertEquals(self.m.det4x4(), 1.0)
+        self.assertEqual(self.m.det4x4(), 1.0)
 
         # determinant of the upper left 3x3 submatrix of this matrix instance
-        self.assertEquals(self.m.det3x3(), 1.0)
+        self.assertEqual(self.m.det3x3(), 1.0)
 
         # TODO round from chad
-        #self.assertEquals(round(m.weighted(0.5),2).formated(), '[[0.53, 0.0, -0.53, 0.0],\n [0.09, 0.99, 0.09, 0.0],\n [1.05, -0.2, 1.05, 0.0],\n [0.5, 1.0, 1.5, 1.0]]')
+        #self.assertEqual(round(m.weighted(0.5),2).formated(), '[[0.53, 0.0, -0.53, 0.0],\n [0.09, 0.99, 0.09, 0.0],\n [1.05, -0.2, 1.05, 0.0],\n [0.5, 1.0, 1.5, 1.0]]')
 
         # blend() # TODO round from chad
-        #self.assertEquals(round(m.blend(Matrix.identity, 0.5),2).formated(), '[[0.53, 0.0, -0.53, 0.0],\n [0.09, 0.99, 0.09, 0.0],\n [1.05, -0.2, 1.05, 0.0],\n [0.5, 1.0, 1.5, 1.0]]')
+        #self.assertEqual(round(m.blend(Matrix.identity, 0.5),2).formated(), '[[0.53, 0.0, -0.53, 0.0],\n [0.09, 0.99, 0.09, 0.0],\n [1.05, -0.2, 1.05, 0.0],\n [0.5, 1.0, 1.5, 1.0]]')
 
 
 ##################################################################
@@ -1221,7 +1221,7 @@ class test_PMTypes(unittest.TestCase):
 
     def testMTransformationMatrix_QuatInstance(self) :
         q = pm.datatypes.Quaternion()
-        self.assertEquals(q, pm.datatypes.Quaternion([0.0, 0.0, 0.0, 1.0]))
+        self.assertEqual(q, pm.datatypes.Quaternion([0.0, 0.0, 0.0, 1.0]))
 
         q = pm.datatypes.Quaternion(1, 2, 3, 0.5)
         last = pm.datatypes.Quaternion([1.0, 2.0, 3.0, 0.5])
@@ -1302,18 +1302,18 @@ class test_PMTypes(unittest.TestCase):
 
     def testMTransformationMatrix_formatted(self):
         self.m = pm.datatypes.TransformationMatrix()
-        self.assertEquals(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
+        self.assertEqual(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
 
     def testMTransformationMatrix_indiceAccess(self):
         self.m = pm.datatypes.TransformationMatrix()
-        self.assertEquals(self.m[0, 0], 1.0)
-        self.assertEquals(self.m[0:2, 0:3], pm.datatypes.MatrixN([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]))
+        self.assertEqual(self.m[0, 0], 1.0)
+        self.assertEqual(self.m[0:2, 0:3], pm.datatypes.MatrixN([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]))
 
     def testMTransformationMatrix_instanceEquality(self):
         self.m = pm.datatypes.TransformationMatrix()
-        self.assertEquals(pm.datatypes.TransformationMatrix.shape, self.m.shape)
-        self.assertEquals(pm.datatypes.TransformationMatrix.ndim, self.m.ndim)
-        self.assertEquals(pm.datatypes.TransformationMatrix.size, self.m.size)
+        self.assertEqual(pm.datatypes.TransformationMatrix.shape, self.m.shape)
+        self.assertEqual(pm.datatypes.TransformationMatrix.ndim, self.m.ndim)
+        self.assertEqual(pm.datatypes.TransformationMatrix.size, self.m.size)
 
     def testMTransformationMatrix_inheritance(self):
         self.m = pm.datatypes.TransformationMatrix.identity
@@ -1354,16 +1354,16 @@ class test_PMTypes(unittest.TestCase):
         # rotation
         self.m = pm.datatypes.TransformationMatrix.identity
         self.m.rotation = pm.datatypes.Quaternion()
-        self.assertEquals(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
+        self.assertEqual(self.m.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
 
         # translations
         self.n = pm.datatypes.TransformationMatrix.identity
         self.n.translation = pm.datatypes.Vector(1, 2, 3)
-        self.assertEquals(self.n.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
+        self.assertEqual(self.n.formated(), '[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
 
         # identity multiplied by identity
         self.o = self.m * self.n
-        self.assertEquals(self.o.formated(),'[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
+        self.assertEqual(self.o.formated(),'[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
 
     def test_constants(self):
         # TODO : come up with a programatic way of finding constants
