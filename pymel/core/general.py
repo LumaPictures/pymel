@@ -1158,13 +1158,13 @@ def ls(*args, **kwargs):
             [nt.Transform(u'group2')]
             >>> group('group2')
             nt.Transform(u'group3')
-            >>> ls(regex='group\d+\|top') # don't forget to escape pipes `|`
+            >>> ls(regex=r'group\d+\|top') # don't forget to escape pipes `|`
             [nt.Transform(u'group1|top'), nt.Transform(u'group2|top')]
-            >>> ls(regex='group\d+\|top.*')
+            >>> ls(regex=r'group\d+\|top.*')
             [nt.Transform(u'group1|top'), nt.Camera(u'group1|top|topShape'), nt.Transform(u'group2|top'), nt.Camera(u'group2|top|topShape')]
-            >>> ls(regex='group\d+\|top.*', cameras=1)
+            >>> ls(regex=r'group\d+\|top.*', cameras=1)
             [nt.Camera(u'group2|top|topShape'), nt.Camera(u'group1|top|topShape')]
-            >>> ls(regex='\|group\d+\|top.*', cameras=1) # add a leading pipe to search for full path
+            >>> ls(regex=r'\|group\d+\|top.*', cameras=1) # add a leading pipe to search for full path
             [nt.Camera(u'group1|top|topShape')]
 
         The regular expression will be used to search the full DAG path, starting from the right, in a similar fashion to how globs currently work.
@@ -1216,7 +1216,7 @@ def ls(*args, **kwargs):
         if isinstance(val, basestring):
             if not val.endswith('$'):
                 val = val + '$'
-            val = re.compile('(\||^)' + val)
+            val = re.compile(r'(\||^)' + val)
         elif not isinstance(val, re._pattern_type):
             raise TypeError('regex flag must be passed a valid regex string, '
                             'a compiled regex object, or a list of these '
@@ -3067,7 +3067,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     """
     __slots__ = ()
     __apicls__ = _api.MPlug
-    attrItemReg = re.compile('\[(\d+)\]$')
+    attrItemReg = re.compile(r'\[(\d+)\]$')
 
 #    def __init__(self, *args, **kwargs ):
 #        self.apicls.__init__(self, self._apiobject )

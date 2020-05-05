@@ -299,7 +299,7 @@ class NameIndexParser(Parser):
 
 class NameRangeIndexParser(Parser):
 
-    """ A Parser for an index specification for an attribute or a component index,
+    r""" A Parser for an index specification for an attribute or a component index,
         in the form [<optional int number>:<optional int number>]
         Rule : NameIndex = r'\[[0-9]*:[0-9]*\]' """
     t_RangeIndex = r'\[[0-9]*:[0-9]*\]'
@@ -322,7 +322,7 @@ class NameRangeIndexParser(Parser):
 
 class SingleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):
 
-    """ A NameParsed for the reserved single indexed components names:
+    r""" A NameParsed for the reserved single indexed components names:
         vtx,
         Rule : NameIndex = r'\[[0-9]*:[0-9]*\]' """
 
@@ -934,7 +934,7 @@ class MayaShortName(NameParsed):
 
 class DagPathSep(NameParsed):
 
-    """
+    r"""
     The Maya long names separator : the pipe '|'
 
         Rule : DagPathSep = r'\|'
@@ -1128,7 +1128,7 @@ class MayaNodePath(NameParsed):
 
 class AttrSep(NameParsed):
 
-    """
+    r"""
     The Maya attribute separator : the dot '.'
 
         Rule : AttrSep = r'\.'
@@ -1145,7 +1145,7 @@ class AttrSep(NameParsed):
 
 class NameIndex(NameParsed):
 
-    """
+    r"""
     An index specification for an attribute or a component index, in the form [<int number>]
 
         Rule : NameIndex = r'\[[0-9]+\]'
@@ -1171,7 +1171,7 @@ class NameIndex(NameParsed):
 
 class NameRangeIndex(NameParsed):
 
-    """
+    r"""
     An index specification for an attribute or a component index, in the form::
         [<optional int number>:<optional int number>]
 

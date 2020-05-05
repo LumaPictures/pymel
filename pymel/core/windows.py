@@ -678,7 +678,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 
         # if a dataType such as float3 or int2 was passed, get the number of ctrls
         try:
-            buf = re.split('(\d+)', dataType)
+            buf = re.split(r'(\d+)', dataType)
             dataType = buf[0]
             numberOfControls = int(buf[1])
         except:

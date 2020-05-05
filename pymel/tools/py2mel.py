@@ -288,7 +288,7 @@ def _shortnameByDoc(method):
 
     """
     if hasattr(method, "__doc__") and method.__doc__:
-        m = re.search('.*shortname: (\w+)', method.__doc__)
+        m = re.search(r'.*shortname: (\w+)', method.__doc__)
         if m:
             return m.group(1)
 

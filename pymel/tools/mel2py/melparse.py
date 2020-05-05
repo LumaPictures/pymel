@@ -47,9 +47,9 @@ except ImportError:
 
 #  Global variables + constants ------------------------------------------------
 
-FLAG_RE = re.compile("-\s*([A-Za-z][\w_]*)$")
+FLAG_RE = re.compile(r"-\s*([A-Za-z][\w_]*)$")
 
-NON_COMMENT_LINE_RE = re.compile('^\s*[^\s#]', re.MULTILINE)
+NON_COMMENT_LINE_RE = re.compile(r'^\s*[^\s#]', re.MULTILINE)
 
 # commands which should not be brought into main namespace
 filteredCmds = ['file', 'filter', 'help', 'quit', 'sets', 'move', 'scale', 'rotate']
@@ -108,7 +108,7 @@ def format_substring(x, t):
         try:
             return str(int(arg) + offset)
         except ValueError:
-            m = re.match('\(*\s*len\s*\(\s*' + var + '\s*\)\s*\)*(.*)', arg)
+            m = re.match(r'\(*\s*len\s*\(\s*' + var + r'\s*\)\s*\)*(.*)', arg)
             if m:
                 return m.group(1).replace(' ', '')
                 # return m.group(1)
@@ -325,7 +325,7 @@ def format_command(command, args, t):
 
                     if not tmpToken.endswith(';'):
                         tmpToken += ';'
-                    cb = re.compile('#(\d)')
+                    cb = re.compile(r'#(\d)')
                     parts = cb.split(tmpToken)
                     for i in range(1, len(parts), 2):
                         parts[i] = '$args[%d]' % (int(parts[i]) - 1)
@@ -1949,7 +1949,7 @@ def p_iteration_statement_2(t):
         # the conditional expression becomes the end value of a range() function
         # there can be only one variable driven by the range expression, so there can be only one coniditional expression
         end = None
-        regex = re.compile('\s*(<=|>=|<|>)\s*')
+        regex = re.compile(r'\s*(<=|>=|<|>)\s*')
         cond_buf = regex.split(cond_exprs[0])
         try:
             cond_relop = cond_buf.pop(1)    # cond_buf now contains 2 values, one of which will become our iterator
@@ -1966,7 +1966,7 @@ def p_iteration_statement_2(t):
         step = None
         update_op = None
         count = 0
-        regex = re.compile('\s*(\+\+|--|\+=|-=)\s*')
+        regex = re.compile(r'\s*(\+\+|--|\+=|-=)\s*')
         for expr in update_exprs:
             # expr: i++
             update_buf = regex.split(expr)
@@ -2018,7 +2018,7 @@ def p_iteration_statement_2(t):
         # initialization --> start
         #---------------------------------------------
         start = None
-        init_reg = re.compile('\s*=\s*')
+        init_reg = re.compile(r'\s*=\s*')
 
         for expr in init_exprs:
             init_buf = init_reg.split(expr)
@@ -2573,7 +2573,7 @@ def p_postfix_expression_5(t):
         # else:
         #    t[0] = t[1] + '.append(%s)'
     else:
-        lenSubtractReg = re.compile('len\(%s\)\s*(-)' % t[1])
+        lenSubtractReg = re.compile(r'len\(%s\)\s*(-)' % t[1])
         try:
             # assignment relative to the end of the array:   x[-1]
             t[0] = t[1] + '[%s]' % (''.join(lenSubtractReg.split(t[3])))

@@ -172,7 +172,7 @@ class AttributeName(NameParser):
     """
 
     """
-    attrItemReg = re.compile('\[(\d+:*\d*)\]$')
+    attrItemReg = re.compile(r'\[(\d+:*\d*)\]$')
 
     # def __repr__(self):
     #    return "AttributeName('%s')" % self
