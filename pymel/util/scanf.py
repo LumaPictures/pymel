@@ -215,16 +215,25 @@ class CharacterBufferFromIterable(CharacterBuffer):
 class CharacterBufferFromFile(CharacterBuffer):
 
     """Implementation of CharacterBuffers for files.  We use the native
-    read(1) and seek() calls, so we don't have to do so much magic."""
+    read(1) and seek() calls, so we don't have to do so much magic.
+
+    Note that since we want to be compatible with StringIO and text-mode
+    file objects, we can't use relative seek - only absolute"""
 
     def __init__(self, myfile):
         self.myfile = myfile
+        self.lastPos = None
 
     def getch(self):
+        self.lastPos = self.myfile.tell()
         return self.myfile.read(1)
 
     def ungetch(self, ch):
-        self.myfile.seek(- len(ch), 1)
+        if self.lastPos is None:
+            raise RuntimeError("can not ungetch twice in a row, or before"
+                               " getch is called once")
+        self.myfile.seek(self.lastPos, 0)
+        self.lastPos = None
 
 
 def readiter(inputFile, *args):
@@ -234,7 +243,7 @@ def readiter(inputFile, *args):
         if ch:
             yield ch
         else:
-            raise StopIteration
+            return
 
 
 def isIterable(thing):
@@ -248,10 +257,19 @@ def isIterable(thing):
 
 def isFileLike(thing):
     """Returns true if thing looks like a file."""
-    if hasattr(thing, "read") and hasattr(thing, "seek"):
+    # Note that we don't rely on relative seek, as StringIO and text-mode
+    # file objects don't support it anymore (since they read unicode, not bytes)
+    if hasattr(thing, "read") and hasattr(thing, "seek") \
+            and hasattr(thing, "tell"):
         try:
-            thing.seek(1, 1)
-            thing.seek(-1, 1)
+            start = thing.tell()
+            thing.read(1)
+            thing.seek(start, 0)
+            if thing.tell() != start:
+                # If we're still not back at start, hard-error, because
+                # our test has messed up the buffer
+                raise RuntimeError("object seemed to implement seek, but"
+                                   " could not reset back to start position")
             return True
         except IOError:
             pass
