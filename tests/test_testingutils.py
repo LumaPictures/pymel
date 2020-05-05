@@ -237,11 +237,11 @@ class TestPermutations(testingutils.TestCaseExtended):
         for seq, length, results in argsAndExpectedResults:
             self.doPermuteTest(seq, length, results)
 
-testCaseExtendedSuite = unittest.TestLoader().loadTestsFromTestCase(TestAssertIteration)
+extendedSuite = unittest.TestLoader().loadTestsFromTestCase(TestAssertIteration)
 permutationsSuite = unittest.TestLoader().loadTestsFromTestCase(TestPermutations)
 
 def suite():
-    return unittest.TestSuite([testCaseExtendedSuite, permutationsSuite])
+    return unittest.TestSuite([extendedSuite, permutationsSuite])
 
 
 

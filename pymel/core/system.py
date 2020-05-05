@@ -60,6 +60,13 @@ import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.versions as versions
 from future.utils import PY2, with_metaclass
+
+if PY2:
+    class DummyModule(object):
+        pass
+    collections.abc = DummyModule()
+    collections.abc.MutableMapping = collections.MutableMapping
+
 if False:
     from typing import *
     from maya import cmds
@@ -818,7 +825,7 @@ class SingletonABCMeta(_util.Singleton, abc.ABCMeta):
     """
     pass
 
-class FileInfo(with_metaclass(SingletonABCMeta, collections.MutableMapping)):
+class FileInfo(with_metaclass(SingletonABCMeta, collections.abc.MutableMapping)):
 
     """
     store and get custom data specific to this file:
@@ -889,7 +896,7 @@ class FileInfo(with_metaclass(SingletonABCMeta, collections.MutableMapping)):
     def __len__(self):
         return len(self.keys())
 
-    has_key = collections.MutableMapping.__contains__
+    has_key = collections.abc.MutableMapping.__contains__
 
 fileInfo = FileInfo()
 

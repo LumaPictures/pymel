@@ -7,6 +7,7 @@ and define a UserWarning class that does only print it's message (no line or mod
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from future.utils import PY2
 from past.builtins import basestring
 import warnings
 
@@ -99,6 +100,29 @@ def deprecated(funcOrMessage=None, className=None,
     """
     import inspect
 
+    def isClassMethodOrMethod(test_func):
+        isClassMethod = False
+        isMethod = False
+        args = list(inspect.signature(test_func).parameters)
+        if args:
+            if args[0] == 'cls':
+                isClassMethod = True
+            elif args[0] == 'self':
+                isMethod = True
+        return isClassMethod, isMethod
+
+    if PY2:
+        def isClassMethodOrMethod(test_func):
+            isClassMethod = False
+            isMethod = False
+            args = inspect.getargspec(test_func).args
+            if args:
+                if args[0] == 'cls':
+                    isClassMethod = True
+                elif args[0] == 'self':
+                    isMethod = True
+            return isClassMethod, isMethod
+
     #@decorator
     def deprecated2(func):
         useClassName = False
@@ -107,15 +131,7 @@ def deprecated(funcOrMessage=None, className=None,
             module=func.__module__)
 
         if className is None:
-            isClassMethod = False
-            isMethod = False
-
-            args = inspect.getargspec(func).args
-            if args:
-                if args[0] == 'cls':
-                    isClassMethod = True
-                elif args[0] == 'self':
-                    isMethod = True
+            isClassMethod, isMethod =isClassMethodOrMethod(func)
             if isClassMethod or isMethod:
                 useClassName = True
         elif className is not False:
