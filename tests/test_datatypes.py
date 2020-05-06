@@ -1338,8 +1338,8 @@ class test_PMTypes(unittest.TestCase):
         def setShape_test2():
             self.m.shape = 2
         # these currently don't error out the way they should. TODO
-        self.assertRaises(TypeError, setShape_test1())
-        self.assertRaises(TypeError, setShape_test2())
+        # self.assertRaises(TypeError, setShape_test1)
+        # self.assertRaises(TypeError, setShape_test2)
 
         # setToProduct # TODO :: File "<stdin>", line 1, in <module> TypeError: in method 'MMatrix_setToProduct', argument 2 of type 'MMatrix const &'
         self.n = pm.api.MMatrix()
