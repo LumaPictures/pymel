@@ -16,14 +16,22 @@ class TestStrings(unittest.TestCase):
 
         #melCmd = '$tempStringVar = %s; print $tempStringVar; $tempStringVar = $tempStringVar;' % melString
         melCmd = '$tempStringVar = %s;' % melString
+        if verbose:
+            print("Mel assignment command:")
+            print(melCmd)
         strFromMMEval = maya.mel.eval(melCmd)
 
         if verbose:
             print("Decoded through maya.mel:")
             print(strFromMMEval)
 
-        exec(mel2pyStr(melCmd))
-        strFromPy2Mel = tempStringVar
+        pyCmd = mel2pyStr(melCmd)
+        if verbose:
+            print("Python assignment command:")
+            print(pyCmd)
+        exec_globals = {}
+        exec(pyCmd, exec_globals)
+        strFromPy2Mel = exec_globals['tempStringVar']
 
         if verbose:
             print("Decoded through py2mel:")
