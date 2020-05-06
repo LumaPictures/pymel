@@ -47,7 +47,6 @@ from builtins import object
 import sys
 import os
 import warnings
-import collections
 import abc
 
 import maya.mel as _mel
@@ -62,10 +61,14 @@ import pymel.versions as versions
 from future.utils import PY2, with_metaclass
 
 if PY2:
-    class DummyModule(object):
-        pass
-    collections.abc = DummyModule()
-    collections.abc.MutableMapping = collections.MutableMapping
+    # formerly made a dummy namespace, collections.abc, and added
+    # collections.abc.MutableMapping; unfortunately, other python packages (ie,
+    # jinja) tried to do "from collections import abc", and ended up using
+    # our (useless) dummy module. So just doing an if/else, which shouldn't
+    # have other side effects...
+    from collections import MutableMapping
+else:
+    from collections.abc import MutableMapping
 
 if False:
     from typing import *
@@ -825,7 +828,7 @@ class SingletonABCMeta(_util.Singleton, abc.ABCMeta):
     """
     pass
 
-class FileInfo(with_metaclass(SingletonABCMeta, collections.abc.MutableMapping)):
+class FileInfo(with_metaclass(SingletonABCMeta, MutableMapping)):
 
     """
     store and get custom data specific to this file:
@@ -896,7 +899,7 @@ class FileInfo(with_metaclass(SingletonABCMeta, collections.abc.MutableMapping))
     def __len__(self):
         return len(self.keys())
 
-    has_key = collections.abc.MutableMapping.__contains__
+    has_key = MutableMapping.__contains__
 
 fileInfo = FileInfo()
 
