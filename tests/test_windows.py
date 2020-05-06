@@ -27,7 +27,7 @@ class TestMenu(unittest.TestCase):
         ui.Menu(om.shortName())
 
 if not pm.about(batch=1):
-    for key, obj in globals().items():
+    for key, obj in list(globals().items()):
         if isinstance(obj, unittest.TestCase):
             del globals()[key]
             obj.__name__ = '_canceledTest_' + obj.__name__
