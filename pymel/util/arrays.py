@@ -44,8 +44,10 @@ if 'coerce' not in __builtins__:
         import numbers
         if not isinstance(v1, numbers.Number):
             if hasattr(v1, '__coerce__'):
-                return v1.__coerce__(v2)
-            elif hasattr(v2, '__coerce__'):
+                result = v1.__coerce__(v2)
+                if result is not NotImplemented:
+                    return result
+            if hasattr(v2, '__coerce__'):
                 result = v2.__coerce__(v1)
                 if result is NotImplemented:
                     return NotImplemented
