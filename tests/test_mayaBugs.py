@@ -379,7 +379,8 @@ class TestScriptJobListConditions(unittest.TestCase):
         except Exception as e:
             if not expectFailure:
                 raise
-            if not isinstance(e, AssertionError) or e.args[0] != 'expected failure here':
+            if not isinstance(e, AssertionError) \
+                    or 'expected failure here' not in e.args[0]:
                 raise
         else:
             if expectFailure:
