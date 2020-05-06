@@ -642,6 +642,11 @@ class Vector(with_metaclass(MetaMayaArrayTypeWrapper, VectorN)):
         elif isinstance(other, MatrixN):
             return self.transformAsNormal(other)
         else:
+            coerced = coerce(self, other)
+            if coerced is not NotImplemented \
+                    and (type(coerced[0]) != type(self)
+                         or type(coerced[1]) != type(other)):
+                return coerced[0] ^ coerced[1]
             return NotImplemented
 
     def __ixor__(self, other):
