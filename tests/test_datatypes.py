@@ -1612,12 +1612,13 @@ class test_Units(unittest.TestCase):
         self.assertEqual(float(outTime), 24)
 
         pm.dt.Time.setUIUnit('k48FPS')
-        self.assertEqual(pm.dt.Time.getUIUnit(), 'k48FPS')
+        # default name for 48FPS is actually 'showScan'
+        self.assertEqual(pm.dt.Time.getUIUnit(), 'showScan')
 
         self.assertEqual(out.get(), 48)
         outTime = pm.dt.getPlugValue(out.__apimplug__())
         self.assertIsInstance(outTime, pm.dt.Time)
-        self.assertEqual(outTime.unit, 'k48FPS')
+        self.assertEqual(outTime.unit, 'showScan')
         self.assertEqual(float(outTime), 48)
 
 
