@@ -456,7 +456,7 @@ def reorder(x, indexList=[], indexDict={}):
             assert index not in indexDict, indexDict
             indexValDict[i] = val
             popCount += 1
-    for k, v in indexDict.items():
+    for k, v in list(indexDict.items()):
         indexValDict[v] = x.pop(k - popCount)
         popCount += 1
 
@@ -757,7 +757,7 @@ def deepPatchAltered(input, predicate, changer):
     anyAltered = False
     if isinstance(input, dict):
         alteredKeys = {}
-        for key, val in input.items():
+        for key, val in list(input.items()):
             newVal, altered = deepPatchAltered(val, predicate, changer)
             if altered:
                 anyAltered = True
