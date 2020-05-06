@@ -220,19 +220,19 @@ class test_PMTypes(unittest.TestCase):
     def testMVector_length(self):
         self.u = pm.datatypes.Vector(1, 2, 3)
         self.assertEqual(self.u, pm.datatypes.Vector([1.0, 2.0, 3.0]))
-        self.assertAlmostEquals(self.u.length(), 3.74165738677 )
-        self.assertAlmostEquals(pm.datatypes.Vector.length(self.u), 3.74165738677 )
-        #self.assertAlmostEquals(datatypes.Vector.length([1,2,3]), 3.74165738677 )  # TODO :: TypeError: unbound method length() must be called with Vector instance as first argument (got list instance instead)
-        self.assertAlmostEquals(pm.datatypes.length(pm.datatypes.VectorN(1,2,3)), 3.74165738677)
-        self.assertAlmostEquals(pm.datatypes.VectorN(1,2,3).length(), 3.74165738677)
-        self.assertAlmostEquals(pm.datatypes.VectorN.length(pm.datatypes.VectorN(1,2,3,4)), 5.47722557505)
-        self.assertAlmostEquals(pm.datatypes.VectorN(1, 2, 3, 4).length(), 5.47722557505)
+        self.assertAlmostEqual(self.u.length(), 3.74165738677 )
+        self.assertAlmostEqual(pm.datatypes.Vector.length(self.u), 3.74165738677 )
+        #self.assertAlmostEqual(datatypes.Vector.length([1,2,3]), 3.74165738677 )  # TODO :: TypeError: unbound method length() must be called with Vector instance as first argument (got list instance instead)
+        self.assertAlmostEqual(pm.datatypes.length(pm.datatypes.VectorN(1,2,3)), 3.74165738677)
+        self.assertAlmostEqual(pm.datatypes.VectorN(1,2,3).length(), 3.74165738677)
+        self.assertAlmostEqual(pm.datatypes.VectorN.length(pm.datatypes.VectorN(1,2,3,4)), 5.47722557505)
+        self.assertAlmostEqual(pm.datatypes.VectorN(1, 2, 3, 4).length(), 5.47722557505)
         self.assertEqual(pm.datatypes.length(1), 1.0)
-        self.assertAlmostEquals(pm.datatypes.length([1,2]),2.2360679775)
-        self.assertAlmostEquals(pm.datatypes.length([1,2,3]), 3.74165738677)
-        self.assertAlmostEquals(pm.datatypes.length([1,2,3,4]), 5.47722557505)
-        self.assertAlmostEquals(pm.datatypes.length([1,2,3,4], 0), 5.47722557505)
-        self.assertAlmostEquals(pm.datatypes.length([1,2,3,4], (0,)), 5.47722557505)
+        self.assertAlmostEqual(pm.datatypes.length([1,2]),2.2360679775)
+        self.assertAlmostEqual(pm.datatypes.length([1,2,3]), 3.74165738677)
+        self.assertAlmostEqual(pm.datatypes.length([1,2,3,4]), 5.47722557505)
+        self.assertAlmostEqual(pm.datatypes.length([1,2,3,4], 0), 5.47722557505)
+        self.assertAlmostEqual(pm.datatypes.length([1,2,3,4], (0,)), 5.47722557505)
 
         def AxisValTest(): # Axis must be value '0' for all Vectors
             pm.datatypes.length([1, 2, 3, 4], 1)
@@ -264,9 +264,9 @@ class test_PMTypes(unittest.TestCase):
     def testMVector_angle(self):
         self.u = pm.datatypes.Vector(1, 0, 0)
         self.v = pm.datatypes.Vector(0.707, 0, -0.707)
-        self.assertAlmostEquals(pm.datatypes.angle(self.u,self.v), 0.785398163397 )
-        self.assertAlmostEquals(self.v.angle(self.u), 0.785398163397 )
-        self.assertAlmostEquals(pm.datatypes.angle(pm.datatypes.VectorN(self.u),pm.datatypes.VectorN(self.v)),0.785398163397 )
+        self.assertAlmostEqual(pm.datatypes.angle(self.u,self.v), 0.785398163397 )
+        self.assertAlmostEqual(self.v.angle(self.u), 0.785398163397 )
+        self.assertAlmostEqual(pm.datatypes.angle(pm.datatypes.VectorN(self.u),pm.datatypes.VectorN(self.v)),0.785398163397 )
         self.assertEqual(pm.datatypes.cotan(self.u, self.v), 1.0)
 
     def testMVector_angleRotateTo(self):
@@ -296,7 +296,7 @@ class test_PMTypes(unittest.TestCase):
     def testMVector_angleDistanceTo(self):
         self.u = pm.datatypes.Vector(1, 0, 0)
         self.v = pm.datatypes.Vector(0.707, 0, -0.707)
-        self.assertAlmostEquals(self.u.distanceTo(self.v),0.765309087885)
+        self.assertAlmostEqual(self.u.distanceTo(self.v),0.765309087885)
 
     def testMVector_angleParallel(self):
         self.u = pm.datatypes.Vector(1, 0, 0)
@@ -375,7 +375,7 @@ class test_PMTypes(unittest.TestCase):
     def testMPoint_distanceTo(self):
         self.q = pm.api.MPoint()
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertAlmostEquals(self.q.distanceTo(self.p), 3.74165738677)
+        self.assertAlmostEqual(self.q.distanceTo(self.p), 3.74165738677)
 
 
     def testMPoint_NonCartesion_instance(self):
@@ -661,12 +661,12 @@ class test_PMTypes(unittest.TestCase):
 
     def testMPoint_length(self):
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertAlmostEquals(self.p.length(),3.74165738677)
+        self.assertAlmostEqual(self.p.length(),3.74165738677)
         self.assertEqual(self.p[:1].length(), 1.0)
         self.assertEqual(pm.datatypes.length(self.p[:1]), 1.0)
-        self.assertAlmostEquals(self.p[:2].length(), 2.2360679775)
-        self.assertAlmostEquals(self.p[:3].length(), self.p.length())
-        self.assertAlmostEquals(pm.datatypes.length(self.p),3.74165738677)
+        self.assertAlmostEqual(self.p[:2].length(), 2.2360679775)
+        self.assertAlmostEqual(self.p[:3].length(), self.p.length())
+        self.assertAlmostEqual(pm.datatypes.length(self.p),3.74165738677)
 
 
     def testMPoint_axis(self):
@@ -682,25 +682,25 @@ class test_PMTypes(unittest.TestCase):
     def testMPoint_angle(self): # TODO :: WONKY ass vals returned - do the math again
         self.p = pm.datatypes.Point(1,2,3)
         self.q = pm.datatypes.Point(0.707, 0.0, -0.707)
-        self.assertAlmostEquals(pm.datatypes.angle(pm.datatypes.Point.origin, self.p, self.q), 1.9583930134500773)
-        self.assertAlmostEquals(pm.datatypes.angle(pm.datatypes.Point.origin, self.q, self.p), 1.9583930134500773)
+        self.assertAlmostEqual(pm.datatypes.angle(pm.datatypes.Point.origin, self.p, self.q), 1.9583930134500773)
+        self.assertAlmostEqual(pm.datatypes.angle(pm.datatypes.Point.origin, self.q, self.p), 1.9583930134500773)
 
-        self.assertAlmostEquals(pm.datatypes.angle(pm.datatypes.Point.origin, self.p, self.r), 0.13078263384791716)
-        self.assertAlmostEquals(pm.datatypes.angle(pm.datatypes.Point.origin, self.r, self.p), 0.13078263384791716)
+        self.assertAlmostEqual(pm.datatypes.angle(pm.datatypes.Point.origin, self.p, self.r), 0.13078263384791716)
+        self.assertAlmostEqual(pm.datatypes.angle(pm.datatypes.Point.origin, self.r, self.p), 0.13078263384791716)
 
-        self.assertAlmostEquals(pm.datatypes.Point.origin.angle(self.p, self.q), 1.9583930134500773)
-        self.assertAlmostEquals(pm.datatypes.Point.origin.angle(self.p, self.r), 0.13078263384791716)
+        self.assertAlmostEqual(pm.datatypes.Point.origin.angle(self.p, self.q), 1.9583930134500773)
+        self.assertAlmostEqual(pm.datatypes.Point.origin.angle(self.p, self.r), 0.13078263384791716)
         # self.assertEqual(datatypes.cotan(datatypes.Point.origin, self.p, self.q), 1.0)
 
     def testMPoint_distance(self):
         self.q = pm.datatypes.Point(0.707, 0.0, -0.707)
         self.p = pm.datatypes.Point(1,2,3)
-        self.assertAlmostEquals(self.p.distanceTo(self.q), 4.2222858737892199)
+        self.assertAlmostEqual(self.p.distanceTo(self.q), 4.2222858737892199)
 
     def testMPoint_differenceLengthForDistance(self):
         self.p = pm.datatypes.Point(1,2,3)
         self.q = pm.datatypes.Point(0.707, 0.0, -0.707)
-        self.assertAlmostEquals((self.q-self.p).length(), 4.2222858737892199)
+        self.assertAlmostEqual((self.q-self.p).length(), 4.2222858737892199)
 
     def testMPoint_planar(self):
         self.p = pm.datatypes.Point(1,2,3)
@@ -1124,7 +1124,7 @@ class test_PMTypes(unittest.TestCase):
         fd = first.data
         ld = last.data
         for i in range(0,2): # used assertAlmostEquals since we were getting some rounding errors for the list items after the eighth decimal
-            self.assertAlmostEquals(fd[i], ld[i])
+            self.assertAlmostEqual(fd[i], ld[i])
 
         # multiplication by datatypes.VectorN:5 Should fail, because
         # datatypes.Vector:5 and matrix:shape(4,4) are not able to conform for a 'VectorN * MatrixN' multiplication
