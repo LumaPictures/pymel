@@ -183,9 +183,9 @@ class testCase_attribs(unittest.TestCase):
 
     def test_add_delete(self):
         pm.PyNode('persp').addAttr('foo')
-        self.assert_( pm.PyNode('persp').hasAttr('foo') )
+        self.assertTrue( pm.PyNode('persp').hasAttr('foo') )
         pm.PyNode('persp').deleteAttr('foo')
-        self.assert_(  not pm.PyNode('persp').hasAttr('foo') )
+        self.assertTrue(  not pm.PyNode('persp').hasAttr('foo') )
 
     def test_elements(self):
         self.assertEqual(self.newAttrs['multiByte'].elements(), ['multiByte[%d]' % x for x in self.setIndices])

@@ -127,7 +127,7 @@ class test_PMTypes(unittest.TestCase):
         self.assertRaises(TypeError,IOBtest)  # fails with TypeError, was expecting ValueError
 
     def testMVector_in(self):
-        self.assert_(1.0 in self.eu)
+        self.assertTrue(1.0 in self.eu)
 
     def testMVector_list(self):
         self.assertEqual(list(self.eu),[1.0, 2.0, 3.0] )
@@ -251,15 +251,15 @@ class test_PMTypes(unittest.TestCase):
         self.assertEqual(pm.datatypes.axis(pm.datatypes.VectorN(self.u), pm.datatypes.VectorN(self.v)), pm.datatypes.VectorN([-0.0, 0.707, 0.0]))
         first = pm.datatypes.axis(self.u, self.v, normalize=True)
         last = pm.datatypes.Vector([-0.0, 1.0, -0.0])
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
         first = self.v.axis(self.u, normalize=True)
         last = pm.datatypes.Vector([-0.0, -1.0, 0.0])
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
         first = pm.datatypes.axis(pm.datatypes.VectorN(self.u), pm.datatypes.VectorN(self.v), normalize=True)
         last = pm.datatypes.VectorN([-0.0, 1.0, 0.0])
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
     def testMVector_angle(self):
         self.u = pm.datatypes.Vector(1, 0, 0)
@@ -275,7 +275,7 @@ class test_PMTypes(unittest.TestCase):
 
         first = self.u.rotateTo(self.v)
         last = pm.datatypes.Quaternion([-0.0, 0.382683432365, 0.0, 0.923879532511])
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
     def testMVector_angleRotateBy(self):
         u = pm.datatypes.Vector(1, 0, 0)
@@ -284,13 +284,13 @@ class test_PMTypes(unittest.TestCase):
         first = u.rotateBy(u.axis(v), u.angle(v))
         last = pm.datatypes.Vector([0.707106781187, 0.0, -0.707106781187])
 
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
         q = pm.datatypes.Quaternion([-0.0, 0.382683432365, 0.0, 0.923879532511])
 
         first = u.rotateBy(q)
         last = pm.datatypes.Vector([0.707106781187, 0.0, -0.707106781187])
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
 
     def testMVector_angleDistanceTo(self):
@@ -308,23 +308,23 @@ class test_PMTypes(unittest.TestCase):
         self.u = pm.datatypes.Vector(1,2,3)
         first = self.u.normal()
         last = pm.datatypes.Vector([0.267261241912, 0.534522483825, 0.801783725737])
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
     def testMVector_normalize(self):
         self.u = pm.datatypes.Vector(1,2,3)
         self.u.normalize()
         last = pm.datatypes.Vector([0.267261241912, 0.534522483825, 0.801783725737])
-        self.assert_(self.u.isEquivalent(last))
+        self.assertTrue(self.u.isEquivalent(last))
 
     def testMVector_equality(self):
         self.u = pm.datatypes.Vector(1,2,3)
         self.w = self.u + pm.datatypes.VectorN(1, 2, 3, 4)
-        self.assert_(self.u == self.u)
-        self.assert_(self.u != self.w)
-        self.assert_(self.u == pm.datatypes.Vector(1.0, 2.0, 3.0))
+        self.assertTrue(self.u == self.u)
+        self.assertTrue(self.u != self.w)
+        self.assertTrue(self.u == pm.datatypes.Vector(1.0, 2.0, 3.0))
         #self.failIfEqual(self.u == [1.0, 2.0, 3.0])
-        self.assert_(self.u != [1.0, 2.0, 3.0])
-        self.assert_(self.u != pm.datatypes.Point(1.0, 2.0, 3.0))
+        self.assertTrue(self.u != [1.0, 2.0, 3.0])
+        self.assertTrue(self.u != pm.datatypes.Point(1.0, 2.0, 3.0))
         self.assertTrue(self.u.isEquivalent([1.0, 2.0, 3.0]))
         self.assertTrue(self.u.isEquivalent(pm.datatypes.Vector(1.0, 2.0, 3.0)))
         self.assertTrue(self.u.isEquivalent(pm.datatypes.Point(1.0, 2.0, 3.0)))
@@ -335,7 +335,7 @@ class test_PMTypes(unittest.TestCase):
         self.u = pm.datatypes.Vector(1, 0, 0)
         self.v = pm.datatypes.Vector(0.707, 0, -0.707)
         goop = pm.datatypes.Vector([0.8535, 0.0, -0.3535])
-        self.assert_(self.u.blend(self.v).data.isEquivalent(goop.data))
+        self.assertTrue(self.u.blend(self.v).data.isEquivalent(goop.data))
 
 #############################################################
 ## MPoint tests
@@ -370,7 +370,7 @@ class test_PMTypes(unittest.TestCase):
     def testMPoint_get(self):
         self.p = pm.datatypes.Point(1,2,3)
         got = self.p.get()
-        self.assert_(got == (1.0, 2.0, 3.0, 1.0))
+        self.assertTrue(got == (1.0, 2.0, 3.0, 1.0))
 
     def testMPoint_distanceTo(self):
         self.q = pm.api.MPoint()
@@ -417,7 +417,7 @@ class test_PMTypes(unittest.TestCase):
         got = ""
         self.p = pm.datatypes.Point(1, 2, 3, 2)
         got = self.p.get()
-        self.assert_(got == (1.0, 2.0, 3.0, 2.0))
+        self.assertTrue(got == (1.0, 2.0, 3.0, 2.0))
 
 
 ##############################################################
@@ -452,7 +452,7 @@ class test_PMTypes(unittest.TestCase):
     def testMPoint_instance(self):
         self.p = pm.datatypes.Point()
         self.assertEqual(self.p, pm.datatypes.Point([0.0, 0.0, 0.0]))
-        self.assert_("<maya.OpenMaya.MPoint; proxy of <Swig Object of type 'MPoint *' at" in repr(self.p.data))
+        self.assertTrue("<maya.OpenMaya.MPoint; proxy of <Swig Object of type 'MPoint *' at" in repr(self.p.data))
 
         self.p = pm.datatypes.Point(1,2,3)
         self.assertEqual(self.p, pm.datatypes.Point([1.0, 2.0, 3.0]))
@@ -714,7 +714,7 @@ class test_PMTypes(unittest.TestCase):
         locQ = pm.datatypes.Point([1.0, 2.0, 3.0, 1.0])
         first = pm.datatypes.center(pm.datatypes.Point.origin, locP, locP)
         last = pm.datatypes.Point([0.666666666667, 1.33333333333, 2.0])
-        self.assert_(first, last) #TODO # Point([0.569, 0.0, -0.235666666667, 1.0])
+        self.assertTrue(first, last) #TODO # Point([0.569, 0.0, -0.235666666667, 1.0])
 
     def testMPoint_bWeights(self):
         locP = pm.datatypes.Point([1.0, 2.0, 3.0])
@@ -977,7 +977,7 @@ class test_PMTypes(unittest.TestCase):
 
         # SetToProduct # TODO returns MMatrix() ?
         self.m = self.n.setToProduct(self.m,self.m)
-        self.assert_("<maya.OpenMaya.MMatrix; proxy of <Swig Object of type 'MMatrix *' at" in repr(self.m)) #TODO -
+        self.assertTrue("<maya.OpenMaya.MMatrix; proxy of <Swig Object of type 'MMatrix *' at" in repr(self.m)) #TODO -
 
         # Make MAtrix instance from range()
         self.m = pm.datatypes.Matrix(list(range(16)))
@@ -1098,27 +1098,27 @@ class test_PMTypes(unittest.TestCase):
         # multiply Matrix by Vector
         first = self.u * self.m
         last = pm.datatypes.Vector([6.31319304795, 0.378937381963, -0.5])
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
         first = self.m * self.u
         last = pm.datatypes.Vector([-1.5, 2.19067069768, 0.896575472168])
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
         #  multiply Matrix by Point
         self.p = pm.datatypes.Point(1,10,100,1)
 
         first = self.p * self.m
         last = pm.datatypes.Point([196.773355709, -40.1045507576, 2.5, 1.0])
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
         first = self.m * self.p
         last = pm.datatypes.Point([-50.0, 9.91807730799, -3.24452924947, 321.0])
-        self.assert_(first.isEquivalent(last))
+        self.assertTrue(first.isEquivalent(last))
 
         # multiplication by datatypes.VectorN:3
         first = pm.datatypes.VectorN([1, 2, 3])* self.m
         last = pm.datatypes.VectorN([6.31319304795, 0.378937381963, -0.5])
-        #self.assert_(self.v.isEquivalent(last)) # AssertionError
+        #self.assertTrue(self.v.isEquivalent(last)) # AssertionError
         #self.assertEqual(first, last) # AssertionError: VectorN([6.31319304795, 0.378937381963, -0.5]) != VectorN([6.31319304795, 0.378937381963, -0.5])
 
         fd = first.data
@@ -1225,24 +1225,24 @@ class test_PMTypes(unittest.TestCase):
 
         q = pm.datatypes.Quaternion(1, 2, 3, 0.5)
         last = pm.datatypes.Quaternion([1.0, 2.0, 3.0, 0.5])
-        self.assert_(q.isEquivalent(last))
+        self.assertTrue(q.isEquivalent(last))
 
         q = pm.datatypes.Quaternion(0.785, 0.785, 0.785, "XYZ", unit='radians')
         last = pm.datatypes.Quaternion([0.191357439088, 0.461717715523, 0.191357439088, 0.844737481223])
-        self.assert_(q.isEquivalent(last))
+        self.assertTrue(q.isEquivalent(last))
 
     def testMTransformationMatrix_rotate(self):
         self.m = pm.datatypes.Matrix()
         self.q = pm.datatypes.Quaternion(1, 2, 3, 0.5)
         self.m.rotate = self.q
         last = pm.datatypes.Matrix([[-0.824561403509, 0.491228070175, 0.280701754386, 0.0], [0.0701754385965, -0.40350877193, 0.912280701754, 0.0], [0.561403508772, 0.771929824561, 0.298245614035, 0.0], [0.0, 0.0, 0.0, 1.0]])
-        self.assert_(self.m.isEquivalent(last))
+        self.assertTrue(self.m.isEquivalent(last))
 
         self.t = pm.datatypes.Matrix()
         self.q = pm.datatypes.Quaternion(1, 2, 3, 0.5)
         self.t.rotate = self.q
         last = pm.datatypes.Matrix([[-0.824561403509, 0.491228070175, 0.280701754386, 0.0], [0.0701754385965, -0.40350877193, 0.912280701754, 0.0], [0.561403508772, 0.771929824561, 0.298245614035, 0.0], [0.0, 0.0, 0.0, 1.0]])
-        self.assert_(self.t.isEquivalent(last))
+        self.assertTrue(self.t.isEquivalent(last))
 
     def testMTransformationMatrix_rotation(self):
         tm = pm.datatypes.TransformationMatrix()
@@ -1298,7 +1298,7 @@ class test_PMTypes(unittest.TestCase):
         self.t = pm.datatypes.TransformationMatrix()
         self.t.rotateTo([1, 2, 3, 0.5])
         last = pm.datatypes.Matrix([[-0.824561403509, 0.491228070175, 0.280701754386, 0.0], [0.0701754385965, -0.40350877193, 0.912280701754, 0.0], [0.561403508772, 0.771929824561, 0.298245614035, 0.0], [0.0, 0.0, 0.0, 1.0]])
-        self.assert_(self.t.isEquivalent(last))
+        self.assertTrue(self.t.isEquivalent(last))
 
     def testMTransformationMatrix_formatted(self):
         self.m = pm.datatypes.TransformationMatrix()
@@ -1344,12 +1344,12 @@ class test_PMTypes(unittest.TestCase):
         # setToProduct # TODO :: File "<stdin>", line 1, in <module> TypeError: in method 'MMatrix_setToProduct', argument 2 of type 'MMatrix const &'
         self.n = pm.api.MMatrix()
         #self.n = self.n.setToProduct(self.m, self.m)
-        #self.assert_("<maya.OpenMaya.MMatrix; proxy of <Swig Object of type 'MMatrix *" in repr(self.n))
+        #self.assertTrue("<maya.OpenMaya.MMatrix; proxy of <Swig Object of type 'MMatrix *" in repr(self.n))
 
         # assign
         self.n = pm.api.MTransformationMatrix()
         self.n = self.n.assign(self.m)
-        self.assert_("<maya.OpenMaya.MTransformationMatrix; proxy of <Swig Object of type 'MTransformationMatrix *" in repr(self.n))
+        self.assertTrue("<maya.OpenMaya.MTransformationMatrix; proxy of <Swig Object of type 'MTransformationMatrix *" in repr(self.n))
 
         # rotation
         self.m = pm.datatypes.TransformationMatrix.identity

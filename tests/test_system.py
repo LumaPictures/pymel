@@ -149,12 +149,12 @@ class testCase_references(unittest.TestCase):
         pm.exportSelectedAnim( os.path.join( self.temp, 'selAnim.ma' ), force=1)
 
     def test_file_reference(self):
-        self.assert_( isinstance( self.sphereRef1, pm.FileReference ) )
-        self.assert_( isinstance( self.sphereRef1.refNode, pm.PyNode ) )
-        self.assert_( self.sphereRef1.namespace == 'sphere1' )
-        self.assert_( self.sphereRef1.isLoaded() )
+        self.assertTrue( isinstance( self.sphereRef1, pm.FileReference ) )
+        self.assertTrue( isinstance( self.sphereRef1.refNode, pm.PyNode ) )
+        self.assertTrue( self.sphereRef1.namespace == 'sphere1' )
+        self.assertTrue( self.sphereRef1.isLoaded() )
         self.sphereRef1.unload()
-        self.assert_( self.sphereRef1.isDeferred() )
+        self.assertTrue( self.sphereRef1.isDeferred() )
         self.sphereRef1.load()
         self.sphereRef1.exportAnim( os.path.join( self.temp, 'refAnim.ma' ), force=1 )
         pm.select( self.sphereRef1.nodes() )

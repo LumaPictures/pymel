@@ -416,7 +416,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.assertEqual( self.sphere2.t.tx.parent(), self.sphere2.t )
 
     def test_attribute_duplicate_inequality(self):
-        self.assert_( self.sphere1.t != self.sphere2.t )
+        self.assertTrue( self.sphere1.t != self.sphere2.t )
 
     def test_attribute_instance_equality(self):
         self.assertEqual( self.sphere1.t, self.sphere3.t )
@@ -476,15 +476,15 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 
     #def test05_dagNode_getParent(self):
     def test06_instances(self):
-        self.assert_( self.sphere1.isInstanced() )
-        self.assert_( self.sphere1.isInstanceOf( self.sphere3 ) )
+        self.assertTrue( self.sphere1.isInstanced() )
+        self.assertTrue( self.sphere1.isInstanceOf( self.sphere3 ) )
 
     def test_parentsAndChildren(self):
         shape = self.sphere1.getShape()
         self.assertEqual( shape, self.sphere1.childAtIndex(0) )
         shape.hasParent( self.sphere1 )
-        self.assert_( shape.hasParent(self.sphere1) )
-        self.assert_( self.sphere1.hasChild(shape) )
+        self.assertTrue( shape.hasParent(self.sphere1) )
+        self.assertTrue( self.sphere1.hasChild(shape) )
 
         self.sphere2 | self.grp1
         # Should now have grp2 | sphere2 | grp1 | cube1
@@ -544,9 +544,9 @@ class testCase_nodesAndAttributes(unittest.TestCase):
             self.assertEqual( realValue, gotValue )
 
 
-        self.assert_( self.anim.keyTimeValue[1].keyTime.get() == self.anim.getTime(1) )
+        self.assertTrue( self.anim.keyTimeValue[1].keyTime.get() == self.anim.getTime(1) )
         self.anim.setTime(1, 5.0)
-        self.assert_( self.anim.keyTimeValue[1].keyTime.get() == self.anim.getTime(1) )
+        self.assertTrue( self.anim.keyTimeValue[1].keyTime.get() == self.anim.getTime(1) )
         # reset units
         currentUnit(linear=startLinear)
         currentUnit(angle=startAngular)
@@ -569,36 +569,36 @@ class testCase_nodesAndAttributes(unittest.TestCase):
     def test_transform_translation(self):
         SCENE.persp.setTranslation( [10,20,30], 'world')
 
-        self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
+        self.assertTrue( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
         SCENE.persp.setTranslation( [1,2,3], 'world', relative=1)
 
-        self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([11.0, 22.0, 33.0]) )
+        self.assertTrue( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([11.0, 22.0, 33.0]) )
 
         undo()
-        self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
+        self.assertTrue( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
 
     def test_transform_scale(self):
 
         SCENE.persp.setScale( [10,20,30] )
 
-        self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
+        self.assertTrue( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
         SCENE.persp.setScale( [1,2,3], relative=1)
 
-        self.assert_( SCENE.persp.getScale() == [10.0, 40.0, 90.0] )
+        self.assertTrue( SCENE.persp.getScale() == [10.0, 40.0, 90.0] )
 
         undo()
-        self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
+        self.assertTrue( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
 
     def test_transform_rotation(self):
         SCENE.persp.setRotation( [10,20,0], 'world')
         #print repr( SCENE.persp.getRotation( 'world' ) )
-        self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 0.0])) )
+        self.assertTrue( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 0.0])) )
         SCENE.persp.setRotation( [0,90,0], 'world', relative=1)
 
-        self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 110.0, 0.0])) )
+        self.assertTrue( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 110.0, 0.0])) )
 
         undo()
-        self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 00.0])) )
+        self.assertTrue( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 00.0])) )
 
     def test_immutability(self):
 
@@ -617,10 +617,10 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         c1.rename( 'funfun' )
         c2.rename( 'yumyum' )
 
-        self.assert_( nodeHash1 == c1.__hash__() )
-        self.assert_( nodeHash2 == c2.__hash__() )
-        self.assert_( attrHash1 == c1.translate.__hash__() )
-        self.assert_( attrHash2 == c2.translate.__hash__() )
+        self.assertTrue( nodeHash1 == c1.__hash__() )
+        self.assertTrue( nodeHash2 == c2.__hash__() )
+        self.assertTrue( attrHash1 == c1.translate.__hash__() )
+        self.assertTrue( attrHash2 == c2.translate.__hash__() )
 
     def test_pynode_instantiation(self):
         plug = SCENE.persp.__apimfn__().findPlug('translateX')
@@ -931,11 +931,11 @@ class testCase_duplicate(unittest.TestCase):
     def test_duplicate(self):
         # make sure that we get proper dag nodes, even when the result will contain non-unique names
         group = cmds.group('persp')
-        self.assert_( duplicate(group) )
+        self.assertTrue( duplicate(group) )
 
         # ensure it works with depend nodes too
         dependNode = cmds.createNode('displayLayer')
-        self.assert_( duplicate(dependNode) )
+        self.assertTrue( duplicate(dependNode) )
 
     def test_sameOrder(self):
         # Test when we have two nodes with similar names under the same parent,
@@ -1063,7 +1063,7 @@ class test_PyNodeWraps(unittest.TestCase):
         cmds.file(new=1, f=1)
 
     def assertPyNode(self, obj, nodeType=PyNode):
-        self.assert_(isinstance(obj, nodeType),
+        self.assertTrue(isinstance(obj, nodeType),
                      '%r was not a %s object' % (obj, nodeType.__name__))
 
     def assertPyNodes(self, objs, nodeType=PyNode):
@@ -1247,11 +1247,11 @@ class test_plugins(unittest.TestCase):
     def test02_unload(self):
         loadPlugin('Fur')
         unloadPlugin('Fur')
-        self.assert_( 'FurGlobals' not in nt.__dict__ )
+        self.assertTrue( 'FurGlobals' not in nt.__dict__ )
         # after accessing, the lazy loader should generate the class
         self.assertRaises(AttributeError, getattr, nt, 'FurGlobals')
-        self.assert_( 'FurGlobals' not in nt.__dict__ )
-        self.assert_( 'FurGlobals' not in nt.__class__.__dict__ )
+        self.assertTrue( 'FurGlobals' not in nt.__dict__ )
+        self.assertTrue( 'FurGlobals' not in nt.__class__.__dict__ )
 
 class test_move(unittest.TestCase):
     def setUp(self):
