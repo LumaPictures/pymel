@@ -667,7 +667,7 @@ class Vector(with_metaclass(MetaMayaArrayTypeWrapper, VectorN)):
             nself, nother = coerce(self, other)
         except:
             return False
-        if isinstance(nself, Vector):
+        if isinstance(nself, Vector) and hasattr(nself.apicls, 'isEquivalent'):
             return bool(nself.apicls.isEquivalent(nself, nother, tol))
         else:
             return bool(super(Vector, nself).isEquivalent(nother, tol))
