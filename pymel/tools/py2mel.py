@@ -392,7 +392,7 @@ def _getShortNames(objects, nonUniqueName):
 
 
 def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
-                filter=None):
+                filter=None, method=False):
     '''Returns a dict giving info about the arugments for the function/property
 
     If obj is None, will return the 'defaults'.
@@ -416,17 +416,39 @@ def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
             canEdit = True
         maxArgs = 1
     else:
-        argNames, extraArgs, extraKwargs, defaults = inspect.getargspec(obj)
-        if defaults is None:
+        if PY2:
+            argNames, extraArgs, extraKwargs, defaults = inspect.getargspec(obj)
+            if defaults is None:
+                defaults = {}
+
+            # turn defaults into a dict
+            defaults = dict(zip(argNames[-len(defaults):], defaults))
+        else:
             defaults = {}
-        if isinstance(obj, types.MethodType):
+            parameters = inspect.signature(obj).parameters
+            extraArgs = extraKwargs = False
+            for argName, argInfo in parameters.items():
+                argNames.append(argName)
+                if argInfo.kind == argInfo.VAR_POSITIONAL:
+                    extraArgs = True
+                elif argInfo.kind == argInfo.VAR_KEYWORD:
+                    extraKwargs = True
+                elif argInfo.kind == argInfo.KEYWORD_ONLY or (
+                        argInfo.kind == argInfo.POSITIONAL_OR_KEYWORD
+                        and argInfo.default is not argInfo.empty):
+                    # Note that it's possible to have KEYWORD_ONLY args, that
+                    # have no default; we still add these to defaults, as
+                    # the dict is currently only used to determine whether
+                    # the args should be treated as args or flags (the
+                    # default vaules aren't used).
+                    defaults[argName] = argInfo.default
+
+        if method:
             # remove the self arg
             del argNames[0]
+
         if extraKwargs and not allowExtraKwargs:
             raise ValueError('arguments of the format **kwargs are not supported')
-
-        # turn defaults into a dict
-        defaults = dict(zip(argNames[-len(defaults):], defaults))
 
         if filter:
             newArgNames = []
@@ -665,7 +687,7 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
             initFunc = None
         if initFunc is None or initFunc == object.__init__:
             initFunc = object.__new__
-        mainArgInfo = _getArgInfo(initFunc, filter=goodFlag)
+        mainArgInfo = _getArgInfo(initFunc, filter=goodFlag, method=True)
 
         # methods / properties become the flag args
         def isFlagCovertible(x):
@@ -688,7 +710,7 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
                         and flagArg not in excludeArgs)
 
             argInfo = _getArgInfo(method, maxVarArgs=MAX_FLAG_ARGS,
-                                  filter=goodFlagArg)
+                                  filter=goodFlagArg, method=True)
             argInfo['method'] = method
             argInfo['methodName'] = longname
             argInfo['type'] = type(method)
@@ -759,7 +781,9 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
                 attrType = flagInfo['type']
                 methodName = flagInfo['methodName']
 
-                if issubclass(attrType, types.MethodType):  # method
+                # PY2: once python-3 only, can probably remove the
+                # types.MethodType check
+                if issubclass(attrType, (types.FunctionType, types.MethodType)):  # method
                     # build out the args and kwargs...
                     # ...can't just pass flagArgs straight into our method using
                     #   myMethod(*flagArgs)
