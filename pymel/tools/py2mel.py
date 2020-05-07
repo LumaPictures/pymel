@@ -69,6 +69,13 @@ def getMelArgs(function, exactMelType=True):
         {argName : description}
     """
 
+    # FIXME: this whole function seems half implmented.  For instance,
+    # it's only ever used once (AFAICT), and that usage doesn't make use of
+    # either the returned melArgDefaults or the parsedDescr... and the
+    # parsedDescr is currently always an empty dict.
+    # Also, parsedTypes is supposed to somehow be used to detect arg types,
+    # but it's never actually set to anything
+
     melArgs = []
     melArgDefaults = {}
 
@@ -77,33 +84,56 @@ def getMelArgs(function, exactMelType=True):
 
     function = _getFunction(function)
 
-    args, varargs, kwargs, defaults = inspect.getargspec(function)
-    if inspect.ismethod(function):
-        # remove self/cls
-        args = args[1:]
-    try:
-        ndefaults = len(defaults)
-    except:
-        ndefaults = 0
+    if PY2:
+        args, varargs, kwargs, defaults = inspect.getargspec(function)
+        if inspect.ismethod(function) and function.__self__ is not None:
+            # remove self/cls
+            args = args[1:]
+        try:
+            ndefaults = len(defaults)
+        except:
+            ndefaults = 0
 
-    # print args, varargs, kwargs, defaults
+        # print args, varargs, kwargs, defaults
 
-    nargs = len(args)
-    offset = nargs - ndefaults
-    for i, arg in enumerate(args):
+        nargs = len(args)
+        offset = nargs - ndefaults
+        for i, arg in enumerate(args):
 
-        if i >= offset:
-            # keyword args with defaults
-            default = defaults[i - offset]
-            melType = getMelType(default, exactOnly=exactMelType)
-            # a mel type of None means there is no mel analogue for this python object
-            melArgDefaults[arg] = default
-        else:
-            # args without defaults
-            # a mel type of None means there is no mel analogue for this python object
-            melType = parsedTypes.get(arg, None)
+            if i >= offset:
+                # keyword args with defaults
+                default = defaults[i - offset]
+                melType = getMelType(default, exactOnly=exactMelType)
+                # a mel type of None means there is no mel analogue for this python object
+                melArgDefaults[arg] = default
+            else:
+                # args without defaults
+                # a mel type of None means there is no mel analogue for this python object
+                melType = parsedTypes.get(arg, None)
 
-        melArgs.append((arg, melType))
+            melArgs.append((arg, melType))
+    else:
+        parameters = inspect.signature(function).parameters
+
+        validParamTypes = [inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                           inspect.Parameter.POSITIONAL_ONLY]
+
+        # Note that in python3, the Signature for unbound methods will just be
+        # a normal function (and therefore include self), while the Signature
+        # for a bound method won't include self - so no special handling is
+        # needed
+        for arg, argInfo in parameters.items():
+            if argInfo.kind not in validParamTypes:
+                break
+            if argInfo.default is not inspect.Parameter.empty:
+                melType = getMelType(argInfo.default, exactOnly=exactMelType)
+                # a mel type of None means there is no mel analogue for this python object
+                melArgDefaults[arg] = argInfo.default
+            else:
+                # args without defaults
+                # a mel type of None means there is no mel analogue for this python object
+                melType = parsedTypes.get(arg, None)
+            melArgs.append((arg, melType))
 
     return tuple(melArgs), melArgDefaults, parsedDescr
 
