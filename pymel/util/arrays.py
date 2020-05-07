@@ -52,19 +52,19 @@ if 'coerce' not in __builtins__:
                 if result is NotImplemented:
                     return NotImplemented
                 return (result[1], result[0])
-            return NotImplemented
+            raise TypeError("number coercion failed")
         elif not isinstance(v2, numbers.Number):
             if hasattr(v2, '__coerce__'):
                 result = v2.__coerce__(v1)
                 if result is NotImplemented:
                     return NotImplemented
                 return (result[1], result[0])
-            return NotImplemented
+            raise TypeError("number coercion failed")
         # Ok, they're both numbers...
         # We're just going to deal with floats, ints
         if (not isinstance(v1, (int, float))
                 or not isinstance(v1, (int, float))):
-            return NotImplemented
+            raise TypeError("number coercion failed")
         if isinstance(v1, float) or isinstance(v2, float):
             return float(v1), float(v2)
         return int(v1), int(v2)
