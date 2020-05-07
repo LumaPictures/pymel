@@ -134,7 +134,10 @@ def importableName(func, module=None, moduleMap=None):
     if name == '<lambda>':
         raise ValueError("received lambda function")
 
-    if func.__module__ == '__builtin__':
+    builtin_mod_name = 'builtins'
+    if PY2:
+        builtin_mod_name = '__builtin__'
+    if func.__module__ == builtin_mod_name:
         path = name
     else:
         if module:
