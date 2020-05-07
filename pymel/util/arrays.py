@@ -1578,14 +1578,13 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
                 else:
                     axis = list(range(0, ndim, 1))
         else:
-            try:
-                if len(axis) == 1 and hasattr(axis[0], '__iter__'):
-                    axis = [list(range(ndim))[x] for x in axis[0]]
-                else:
-                    axis = [list(range(ndim))[x] for x in axis]
-            except IndexError:
-                raise ValueError("axis %s in axis list %s doesn't exist for an Array of shape %s" % (x, tuple(axis), shape))
+            if len(axis) == 1 and hasattr(axis[0], '__iter__'):
+                axis = axis[0]
             for x in axis:
+                if x > ndim - 1:
+                    raise ValueError(
+                        "axis %s in axis list %s doesn't exist for an Array of shape %s" % (
+                            x, tuple(axis), shape))
                 if axis.count(x) > 1:
                     raise ValueError("axis %s is present more than once in axis list %s" % (x, tuple(axis)))
 
