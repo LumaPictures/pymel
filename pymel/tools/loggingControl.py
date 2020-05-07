@@ -11,7 +11,7 @@ import logging.handlers
 import sys
 logger = logging.getLogger(__name__)
 
-logLevelNames = [logging.getLevelName(n) for n in xrange(0, logging.CRITICAL + 1, 10)]
+logLevelNames = [logging.getLevelName(n) for n in range(0, logging.CRITICAL + 1, 10)]
 levelsDict = dict(zip(logLevelNames, range(0, logging.CRITICAL + 1, 10)))
 levelsDict.update(dict(zip(range(0, logging.CRITICAL + 1, 10), logLevelNames)))
 

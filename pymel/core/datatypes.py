@@ -1877,7 +1877,7 @@ class Matrix(with_metaclass(MetaMayaArrayTypeWrapper, MatrixN)):
             _api.MScriptUtil.getDoubleArrayItem(_api.MMatrix.__getitem__(mat, r), c)
             for c in range(Matrix.shape[1])) for r in range(Matrix.shape[0]))
         # ptr = _api.Matrix(self.matrix).matrix
-        # return tuple(tuple(_api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(Matrix.shape[1])) for r in xrange(Matrix.shape[0]))
+        # return tuple(tuple(_api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in range(Matrix.shape[1])) for r in range(Matrix.shape[0]))
 
     def __len__(self):
         """ Number of components in the Matrix instance """

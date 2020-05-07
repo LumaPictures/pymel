@@ -3296,7 +3296,7 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
             Note : as opposed to a.strip(index), do not collapse dimensions of the Array
             that end up with only one sub-array.
 
-            >>> A = Array(xrange(1, 28), shape=(3, 3, 3))
+            >>> A = Array(range(1, 28), shape=(3, 3, 3))
             >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
@@ -3354,7 +3354,7 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
         """
         # TODO : how to interpret slices (get rid of the "None" thing ?)
         #
-        # >>> A = Array(xrange(1, 10), shape=(3, 3))
+        # >>> A = Array(range(1, 10), shape=(3, 3))
         # >>> print A.formated()
         # [[1, 2, 3],
         #  [4, 5, 6],
@@ -3386,7 +3386,7 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
             Note : as opposed to a.stripped(index), do not collapse dimensions of the Array
             that end up with only one sub-array.
 
-            >>> A = Array(xrange(1, 28), shape=(3, 3, 3))
+            >>> A = Array(range(1, 28), shape=(3, 3, 3))
             >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
@@ -3471,7 +3471,7 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
             Note : as opposed to a.__delete__(index), will collapse dimensions of the Array
             that end up with only one sub-array.
 
-            >>> A = Array(xrange(1, 28), shape=(3, 3, 3))
+            >>> A = Array(range(1, 28), shape=(3, 3, 3))
             >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
@@ -3546,7 +3546,7 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
             Note : as opposed to a.deleted(index), will collapse dimensions of the Array
             that end up with only one sub-array.
 
-            >>> A = Array(xrange(1, 28), shape=(3, 3, 3))
+            >>> A = Array(range(1, 28), shape=(3, 3, 3))
             >>> print(A.formated())
             [[[1, 2, 3],
               [4, 5, 6],
@@ -5753,7 +5753,7 @@ class MatrixN(Array):
             It's a square MatrixN of same size as m, where a component of index (i, j) is set to the value
             of m.cofactor(i, j).
 
-            >>> M = MatrixN([ [100//(i+j) for i in xrange(1,5)] for j in xrange(4) ])
+            >>> M = MatrixN([ [100//(i+j) for i in range(1,5)] for j in range(4) ])
             >>> print(M.formated())
             [[100, 50, 33, 25],
              [50, 33, 25, 20],
@@ -5824,7 +5824,7 @@ class MatrixN(Array):
             Returns the triangular matrix obtained by Gauss-Jordan elimination on m,
             will raise a ZeroDivisionError if m cannot be triangulated.
 
-            >>> M = MatrixN([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> M = MatrixN([ [1.0/(i+j) for i in range(1,7)] for j in range(6) ])
             >>> print(round(M, 2).formated())
             [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
              [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
@@ -5882,7 +5882,7 @@ class MatrixN(Array):
             Returns the reduced row echelon form of the matrix a by Gauss-Jordan elimination,
             followed by back substitution.
 
-            >>> M = MatrixN([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> M = MatrixN([ [1.0/(i+j) for i in range(1,7)] for j in range(6) ])
             >>> print(round(M, 2).formated())
             [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
              [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
@@ -5952,7 +5952,7 @@ class MatrixN(Array):
 
             Returns the determinant of m, 0 if MatrixN is singular.
 
-            >>> M = MatrixN([ [100//(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> M = MatrixN([ [100//(i+j) for i in range(1,7)] for j in range(6) ])
             >>> print(M.formated())
             [[100, 50, 33, 25, 20, 16],
              [50, 33, 25, 20, 16, 14],
@@ -6055,7 +6055,7 @@ class MatrixN(Array):
 
             Returns the inverse MatrixN of m, if m is invertible, will raise a ValueError otherwise.
 
-            >>> M = MatrixN([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> M = MatrixN([ [1.0/(i+j) for i in range(1,7)] for j in range(6) ])
             >>> print(round(M, 2).formated())
             [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
              [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
@@ -6116,7 +6116,7 @@ class MatrixN(Array):
             elif n < 6:
                 # by cofactors expansion : i = self.adjugate()/float(self.det())
                 # here calculate determinant from the adjugate matrix components to avoid computing cofactors twice
-                a = self.adjugate()  # [[self.cofactor(j, i) for j in xrange(n)] for i in xrange(n)]
+                a = self.adjugate()  # [[self.cofactor(j, i) for j in range(n)] for i in range(n)]
                 d = 0.0
                 for j in range(n):
                     d += self[0, j] * a[j, 0]

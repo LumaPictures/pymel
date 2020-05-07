@@ -5722,7 +5722,7 @@ class DiscreteComponent(DimensionedComponent):
         for rawIndex in range(start, stop, step):
             yield ComponentIndex(partialIndex + (rawIndex,))
 #        return [ComponentIndex(partialIndex + (rawIndex,))
-#                for rawIndex in xrange(start, stop, step)]
+#                for rawIndex in range(start, stop, step)]
 
     def _makeIndexedComponentHandle(self, indices):
         # We could always create our component using the selection list
@@ -5793,7 +5793,7 @@ class DiscreteComponent(DimensionedComponent):
         # iterating through all the vertices of a poly with 500,000 verts,
         # then it's a huge waste of time / space to create a list of
         # 500,000 indices in memory, then iterate through it, when we could
-        # just as easily generate the indices as we go with an xrange
+        # just as easily generate the indices as we go with an range
         # Since an MFnComponent is essentially a flat list of such indices
         # - only it's stored in maya's private memory space - we AVOID
         # calling __apicomponent__ in this case!
