@@ -441,7 +441,11 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
             # ...the stuff with the cls.__dict__ is just to check
             # we don't have a classmethod - since it's a data descriptor,
             # we have to go through the class dict...
+
+            # PY2: once we completely transition to PY3 only, can probably
+            # remove the ismethod check
             if ((inspect.ismethoddescriptor(attrValue) or
+                 inspect.isfunction(attrValue) or
                  inspect.ismethod(attrValue)) and
                 not isinstance(cls.__dict__.get(attrName, None),
                                (classmethod, staticmethod))):

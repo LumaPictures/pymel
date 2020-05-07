@@ -4,6 +4,7 @@ Convert python callables into MEL procedures
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from future.utils import PY2
 from builtins import filter
 from builtins import zip
 from builtins import range
@@ -49,7 +50,7 @@ def _getFunction(function):
 
 def getMelArgs(function, exactMelType=True):
     # type: (Union[Callable, str], Any) -> Tuple[Tuple[str, str], Dict[str, Any], Dict[str, str]]
-    """Inspect the arguments of a python function and return the cloesst
+    """Inspect the arguments of a python function and return the closest
     compatible MEL arguments.
 
     Parameters
@@ -636,8 +637,15 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
             initFunc = object.__new__
         mainArgInfo = _getArgInfo(initFunc, filter=goodFlag)
 
-        # methods become the flag args
-        for longname, method in inspect.getmembers(pyObj, lambda x: inspect.ismethod(x) or isinstance(x, property)):
+        # methods / properties become the flag args
+        def isFlagCovertible(x):
+            return inspect.isfunction(x) or isinstance(x, property)
+
+        if PY2:
+            def isFlagCovertible(x):
+                return inspect.ismethod(x) or isinstance(x, property)
+
+        for longname, method in inspect.getmembers(pyObj, isFlagCovertible):
             if not goodFlag(longname):
                 continue
             flags.append(longname)

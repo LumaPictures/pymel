@@ -561,7 +561,10 @@ class Parser(object):
                     raise SyntaxError("Token definition %s defines neither a string nor a function, unable to parse" % m[0])
                 k = name[2:]
                 tokensDict[k] = obj
-            elif name.startswith('p_') and inspect.ismethod(obj) and name != 'p_error':
+            # PY2: once we completely transition to PY3 only, can probably
+            # remove the ismethod check
+            elif name.startswith('p_') and name != 'p_error' \
+                        and (inspect.isfunction(obj) or inspect.ismethod(obj)):
                 k = name[2:]
                 rulesDict[k] = obj
 #            elif name == '_reserved' and isinstance(obj,dict):

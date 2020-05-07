@@ -1681,10 +1681,16 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
 
         cls_size = getattr(cls, 'size', None)
         # for new default size to 0 if not specified or class constant
-        if size is None and not shape and (not cls_size or
-                                           inspect.ismethod(cls_size) or
-                                           inspect.isdatadescriptor(cls_size)):
-            size = 0
+        if PY2:
+            if size is None and not shape and (not cls_size or
+                                               inspect.ismethod(cls_size) or
+                                               inspect.isdatadescriptor(cls_size)):
+                size = 0
+        else:
+            if size is None and not shape and (not cls_size or
+                                               inspect.isfunction(cls_size) or
+                                               inspect.isdatadescriptor(cls_size)):
+                size = 0
 
         shape, ndim, size = cls._expandshape(shape, ndim, size)
 

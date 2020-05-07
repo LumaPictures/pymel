@@ -117,12 +117,20 @@ def methodNames(cls, apicls=None):
             if base is apicls:
                 continue
             for attr, obj in base.__dict__.items():
-                if inspect.ismethod(obj):
-                    herited.add(attr)
+                if PY2:
+                    if inspect.ismethod(obj):
+                        herited.add(attr)
+                else:
+                    if inspect.function(obj):
+                        herited.add(attr)
         return herited
     else:
-        return set([name for name, obj in inspect.getmembers(cls)
-                    if inspect.ismethod(obj)])
+        if PY2:
+            return set([name for name, obj in inspect.getmembers(cls)
+                        if inspect.ismethod(obj)])
+        else:
+            return set([name for name, obj in inspect.getmembers(cls)
+                        if inspect.isfunction(obj)])
 
 
 def importableName(func, module=None, moduleMap=None):
