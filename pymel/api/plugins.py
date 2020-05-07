@@ -86,7 +86,7 @@ An example of a plugin which creates a node::
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-
+from future.utils import PY2
 
 from builtins import object
 import re
@@ -499,7 +499,10 @@ class BasePluginMixin(object):
         end = 0xfffff
         size = (end - start) + 1
         md5 = hashlib.md5()
-        md5.update(name)
+        if PY2:
+            md5.update(name)
+        else:
+            md5.update(name.encode('utf8'))
         id = start + int(md5.hexdigest(), 16) % size
         return om.MTypeId(id)
 
