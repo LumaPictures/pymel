@@ -5489,16 +5489,21 @@ class DimensionedComponent(Component):
                 # If it's an open range, [:], and slices are allowed,
                 # it's valid
                 return
-            elif item.start is None:
+
+            if item.start is not None:
+                if (not isinstance(item.start, self.VALID_SINGLE_INDEX_TYPES)):
+                    raise IndexError("Invalid slice start value")
+            if item.stop is not None:
+                if (not isinstance(item.stop, self.VALID_SINGLE_INDEX_TYPES)):
+                    raise IndexError("Invalid slice stop value")
+
+            if item.start is None:
                 minIndex = maxIndex = item.stop
             elif item.stop is None:
                 minIndex = maxIndex = item.start
             else:
                 maxIndex = max(item.start, item.stop)
                 minIndex = min(item.start, item.stop)
-            if (not isinstance(maxIndex, self.VALID_SINGLE_INDEX_TYPES) or
-                    not isinstance(minIndex, self.VALID_SINGLE_INDEX_TYPES)):
-                raise IndexError("Invalid slice start or stop value")
         else:
             maxIndex = minIndex = item
         allowedRange = self._dimRange(self._partialIndex)
