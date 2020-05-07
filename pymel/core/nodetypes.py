@@ -6869,6 +6869,25 @@ class Mesh(SurfaceShape):
     def getCurrentColorSetName(self):
         return self.__apimfn__().currentColorSetName(self.instanceNumber())
 
+    @_factories.addApiDocs(_api.MFnMesh, 'currentColorSetName')
+    def getVertexColors(self, colorSet=None, defaultUnsetColor=None):
+        '''
+        Modifications:
+        - raises more informative error if colorSet is missing (or are none) 
+        '''
+        try:
+            return self._getVertexColors(colorSet=colorSet,
+                                         defaultUnsetColor=defaultUnsetColor)
+        except RuntimeError:
+            if colorSet is None:
+                if self.numColorSets() == 0:
+                    raise RuntimeError('mesh {} had no color sets'
+                                       .format(self))
+            elif colorSet not in self.getColorSetNames():
+                raise RuntimeError('mesh {} had no color set named {}'.
+                                   format(self, colorSet))
+            raise
+
     @_factories.addApiDocs(_api.MFnMesh, 'numColors')
     def numColors(self, colorSet=None):
         mfn = self.__apimfn__()
@@ -6892,6 +6911,13 @@ class Mesh(SurfaceShape):
         # type: (datatypes.Point, datatypes.Space.Space, str) -> Tuple[Tuple[float, float], int]
         do, final_do, outTypes = _f.getDoArgs([pt, space, uvSet], [('pt', 'MPoint', 'in', None), ('uvPoint', 'float2', 'out', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('closestPolygon', 'int', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getUVAtPoint', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.addApiDocs(_api.MFnMesh, 'getVertexColors')
+    def _getVertexColors(self, colorSet=None, defaultUnsetColor=None):
+        # type: (str, datatypes.Color) -> List[datatypes.Color]
+        do, final_do, outTypes = _f.getDoArgs([colorSet, defaultUnsetColor], [('colors', 'MColorArray', 'out', None), ('colorSet', 'MString', 'in', None), ('defaultUnsetColor', 'MColor', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnMesh, 'getVertexColors', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'numColorSets')
@@ -7255,6 +7281,13 @@ class Mesh(SurfaceShape):
         res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceVertexNormal', final_do)
         return _f.processApiResult(res, outTypes, do)
 
+    @_f.addApiDocs(_api.MFnMesh, 'getFaceVertexNormals')
+    def getFaceVertexNormals(self, faceIndex, space='preTransform'):
+        # type: (int, datatypes.Space.Space) -> List[datatypes.FloatVector]
+        do, final_do, outTypes = _f.getDoArgs([faceIndex, space], [('faceIndex', 'int', 'in', None), ('normals', 'MFloatVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnMesh, 'getFaceVertexNormals', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
     @_f.addApiDocs(_api.MFnMesh, 'getFaceVertexTangent')
     def getFaceVertexTangent(self, faceIndex, vertexIndex, space='preTransform', uvSet=None):
         # type: (int, int, datatypes.Space.Space, str) -> datatypes.Vector
@@ -7430,6 +7463,13 @@ class Mesh(SurfaceShape):
         # type: (int, bool, datatypes.Space.Space) -> datatypes.Vector
         do, final_do, outTypes = _f.getDoArgs([vertexId, angleWeighted, space], [('vertexId', 'int', 'in', None), ('angleWeighted', 'bool', 'in', None), ('normal', 'MVector', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getVertexNormal', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.addApiDocs(_api.MFnMesh, 'getVertexNormals')
+    def getVertexNormals(self, angleWeighted, space='preTransform'):
+        # type: (bool, datatypes.Space.Space) -> List[datatypes.FloatVector]
+        do, final_do, outTypes = _f.getDoArgs([angleWeighted, space], [('angleWeighted', 'bool', 'in', None), ('normals', 'MFloatVectorArray', 'out', None), ('space', ('MSpace', 'Space'), 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnMesh, 'getVertexNormals', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getVertices')

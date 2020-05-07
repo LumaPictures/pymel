@@ -2611,6 +2611,13 @@ class testCase_Mesh(unittest.TestCase):
         self.cube = self.trans.getShape()
         self.mesh = pm.createNode('mesh')
 
+    def assertVectorListAlmostEqual(self, actualList, expectedList, eps=1e-6):
+        self.assertEqual(len(actualList), len(expectedList))
+        for i, (actual, expected) in enumerate(zip(actualList, expectedList)):
+            self.assertTrue(actual.isEquivalent(expected, 1e-6),
+                            msg="element {} - got {}, expected {}"
+                                .format(i, actual, expected))
+
     def test_emptyMeshOps(self):
         mesh = self.mesh
         for comp in (mesh.vtx, mesh.faces, mesh.edges):
@@ -2632,6 +2639,72 @@ class testCase_Mesh(unittest.TestCase):
         for i in range(8):
             color = pm.dt.Color(1.0* i/8.0,0.5,0.5,1)
             self.assertEqual(self.trans.vtx[i].getColor(), color)
+
+    def test_getVertexNormals(self):
+        actual = self.cube.getVertexNormals(angleWeighted=False, space='world')
+        expected = [
+            pm.dt.FloatVector([-0.577350318432, -0.577350318432, 0.577350318432]),
+            pm.dt.FloatVector([0.577350318432, -0.577350318432, 0.577350318432]),
+            pm.dt.FloatVector([-0.577350318432, 0.577350318432, 0.577350318432]),
+            pm.dt.FloatVector([0.577350318432, 0.577350318432, 0.577350318432]),
+            pm.dt.FloatVector([-0.577350318432, 0.577350318432, -0.577350318432]),
+            pm.dt.FloatVector([0.577350318432, 0.577350318432, -0.577350318432]),
+            pm.dt.FloatVector([-0.577350318432, -0.577350318432, -0.577350318432]),
+            pm.dt.FloatVector([0.577350318432, -0.577350318432, -0.577350318432]),
+        ]
+        self.assertVectorListAlmostEqual(actual, expected)
+
+    def test_getFaceVertexNormals(self):
+        actual = self.cube.getFaceVertexNormals(1, space='world')
+        expected = [
+            pm.dt.FloatVector([0.0, 1.0, 0.0]),
+            pm.dt.FloatVector([0.0, 1.0, 0.0]),
+            pm.dt.FloatVector([0.0, 1.0, 0.0]),
+            pm.dt.FloatVector([0.0, 1.0, 0.0]),
+        ]
+        self.assertVectorListAlmostEqual(actual, expected)
+
+    def test_getVertexColors(self):
+        with self.assertRaises(RuntimeError) as errContext:
+            self.cube.getVertexColors()
+        self.assertIn('had no color sets', str(errContext.exception))
+
+        with self.assertRaises(RuntimeError) as errContext:
+            self.cube.getVertexColors('foobar')
+        self.assertIn('had no color set named foobar',
+                      str(errContext.exception))
+
+        self.cube.createColorSetWithName('foobar')
+
+        defaultColor = pm.dt.Color(-1, -1, -1, -1)
+        actual = self.cube.getVertexColors()
+        expected = [defaultColor] * 8
+        self.assertVectorListAlmostEqual(actual, expected)
+
+        actual = self.cube.getVertexColors('foobar')
+        self.assertVectorListAlmostEqual(actual, expected)
+
+
+        defaultColor = pm.dt.Color(.1, .2, .3, .9)
+        actual = self.cube.getVertexColors(defaultUnsetColor=defaultColor)
+        expected = [defaultColor] * 8
+        self.assertVectorListAlmostEqual(actual, expected)
+
+        actual = self.cube.getVertexColors(colorSet='foobar',
+                                           defaultUnsetColor=defaultColor)
+        self.assertVectorListAlmostEqual(actual, expected)
+
+        with self.assertRaises(RuntimeError) as errContext:
+            self.cube.getVertexColors('spangle')
+        self.assertIn('had no color set named spangle',
+                      str(errContext.exception))
+
+        otherColor = pm.dt.Color(.5, .5, .5, 1)
+        self.cube.setVertexColor(otherColor, 2)
+        expected[2] = otherColor
+        actual = self.cube.getVertexColors(defaultUnsetColor=defaultColor)
+        self.assertVectorListAlmostEqual(actual, expected)
+
 
 class MeshComponentTesterMixin(object):
     def setUp(self):
