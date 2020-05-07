@@ -1631,7 +1631,7 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
             try:
                 array = Array(value)
                 shape = array.shape
-            except:
+            except TypeError:
                 raise TypeError("%s cannot be converted to Array or any Array "
                                 "sub-class" % (clsname(value)))
         else:
