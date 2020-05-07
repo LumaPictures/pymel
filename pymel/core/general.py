@@ -1142,7 +1142,7 @@ def listRelatives(*args, **kwargs):
 
 def ls(*args, **kwargs):
     # type: (*Any, **Any) -> List[PyNode]
-    """
+    r"""
     Modifications:
       - Returns PyNode objects, not "names" - all flags which do nothing but modify
         the string name of returned objects are ignored (ie, 'long'); note that
