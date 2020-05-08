@@ -1,4 +1,5 @@
-"""
+r"""
+
 A tree module that can wrap either pure python tree implementation or the networkx library if present
 
 ########################################################################
@@ -7,22 +8,22 @@ We do NOT recommend using it in external code...
 ########################################################################
 
 >>> # Create a tree from nested sequences:
->>> myTree = Tree('a', ('ab', 'aa', 3, {}))
+>>> myTree = Tree('a', ('ab', 'aa', 'x', '_'))
 >>> print(myTree)
-('a', ('ab', 'aa', '3', '{}'))
+('a', ('ab', 'aa', 'x', '_'))
 >>> print(myTree.formatted())
 +: a
 |--: ab
 |--: aa
-|--: 3
-\--: {}
+|--: x
+\--: _
 >>> myTree.sort()
 >>> print(myTree.formatted())
 +: a
-|--: 3
-|--: {}
+|--: _
 |--: aa
-\--: ab
+|--: ab
+\--: x
 >>>
 >>> # Forests
 >>> # -------
@@ -551,7 +552,7 @@ class MetaTree(type):
 
         # init, this can be overriden in class definition
         def __init__(self, *args, **kwargs):
-            """
+            r"""
             Initializer - non-sequences are values, sequeneces are children of previous value.
 
             The args represent tree nodes, where a node is specified by either another tree
@@ -1201,7 +1202,7 @@ class MetaTree(type):
 
             hasBranchChar = "|-"  # Ideally, would look like '+' with no left arm
             noBranchChar = "| "
-            endBranchChar = "\-"  # Ideally, would look ike '+' with no left or bottom arm
+            endBranchChar = r"\-"  # Ideally, would look ike '+' with no left or bottom arm
             emptyBranchChar = "  "
             hasChildrenChar = "+: "  # Ideally, would look like '+' with no top arm
             noChildrenChar = "-: "
@@ -1498,7 +1499,7 @@ def treeFromDict(childToParentDict):
 
 
 def treeFromChildLink(isExactChildFn, *args):
-    """
+    r"""
     This function will build a tree from the provided sequence and a comparison function in the form:
         cmp(a,b): returns True if a is a direct child of b, False else
 
@@ -1569,7 +1570,7 @@ def treeFromChildLink(isExactChildFn, *args):
 
 
 def treeFromIsChild(isChildFn, *elements):
-    """
+    r"""
     This function will build a tree from the provided sequence and a comparison function in the form:
         isChildFn(c,p): returns True if c is a child of p (direct or indirect), False otherwise
 
