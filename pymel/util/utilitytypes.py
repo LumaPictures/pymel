@@ -786,7 +786,7 @@ class LazyDocString(object):
     Example Usage:
 
     >>> def getDocStringFromDict(obj):
-    ...     returnVal = docStringDict[obj]
+    ...     returnVal = docStringDict[obj.__name__]
     ...     return returnVal
     >>>
     >>> # In order to alter the doc of a class, we need to use a metaclass
@@ -801,8 +801,8 @@ class LazyDocString(object):
     >>> TestClass.__doc__ = LazyDocString( (TestClass, getDocStringFromDict, (TestClass,)) )
     >>>
     >>>
-    >>> docStringDict = {TestClass:'New Docs for PynodeClass!',
-    ...                  TestClass.aMethod.im_func:'Method docs!'}
+    >>> docStringDict = {'TestClass':'New Docs for PynodeClass!',
+    ...                  'aMethod':'Method docs!'}
     >>>
     >>> TestClass.__doc__
     'New Docs for PynodeClass!'
