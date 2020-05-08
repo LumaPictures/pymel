@@ -2759,10 +2759,10 @@ class EulerRotation(with_metaclass(MetaMayaArrayTypeWrapper, Array)):
     >>> dt.Angle.getUIUnit() # check current angular unit
     'degrees'
     >>> e
-    dt.EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
+    dt.EulerRotation([3.1415926535..., 0.0, 0.0], unit='radians')
     >>> dt.Angle.setUIUnit('radians')  # change to radians
     >>> e
-    dt.EulerRotation([3.14159265359, 0.0, 0.0])
+    dt.EulerRotation([3.1415926535..., 0.0, 0.0])
 
 
     """
