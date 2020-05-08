@@ -6779,11 +6779,11 @@ class Mesh(SurfaceShape):
         >>> for x in p.vtx[::10]:
         ...     print(x, x.getPosition())
         ... 
-        theMoonShape.vtx[0] [0.270522117615, -0.900968849659, -0.339223951101]
-        theMoonShape.vtx[10] [-0.704405844212, -0.623489797115, 0.339223951101]
-        theMoonShape.vtx[20] [0.974927902222, -0.222520858049, 0.0]
-        theMoonShape.vtx[30] [-0.704405784607, 0.623489797115, -0.339224010706]
-        theMoonShape.vtx[40] [0.270522087812, 0.900968849659, 0.339223980904]
+        theMoonShape.vtx[0] [0.2705221176..., -0.9009688496..., -0.3392239511...]
+        theMoonShape.vtx[10] [-0.7044058442..., -0.6234897971..., 0.3392239511...]
+        theMoonShape.vtx[20] [0.9749279022..., -0.2225208580..., 0.0]
+        theMoonShape.vtx[30] [-0.7044057846..., 0.6234897971..., -0.3392240107...]
+        theMoonShape.vtx[40] [0.2705220878..., 0.9009688496..., 0.3392239809...]
 
 
     To be compatible with Maya's range notation, these slices are inclusive of the stop index.
