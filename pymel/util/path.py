@@ -48,6 +48,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from builtins import oct
 from builtins import zip
 from past.builtins import basestring
 from builtins import object
@@ -1558,11 +1559,11 @@ def _permission_mask(mode):
     suitable for applying to a mask to affect that change.
 
     >>> mask = _permission_mask('ugo+rwx')
-    >>> oct(mask(0554))
-    '0777'
+    >>> oct(mask(0o554))
+    '0o777'
 
-    >>> oct(_permission_mask('go-x')(0777))
-    '0766'
+    >>> oct(_permission_mask('go-x')(0o777))
+    '0o766'
     """
     parsed = re.match('(?P<who>[ugo]+)(?P<op>[-+])(?P<what>[rwx]+)$', mode)
     if not parsed:
