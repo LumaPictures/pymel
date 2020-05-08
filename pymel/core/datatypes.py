@@ -2746,7 +2746,7 @@ class EulerRotation(with_metaclass(MetaMayaArrayTypeWrapper, Array)):
     'degree'
     >>> e = dt.EulerRotation([math.pi,0,0], unit='radians')
     >>> e
-    dt.EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
+    dt.EulerRotation([3.1415926535..., 0.0, 0.0], unit='radians')
     >>> e2 = dt.EulerRotation([180,0,0], unit='degrees')
     >>> e2
     dt.EulerRotation([180.0, 0.0, 0.0])
