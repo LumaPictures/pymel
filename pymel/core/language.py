@@ -9,6 +9,7 @@ from builtins import map
 from builtins import range
 from past.builtins import basestring
 from builtins import object
+from future.utils import PY2
 
 import collections
 
@@ -639,7 +640,12 @@ class OptionVarList(tuple):
 
     append = appendVar
 
-
+# PY2: when we switch to python3-only, change
+#    print(numArray)
+# to
+#    print(numArray)
+# The int conversion is needed because in python-2, the values would be longs,
+# ie, [1L, 24L, 7L, 9L]
 class OptionVarDict(MutableMapping):
 
     """
@@ -654,8 +660,8 @@ class OptionVarDict(MutableMapping):
         ...     optionVar['numbers'] = [1,24,7]
         >>> optionVar['numbers'].appendVar( 9 )
         >>> numArray = optionVar.pop('numbers')
-        >>> print(numArray)
-        [1L, 24L, 7L, 9L]
+        >>> print([int(x) for x in numArray])
+        [1, 24, 7, 9]
         >>> optionVar.has_key('numbers') # previous pop removed the key
         False
     """
@@ -881,6 +887,17 @@ class MelCallable(object):
         cmd = pythonToMelCmd(self.full_name, *args, **kwargs)
         return Mel._eval(cmd, self.full_name)
 
+# PY2: when we convert, remove the "#doctest: +IGNORE_EXCEPTION_DETAIL" bits
+# They're needed, because in python 2, we get exceptions with no module:
+#   MelConversionError: ...
+# While in python 3, it includes the module:
+#   pymel.core.language.MelConversionError: ...
+# However, there's a known bug with ellipsis + doctest, so that this won't work:
+#   ...MelConversionError: ...
+# IGNORE_EXCEPTION_DETAIL is the ONLY thing that will make it ignore the leading
+# module - however, that flag ALSO makes it completely ignore the exception
+# value as well - all that is checked is the type (minus the module). So, once
+# we can, get rid of IGNORE_EXCEPTION_DETAIL
 
 class Mel(object):
 
@@ -937,10 +954,10 @@ class Mel(object):
         ... global proc myScript( string $stringArg, float $floatArray[] ){
         ...     float $donuts = `ls -type camera`;}
         ... ''')
-        >>> mel.myScript( 'foo', [] )
+        >>> mel.myScript( 'foo', [] ) #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-            ...
-        MelConversionError: Error during execution of MEL script: line 2: ,Cannot convert data of type string[] to type float.,
+          ...
+        pymel.core.language.MelConversionError: Error during execution of MEL script: line 2: ,Cannot convert data of type string[] to type float.,
         Calling Procedure: myScript, in Mel procedure entered interactively.
           myScript("foo",{})
 
@@ -953,19 +970,19 @@ class Mel(object):
     the additional traceback information that is provided for you, including
     the file of the calling script.
 
-        >>> mel.startsWith('bar') # doctest: +ELLIPSIS
+        >>> mel.startsWith('bar') #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
           ...
-        MelArgumentError: Error during execution of MEL script: Line 1.18: ,Wrong number of arguments on call to startsWith.,
+        pymel.core.language.MelArgumentError: Error during execution of MEL script: Line 1.18: ,Wrong number of arguments on call to startsWith.,
         Calling Procedure: startsWith, in file "..."
           startsWith("bar")
 
     Lastly, an example of `MelUnknownProcedureError`
 
-        >>> mel.poop()
+        >>> mel.poop() #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
           ...
-        MelUnknownProcedureError: Error during execution of MEL script: line 1: ,Cannot find procedure "poop".,
+        pymel.core.language.MelUnknownProcedureError: Error during execution of MEL script: line 1: ,Cannot find procedure "poop".,
 
     Finally, some limitations: this Mel wrapper class cannot be used in
     situations in which the mel procedure modifies arguments (such as lists)
@@ -1123,6 +1140,9 @@ class Mel(object):
                     message += '\n' + fmtCmd
             else:
                 message += '\nScript:\n%s' % fmtCmd
+            # PY2: once we switch to python-3 only, suppress the original
+            # exception context, it's not useful
+            #raise e(message) from None
             raise e(message)
         else:
             resType = res.resultType()
