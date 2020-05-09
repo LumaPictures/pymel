@@ -420,7 +420,7 @@ A few notes on rebuilding:
   strip out excess, or port it's necessary bits to poetry. At
   minimum, we want the portions that convert the caches to .pyc.zip)
 
-  - update the version in pymel/__init__.py, commit + push
+  - update the version in pymel/__init__.py and pyproject.toml, commit + push
 
   - before releasing, make sure to tag the release (TODO: make this part of
     makerelease?):
