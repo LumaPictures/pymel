@@ -200,6 +200,7 @@ def standardizeWhitespace(text):
     return ' '.join(text.strip().split())
 
 # Thanks to Eloff for this snippet: https://stackoverflow.com/a/925630/920545
+class MLStripper(HTMLParser):
     def __init__(self):
         self.reset()
         self.fed = []
