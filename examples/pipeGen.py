@@ -98,7 +98,7 @@ def startPipe( basename='pipe',
 	root.globalConnectorOffset.showInChannelBox(1)
 
 	root.radius.showInChannelBox(0)
-	root.displayHandle = 1
+	root.displayHandle.set(1)
 
 	root.setParent(rigGrp)
 	trans.setParent(rigGrp)
@@ -202,7 +202,7 @@ def extendPipe( jointLength=1 ):
 
 		newJnt.addAttr( 'radiusMultiplier', dv=1, min=0 )
 		newJnt.radiusMultiplier.showInChannelBox(1)
-		newJnt.displayHandle = 1
+		newJnt.displayHandle.set(1)
 
 		newJnt.radius.showInChannelBox(0)
 
@@ -210,7 +210,7 @@ def extendPipe( jointLength=1 ):
 		#-----------------
 
 		trans = pm.group( empty=1, n='%s_Elbow%s' % (name, new))
-		trans.rotateOrder = 1
+		trans.rotateOrder.set(1)
 
 		pm.aimConstraint( 	currJnt, trans,
 							aimVector = [0, -1, 0],
@@ -236,7 +236,7 @@ def extendPipe( jointLength=1 ):
 		root.globalPipeRadius >> pipe.sx
 		root.globalPipeRadius >> pipe.sz
 
-		pipeHist.createUVs = 3   # normalize and preserve aspect ratio
+		pipeHist.createUVs.set(3)   # normalize and preserve aspect ratio
 		root.subdivisionsAxis >> pipeHist.subdivisionsAxis
 
 
@@ -265,7 +265,7 @@ def extendPipe( jointLength=1 ):
 		pipeConn1.setPivots( [0, -.05, 0], r=1 )
 		pipeConn1.setParent( pipe, relative=True )
 		pipeConn1.rotate.lock()
-		pipeConn1.visibility = 0
+		pipeConn1.visibility.set(0)
 		root.subdivisionsAxis >> pipeConnHist1.subdivisionsAxis
 
 
@@ -275,7 +275,7 @@ def extendPipe( jointLength=1 ):
 		pipeConn2.setPivots( [0, .05, 0], r=1 )
 		pipeConn2.setParent( pipe, relative=True )
 		pipeConn2.rotate.lock()
-		pipeConn2.visibility = 0
+		pipeConn2.visibility.set(0)
 		root.subdivisionsAxis >> pipeConnHist2.subdivisionsAxis
 
 
@@ -285,7 +285,7 @@ def extendPipe( jointLength=1 ):
 		#constraints
 		pm.pointConstraint( currJnt, pipe )
 		aim = pm.aimConstraint( newJnt, pipe )
-		aim.offsetZ = -90
+		aim.offsetZ.set(-90)
 
 
 
@@ -296,8 +296,8 @@ def extendPipe( jointLength=1 ):
 			pipeLoc.hide()
 
 			tweak = pm.group(n='%s_ElbowTweak%s' % (name, new))
-			tweak.rotateOrder = 2
-			#tweak.translate = currElbow.translate.get()
+			tweak.rotateOrder.set(2)
+			#tweak.translate.set(currElbow.translate.get())
 			tweak.setParent( currElbow, r=1 )
 			pm.aimConstraint( 	prevJnt, tweak,
 							aimVector = [1, 0, 0],
@@ -312,10 +312,10 @@ def extendPipe( jointLength=1 ):
 								subdivisionsAxis = 20,
 								subdivisionsHeight = 30 )
 			pipeJnt.setParent( geoGrp )
-			pipeJnt.sy = jointLength
-			pipeJnt.visibility = 0
+			pipeJnt.sy.set(jointLength)
+			pipeJnt.visibility.set(0)
 			pipeJntHist = pipeJntHist.rename( '%s_JntGeoHist%s' % (name, new)  )
-			pipeJntHist.createUVs = 3   # normalize and preserve aspect ratio
+			pipeJntHist.createUVs.set(3)   # normalize and preserve aspect ratio
 
 			root.subdivisionsAxis >> pipeJntHist.subdivisionsAxis
 			root.subdivisionsJoint >> pipeJntHist.subdivisionsHeight
