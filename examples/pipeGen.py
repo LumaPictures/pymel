@@ -371,9 +371,8 @@ def extendPipe( jointLength=1 ):
 	if ( !equivalentTol($angle,180.0, 0.1) )
 	{
 	float $jointDeg = 180 - $angle;
-	float $jointRad = -1 * deg_to_rad( $jointDeg );
 
-	%(curvatureAttr)s = $jointRad/2;
+	%(curvatureAttr)s = -1 * $jointDeg/2;
 
 	%(name)s_ElbowTweak%(curr)s.rotateZ = $jointDeg/2;
 	%(name)s_Jnt%(prev)s.pipeLengthInBtwn%(branch)s = %(name)s_Jnt%(prev)s.pipeLength;
