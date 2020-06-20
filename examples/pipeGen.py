@@ -347,6 +347,13 @@ def extendPipe( jointLength=1 ):
 
 			bendHandle.setParent(rigGrp)
 
+			# In 2021, the nonLinear.curvature attribute is driven by an attr on the
+			# deformBend shape
+			curvatureAttr = bend.attr('curvature')
+			curvatureInputs = curvatureAttr.inputs(plugs=True)
+			if curvatureInputs:
+				curvatureAttr = curvatureInputs[0]
+
 			expr = """
 	float $v1[];
 	$v1[0] = %(name)s_Elbow%(twoPrev)s.translateX - %(name)s_Elbow%(prev)s.translateX;
@@ -365,7 +372,8 @@ def extendPipe( jointLength=1 ):
 	{
 	float $jointDeg = 180 - $angle;
 	float $jointRad = -1 * deg_to_rad( $jointDeg );
-	%(name)s_Bend%(curr)s.curvature = $jointRad/2;
+
+	%(curvatureAttr)s = $jointRad/2;
 
 	%(name)s_ElbowTweak%(curr)s.rotateZ = $jointDeg/2;
 	%(name)s_Jnt%(prev)s.pipeLengthInBtwn%(branch)s = %(name)s_Jnt%(prev)s.pipeLength;
@@ -430,7 +438,8 @@ def extendPipe( jointLength=1 ):
 				'curr'	: 	new,
 				'new'	:	new+1,
 				'name': 	name,
-				'branch':	branchNum
+				'branch':	branchNum,
+			    'curvatureAttr': curvatureAttr,
 
 			}
 			#print expr
