@@ -20,7 +20,6 @@ import os
 import re
 import itertools
 import inspect
-import collections
 
 import pymel.util as _util
 import pymel.internal.factories as _factories
@@ -32,6 +31,11 @@ from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
 from pymel.util.enum import Enum
 from future.utils import PY2, with_metaclass
+
+if PY2:
+    import collections as abc
+else:
+    from collections import abc
 
 if False:
     from typing import *
@@ -5457,7 +5461,7 @@ class DimensionedComponent(Component):
         # if this is an iteraTOR, not just an iterABLE, then
         # _validateGetItemIndice will "use it up" while iterating. first,
         # store it in a more "permanent" form
-        if isinstance(item, collections.Iterator):
+        if isinstance(item, abc.Iterator):
             item = tuple(item)
         self._validateGetItemIndice(item)
         return self._getitem_overrideable(item)
