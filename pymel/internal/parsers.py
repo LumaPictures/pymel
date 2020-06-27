@@ -339,7 +339,7 @@ class CommandDocParser(HTMLParser):
             data = data.replace('\r\n', ' ').lstrip()
             data = data.replace('\n', ' ').lstrip()
             data = data.strip('{}\t')
-            data = data.replace('*', '\*')  # for reStructuredText
+            data = data.replace('*', r'\*')  # for reStructuredText
             self.flags[self.currFlag]['docstring'] += data
         self.iData += 1
 
@@ -461,7 +461,7 @@ class CommandDocParser(HTMLParser):
             data = data.replace('\n', ' ')
             data = data.lstrip()
             data = data.strip('{}')
-            data = data.replace('*', '\*')  # for reStructuredText
+            data = data.replace('*', r'\*')  # for reStructuredText
             if '{' not in data and '}' not in data:
                 self.description += data
             #_logger.debug(data)
@@ -2046,7 +2046,7 @@ class XmlApiDocParser(ApiDocParser):
 
 class HtmlApiDocParser(ApiDocParser):
     _enumRe = re.compile('Enumerator')
-    _paramPostNameRe = re.compile('([^=]*)(?:\s*=\s*(.*))?')
+    _paramPostNameRe = re.compile(r'([^=]*)(?:\s*=\s*(.*))?')
 
     def parseArgTypes(self):
         tmpTypes = []
@@ -2307,7 +2307,7 @@ class HtmlApiDocParser(ApiDocParser):
         #assert len(names) == len(directions), "name lenght mismatch: %s %s" % (sorted(names), sorted(directions.keys()))
         return directions, docs, returnDoc
 
-    TYPEDEF_RE = re.compile('^typedef(\s|$)')
+    TYPEDEF_RE = re.compile(r'^typedef(\s|$)')
 
     def getMethodNameAndOutput(self):
         # NAME AND RETURN TYPE

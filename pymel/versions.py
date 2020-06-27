@@ -21,7 +21,7 @@ if False:
 
 def parseVersionStr(versionStr, extension=False):
     # type: (str, bool) -> str
-    """
+    r"""
     Parse a verbose version string (like the one displayed in the Maya title
     bar) and return the base version.
 
@@ -50,7 +50,7 @@ def parseVersionStr(versionStr, extension=False):
     '2008'
     >>> versions.parseVersionStr('/Applications/Autodesk/maya2009/Maya.app/Contents', extension=True)
     '2009'
-    >>> versions.parseVersionStr('C:\Program Files (x86)\Autodesk\Maya2008', extension=True)
+    >>> versions.parseVersionStr(r'C:\Program Files (x86)\Autodesk\Maya2008', extension=True)
     '2008'
 
     """
@@ -70,7 +70,7 @@ def parseVersionStr(versionStr, extension=False):
         # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid
         # the regular expression might be getting unwieldy
 
-        ma = re.search("((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
+        ma = re.search(r"((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
         version = ma.group('base')
 
         if extension and (ma.group('ext') is not None):

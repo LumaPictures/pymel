@@ -615,7 +615,7 @@ def fixCodeExamples(style='maya', force=False):
             evaluate = not skip
 
             # gives a little leniency for where spaces are placed in the result line
-            resultReg = re.compile('# Result:\s*(.*) #$')
+            resultReg = re.compile(r'# Result:\s*(.*) #$')
             try:  # funky things can happen when executing maya code: some
                 # exceptions somehow occur outside the eval/exec
                 for i, line in enumerate(lines):
@@ -907,7 +907,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
         hasQueryFlag = 'query' in flags
         hasEditFlag = 'edit' in flags
 
-        anyNumRe = re.compile('\d+')
+        anyNumRe = re.compile(r'\d+')
 
         for flag in sorted(flags.keys()):
             flagInfo = flags[flag]
