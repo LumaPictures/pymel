@@ -193,6 +193,7 @@ if not globals().get('_pymel_patched') and '_origShellLogHandler' not in globals
         #    u"(2, 'foo')"
         # However, 2014+ uses 2.7, and even for 2013, "(2, 'foo')" is still better
         # than just "2"...
+        import re
 
         if issubclass(exceptionType, SyntaxError):
             # syntax errors are unique, in that str(syntaxError) will include line
@@ -219,7 +220,7 @@ if not globals().get('_pymel_patched') and '_origShellLogHandler' not in globals
                 # traceback may have failed to decode a unicode exception value
                 # if so, we will swap the unicode back in
                 if len(excLines) > 0:
-                    excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
+                    excLines[-1] = re.sub(r'<unprintable.*object>', re.escape(exceptionMsg), excLines[-1])
                 # format the traceback stack
                 tbLines = _decodeStack( traceback.format_list(tbStack) )
                 if len(tbStack) > 0:
