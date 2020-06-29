@@ -611,8 +611,8 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         attrHash1 = c1.translate.__hash__()
         attrHash2 = c2.translate.__hash__()
 
-        self.assert_ ( nodeHash1 != nodeHash2 )
-        self.assert_ ( attrHash1 != attrHash2 )
+        self.assertTrue( nodeHash1 != nodeHash2 )
+        self.assertTrue( attrHash1 != attrHash2 )
 
         c1.rename( 'funfun' )
         c2.rename( 'yumyum' )
