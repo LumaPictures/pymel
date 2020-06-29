@@ -720,8 +720,8 @@ class PyUIContainer(PyUI):
             args.append(name)
         if kwargs:
             if 'parent' in kwargs or 'p' in kwargs:
-                _logger.warn('parent flag is set by addChild automatically. '
-                             'passed value will be ignored')
+                _logger.warning('parent flag is set by addChild automatically. '
+                                'passed value will be ignored')
                 kwargs.pop('parent', None)
                 kwargs.pop('p', None)
         kwargs['parent'] = self

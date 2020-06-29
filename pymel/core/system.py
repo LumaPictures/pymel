@@ -1477,7 +1477,7 @@ class FileReference(object):
             try:
                 res[namespace + cmds.file(x, q=1, namespace=1)] = FileReference(x)
             except Exception as e:
-                _logger.warn("Could not get namespace for '%s': %s" % (x, e))
+                _logger.warning("Could not get namespace for '%s': %s" % (x, e))
         return res
 
     @_factories.addMelDocs('namespace', 'exists')

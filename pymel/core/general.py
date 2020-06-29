@@ -479,7 +479,7 @@ def setAttr(attr, *args, **kwargs):
                         elif isinstance(arg[0], float):
                             datatype = 'doubleArray'
                             if len(arg) == 3:
-                                _logger.warn(
+                                _logger.warning(
                                     "The supplied value will be interperted as a 'doubleArray' and not as a 'double3' (vector). "
                                     "Supply an explicit 'datatype' argument to avoid this warning.")
                         else:
@@ -2254,7 +2254,7 @@ class DeletedMayaNodeError(MayaNodeError):
                 "(preferred) or 'warn' to keep the old behavior."))
             option = 'warn'
         if option == 'warn':
-            _logger.warn(str(errorInst))
+            _logger.warning(str(errorInst))
         elif option == 'error':
             raise errorInst
         else:

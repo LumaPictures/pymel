@@ -1053,7 +1053,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
             type = self.enumClass([self.apiClassName, type])
             if type not in self.badEnums:
                 self.badEnums.append(type)
-                _logger.warn("Suspected Bad Enum: %s", type)
+                _logger.warning("Suspected Bad Enum: %s", type)
         else:
             type = str(type)
         return type
@@ -1247,7 +1247,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
                 and not any(x.direction == 'out' for x in paramInfos)):
             for param in paramInfos:
                 if self.isGettableArg(param):
-                    _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (
+                    _logger.warning("%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (
                         self.apiClassName, self.currentMethodName,
                         ', '.join(x.name for x in paramInfos), param.name,
                         param.doc))
@@ -1499,7 +1499,7 @@ class XmlApiDocParser(ApiDocParser):
             try:
                 enumVal = getattr(self.apiClass, enumKey)
             except:
-                _logger.warn("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethodName))
+                _logger.warning("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethodName))
                 continue
             enumValues[enumKey] = enumVal
             # TODO:
@@ -1545,7 +1545,7 @@ class XmlApiDocParser(ApiDocParser):
             try:
                 enumVal = getattr(self.apiClass, enumKey)
             except:
-                _logger.warn("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethodName))
+                _logger.warning("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethodName))
                 continue
             enumValues[enumKey] = enumVal
 
@@ -1963,19 +1963,19 @@ class XmlApiDocParser(ApiDocParser):
 
                 # attempt to correct bad in/out docs
                 if self._fillStorageResultRe.search(newParam.doc):
-                    _logger.warn(
+                    _logger.warning(
                         "{}: Correcting suspected output argument '{}' based on doc '{}'".format(
                         fullName, newParam.name, newParam.doc))
                     newParam.direction = 'out'
                 elif not self.isSetMethod() and '&' in oldParam.typeQualifiers \
                         and oldParam.type in self.BASIC_NUMERIC_TYPES:
-                    _logger.warn(
+                    _logger.warning(
                         "{}: Correcting suspected output argument '{}' based on reference type '{} &' ('{}')".format(
                         fullName, newParam.name, oldParam.type, newParam.doc))
                     newParam.direction = 'out'
             elif newParam.direction == 'out':
                 if oldParam.type == 'MAnimCurveChange':
-                    _logger.warn(
+                    _logger.warning(
                         "{}: Setting MAnimCurveChange argument '{}' to an input arg (instead of output)".format(
                         fullName, newParam.name))
                     newParam.direction = 'in'
@@ -2133,7 +2133,7 @@ class HtmlApiDocParser(ApiDocParser):
             try:
                 enumVal = getattr(self.apiClass, enumKey)
             except:
-                _logger.warn("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethodName))
+                _logger.warning("%s.%s of enum %s does not exist" % (self.apiClassName, enumKey, self.currentMethodName))
                 enumVal = None
             enumValues[enumKey] = enumVal
             # TODO:
@@ -2267,18 +2267,18 @@ class HtmlApiDocParser(ApiDocParser):
                     # attempt to correct bad in/out docs
                     # TODO: fix? see MFnMesh.booleanOp(useLegacy)
                     if self._fillStorageResultRe.search(doc):
-                        _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
+                        _logger.warning("%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
                             self.apiClassName, self.currentMethodName, ', '.join(names), name, doc))
                         dir = 'out'
                     elif not self.isSetMethod() and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float', 'uint', 'uchar']:
-                        _logger.warn("%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
+                        _logger.warning("%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
                             self.apiClassName, self.currentMethodName, ', '.join(names), name, types[name], doc))
                         dir = 'out'
                     else:
                         dir = 'in'
                 elif dir == '[out]':
                     if types[name] == 'MAnimCurveChange':
-                        _logger.warn("%s.%s(%s): Setting MAnimCurveChange argument '%s' to an input arg (instead of output)" % (
+                        _logger.warning("%s.%s(%s): Setting MAnimCurveChange argument '%s' to an input arg (instead of output)" % (
                             self.apiClassName, self.currentMethodName, ', '.join(names), name))
                         dir = 'in'
                     else:

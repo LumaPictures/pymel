@@ -158,8 +158,8 @@ def _removePluginCommand(pluginName, command):
         _pmcmds.removeWrappedCmd(command)
         _module.__dict__.pop(command, None)
     except KeyError:
-        _logger.warn("Failed to remove %s from module %s" %
-                     (command, _module.__name__))
+        _logger.warning("Failed to remove %s from module %s" %
+                        (command, _module.__name__))
 
 
 def _removePluginNode(pluginName, node):

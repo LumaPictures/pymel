@@ -182,13 +182,13 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
         try:
             newFuncName = inFunc.__name__
             if funcName != newFuncName:
-                _logger.warn("Function found in module %s has different name "
-                             "than desired: %s != %s. simple fix? %s" %
-                             (inFunc.__module__, funcName, newFuncName,
-                              funcType == types.FunctionType and
-                              returnFunc is None))
+                _logger.warning("Function found in module %s has different name "
+                                "than desired: %s != %s. simple fix? %s" %
+                                (inFunc.__module__, funcName, newFuncName,
+                                funcType == types.FunctionType and
+                                returnFunc is None))
         except AttributeError:
-            _logger.warn("%s had no '__name__' attribute" % inFunc)
+            _logger.warning("%s had no '__name__' attribute" % inFunc)
 
     timeRangeFlags = factories._getTimeRangeFlags(funcName)
     if timeRangeFlags:

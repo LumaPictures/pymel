@@ -361,7 +361,7 @@ def parseMayaenv(envLocation=None, version=None):
     if not envPath or not envPath.isfile():
         maya_app_dir = getMayaAppDir()
         if not maya_app_dir:
-            _logger.warn("Neither HOME nor MAYA_APP_DIR is set, unable to find location of Maya.env")
+            _logger.warning("Neither HOME nor MAYA_APP_DIR is set, unable to find location of Maya.env")
             return False
 
         # try to find which version of Maya should be initialized
@@ -382,7 +382,7 @@ def parseMayaenv(envLocation=None, version=None):
         try:
             envFile = open(envPath)
         except:
-            _logger.warn("Unable to open Maya.env file %s" % envPath)
+            _logger.warning("Unable to open Maya.env file %s" % envPath)
             return False
         success = False
         try:

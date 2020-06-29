@@ -690,7 +690,7 @@ def addFlagCmdDocsCallback(cmdName, flag, docstring):
     try:
         flagInfo = allFlagInfo[flag]
     except KeyError:
-        _logger.warn('could not find any info on flag %s' % flag)
+        _logger.warning('could not find any info on flag %s' % flag)
     else:
         if docstring:
             docstring += '\n\n'
@@ -937,7 +937,7 @@ def _getSourceFunction(funcNameOrObject, module=None):
 
     # Do some sanity checks...
     if not callable(inFunc):
-        _logger.warn('%s not callable' % funcNameOrObject)
+        _logger.warning('%s not callable' % funcNameOrObject)
         return None, None, None
     # python doesn't like unicode function names
     funcName = str(funcName)
@@ -1023,13 +1023,13 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
         try:
             newFuncName = inFunc.__name__
             if funcName != newFuncName:
-                _logger.warn("Function found in module %s has different name "
-                             "than desired: %s != %s. simple fix? %s" %
-                             (inFunc.__module__, funcName, newFuncName,
-                              funcType == types.FunctionType and
-                              returnFunc is None))
+                _logger.warning("Function found in module %s has different name "
+                                "than desired: %s != %s. simple fix? %s" %
+                                (inFunc.__module__, funcName, newFuncName,
+                                funcType == types.FunctionType and
+                                returnFunc is None))
         except AttributeError:
-            _logger.warn("%s had no '__name__' attribute" % inFunc)
+            _logger.warning("%s had no '__name__' attribute" % inFunc)
 
     timeRangeFlags = _getTimeRangeFlags(funcName)
 
@@ -2739,7 +2739,7 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
 
         # temporarily supress this warning, until we get a deeper level
 #            if getterArgHelper is not None:
-#                _logger.warn( "%s.%s has an inverse %s, but it has outputs, which is not allowed for a 'setter'" % (
+#                _logger.warning( "%s.%s has an inverse %s, but it has outputs, which is not allowed for a 'setter'" % (
 #                                                                            apiClassName, methodName, getterArgHelper.methodName ) )
 
     else:
@@ -3124,7 +3124,7 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
                 # return MetaMayaTypeWrapper.ClassConstant(newcls(attr))
                 return MetaMayaTypeWrapper.ClassConstant(attr)
             except Exception as e:
-                _logger.warn("Failed creating %s class constant (%s): %s" % (classname, attr, e))
+                _logger.warning("Failed creating %s class constant (%s): %s" % (classname, attr, e))
 
         # used to add api-wrapped class constants here - now done via template
         # building in maintenance.build
@@ -3448,7 +3448,7 @@ def addCustomPyNode(module, mayaType, extraAttrs=None):
         inheritance = None
 
     if not inheritance or not util.isIterable(inheritance):
-        _logger.warn("could not get inheritance for mayaType %s" % mayaType)
+        _logger.warning("could not get inheritance for mayaType %s" % mayaType)
     else:
         #__logger.debug(mayaType, inheritance)
         #__logger.debug("adding new node:", mayaType, apiEnum, inheritence)
