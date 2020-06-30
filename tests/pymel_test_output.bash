@@ -29,9 +29,15 @@ pymel_dir=$(dirname "$this_dir")
 pytest_dir=$(print_python_module_dir pytest)
 pkg_resources_dir=$(print_python_module_dir pkg_resources)
 
-mayapy_dir=$(dirname "$(which mayapy)")
+if [[ "${MAYA_PYTHON_VERSION}" == 2 ]]; then
+    mayapy_name=mayapy2
+else
+    mayapy_name=mayapy
+fi
+mayapy_exc=$(which ${mayapy_name})
+mayapy_dir=$(dirname "${mayapy_exc}")
 
-the_cmd=("$(which mayapy)"
+the_cmd=("${mayapy_exc}"
     "${this_dir}/pymel_test.py" --gui-stdout "$@")
 env_vars=(DISPLAY=:0.0 "HOME=$HOME" "TERM=$TERM" "SHELL=$SHELL"
     "USER=$USER" "PATH=$PATH:$mayapy_dir"
