@@ -154,7 +154,7 @@ def get_source_module(obj, default):
     mod = inspect.getmodule(obj)
     if mod == builtins and obj in builtin_objs:
         return mod
-    if PY2 and mod == __builtin__ and obj in builtin_objs:
+    if PY2 and mod == __builtins__ and obj in builtin_objs:
         return mod
     if (not mod or inspect.isbuiltin(obj) or isdata(obj)
             or not mod.__name__ or mod.__name__.startswith('_')):
@@ -457,7 +457,9 @@ class StubDoc(Doc):
         'ctypes': set(['WinError']),
     }
 
-    SIMPLE_TYPES = (basestring, bytes, bool, int, float, complex)
+    SIMPLE_TYPES = (str, bytes, bool, int, float, complex)
+    if PY2:
+        SIMPLE_TYPES += (unicode,)
     PASS = 'pass'
     UNKNOWN_SIGNATURE = '(*args, **kwargs)'
 
