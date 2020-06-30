@@ -1804,7 +1804,7 @@ def packagestubs(packagename, outputdir='', extensions=('py', 'pypredef', 'pi'),
         curfile = curfile + os.extsep + extension
         return curfile
 
-    packagemod = __import__(packagename, globals(), locals(), ['dummy'], -1)
+    packagemod = __import__(packagename, globals(), locals(), ['dummy'], 0)
     # first, check to see if the given package is not a 'top level' module...and
     # if so, create any parent package dirs/__init__.py
     if '.' in packagename:
