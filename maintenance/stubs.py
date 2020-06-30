@@ -910,7 +910,7 @@ class StubDoc(pydoc.Doc):
             classres = '\n'.join(contents).split('\n')
 
             for i, line in enumerate(classres):
-                if u'\xa0' in line:
+                if '\xa0' in line:
                     print("bad char")
                     for j in range(max(i-10, 0), min(i+10, len(classres))):
                         if j == i:
@@ -918,7 +918,7 @@ class StubDoc(pydoc.Doc):
                         print(classres[j])
                         if j == i:
                             print('-'*80)
-                    classres[i] = ''.join(line.split(u'\xa0'))
+                    classres[i] = ''.join(line.split('\xa0'))
 
             self.contents.extend(classres)
             self.contents.extend(['', ''])
