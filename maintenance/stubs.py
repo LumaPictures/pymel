@@ -4,7 +4,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 from builtins import range
-from pydoc import *         #@UnusedWildImport
 import pydoc, sys, pprint   #@Reimport
 import builtins
 import os                   #@Reimport
@@ -18,6 +17,9 @@ import types
 import json
 
 from future.utils import PY2
+
+if PY2:
+    ast.Try = ast.TryExcept
 
 OBJ = 0
 OBJTYPE = 1
@@ -156,7 +158,7 @@ def get_source_module(obj, default):
         return mod
     if PY2 and mod == __builtins__ and obj in builtin_objs:
         return mod
-    if (not mod or inspect.isbuiltin(obj) or isdata(obj)
+    if (not mod or inspect.isbuiltin(obj) or pydoc.isdata(obj)
             or not mod.__name__ or mod.__name__.startswith('_')):
         mod = default
     return mod
@@ -190,7 +192,7 @@ def get_class(obj):
     classes...
     '''
     cls = type(obj)
-    if cls is types.InstanceType:
+    if PY2 and cls is types.InstanceType:
         cls = obj.__class__
     return cls
 
@@ -300,7 +302,7 @@ class ModuleNamesVisitor(ast.NodeVisitor):
                          ast.ImportFrom,
                          ast.For,
                          ast.With,
-                         ast.TryExcept
+                         ast.Try
                         )):
             self.add_names(node)
 
@@ -346,7 +348,7 @@ class ModuleNamesVisitor(ast.NodeVisitor):
             self.add_names(obj.target)
         elif isinstance(obj, ast.With):
             self.add_names(obj.optional_vars)
-        elif isinstance(obj, ast.TryExcept):
+        elif isinstance(obj, ast.Try):
             self.add_names(obj.handlers)
         elif isinstance(obj, ast.ExceptHandler):
             self.add_names(obj.name)
@@ -386,7 +388,7 @@ def get_importall_modules(id_to_data, other_module_names):
         in_this = []
         for id_obj, other_names in other_id_names.items():
             for other_name in other_names:
-                if not visiblename(other_name, other_all):
+                if not pydoc.visiblename(other_name, other_all):
                     continue
                 visible_other += 1
                 if have_id_name(id_to_data, id_obj, other_name):
@@ -409,7 +411,7 @@ def get_importall_modules(id_to_data, other_module_names):
     return importall_modules
 
 
-class NoUnicodeTextRepr(TextRepr):
+class NoUnicodeTextRepr(pydoc.TextRepr):
     '''PyDev barfs when a unicode literal (ie, u'something') is in a pypredef
     file; use this repr to make sure they don't show up.
     '''
@@ -438,10 +440,10 @@ class NoUnicodeTextRepr(TextRepr):
             methodname = 'repr_' + '_'.join(type(x).__name__.split())
             if hasattr(self, methodname):
                 return getattr(self, methodname)(x, level)
-        return cram(stripid(repr(x)), self.maxother)
+        return pydoc.cram(pydoc.stripid(repr(x)), self.maxother)
 
 
-class StubDoc(Doc):
+class StubDoc(pydoc.Doc):
     """Formatter class for text documentation."""
 
     # ------------------------------------------- text formatting utilities
@@ -483,17 +485,17 @@ class StubDoc(Doc):
         # a hack to avoid cyclical imports that doesn't always work
         self.imports_precede_classes = imports_precede_classes
 
-        if hasattr(Doc, '__init__'):
-            Doc.__init__(self)
+        if hasattr(pydoc.Doc, '__init__'):
+            pydoc.Doc.__init__(self)
 
     def indent(self, text, prefix='    '):
         """Indent text by prepending a given prefix to each line."""
         if not text:
             return ''
-        lines = split(text, '\n')
+        lines = text.split('\n')
         lines = [prefix + line for line in lines]
         if lines:
-            lines[-1] = rstrip(lines[-1])
+            lines[-1] = lines[-1].rstrip()
         return '\n'.join(lines)
 
     def docstring(self, contents):
@@ -675,7 +677,7 @@ class StubDoc(Doc):
         """Produce text documentation for a given module object."""
 
         this_name = this_module.__name__  # ignore the passed-in name
-        desc = splitdoc(getdoc(this_module))[1]
+        desc = pydoc.splitdoc(pydoc.getdoc(this_module))[1]
         self.contents = []
         self.module_map = {}
         self.id_map = {}
@@ -1113,7 +1115,7 @@ class StubDoc(Doc):
             title, contents = self._docclass(obj, name, mod=mod)
         contents = '\n'.join(contents)
 
-        return title + self.indent(rstrip(contents), '    ') + '\n\n'
+        return title + self.indent(contents.rstrip(), '    ') + '\n\n'
 
     def _docclass(self, obj, name, mod=None):
         bases = obj.__bases__
@@ -1137,7 +1139,7 @@ class StubDoc(Doc):
                 title = imports + '\n\n' + title
         title += ':\n'
 
-        doc = getdoc(obj)
+        doc = pydoc.getdoc(obj)
         contents = doc and [self.docstring(doc) + '\n'] or []
         push = contents.append
 
@@ -1163,14 +1165,14 @@ class StubDoc(Doc):
                 for name, kind, homecls, value in ok:
                     if (hasattr(value, '__call__') or
                             inspect.isdatadescriptor(value)):
-                        doc = getdoc(value)
+                        doc = pydoc.getdoc(value)
                     else:
                         doc = None
                     push(self.docother(getattr(obj, name),
                                        name, full_name, maxlen=70, doc=doc) + '\n')
             return attrs
 
-        attrs = [data for data in inspect.classify_class_attrs(obj) if visiblename(data[0])]
+        attrs = [data for data in inspect.classify_class_attrs(obj) if pydoc.visiblename(data[0])]
 
         thisclass = obj
         attrs, inherited = pydoc._split_list(attrs, lambda t: t[2] is thisclass)
@@ -1348,9 +1350,9 @@ class StubDoc(Doc):
         if skipdocs:
             doc = ''
         else:
-            doc = getdoc(obj) or ''
+            doc = pydoc.getdoc(obj) or ''
         if doc:
-            doc = rstrip(self.indent(self.docstring(doc)))
+            doc = self.indent(self.docstring(doc)).rstrip()
             return decl + '\n' + doc + '\n' + self.indent(self.PASS)
         else:
             return decl + ' ' + self.PASS
@@ -1707,7 +1709,7 @@ class PEP484StubDoc(StubDoc):
             try:
                 sigs = doc['signatures']
             except KeyError:
-                print("Document missing 'signature' entry %s" % '.'.join(
+                print("pydoc.Document missing 'signature' entry %s" % '.'.join(
                       parents + [name]))
                 print(doc)
                 sigs = None
