@@ -7,7 +7,7 @@ import sys
 from maintenance.stubs import packagestubs
 
 # these caused hangs or crashes in 2019
-DEFAULT_SKIP_REGEX = r'(maya\.api\._.*)'
+DEFAULT_SKIP_REGEX = r'maya\.(api\._.*|test($|\..*))'
 
 
 def copyDir(src, dest):
