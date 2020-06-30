@@ -38,7 +38,9 @@ def _hashable(x):
 
 builtin_objs = set(x for x in builtins.__dict__.values() if _hashable(x))
 if PY2:
-    builtin_objs.update(x for x in __builtins__.values() if _hashable(x))
+    import __builtin__
+    builtin_objs.update(x[0] for x in inspect.getmembers(__builtin__,
+                                                         _hashable))
     bytes = str
 else:
     basestring = str
