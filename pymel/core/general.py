@@ -684,15 +684,21 @@ def addAttr(*args, **kwargs):
             >>> [x.attrName() for x in PyNode('persp').listAttr() if 'autoLong2' in x.name()]
             ['autoLong2', 'autoLong2_first', 'autoLong2_second']
     """
+    # temp hack, because str is currently builtins.str...
+    if PY2:
+        from __builtin__ import str
+
     attributeTypes = ['bool', 'long', 'short', 'byte', 'char', 'enum',
                       'float', 'double', 'doubleAngle', 'doubleLinear',
                       'compound', 'message', 'time', 'fltMatrix', 'reflectance',
                       'spectrum', 'float2', 'float3', 'double2', 'double3', 'long2',
-                      'long3', 'short2', 'short3', datatypes.Vector]
+                      'long3', 'short2', 'short3', float, int, bool,
+                      datatypes.Vector]
 
     dataTypes = ['string', 'stringArray', 'matrix', 'reflectanceRGB',
                  'spectrumRGB', 'doubleArray', 'Int32Array', 'vectorArray',
-                 'nurbsCurve', 'nurbsSurface', 'mesh', 'lattice', 'pointArray']
+                 'nurbsCurve', 'nurbsSurface', 'mesh', 'lattice', 'pointArray',
+                 str]
 
     type = kwargs.pop('type', kwargs.pop('typ', None))
     childSuffixes = kwargs.pop('childSuffixes', None)
@@ -713,12 +719,15 @@ def addAttr(*args, **kwargs):
                 int: 'long',
                 bool: 'bool',
                 datatypes.Vector: 'double3',
-                str: 'string',
-                str: 'string'
             }[at]
         except KeyError:
             pass
         kwargs['at'] = at
+    dt = kwargs.pop('dataType', kwargs.pop('dt', None))
+    if dt is not None:
+        if dt is str:
+            dt = 'string'
+        kwargs['dt'] = dt
 
     if kwargs.get('e', kwargs.get('edit', False)):
         for editArg, value in kwargs.items():

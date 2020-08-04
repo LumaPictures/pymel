@@ -1820,6 +1820,29 @@ class test_addAttr(unittest.TestCase):
                          [u'autoLong2', u'autoLong2_first',
                           u'autoLong2_second'])
 
+    def test_pythonTypes(self):
+        for kwargType, typesAndNames in [
+            ('attributeType',
+             [
+                 (float, 'double'),
+                 (int, 'long'),
+                 (bool, 'bool'),
+                 # skip testing double3, because it's a compound attr,
+                 # and we'd have to add children...
+                 #(datatypes.Vector, 'double3'),
+             ]),
+            ('dataType',
+             [
+                 (str, 'string'),
+             ]),
+        ]:
+            for pythonType, expectedTypeName in typesAndNames:
+                for kwargName in ('type', kwargType):
+                    attrName = '{}_{}'.format(kwargName, pythonType.__name__)
+                    self.loc.addAttr(attrName, **{kwargName: pythonType})
+                    self.assertEqual(self.loc.attr(attrName).type(),
+                                     expectedTypeName)
+
 
 class test_deleteAttr(unittest.TestCase):
     def setUp(self):
