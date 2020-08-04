@@ -40746,9 +40746,12 @@ class ShadingMap(ShadingDependNode):
     __slots__ = ()
 
 
+if versions.current() < versions.v2020:
+    _api.MFnStandardSurfaceShader = None
+
+
 class StandardSurface(ShadingDependNode):
-    if versions.current() >= versions.v2020:
-        __apicls__ = _api.MFnStandardSurfaceShader
+    __apicls__ = _api.MFnStandardSurfaceShader
     __melnode__ = 'standardSurface'
     __slots__ = ()
 

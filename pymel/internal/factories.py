@@ -2840,10 +2840,12 @@ def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
 
 def _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex=None,
                 undoable=True):
-
-    util.addLazyDocString(wrappedApiFunc, addApiDocsCallback, apiClass,
-                          methodName, overloadIndex, undoable,
-                          wrappedApiFunc.__doc__)
+    # apiClass may be None if we try to wrap a class that doesn't exist in this
+    # version of maya
+    if apiClass is not None:
+        util.addLazyDocString(wrappedApiFunc, addApiDocsCallback, apiClass,
+                              methodName, overloadIndex, undoable,
+                              wrappedApiFunc.__doc__)
     return wrappedApiFunc
 
 
