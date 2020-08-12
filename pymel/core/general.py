@@ -687,6 +687,10 @@ def addAttr(*args, **kwargs):
     # temp hack, because str is currently builtins.str...
     if PY2:
         from __builtin__ import str
+    else:
+        # the same as what's at global scope, but the above import makes str
+        # a local variable - and unbound in PY3 without this!
+        from builtins import str
 
     attributeTypes = ['bool', 'long', 'short', 'byte', 'char', 'enum',
                       'float', 'double', 'doubleAngle', 'doubleLinear',
