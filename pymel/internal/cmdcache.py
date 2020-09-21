@@ -358,7 +358,6 @@ def getCmdInfo(command, version, python=True):
     # we copy because we need access to the original basic info below
     basicFlags = basicInfo.get('flags', {})
     flags = basicInfo['flags'].copy()
-    flags.update(parser.flags)
 
     # if we have a "true" mel boolean flag, then getCmdInfoBasic will return
     # numArgs == 0, but parsing the PYTHON docs will return a numArgs of 1;
@@ -370,6 +369,7 @@ def getCmdInfo(command, version, python=True):
                     and basicFlagInfo.get('numArgs') == 0):
                 flagInfo['numArgs'] = 0
 
+    flags.update(parser.flags)
     if command in secondaryFlags:
         for secondaryFlag, defaultValue, modifiedList in secondaryFlags[command]:
             #_logger.debug(command, "2nd", secondaryFlag)
