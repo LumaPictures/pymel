@@ -368,6 +368,9 @@ def getCmdInfo(command, version, python=True):
             if (basicFlagInfo.get('args') == bool
                     and basicFlagInfo.get('numArgs') == 0):
                 flagInfo['numArgs'] = 0
+        docstring = flagInfo.get('docstring')
+        if docstring:
+            flagInfo['docstring'] = docstring.strip()
 
     flags.update(parser.flags)
     if command in secondaryFlags:
