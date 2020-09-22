@@ -465,7 +465,7 @@ class VersionedCaches(object):
 
     @classmethod
     def assignmentFromVersionDict(cls, name, byVersion, noExistClause=None):
-        # check if the enum exists and is the same for all versions...
+        # check if the object exists and is the same for all versions...
         allVariations = set(byVersion.values())
         if len(allVariations) == 1:
             # make sure that value isn't None, indicating it didn't exist
@@ -528,6 +528,22 @@ class VersionedCaches(object):
             assignment = Assignment(name, currentValue)
             conditionPairs.append((conditionExpr, assignment))
         return Conditional(conditionPairs)
+
+    @classmethod
+    def assignDefaultIfMissingFromVersionDict(cls, name, byVersion, default):
+        missingVersions = []
+        foundVersions = []
+        for ver, val in byVersion.items():
+            if val is None:
+                missingVersions.append(ver)
+            else:
+                foundVersions.append(ver)
+        if not missingVersions:
+            return None
+        conditionExpr = Conditional.conditionFromVersions(
+            missingVersions, foundVersions)
+        assignment = Assignment(name, default)
+        return Conditional([(conditionExpr, assignment)])
 
     @classmethod
     def symbolicVersionName(cls, versionNum):
@@ -1789,6 +1805,40 @@ class NodeTypeGenerator(ApiMethodGenerator):
             classname, existingClass, parentClasses, parentMethods,
             parentApicls, childClasses)
 
+    def render(self):
+        # we conditionally assign a default 'None' to _api.MFnClassName
+        # if the MFn doesn't exist in a given version of maya. We do this
+        # because it will be used both to assign to __apicls__, and in various
+        # addApiDocs calls, ie:
+        #    @_f.addApiDocs(_api.MFnStandardSurfaceShader, 'base')
+        # We could put the entire class behind an "if" branch, but that would
+        # change the indentation depending on whether the class was available
+        # in all versions of maya, which would both look ugly, and result in
+        # big diffs.
+        #
+        # So instead we insert a statement like this just before the class is
+        # defined:
+        #    if versions.current() < versions.v2020:
+        #        _api.MFnClassName = None
+
+        text, methodNames = super(NodeTypeGenerator, self).render()
+
+        if self.apicls is not None and self.apicls is not self.parentApicls:
+            # _api.MFnSomeClass may not exist in all versions of maya we
+            # support... so we need to do some versioned conditionals
+            apiClsByVersion = self.getApiClsByVersion()
+            conditionalAssignment = \
+                VersionedCaches.assignDefaultIfMissingFromVersionDict(
+                                '_api.' + self.apicls.__name__, apiClsByVersion,
+                                Literal('None'))
+            if conditionalAssignment:
+                lines = list(conditionalAssignment.getLines())
+                lines.append('')
+                lines.append('')
+                lines.append(text)
+                text = '\n'.join(lines)
+        return text, methodNames
+
     def getApiCls(self):
         if self.mayaType is not None:
             return factories.toApiFunctionSet(self.mayaType)
@@ -1801,15 +1851,7 @@ class NodeTypeGenerator(ApiMethodGenerator):
         self.assign('__melnode__', self.mayaType)
 
         if self.apicls is not None and self.apicls is not self.parentApicls:
-            # _api.MFnSomeClass may not exist in all versions of maya we
-            # support... so we need to do some versioned conditionals
-            apiClsByVersion = self.getApiClsByVersion()
-            for version, apicls in apiClsByVersion.items():
-                if apicls is not None:
-                    apiClsByVersion[version] = Literal('_api.' + apicls.__name__)
-            self.setDefault('__apicls__',
-                            VersionedCaches.assignmentFromVersionDict(
-                                '__apicls__', apiClsByVersion))
+            self.assign('__apicls__', Literal('_api.' + self.apicls.__name__))
 
         # FIXME:
         isVirtual = False
