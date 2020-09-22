@@ -22416,6 +22416,14 @@ class ShelfTabLayout(Layout):
     def changeCommand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'changeCommand', val)
 
+    @_f.addMelDocs('shelfTabLayout', 'closeTab')
+    def closeTab(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'closeTab', val)
+
+    @_f.addMelDocs('shelfTabLayout', 'closeTabCommand')
+    def closeTabCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'closeTabCommand', val)
+
     @_f.addMelDocs('shelfTabLayout', 'doubleClickCommand')
     def doubleClickCommand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'doubleClickCommand', val)
@@ -22639,6 +22647,10 @@ class ShelfTabLayout(Layout):
     def noBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'noBackground', val)
 
+    @_f.addMelDocs('shelfTabLayout', 'postMenuCommand')
+    def postMenuCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'postMenuCommand', val)
+
     @_f.addMelDocs('shelfTabLayout', 'preSelectCommand')
     def preSelectCommand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'preSelectCommand', val)
@@ -22770,6 +22782,14 @@ class TabLayout(Layout):
     @_f.addMelDocs('tabLayout', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.tabLayout, kwargs, 'changeCommand', val)
+
+    @_f.addMelDocs('tabLayout', 'closeTab')
+    def closeTab(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.tabLayout, kwargs, 'closeTab', val)
+
+    @_f.addMelDocs('tabLayout', 'closeTabCommand')
+    def closeTabCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.tabLayout, kwargs, 'closeTabCommand', val)
 
     @_f.addMelDocs('tabLayout', 'doubleClickCommand')
     def doubleClickCommand(self, val=True, **kwargs):
@@ -22993,6 +23013,10 @@ class TabLayout(Layout):
     @_f.addMelDocs('tabLayout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
         return _f.asEdit(self, windows.tabLayout, kwargs, 'noBackground', val)
+
+    @_f.addMelDocs('tabLayout', 'postMenuCommand')
+    def postMenuCommand(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.tabLayout, kwargs, 'postMenuCommand', val)
 
     @_f.addMelDocs('tabLayout', 'preSelectCommand')
     def preSelectCommand(self, val=True, **kwargs):
@@ -25878,6 +25902,11 @@ class OutlinerEditor(PyUI):
         res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'autoExpand')
         return res
 
+    @_f.addMelDocs('outlinerEditor', 'autoExpandAnimatedShapes')
+    def getAutoExpandAnimatedShapes(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'autoExpandAnimatedShapes')
+        return res
+
     @_f.addMelDocs('outlinerEditor', 'autoExpandLayers')
     def getAutoExpandLayers(self, **kwargs):
         res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'autoExpandLayers')
@@ -26001,6 +26030,11 @@ class OutlinerEditor(PyUI):
     @_f.addMelDocs('outlinerEditor', 'isSetMember')
     def getIsSetMember(self, **kwargs):
         res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'isSetMember')
+        return res
+
+    @_f.addMelDocs('outlinerEditor', 'isUfeItem')
+    def getIsUfeItem(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'isUfeItem')
         return res
 
     @_f.addMelDocs('outlinerEditor', 'longNames')
@@ -26243,6 +26277,16 @@ class OutlinerEditor(PyUI):
         res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'transmitFilters')
         return res
 
+    @_f.addMelDocs('outlinerEditor', 'ufeFilter')
+    def getUfeFilter(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'ufeFilter')
+        return res
+
+    @_f.addMelDocs('outlinerEditor', 'ufeFilterValue')
+    def getUfeFilterValue(self, **kwargs):
+        res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'ufeFilterValue')
+        return res
+
     @_f.addMelDocs('outlinerEditor', 'lockMainConnection')
     def lockMainConnection(self, val=True, **kwargs):
         return _f.asEdit(self, windows.outlinerEditor, kwargs, 'lockMainConnection', val)
@@ -26282,6 +26326,10 @@ class OutlinerEditor(PyUI):
     @_f.addMelDocs('outlinerEditor', 'autoExpand')
     def setAutoExpand(self, val=True, **kwargs):
         return _f.asEdit(self, windows.outlinerEditor, kwargs, 'autoExpand', val)
+
+    @_f.addMelDocs('outlinerEditor', 'autoExpandAnimatedShapes')
+    def setAutoExpandAnimatedShapes(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerEditor, kwargs, 'autoExpandAnimatedShapes', val)
 
     @_f.addMelDocs('outlinerEditor', 'autoExpandLayers')
     def setAutoExpandLayers(self, val=True, **kwargs):
@@ -26530,6 +26578,14 @@ class OutlinerEditor(PyUI):
     @_f.addMelDocs('outlinerEditor', 'transmitFilters')
     def setTransmitFilters(self, val=True, **kwargs):
         return _f.asEdit(self, windows.outlinerEditor, kwargs, 'transmitFilters', val)
+
+    @_f.addMelDocs('outlinerEditor', 'ufeFilter')
+    def setUfeFilter(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerEditor, kwargs, 'ufeFilter', val)
+
+    @_f.addMelDocs('outlinerEditor', 'ufeFilterValue')
+    def setUfeFilterValue(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.outlinerEditor, kwargs, 'ufeFilterValue', val)
 
     @_f.addMelDocs('outlinerEditor', 'showSelected')
     def showSelected(self, val=True, **kwargs):

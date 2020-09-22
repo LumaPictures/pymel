@@ -2036,7 +2036,7 @@ def shelfTabLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'newTabCommand', 'ntc', 'preSelectCommand', 'psc', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ['cc', 'changeCommand', 'closeTabCommand', 'ctc', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'newTabCommand', 'ntc', 'pmc', 'postMenuCommand', 'preSelectCommand', 'psc', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2055,7 +2055,7 @@ def tabLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'newTabCommand', 'ntc', 'preSelectCommand', 'psc', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ['cc', 'changeCommand', 'closeTabCommand', 'ctc', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'newTabCommand', 'ntc', 'pmc', 'postMenuCommand', 'preSelectCommand', 'psc', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -3070,7 +3070,7 @@ def hotkeyCheck(*args, **kwargs):
     res = cmds.hotkeyCheck(*args, **kwargs)
     return res
 
-deleteUI = _factories.getCmdFunc('deleteUI')
+outputWindow = _factories.getCmdFunc('outputWindow')
 
 @_factories.addCmdDocs
 def rangeControl(*args, **kwargs):
@@ -3401,6 +3401,8 @@ def headsUpDisplay(*args, **kwargs):
             pass
     res = cmds.headsUpDisplay(*args, **kwargs)
     return res
+
+deleteUI = _factories.getCmdFunc('deleteUI')
 
 setMenuMode = _factories.getCmdFunc('setMenuMode')
 

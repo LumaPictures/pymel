@@ -682,6 +682,8 @@ listAnimatable = _factories.addCmdDocs(listAnimatable)
 
 marker = _factories.getCmdFunc('marker')
 
+mimicManipulation = _factories.getCmdFunc('mimicManipulation')
+
 mirrorJoint = _factories.getCmdFunc('mirrorJoint')
 
 movIn = _factories.getCmdFunc('movIn')

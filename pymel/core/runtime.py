@@ -146,6 +146,8 @@ AddToCurrentSceneMotionBuilder = getattr(cmds, 'AddToCurrentSceneMotionBuilder',
 
 AddToCurrentSceneMudbox = getattr(cmds, 'AddToCurrentSceneMudbox', None)
 
+AddTweak = getattr(cmds, 'AddTweak', None)
+
 AddWire = getattr(cmds, 'AddWire', None)
 
 AddWireOptions = getattr(cmds, 'AddWireOptions', None)
@@ -1842,6 +1844,8 @@ GetSettingsFromSelectedStroke = getattr(cmds, 'GetSettingsFromSelectedStroke', N
 
 GetToonExample = getattr(cmds, 'GetToonExample', None)
 
+GhostSelected = getattr(cmds, 'GhostSelected', None)
+
 GlobalDiskCacheControl = getattr(cmds, 'GlobalDiskCacheControl', None)
 
 GlobalStitch = getattr(cmds, 'GlobalStitch', None)
@@ -1935,8 +1939,6 @@ GridUVOptions = getattr(cmds, 'GridUVOptions', None)
 Group = getattr(cmds, 'Group', None)
 
 GroupOptions = getattr(cmds, 'GroupOptions', None)
-
-GroupTagsEdit = getattr(cmds, 'GroupTagsEdit', None)
 
 GrowLoopPolygonSelectionRegion = getattr(cmds, 'GrowLoopPolygonSelectionRegion', None)
 
@@ -3126,6 +3128,8 @@ OpenFacebook = getattr(cmds, 'OpenFacebook', None)
 
 OpenFeatureRequest = getattr(cmds, 'OpenFeatureRequest', None)
 
+OpenGhostEditor = getattr(cmds, 'OpenGhostEditor', None)
+
 OpenHomePage = getattr(cmds, 'OpenHomePage', None)
 
 OpenLayerEditor = getattr(cmds, 'OpenLayerEditor', None)
@@ -3255,6 +3259,8 @@ OutlinerToggleTimeEditor = getattr(cmds, 'OutlinerToggleTimeEditor', None)
 OutlinerUnhide = getattr(cmds, 'OutlinerUnhide', None)
 
 OutlinerWindow = getattr(cmds, 'OutlinerWindow', None)
+
+OutputWindow = getattr(cmds, 'OutputWindow', None)
 
 PFXUVSetLinkingEditor = getattr(cmds, 'PFXUVSetLinkingEditor', None)
 
@@ -5666,8 +5672,6 @@ TwoSideBySideViewArrangement = getattr(cmds, 'TwoSideBySideViewArrangement', Non
 
 TwoStackedViewArrangement = getattr(cmds, 'TwoStackedViewArrangement', None)
 
-TypeToFind = getattr(cmds, 'TypeToFind', None)
-
 U3DBrushPressureOff = getattr(cmds, 'U3DBrushPressureOff', None)
 
 U3DBrushPressureOn = getattr(cmds, 'U3DBrushPressureOn', None)
@@ -5768,6 +5772,10 @@ UnfoldUV = getattr(cmds, 'UnfoldUV', None)
 
 UnfoldUVOptions = getattr(cmds, 'UnfoldUVOptions', None)
 
+UnghostAll = getattr(cmds, 'UnghostAll', None)
+
+UnghostSelected = getattr(cmds, 'UnghostSelected', None)
+
 Ungroup = getattr(cmds, 'Ungroup', None)
 
 UngroupOptions = getattr(cmds, 'UngroupOptions', None)
@@ -5841,6 +5849,8 @@ UpdatePSDTextureItem = getattr(cmds, 'UpdatePSDTextureItem', None)
 UpdateReferenceSurface = getattr(cmds, 'UpdateReferenceSurface', None)
 
 UpdateSnapshot = getattr(cmds, 'UpdateSnapshot', None)
+
+UsdLayerEditor = getattr(cmds, 'UsdLayerEditor', None)
 
 UseHardwareShader = getattr(cmds, 'UseHardwareShader', None)
 

@@ -676,9 +676,9 @@ matrix = _factories.getCmdFunc('matrix')
 
 mayaDpiSettingAction = _factories.getCmdFunc('mayaDpiSettingAction')
 
-memoryDiag = _factories.getCmdFunc('memoryDiag')
-
 meshIntersectTest = _factories.getCmdFunc('meshIntersectTest')
+
+mimicMnipulation = _factories.getCmdFunc('mimicMnipulation')
 
 mouldMesh = _factories.getCmdFunc('mouldMesh')
 
@@ -747,6 +747,8 @@ def repeatLast(*args, **kwargs):
     return res
 
 retimeHelper = _factories.getCmdFunc('retimeHelper')
+
+safemodecheckhash = _factories.getCmdFunc('safemodecheckhash')
 
 @_factories.addCmdDocs
 def selectKeyframe(*args, **kwargs):

@@ -8189,9 +8189,9 @@ class Lattice(ControlPoint):
         res = _f.asQuery(self, animation.lattice, kwargs, 'ldivisions')
         return res
 
-    @_f.addMelDocs('lattice', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.lattice, kwargs, 'useGroupTags')
+    @_f.addMelDocs('lattice', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.lattice, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('lattice', 'latticeReset')
@@ -10737,9 +10737,9 @@ class SkinCluster(GeometryFilter):
         res = _f.asQuery(self, animation.skinCluster, kwargs, 'skinMethod')
         return res
 
-    @_f.addMelDocs('skinCluster', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.skinCluster, kwargs, 'useGroupTags')
+    @_f.addMelDocs('skinCluster', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.skinCluster, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('skinCluster', 'weightDistribution')
@@ -16486,6 +16486,11 @@ class BlendColors(DependNode):
         return res
 
 
+class BlendFalloff(DependNode):
+    __melnode__ = 'blendFalloff'
+    __slots__ = ()
+
+
 class BlendMatrix(DependNode):
     __melnode__ = 'blendMatrix'
     __slots__ = ()
@@ -17711,6 +17716,11 @@ class CombinationShape(DependNode):
 
 class CompactPlugArrayTest(DependNode):
     __melnode__ = 'compactPlugArrayTest'
+    __slots__ = ()
+
+
+class ComponentFalloff(DependNode):
+    __melnode__ = 'componentFalloff'
     __slots__ = ()
 
 
@@ -22803,6 +22813,11 @@ class Place3dTexture(Transform):
         return res
 
 
+class PrimitiveFalloff(Transform):
+    __melnode__ = 'primitiveFalloff'
+    __slots__ = ()
+
+
 class RigidConstraint(Transform):
     __melnode__ = 'rigidConstraint'
     __slots__ = ()
@@ -22851,31 +22866,6 @@ class UnknownTransform(Transform):
         res = _f.getProxyResult(self, _api.MFnTransform, 'setRotationQuaternion', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
-
-
-class WeightFalloff(Transform):
-    __melnode__ = 'weightFalloff'
-    __slots__ = ()
-
-
-class BlendWeightFalloff(WeightFalloff):
-    __melnode__ = 'blendWeightFalloff'
-    __slots__ = ()
-
-
-class GeomWeightFalloff2(WeightFalloff):
-    __melnode__ = 'geomWeightFalloff'
-    __slots__ = ()
-
-
-class PrimitiveWeightFalloff(WeightFalloff):
-    __melnode__ = 'primitiveWeightFalloff'
-    __slots__ = ()
-
-
-class UniformWeightFalloff(WeightFalloff):
-    __melnode__ = 'uniformWeightFalloff'
-    __slots__ = ()
 
 
 class UnknownDag(DagNode):
@@ -23138,6 +23128,11 @@ class KeyingGroup(ObjectSet):
     @_f.addMelDocs('keyingGroup', 'minimizeRotation')
     def getMinimizeRotation(self, **kwargs):
         res = _f.asQuery(self, animation.keyingGroup, kwargs, 'minimizeRotation')
+        return res
+
+    @_f.addMelDocs('keyingGroup', 'noIntermediate')
+    def getNoIntermediate(self, **kwargs):
+        res = _f.asQuery(self, animation.keyingGroup, kwargs, 'noIntermediate')
         return res
 
     @_f.addMelDocs('keyingGroup', 'nodesOnly')
@@ -25593,9 +25588,9 @@ class BlendShape(GeometryFilter):
         res = _f.asQuery(self, animation.blendShape, kwargs, 'transform')
         return res
 
-    @_f.addMelDocs('blendShape', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.blendShape, kwargs, 'useGroupTags')
+    @_f.addMelDocs('blendShape', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.blendShape, kwargs, 'useComponentTags')
         return res
 
     @_f.addApiDocs(_api.MFnBlendShapeDeformer, 'weight')
@@ -25826,9 +25821,9 @@ class BoneLattice(GeometryFilter):
         res = _f.asQuery(self, animation.boneLattice, kwargs, 'tricep')
         return res
 
-    @_f.addMelDocs('boneLattice', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.boneLattice, kwargs, 'useGroupTags')
+    @_f.addMelDocs('boneLattice', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.boneLattice, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('boneLattice', 'widthLeft')
@@ -25954,9 +25949,9 @@ class JointLattice(GeometryFilter):
         res = _f.asQuery(self, animation.jointLattice, kwargs, 'rounding')
         return res
 
-    @_f.addMelDocs('jointLattice', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.jointLattice, kwargs, 'useGroupTags')
+    @_f.addMelDocs('jointLattice', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.jointLattice, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('jointLattice', 'widthLeft')
@@ -26078,9 +26073,9 @@ class Sculpt(GeometryFilter):
         res = _f.asQuery(self, animation.sculpt, kwargs, 'mode')
         return res
 
-    @_f.addMelDocs('sculpt', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.sculpt, kwargs, 'useGroupTags')
+    @_f.addMelDocs('sculpt', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.sculpt, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('sculpt', 'parallel')
@@ -26213,9 +26208,9 @@ class Cluster(WeightGeometryFilter):
         res = _f.asQuery(self, animation.cluster, kwargs, 'geometryIndices')
         return res
 
-    @_f.addMelDocs('cluster', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.cluster, kwargs, 'useGroupTags')
+    @_f.addMelDocs('cluster', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.cluster, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('cluster', 'weightedNode')
@@ -26393,9 +26388,9 @@ class DeltaMush(WeightGeometryFilter):
         res = _f.asQuery(self, animation.deltaMush, kwargs, 'smoothingStep')
         return res
 
-    @_f.addMelDocs('deltaMush', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.deltaMush, kwargs, 'useGroupTags')
+    @_f.addMelDocs('deltaMush', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.deltaMush, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('deltaMush', 'parallel')
@@ -26544,9 +26539,9 @@ class NonLinear(WeightGeometryFilter):
         res = _f.asQuery(self, animation.nonLinear, kwargs, 'geometryIndices')
         return res
 
-    @_f.addMelDocs('nonLinear', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.nonLinear, kwargs, 'useGroupTags')
+    @_f.addMelDocs('nonLinear', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.nonLinear, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('nonLinear', 'parallel')
@@ -26619,9 +26614,9 @@ class SoftMod(WeightGeometryFilter):
         res = _f.asQuery(self, animation.softMod, kwargs, 'geometryIndices')
         return res
 
-    @_f.addMelDocs('softMod', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.softMod, kwargs, 'useGroupTags')
+    @_f.addMelDocs('softMod', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.softMod, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('softMod', 'weightedNode')
@@ -26727,9 +26722,9 @@ class Tension(WeightGeometryFilter):
         res = _f.asQuery(self, animation.tension, kwargs, 'smoothingStep')
         return res
 
-    @_f.addMelDocs('tension', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.tension, kwargs, 'useGroupTags')
+    @_f.addMelDocs('tension', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.tension, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('tension', 'parallel')
@@ -26812,9 +26807,9 @@ class TextureDeformer(WeightGeometryFilter):
         res = _f.asQuery(self, animation.textureDeformer, kwargs, 'geometryIndices')
         return res
 
-    @_f.addMelDocs('textureDeformer', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.textureDeformer, kwargs, 'useGroupTags')
+    @_f.addMelDocs('textureDeformer', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.textureDeformer, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('textureDeformer', 'parallel')
@@ -26885,9 +26880,9 @@ class TransferAttributes(WeightGeometryFilter):
         res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'geometryIndices')
         return res
 
-    @_f.addMelDocs('transferAttributes', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'useGroupTags')
+    @_f.addMelDocs('transferAttributes', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, modeling.transferAttributes, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('transferAttributes', 'matchChoice')
@@ -27059,9 +27054,9 @@ class Wire(WeightGeometryFilter):
         res = _f.getProxyResult(self, _api.MFnWireDeformer, 'rotation')
         return _f.ApiArgUtil._castResult(self, res, 'float', None)
 
-    @_f.addMelDocs('wire', 'useGroupTags')
-    def getUseGroupTags(self, **kwargs):
-        res = _f.asQuery(self, animation.wire, kwargs, 'useGroupTags')
+    @_f.addMelDocs('wire', 'useComponentTags')
+    def getUseComponentTags(self, **kwargs):
+        res = _f.asQuery(self, animation.wire, kwargs, 'useComponentTags')
         return res
 
     @_f.addMelDocs('wire', 'wire')
@@ -28717,11 +28712,6 @@ class MakeGroup(DependNode):
         return res
 
 
-class MaterialAssign(DependNode):
-    __melnode__ = 'materialAssign'
-    __slots__ = ()
-
-
 class MaterialInfo(DependNode):
     __melnode__ = 'materialInfo'
     __slots__ = ()
@@ -28778,6 +28768,11 @@ class MaterialInfo(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
+
+
+class MaterialTemplate(DependNode):
+    __melnode__ = 'materialTemplate'
+    __slots__ = ()
 
 
 class Membrane(DependNode):
@@ -30275,6 +30270,11 @@ class PolyPrimitive(PolyCreator):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polyPrimitive', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPrimitive, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyPrimitive', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPrimitive, kwargs, 'constructionHistory')
@@ -30289,11 +30289,6 @@ class PolyPrimitive(PolyCreator):
     @_f.addMelDocs('polyPrimitive', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPrimitive, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyPrimitive', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyPrimitive, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyPrimitive', 'nodeState')
@@ -30326,6 +30321,10 @@ class PolyPrimitive(PolyCreator):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPrimitive, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polyPrimitive', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPrimitive, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyPrimitive', 'createUVs')
     def setCreateUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPrimitive, kwargs, 'createUVs', val)
@@ -30333,10 +30332,6 @@ class PolyPrimitive(PolyCreator):
     @_f.addMelDocs('polyPrimitive', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPrimitive, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyPrimitive', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyPrimitive, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPrimitive', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
@@ -30373,6 +30368,11 @@ class PolyCone(PolyPrimitive):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polyCone', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCone, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyCone', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCone, kwargs, 'constructionHistory')
@@ -30387,11 +30387,6 @@ class PolyCone(PolyPrimitive):
     @_f.addMelDocs('polyCone', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCone, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyCone', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyCone, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyCone', 'height')
@@ -30466,6 +30461,10 @@ class PolyCone(PolyPrimitive):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCone, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polyCone', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCone, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyCone', 'createUVs')
     def setCreateUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCone, kwargs, 'createUVs', val)
@@ -30473,10 +30472,6 @@ class PolyCone(PolyPrimitive):
     @_f.addMelDocs('polyCone', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCone, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyCone', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyCone, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyCone', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -30541,6 +30536,11 @@ class PolyCube(PolyPrimitive):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polyCube', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCube, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyCube', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCube, kwargs, 'constructionHistory')
@@ -30560,11 +30560,6 @@ class PolyCube(PolyPrimitive):
     @_f.addMelDocs('polyCube', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCube, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyCube', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyCube, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyCube', 'height')
@@ -30633,6 +30628,10 @@ class PolyCube(PolyPrimitive):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCube, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polyCube', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCube, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyCube', 'createUVs')
     def setCreateUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCube, kwargs, 'createUVs', val)
@@ -30644,10 +30643,6 @@ class PolyCube(PolyPrimitive):
     @_f.addMelDocs('polyCube', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCube, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyCube', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyCube, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyCube', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -30708,6 +30703,11 @@ class PolyCylinder(PolyPrimitive):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polyCylinder', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyCylinder', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'constructionHistory')
@@ -30722,11 +30722,6 @@ class PolyCylinder(PolyPrimitive):
     @_f.addMelDocs('polyCylinder', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyCylinder', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyCylinder, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyCylinder', 'height')
@@ -30801,6 +30796,10 @@ class PolyCylinder(PolyPrimitive):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCylinder, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polyCylinder', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCylinder, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyCylinder', 'createUVs')
     def setCreateUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCylinder, kwargs, 'createUVs', val)
@@ -30808,10 +30807,6 @@ class PolyCylinder(PolyPrimitive):
     @_f.addMelDocs('polyCylinder', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCylinder, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyCylinder', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyCylinder, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyCylinder', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -30881,6 +30876,11 @@ class PolyHelix(PolyPrimitive):
         res = _f.asQuery(self, modeling.polyHelix, kwargs, 'coils')
         return res
 
+    @_f.addMelDocs('polyHelix', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyHelix', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyHelix, kwargs, 'constructionHistory')
@@ -30901,11 +30901,6 @@ class PolyHelix(PolyPrimitive):
     @_f.addMelDocs('polyHelix', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyHelix, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyHelix', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyHelix, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyHelix', 'height')
@@ -30977,6 +30972,10 @@ class PolyHelix(PolyPrimitive):
     def setCoils(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyHelix, kwargs, 'coils', val)
 
+    @_f.addMelDocs('polyHelix', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyHelix, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyHelix', 'createUVs')
     def setCreateUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyHelix, kwargs, 'createUVs', val)
@@ -30988,10 +30987,6 @@ class PolyHelix(PolyPrimitive):
     @_f.addMelDocs('polyHelix', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyHelix, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyHelix', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyHelix, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyHelix', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -31052,6 +31047,11 @@ class PolyPipe(PolyPrimitive):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polyPipe', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyPipe', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPipe, kwargs, 'constructionHistory')
@@ -31066,11 +31066,6 @@ class PolyPipe(PolyPrimitive):
     @_f.addMelDocs('polyPipe', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPipe, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyPipe', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyPipe, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyPipe', 'height')
@@ -31132,6 +31127,10 @@ class PolyPipe(PolyPrimitive):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPipe, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polyPipe', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPipe, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyPipe', 'createUVs')
     def setCreateUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPipe, kwargs, 'createUVs', val)
@@ -31139,10 +31138,6 @@ class PolyPipe(PolyPrimitive):
     @_f.addMelDocs('polyPipe', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPipe, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyPipe', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyPipe, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPipe', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -31199,6 +31194,11 @@ class PolyPlane(PolyPrimitive):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polyPlane', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlane, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyPlane', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPlane, kwargs, 'constructionHistory')
@@ -31213,11 +31213,6 @@ class PolyPlane(PolyPrimitive):
     @_f.addMelDocs('polyPlane', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPlane, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyPlane', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyPlane, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyPlane', 'height')
@@ -31274,6 +31269,10 @@ class PolyPlane(PolyPrimitive):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlane, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polyPlane', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlane, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyPlane', 'createUVs')
     def setCreateUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlane, kwargs, 'createUVs', val)
@@ -31281,10 +31280,6 @@ class PolyPlane(PolyPrimitive):
     @_f.addMelDocs('polyPlane', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlane, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyPlane', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyPlane, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPlane', 'height')
     def setHeight(self, val=True, **kwargs):
@@ -31337,6 +31332,11 @@ class PolyPlatonicSolid(PolyPrimitive):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polyPlatonicSolid', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyPlatonicSolid', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'constructionHistory')
@@ -31345,11 +31345,6 @@ class PolyPlatonicSolid(PolyPrimitive):
     @_f.addMelDocs('polyPlatonicSolid', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyPlatonicSolid', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyPlatonicSolid, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyPlatonicSolid', 'nodeState')
@@ -31376,13 +31371,13 @@ class PolyPlatonicSolid(PolyPrimitive):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polyPlatonicSolid', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyPlatonicSolid', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyPlatonicSolid', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyPlatonicSolid, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPlatonicSolid', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
@@ -31423,6 +31418,11 @@ class PolyPrism(PolyPrimitive):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polyPrism', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPrism, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyPrism', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPrism, kwargs, 'constructionHistory')
@@ -31431,11 +31431,6 @@ class PolyPrism(PolyPrimitive):
     @_f.addMelDocs('polyPrism', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPrism, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyPrism', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyPrism, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyPrism', 'length')
@@ -31486,13 +31481,13 @@ class PolyPrism(PolyPrimitive):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPrism, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polyPrism', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPrism, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyPrism', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPrism, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyPrism', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyPrism, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPrism', 'length')
     def setLength(self, val=True, **kwargs):
@@ -31541,6 +31536,11 @@ class PolyPyramid(PolyPrimitive):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polyPyramid', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyPyramid', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'constructionHistory')
@@ -31555,11 +31555,6 @@ class PolyPyramid(PolyPrimitive):
     @_f.addMelDocs('polyPyramid', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyPyramid', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyPyramid, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyPyramid', 'nodeState')
@@ -31611,6 +31606,10 @@ class PolyPyramid(PolyPrimitive):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPyramid, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polyPyramid', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyPyramid, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyPyramid', 'createUVs')
     def setCreateUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPyramid, kwargs, 'createUVs', val)
@@ -31618,10 +31617,6 @@ class PolyPyramid(PolyPrimitive):
     @_f.addMelDocs('polyPyramid', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyPyramid, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyPyramid', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyPyramid, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyPyramid', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
@@ -31670,6 +31665,11 @@ class PolySphere(PolyPrimitive):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polySphere', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polySphere, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polySphere', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polySphere, kwargs, 'constructionHistory')
@@ -31678,11 +31678,6 @@ class PolySphere(PolyPrimitive):
     @_f.addMelDocs('polySphere', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polySphere, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polySphere', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polySphere, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polySphere', 'nodeState')
@@ -31728,13 +31723,13 @@ class PolySphere(PolyPrimitive):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polySphere, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polySphere', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polySphere, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polySphere', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polySphere, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polySphere', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polySphere, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polySphere', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
@@ -31779,6 +31774,11 @@ class PolyTorus(PolyPrimitive):
         res = bool(res)
         return res
 
+    @_f.addMelDocs('polyTorus', 'componentTagCreate')
+    def getComponentTagCreate(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'componentTagCreate')
+        return res
+
     @_f.addMelDocs('polyTorus', 'constructionHistory')
     def getConstructionHistory(self, **kwargs):
         res = _f.asQuery(self, modeling.polyTorus, kwargs, 'constructionHistory')
@@ -31793,11 +31793,6 @@ class PolyTorus(PolyPrimitive):
     @_f.addMelDocs('polyTorus', 'frozen')
     def getFrozen(self, **kwargs):
         res = _f.asQuery(self, modeling.polyTorus, kwargs, 'frozen')
-        return res
-
-    @_f.addMelDocs('polyTorus', 'groupTagCreate')
-    def getGroupTagCreate(self, **kwargs):
-        res = _f.asQuery(self, modeling.polyTorus, kwargs, 'groupTagCreate')
         return res
 
     @_f.addMelDocs('polyTorus', 'nodeState')
@@ -31859,6 +31854,10 @@ class PolyTorus(PolyPrimitive):
     def setCaching(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyTorus, kwargs, 'caching', val)
 
+    @_f.addMelDocs('polyTorus', 'componentTagCreate')
+    def setComponentTagCreate(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyTorus, kwargs, 'componentTagCreate', val)
+
     @_f.addMelDocs('polyTorus', 'createUVs')
     def setCreateUVs(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyTorus, kwargs, 'createUVs', val)
@@ -31866,10 +31865,6 @@ class PolyTorus(PolyPrimitive):
     @_f.addMelDocs('polyTorus', 'frozen')
     def setFrozen(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyTorus, kwargs, 'frozen', val)
-
-    @_f.addMelDocs('polyTorus', 'groupTagCreate')
-    def setGroupTagCreate(self, val=True, **kwargs):
-        return _f.asEdit(self, modeling.polyTorus, kwargs, 'groupTagCreate', val)
 
     @_f.addMelDocs('polyTorus', 'nodeState')
     def setNodeState(self, val=True, **kwargs):
@@ -40746,12 +40741,9 @@ class ShadingMap(ShadingDependNode):
     __slots__ = ()
 
 
-if versions.current() < versions.v2020:
-    _api.MFnStandardSurfaceShader = None
-
-
 class StandardSurface(ShadingDependNode):
-    __apicls__ = _api.MFnStandardSurfaceShader
+    if versions.current() >= versions.v2020:
+        __apicls__ = _api.MFnStandardSurfaceShader
     __melnode__ = 'standardSurface'
     __slots__ = ()
 
@@ -44254,6 +44246,16 @@ class ToonLineAttributes(DependNode):
 
 class TrackInfoManager(DependNode):
     __melnode__ = 'trackInfoManager'
+    __slots__ = ()
+
+
+class TransferFalloff(DependNode):
+    __melnode__ = 'transferFalloff'
+    __slots__ = ()
+
+
+class UniformFalloff(DependNode):
+    __melnode__ = 'uniformFalloff'
     __slots__ = ()
 
 
