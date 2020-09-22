@@ -296,8 +296,8 @@ class MelGlobals(MutableMapping, _Parent):
 
     To retrieve existing global variables, just use the name as a key:
 
-    >>> melGlobals['gResourceFileList'] #doctest: +ELLIPSIS
-    [...'defaultRunTimeCommands.res.mel', ...]
+    >>> melGlobals['gPanelLabels'] #doctest: +ELLIPSIS
+    [...'Side View', ...]
     >>> # works with or without $
     >>> melGlobals['$gFilterUIDefaultAttributeFilterList']  #doctest: +ELLIPSIS
     ['DefaultHiddenAttributesFilter', 'animCurveFilter', ..., 'publishedFilter']
