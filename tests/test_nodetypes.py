@@ -3501,7 +3501,7 @@ class testCase_listAttr(unittest.TestCase):
             u'blendShape1.inputTarget[-1].vertex[-1].yVertex',
             u'blendShape1.inputTarget[-1].vertex[-1].zVertex',
             # This changed in 2020 to be:
-            #    'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[0].inputGeomTarget',
+            #    'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[6000].inputGeomTarget',
             # ...so just not checking for it.
             #u'blendShape1.inputTarget[0].inputTargetGroup[0].inputTargetItem[0].inputGeomTarget',
             u'blendShape1.input[0].groupId',
