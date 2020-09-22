@@ -29,7 +29,7 @@ from future import standard_library
 standard_library.install_aliases()
 
 __versiontuple__ = (1, 2, 0)
-__version_suffix__ = 'a3'
+__version_suffix__ = 'a4'
 __version__ = '.'.join(str(x) for x in __versiontuple__) + __version_suffix__
 __authors__ = ['Chad Dombrova', 'Paul Molodowitch', 'Olivier Renouard', 'Ofer Koren']
 
