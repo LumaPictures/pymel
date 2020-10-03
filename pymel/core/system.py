@@ -104,7 +104,7 @@ except (KeyError, AssertionError):
 
 
 def _getTypeFromExtension(path, mode='write'):
-    # type: (str, str) -> None
+    # type: (str, str) -> str
     """
     Parameters
     ----------
@@ -117,6 +117,10 @@ def _getTypeFromExtension(path, mode='write'):
         the type is basically a string name of a file translator, which can
         have different ones registered for reading or writing; this specifies
         whether you're looking for the read or write translator
+
+    Returns
+    -------
+    str
     """
     ext = Path(path).ext
     return str(Translator.fromExtension(ext, mode=mode))
@@ -273,32 +277,34 @@ class Namespace(str):
         return hash(str(self).strip(':'))
 
     def splitAll(self):
-        # type: () -> List[unicode]
+        # type: () -> List[str]
         """
         Returns
         -------
-        List[unicode]
+        List[str]
         """
         return self.strip(":").split(":")
 
     def shortName(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         Returns
         -------
-        unicode
+        str
         """
         return self.splitAll()[-1]
 
     def getParent(self):
-        # type: () -> Namespace
+        # type: () -> Optional[Namespace]
         """
         Returns
         -------
-        Namespace
+        Optional[Namespace]
         """
         if (str(self) != ":"):
             return self.__class__(':'.join(self.splitAll()[:-1]))
+        else:
+            return None
 
     def ls(self, pattern="*", **kwargs):
         # type: (Any, **Any) -> List[general.PyNode]
@@ -564,7 +570,6 @@ class Translator(object):
     'mayaBinary'
     >>> bin.hasReadSupport()
     True
-
     """
 
     @staticmethod
@@ -612,6 +617,8 @@ class Translator(object):
                 caseInsensitiveMatch = t
         if caseInsensitiveMatch is not None:
             return caseInsensitiveMatch
+        else:
+            return None
 
     def __init__(self, name):
         assert name in cmds.translator(q=1, list=1), "%s is not the name of a registered translator" % name

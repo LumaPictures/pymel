@@ -153,7 +153,7 @@ def getMayaAppDir(versioned=False):
         if os.name == 'nt':
             appDir = os.environ.get('USERPROFILE', os.environ.get('HOME', None))
             if appDir is None:
-                return
+                return None
 
             # Vista or newer... version() returns "6.x.x"
             if int(platform.version().split('.')[0]) > 5:
@@ -163,7 +163,7 @@ def getMayaAppDir(versioned=False):
         else:
             appDir = os.environ.get('HOME', None)
             if appDir is None:
-                return
+                return None
 
         if platform.system() == 'Darwin':
             appDir = os.path.join(appDir, 'Library/Preferences/Autodesk/maya')

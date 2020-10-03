@@ -2307,13 +2307,14 @@ class PyNode(_util.ProxyUnicode):
 
     """
 
-    _name = None              # unicode
+    _name = None  # type: str
 
     # for DependNode : _api.MObjectHandle
     # for DagNode    : _api.MDagPath
     # for Attribute  : _api.MPlug
 
-    _node = None              # Attribute Only: stores the PyNode for the plug's node
+    # Attribute Only: stores the PyNode for the plug's node
+    _node = None  # type: PyNode
     __apiobjects__ = {}
 
     def __new__(cls, *args, **kwargs):
@@ -2346,9 +2347,10 @@ class PyNode(_util.ProxyUnicode):
                 # valid types:
                 #    node : MObject, MObjectHandle, MDagPath
                 #    attr : MPlug  (TODO: MObject and MObjectHandle )
-                # One very important reason for allowing an attribute to be specified as two args instead of as an MPlug
-                # is that the node can be represented as an MDagPath which will differentiate between instances, whereas
-                # an MPlug loses this distinction.
+                # One very important reason for allowing an attribute to be
+                # specified as two args instead of as an MPlug is that the node
+                # can be represented as an MDagPath which will differentiate
+                # between instances, whereas an MPlug loses this distinction.
 
                 attrNode = args[0]
                 argObj = args[1]
@@ -2360,7 +2362,8 @@ class PyNode(_util.ProxyUnicode):
             else:
                 argObj = args[0]
 
-                # the order of the following 3 checks is important, as it is in increasing generality
+                # the order of the following 3 checks is important, as it is
+                # in increasing generality
 
                 if isinstance(argObj, Attribute):
                     attrNode = argObj._node
@@ -2382,7 +2385,8 @@ class PyNode(_util.ProxyUnicode):
                 elif hasattr(argObj, '__module__') and argObj.__module__.startswith('maya.OpenMaya'):
                     pass
 
-                # elif isinstance(argObj,basestring) : # got rid of this check because of nameparse objects
+                # elif isinstance(argObj,basestring) : # got rid of this check
+                # because of nameparse objects
                 else:
                     # didn't match any known types. treat as a string
                     # convert to string then to _api objects.
@@ -2475,12 +2479,13 @@ class PyNode(_util.ProxyUnicode):
 
             # - Components
             if validComponentIndexType(argObj):
-                #pymelType, obj, name = _getPymelType( attrNode._apiobject )
                 obj = {'ComponentIndex': argObj}
-                # if we are creating a component class using an int or slice, then we must specify a class type:
+                # if we are creating a component class using an int or slice,
+                # then we must specify a class type:
                 #    valid:    MeshEdge( myNode, 2 )
                 #    invalid:  PyNode( myNode, 2 )
-                assert issubclass(cls, Component), "%s is not a Component class" % cls.__name__
+                assert issubclass(cls, Component), \
+                    "%s is not a Component class" % cls.__name__
 
             # - All Others
             else:
@@ -2493,8 +2498,6 @@ class PyNode(_util.ProxyUnicode):
             # Virtual (non-existent) objects will be cast to their own virtual type.
             # so, until we make that, we're rejecting them
             assert obj is not None  # real objects only
-            #assert obj or name
-
         else:
             # create node if possible
             if issubclass(cls, nodetypes.DependNode):
@@ -2582,10 +2585,10 @@ class PyNode(_util.ProxyUnicode):
                              'object name, MObject, MObjectHandle, MDagPath, '
                              'or MPlug')
 
-        # print "type:", pymelType
-        # print "PyNode __new__ : called with obj=%r, cls=%r, on object of type %s" % (obj, cls, pymelType)
-        # if an explicit class was given (ie: pyObj=DagNode(u'pCube1')) just check if actual type is compatible
-        # if none was given (ie generic pyObj=PyNode('pCube1')) then use the class corresponding to the type we found
+        # if an explicit class was given (ie: pyObj=DagNode(u'pCube1')) just
+        # check if actual type is compatible.
+        # if none was given (ie generic pyObj=PyNode('pCube1')) then use the
+        # class corresponding to the type we found.
         newcls = None
 
         if cls is not PyNode:
@@ -2717,7 +2720,8 @@ class PyNode(_util.ProxyUnicode):
         -------
         bool
         """
-        # != does not work for MDagPath (maybe others) iff MDagPaths are equal (returns True)
+        # != does not work for MDagPath (maybe others) iff MDagPaths are equal
+        # (returns True)
         return not self == other
 
     def __bool__(self):
@@ -2798,12 +2802,6 @@ class PyNode(_util.ProxyUnicode):
         import pymel.core.other as other
         return other.NameParser(self).addPrefix(prefix)
 
-
-#    def attr(self, attr):
-#        """access to attribute of a node. returns an instance of the Attribute class for the
-#        given attribute."""
-#        return Attribute( '%s.%s' % (self, attr) )
-
     def exists(self, **kwargs):
         "objExists"
         try:
@@ -2824,7 +2822,9 @@ class PyNode(_util.ProxyUnicode):
         forbiddenKeys = ['all', 'allDependencyNodes', 'adn', 'allDagObjects' 'ado', 'clear', 'cl']
         for key in forbiddenKeys:
             if key in kwargs:
-                raise TypeError("'%s' is an inappropriate keyword argument for object-oriented implementation of this command" % key)
+                raise TypeError("'%s' is an inappropriate keyword argument "
+                                "for object-oriented implementation of this "
+                                "command" % key)
         # stringify
         return cmds.select(self.name(), **kwargs)
 
@@ -2858,7 +2858,8 @@ class PyNode(_util.ProxyUnicode):
 
 # This was supposed to be removed in the 1.0 update, but somehow got left out...
 deprecated_str_methods = ['__getitem__']
-strDeprecateDecorator = _warnings.deprecated('Convert to string first using str() or PyNode.name()', 'PyNode')
+strDeprecateDecorator = _warnings.deprecated(
+    'Convert to string first using str() or PyNode.name()', 'PyNode')
 
 
 def _deprecatePyNode():
@@ -3086,9 +3087,6 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     __apicls__ = _api.MPlug
     attrItemReg = re.compile(r'\[(\d+)\]$')
 
-#    def __init__(self, *args, **kwargs ):
-#        self.apicls.__init__(self, self._apiobject )
-
     def __apiobject__(self):
         "Return the default API object (MPlug) for this attribute, if it is valid"
         return self.__apimplug__()
@@ -3126,19 +3124,6 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             return self.__apiobjects__['MFnAttribute']
         except Exception:
             raise MayaAttributeError
-
-
-#    def __init__(self, attrName):
-#        assert isinstance( _api.__apiobject__(), _api.MPlug )
-
-#        if '.' not in attrName:
-#            raise TypeError, "%s: Attributes must include the node and the attribute. e.g. 'nodeName.attributeName' " % self
-#        self._name = attrName
-#        # TODO : MObject support
-#        self.__dict__['_multiattrIndex'] = 0
-#
-
-    #elementByPhysicalIndex = _factories.wrapApiMethod( _api.MPlug, 'elementByPhysicalIndex' )
 
     def removeMultiInstance(self, index=None, break_=False):
         # type: (Optional[Union[int, Iterable[int]]], bool) -> None
@@ -3187,16 +3172,18 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
                 attrObj = node.__apimfn__().attribute(attr)
                 return Attribute(node, plug.child(attrObj))
         except RuntimeError:
-            # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
+            # raise our own MayaAttributeError, which subclasses AttributeError
+            # and MayaObjectError
             raise MayaAttributeError('%s.%s' % (self, attr))
 
     def __getattr__(self, attr):
         try:
             return self.attr(attr)
         except MayaAttributeError:
-            raise AttributeError("%r has no attribute or method named '%s'" % (self, attr))
-    # Added the __call__ so to generate a more appropriate exception when a class method is not found
-
+            raise AttributeError("%r has no attribute or method named '%s'" %
+                                 (self, attr))
+    # Added the __call__ so to generate a more appropriate exception when a
+    # class method is not found
     def __call__(self, *args, **kwargs):
         raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
 
@@ -3222,7 +3209,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             >>> nt.SpotLight()
             nt.SpotLight('spotLightShape3')
             >>> for x in at: print(x)
-            ... 
+            ...
             defaultLightSet.dagSetMembers[0]
             defaultLightSet.dagSetMembers[1]
             defaultLightSet.dagSetMembers[2]
@@ -3232,7 +3219,8 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
                 yield self[i]
             # return self[0]
         else:
-            raise TypeError("%s is not a multi-attribute and cannot be iterated over" % self)
+            raise TypeError("%s is not a multi-attribute and cannot be "
+                            "iterated over" % self)
 
     if PY2:
         def __str__(self):
@@ -3246,11 +3234,11 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             return __builtin__.str(self.name())
 
         def __unicode__(self):
-            # type: () -> unicode
+            # type: () -> str
             """
             Returns
             -------
-            unicode
+            str
             """
             return self.name()
     else:
@@ -3382,13 +3370,6 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
                 name = name.replace('[-1]', '')
             return name
         raise MayaObjectError(self._name)
-
-
-#    def attributeName(self):
-#        pass
-#
-#    def attributeNames(self):
-#        pass
 
     def plugNode(self):
         # type: () -> nodetypes.DependNode
