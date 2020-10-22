@@ -26,6 +26,11 @@ from maya.cmds import about as _about
 from pymel.internal import getLogger as _getLogger
 from pymel.util.enum import Enum
 
+try:
+    from re import Pattern as pattern_type
+except ImportError:
+    from re import _pattern_type as pattern_type
+
 if False:
     from typing import *
     import pymel.core.nodetypes as nodetypes
@@ -1201,7 +1206,7 @@ def ls(*args, **kwargs):
             if not val.endswith('$'):
                 val = val + '$'
             val = re.compile('(\||^)' + val)
-        elif not isinstance(val, re._pattern_type):
+        elif not isinstance(val, pattern_type):
             raise TypeError('regex flag must be passed a valid regex string, '
                             'a compiled regex object, or a list of these '
                             'types. got %s' % type(val).__name__)

@@ -91,6 +91,11 @@ try:
 except AttributeError:
     getcwdu = os.getcwd
 
+try:
+    from re import Pattern as pattern_type
+except ImportError:
+    from re import _pattern_type as pattern_type
+
 if sys.version < '3':
     def u(x):
         return codecs.unicode_escape_decode(x)[0]
@@ -747,7 +752,7 @@ class path(unicode):
 
         .. seealso:: :meth:`fnmatch` and :meth:`regmatch`
         """
-        if isinstance(pattern, re._pattern_type):
+        if isinstance(pattern, pattern_type):
             return self.regmatch(pattern, normcase)
         else:
             return self.fnmatch(pattern, normcase)

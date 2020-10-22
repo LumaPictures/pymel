@@ -30,6 +30,11 @@ except ImportError:
     isOld = True
     XmlApiDocParser = HtmlApiDocParser = None
 
+try:
+    from re import Pattern as pattern_type
+except ImportError:
+    from re import _pattern_type as pattern_type
+
 import pymel.api as api
 
 
@@ -321,7 +326,7 @@ class RemoveEmptyEnumDocs(Transform):
 
 class RegexpTransform(IterTransform):
     def __init__(self, find, replace, keyFilter=None):
-        if not isinstance(find, re._pattern_type):
+        if not isinstance(find, pattern_type):
             find = re.compile(find)
         self.find = find
         self.replace = replace
