@@ -17,6 +17,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
+future = ">=0.18"
 
 [tool.poetry.dev-dependencies]
 beautifulsoup4 = "^4.8.2"
