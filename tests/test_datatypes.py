@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from builtins import range
 from builtins import str
 import sys, os, inspect, unittest
+import pymel.versions as versions
 import pymel.core as pm
 import maya.cmds as cmds
 import maya.OpenMaya as om
@@ -1612,13 +1613,17 @@ class test_Units(unittest.TestCase):
         self.assertEqual(float(outTime), 24)
 
         pm.dt.Time.setUIUnit('k48FPS')
-        # default name for 48FPS is actually 'showScan'
-        self.assertEqual(pm.dt.Time.getUIUnit(), 'showScan')
+        if versions.current() >= versions.v2021:
+            # default name for 48FPS is actually 'showScan'
+            k48Name = 'showScan'
+        else:
+            k48Name = 'k48FPS'
+        self.assertEqual(pm.dt.Time.getUIUnit(), k48Name)
 
         self.assertEqual(out.get(), 48)
         outTime = pm.dt.getPlugValue(out.__apimplug__())
         self.assertIsInstance(outTime, pm.dt.Time)
-        self.assertEqual(outTime.unit, 'showScan')
+        self.assertEqual(outTime.unit, k48Name)
         self.assertEqual(float(outTime), 48)
 
 
