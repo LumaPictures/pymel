@@ -90,11 +90,6 @@ except NameError:
     basestring = str
 
 try:
-    str
-except NameError:
-    str = str
-
-try:
     getcwdu = os.getcwd
 except AttributeError:
     getcwdu = os.getcwd
