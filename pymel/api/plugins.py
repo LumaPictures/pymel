@@ -1170,8 +1170,12 @@ def mayaPlugins(filters=()):
     # always include some plugins in the list of maya plugins, even though
     # they're installed in a different dir
     plugins = ['mtoa']
+    pluginPath = os.environ.get('MAYA_PLUG_IN_PATH')
+    if pluginPath is None:
+        raise RuntimeError("maya.standalone.initialize() must be called before"
+                           " this function")
     # need to set to os.path.realpath to get a 'canonical' path for string comparison...
-    pluginPaths = [os.path.realpath(x) for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep)]
+    pluginPaths = [os.path.realpath(x) for x in pluginPath.split(os.path.pathsep)]
 
     def isMayaPluginDir(path):
         if not os.path.isdir(path):
