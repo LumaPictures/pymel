@@ -101,6 +101,8 @@ else:
     def u(x):
         return x
 
+from pymel.util.py2to3 import RePattern
+
 o777 = 511
 o766 = 502
 o666 = 438
@@ -750,7 +752,7 @@ class path(str):
 
         .. seealso:: :meth:`fnmatch` and :meth:`regmatch`
         """
-        if isinstance(pattern, re._pattern_type):
+        if isinstance(pattern, RePattern):
             return self.regmatch(pattern, normcase)
         else:
             return self.fnmatch(pattern, normcase)

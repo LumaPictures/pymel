@@ -32,6 +32,8 @@ from pymel.internal import getLogger as _getLogger
 from pymel.util.enum import Enum
 from future.utils import PY2, with_metaclass
 
+from pymel.util.py2to3 import RePattern
+
 if PY2:
     import collections as abc
 else:
@@ -1234,7 +1236,7 @@ def ls(*args, **kwargs):
             if not val.endswith('$'):
                 val = val + '$'
             val = re.compile(r'(\||^)' + val)
-        elif not isinstance(val, re._pattern_type):
+        elif not isinstance(val, RePattern):
             raise TypeError('regex flag must be passed a valid regex string, '
                             'a compiled regex object, or a list of these '
                             'types. got %s' % type(val).__name__)

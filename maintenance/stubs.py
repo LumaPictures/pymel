@@ -190,7 +190,7 @@ def get_class(obj):
 
     unfortunately, it seems there's no single way to query class that works in
     all cases - `.__class__` doesn't work on some builtin-types, like
-    `re._pattern_type` instances, and type() doesn't work on old-style
+    `re.Pattern` instances, and type() doesn't work on old-style
     classes...
     '''
     cls = type(obj)

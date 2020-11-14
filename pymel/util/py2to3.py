@@ -2,6 +2,8 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 
+import re
+
 from future.utils import PY2
 
 def trystr(input):
@@ -13,3 +15,8 @@ def trystr(input):
             except UnicodeEncodeError:
                 pass
     return input
+
+if PY2:
+    RePattern = re._pattern_type
+else:
+    RePattern = re.Pattern

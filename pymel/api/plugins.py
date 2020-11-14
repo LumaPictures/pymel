@@ -88,6 +88,8 @@ from __future__ import division
 from __future__ import absolute_import
 from future.utils import PY2
 
+from pymel.util.py2to3 import RePattern
+
 from builtins import object
 import re
 import sys
@@ -1109,14 +1111,14 @@ class _DummyPluginNodesMaker(object):
 #==============================================================================
 
 def filterPlugins(plugins, filters):
-    # type: (Iterable[str], Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]) -> [str]
+    # type: (Iterable[str], Iterable[Union[str, RePattern, Callable[[str], bool]]]) -> [str]
     '''Filters the given plugins against the given filter tests.
 
     Parameters
     ----------
     plugins : Iterable[str]
         List of plugin names to test
-    filters : Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]
+    filters : Iterable[Union[str, RePattern, Callable[[str], bool]]]
         If given, specifies plugins which should not be returned.  Can be
         specified as a simple string (in which case a plugin name, stripped of
         it's trailing extension, must match it in order to be skipped), a
@@ -1139,7 +1141,7 @@ def filterPlugins(plugins, filters):
     for filterItem in filters:
         if isinstance(filterItem, str):
             filterTests.append(makeNameSkipper(filterItem))
-        elif isinstance(filterItem, re._pattern_type):
+        elif isinstance(filterItem, RePattern):
             filterTests.append(filterItem.match)
         elif callable(filterItem):
             filterTests.append(filterItem)
@@ -1155,12 +1157,12 @@ def filterPlugins(plugins, filters):
 
 
 def mayaPlugins(filters=()):
-    # type: (Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]) -> [str]
+    # type: (Iterable[Union[str, RePattern, Callable[[str], bool]]]) -> [str]
     '''all maya plugins in the maya install directory
 
     Parameters
     ----------
-    filters : Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]
+    filters : Iterable[Union[str, RePattern, Callable[[str], bool]]]
         If given, specifies plugins which should not be returned.  Passed to
         filterPlugins - see that function for a full description of this arg.
     '''
@@ -1200,12 +1202,12 @@ def mayaPlugins(filters=()):
 
 
 def loadAllMayaPlugins(filters=()):
-    # type: (Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]) -> None
+    # type: (Iterable[Union[str, RePattern, Callable[[str], bool]]]) -> None
     '''will load all maya-installed plugins
 
     Parameters
     ----------
-    filters : Iterable[Union[str, re._pattern_type, Callable[[str], bool]]]
+    filters : Iterable[Union[str, RePattern, Callable[[str], bool]]]
         If given, specifies plugins which should not be loaded.  Passed to
         filterPlugins - see that function for a full description of this arg.
 
