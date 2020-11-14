@@ -1177,7 +1177,7 @@ def ls(*args, **kwargs):
             nt.Transform('group3')
             >>> ls(regex=r'group\d+\|top') # don't forget to escape pipes `|`
             [nt.Transform('group1|top'), nt.Transform('group2|top')]
-            >>> ls(regex=r'group\d+\|top.*')
+            >>> ls(regex=re.compile(r'group\d+\|top.*'))
             [nt.Transform('group1|top'), nt.Camera('group1|top|topShape'), nt.Transform('group2|top'), nt.Camera('group2|top|topShape')]
             >>> ls(regex=r'group\d+\|top.*', cameras=1)
             [nt.Camera('group2|top|topShape'), nt.Camera('group1|top|topShape')]

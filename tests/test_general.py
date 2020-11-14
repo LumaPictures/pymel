@@ -906,8 +906,30 @@ class testCase_listHistory(unittest.TestCase):
         self.assertEqual(self.shapes, fut)
 
 
+class testCase_ls(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.dagNodes = [pm.PyNode('persp'), pm.PyNode('perspShape')]
+        self.dgNodes = [pm.PyNode('time1'), pm.PyNode('defaultLayer')]
 
+    def test_dag(self):
+        allNodes = pm.ls()
+        for node in self.dagNodes + self.dgNodes:
+            self.assertIn(node, allNodes)
+        dagNodes = pm.ls(dag=True)
+        for node in self.dagNodes:
+            self.assertIn(node, dagNodes)
+        for node in self.dgNodes:
+            self.assertNotIn(node, dagNodes)
 
+    def test_filter(self):
+        topNodes = {pm.PyNode('top'), pm.PyNode('topShape')}
+        filteredNodes = set(pm.ls("top*"))
+        self.assertEqual(topNodes, filteredNodes)
+        filteredNodes = set(pm.ls(regex=r"top.*"))
+        self.assertEqual(topNodes, filteredNodes)
+        filteredNodes = set(pm.ls(regex=re.compile(r"top.*")))
+        self.assertEqual(topNodes, filteredNodes)
 
 
 
