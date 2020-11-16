@@ -17,6 +17,10 @@ class Test_plugins(unittest.TestCase):
         # is set correctly
         import pymel.core
 
+        pluginPath = os.environ.get('MAYA_PLUG_IN_PATH')
+        print(pluginPath)
+        self.assertTrue(pluginPath)
+
         knownPlugins = ['mayaHIK', 'objExport', 'tiffFloatReader']
 
         # to deal with os-differences, strip any extensions

@@ -1156,15 +1156,18 @@ def filterPlugins(plugins, filters):
     return filteredPlugs
 
 
-def mayaPlugins(filters=()):
-    # type: (Iterable[Union[str, RePattern, Callable[[str], bool]]]) -> [str]
-    '''all maya plugins in the maya install directory
+def mayaPlugins(filters=(), loaded=None):
+    # type: (Iterable[Union[str, RePattern, Callable[[str], bool]]], Optional[bool]) -> [str]
+    '''All maya plugins in the maya install directory
 
     Parameters
     ----------
     filters : Iterable[Union[str, RePattern, Callable[[str], bool]]]
         If given, specifies plugins which should not be returned.  Passed to
         filterPlugins - see that function for a full description of this arg.
+    loaded : If None (the default), then all plugins are returned regardless of
+        current loaded status; if True, only currently loaded plugins are
+        returned; if False, only currenlty unloaded plugins.
     '''
     import pymel.mayautils
 
@@ -1194,8 +1197,12 @@ def mayaPlugins(filters=()):
             continue
         for x in os.listdir(pluginPath):
             if os.path.isfile(os.path.join(pluginPath, x)):
-                if not maya.cmds.pluginInfo(x, q=1, loaded=1):
-                    plugins.append(x)
+                plugins.append(x)
+
+    if loaded is not None:
+        plugins = [x for x in plugins
+                   if maya.cmds.pluginInfo(x, q=1, loaded=1) == loaded]
+
     if filters:
         plugins = filterPlugins(plugins, filters)
     return plugins
@@ -1220,7 +1227,7 @@ def loadAllMayaPlugins(filters=()):
     # load until other plugins are loaded first... we stop if we've loaded all
     # plugins, or we went through a pass where no plugins were successfully
     # loaded
-    unloadedPlugins = set(mayaPlugins(filters=filters))
+    unloadedPlugins = set(mayaPlugins(filters=filters, loaded=False))
     loadedAPlugin = True
     passNum = 0
     while unloadedPlugins and loadedAPlugin:
