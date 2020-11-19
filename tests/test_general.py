@@ -651,6 +651,29 @@ class testCase_nodesAndAttributes(unittest.TestCase):
             self.assertFalse(attr.isMuted())
             self.assertEqual(attr.isMuted(), cmds.mute(str(attr), q=1))
 
+    def test_rotatePivot_as_attr(self):
+        rotatePivot = self.grp1.attr('rotatePivot')
+        self.assertIsInstance(rotatePivot, pm.Attribute)
+        rotatePivotName = '{}.rotatePivot'.format(self.grp1)
+        self.assertEqual(rotatePivot.name(), rotatePivotName)
+
+        rotatePivot2 = pm.Attribute(rotatePivotName)
+        self.assertEqual(rotatePivot, rotatePivot2)
+        self.assertIsInstance(rotatePivot2, pm.Attribute)
+        self.assertEqual(rotatePivot2.name(), rotatePivotName)
+
+    def test_rotatePivot_as_component(self):
+        rotatePivot = self.grp1.comp('rotatePivot')
+        self.assertIsInstance(rotatePivot, pm.Pivot)
+        rotatePivotName = '{}.rotatePivot'.format(self.grp1)
+        self.assertEqual(rotatePivot.name(), rotatePivotName)
+
+        rotatePivot2 = pm.Component(rotatePivotName)
+        self.assertEqual(rotatePivot, rotatePivot2)
+        self.assertIsInstance(rotatePivot2, pm.Pivot)
+        self.assertEqual(rotatePivot2.name(), rotatePivotName)
+
+
     def tearDown(self):
         newFile(f=1)
 
