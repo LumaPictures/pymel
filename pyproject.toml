@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pymel"
-version = "1.2.0a5"
+version = "1.2.0a6"
 description = "Python in Maya Done Right"
 authors = ['Chad Dombrova', 'Paul Molodowitch', 'Olivier Renouard']
 license = "BSD"
@@ -16,7 +16,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^2.7 || ^3.7"
 future = ">=0.18"
 
 [tool.poetry.dev-dependencies]

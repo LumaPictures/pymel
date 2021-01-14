@@ -436,7 +436,7 @@ A few notes on rebuilding:
   - then, build with poetry
     - if you've never installed poetry, do:
 
-          pip install poetry`
+          pip install poetry
 
     - then:
 
