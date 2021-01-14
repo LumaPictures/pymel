@@ -468,5 +468,5 @@ A few notes on rebuilding:
 
     - publish to "real" pypi!
 
-          poetry publish testpypi
+          poetry publish
 
