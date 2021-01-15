@@ -13,6 +13,7 @@ else:
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 
+@_factories.addCmdDocs
 def shadingNode(*args, **kwargs):
     res = cmds.shadingNode(*args, **kwargs)
     if res is not None:
@@ -44,6 +45,7 @@ def createSurfaceShader(shadertype, name=None):
     return newShader, sg
 
 
+@_factories.addCmdDocs
 def lsThroughFilter(*args, **kwargs):
     """
     Modifications:
@@ -350,8 +352,6 @@ listCameras = _factories.getCmdFunc('listCameras')
 
 lookThru = _factories.getCmdFunc('lookThru')
 
-lsThroughFilter = _factories.addCmdDocs(lsThroughFilter)
-
 makebot = _factories.getCmdFunc('makebot')
 
 mayaHasRenderSetup = _factories.getCmdFunc('mayaHasRenderSetup')
@@ -514,8 +514,6 @@ setRenderPassType = _factories.getCmdFunc('setRenderPassType')
 shadingConnection = _factories.getCmdFunc('shadingConnection')
 
 shadingNetworkCompare = _factories.getCmdFunc('shadingNetworkCompare')
-
-shadingNode = _factories.addCmdDocs(shadingNode)
 
 showShadingGroupAttrEditor = _factories.getCmdFunc('showShadingGroupAttrEditor')
 

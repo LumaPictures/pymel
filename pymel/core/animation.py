@@ -14,6 +14,7 @@ else:
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 
+@_factories.addCmdDocs
 def currentTime(*args, **kwargs):
     """
     Modifications:
@@ -35,6 +36,7 @@ def setCurrentTime(time):
     return cmds.currentTime(time)
 
 
+@_factories.addCmdDocs
 def listAnimatable(*args, **kwargs):
     """
     Modifications:
@@ -58,6 +60,7 @@ def keyframe(*args, **kwargs):
     return res
 
 
+@_factories.addCmdDocs
 def deformer(*args, **kwargs):
     return [_general.PyNode(x) for x in cmds.deformer(*args, **kwargs)]
 
@@ -410,8 +413,6 @@ def copyKey(*args, **kwargs):
 
 copySkinWeights = _factories.getCmdFunc('copySkinWeights')
 
-currentTime = _factories.addCmdDocs(currentTime)
-
 @_factories.addCmdDocs
 def cutKey(*args, **kwargs):
     for flag in ['t', 'time']:
@@ -441,8 +442,6 @@ def deformableShape(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
-
-deformer = _factories.addCmdDocs(deformer)
 
 deformerWeights = _factories.getCmdFunc('deformerWeights')
 
@@ -677,8 +676,6 @@ def lattice(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
-
-listAnimatable = _factories.addCmdDocs(listAnimatable)
 
 marker = _factories.getCmdFunc('marker')
 

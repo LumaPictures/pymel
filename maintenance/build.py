@@ -252,6 +252,12 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
 
         result = ''
         if existing:
+            if isinstance(inFunc.__doc__, util.LazyDocString):
+                # inFunc was already decorated with @addCmdDocs
+                _logger.warning("Warning: %s.%s is decorated with "
+                                "@addCmdDocs but it will be re-wrapped" %
+                                (inFunc.__module__, funcName))
+
             sourceFuncName = sourceFuncName.rsplit('.', 1)[1]
             result += '\n_{func} = {func}\n'.format(func=sourceFuncName)
             sourceFuncName = '_' + sourceFuncName
@@ -272,6 +278,14 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
     else:
         if existing:
             guessedName = factories._guessCmdName(inFunc)
+            if isinstance(inFunc.__doc__, util.LazyDocString):
+                # inFunc was already decorated with @addCmdDocs
+                return ''
+
+            _logger.warning("%s.%s should be decorated with @addCmdDocs to "
+                            "generate better stubs" %
+                            (inFunc.__module__, guessedName))
+
             if guessedName != funcName:
                 # for, ie, fileInfo = FileInfo(), optionVar = OptionVar(),
                 # workspace = Workspace()
