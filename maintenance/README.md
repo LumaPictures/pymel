@@ -238,7 +238,22 @@ Indicated by this error:
     this should be done)
 
 
-## 6) Build Stubs
+## 6) Build Stubs (new)
+
+  - Fix up the mypy typeshed. This is only required until my fixes to mypy stubgen
+    get officially released (at which point the requirements.txt file in this
+    directory will be updated and this note will be removed:
+    ```
+    git clone http://github.com/python/typeshed $(mayapy -c "import mypy,os;print(os.path.join(mypy.__path__[0], 'typeshed'))"
+    ```
+
+  - run `genstubs.sh`:
+    ```
+    maintenance/genstubs.sh
+    ```
+    The resulting .pyi files will get packaged up by poetry.
+
+## 6) Build Stubs (deprecated)
 
   - from a clean/default environment maya gui, run:
 
