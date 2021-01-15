@@ -21,6 +21,10 @@ import sys
 import warnings
 from collections import defaultdict
 
+if False:
+    from typing import Any, Iterable, Type, TypeVar
+    T = TypeVar('T')
+
 
 class Singleton(type):
 
@@ -322,9 +326,9 @@ NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__'
 
 
 def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
-               remove=(), makeDefaultInit = False, sourceIsImmutable=True,
+               remove=(), makeDefaultInit=False, sourceIsImmutable=True,
                module=None):
-    # type: (type, str, str, str, Iterable[str], bool, bool, Any) -> None
+    # type: (Type[T], str, str, str, Iterable[str], bool, bool, Any) -> Type[T]
     """
     This function will generate a proxy class which keeps the internal data
     separate from the wrapped class. This is useful for emulating immutable
@@ -335,7 +339,7 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
 
     Parameters
     ----------
-    cls : `type`
+    cls : Type[T]
         The class to wrap
     classname : str
         The name to give the resulting proxy class
@@ -361,7 +365,9 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
         This parameter is included only for backwards compatibility - it is
         ignored.
 
-    :rtype: `type`
+    Returns
+    -------
+    TypeT
     """
 
     assert not (dataAttrName and dataFuncName), \
@@ -428,7 +434,6 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
 
     remove = set(remove)
     remove.update(NOT_PROXY_WRAPPED)
-    #remove = [ '__init__', '__getattribute__', '__getattr__'] + remove
     for attrName, attrValue in inspect.getmembers(cls):
         if attrName not in remove:
             # We wrap methods using _methodWrapper, because if someone does
@@ -479,13 +484,15 @@ if PY2:
     _proxyStrBase = unicode
 else:
     _proxyStrBase = str
-ProxyUnicode = proxyClass(_proxyStrBase, 'ProxyUnicode', module=__name__, dataFuncName='name',
-                          remove=['__doc__', '__getslice__', '__contains__', '__len__',
-                                  '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__',  # reserved for higher levels
-                                  'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
-                                  'capitalize', 'swapcase', 'title',
-                                  'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
-                                  'zfill'])
+ProxyUnicode = proxyClass(
+    _proxyStrBase, 'ProxyUnicode',
+    module=__name__, dataFuncName='name',
+    remove=['__doc__', '__getslice__', '__contains__', '__len__',
+            '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__',  # reserved for higher levels
+            'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
+            'capitalize', 'swapcase', 'title',
+            'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
+            'zfill'])
 
 
 class universalmethod(object):
@@ -725,12 +732,6 @@ class LazyLoadModule(types.ModuleType):
         """
         Used to update the contents of the LazyLoadModule with the contents of another dict.
         """
-        # For debugging, print out a list of things in the _lazyGlobals that
-        # AREN'T in __dict__
-#            print "_lazyModule_update:"
-#            print "only in dynamic module:", [x for x in
-#                                              (set(self.__class__.__dict__) | set(self.__dict__))- set(self._lazyGlobals)
-#                                              if not x.startswith('__')]
         self.__dict__.update(self._lazyGlobals)
 
 
@@ -860,6 +861,7 @@ class LazyDocString(object):
 
     def __repr__(self):
         return repr(str(self))
+
 
 for _name, _method in inspect.getmembers(bytes, inspect.isroutine):
     if _name.startswith('_'):
@@ -1197,6 +1199,7 @@ class propertycache(object):
         result = self.func(ownerInstance)
         setattr(ownerInstance, self.name, result)
         return result
+
 
 # unit test with doctest
 if __name__ == '__main__':

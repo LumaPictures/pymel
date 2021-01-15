@@ -206,14 +206,14 @@ def is64bit():
 
 
 def flavor():
-    # type: () -> unicode
+    # type: () -> str
     """The 'flavor' of this instance of Maya
 
     Requires ``maya.cmds``.
 
     Returns
     -------
-    unicode
+    str
     """
     import maya.cmds
     try:

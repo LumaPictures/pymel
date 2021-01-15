@@ -30,11 +30,13 @@ def createSurfaceShader(shadertype, name=None):
     from . import nodetypes
     # if 'shader/surface' in classification:
     if 'rendernode/mentalray/material' in classification:
-        newShader = nodetypes.DependNode(_language.mel.mrCreateCustomNode("-asShader", "", shadertype))
+        newShader = nodetypes.DependNode(
+            _language.mel.mrCreateCustomNode("-asShader", "", shadertype))
     else:
-        newShader = nodetypes.DependNode(_language.mel.renderCreateNode("-asShader", "surfaceShader", shadertype, "", 0, 0, 0, 1, 0, ""))
-    # else:
-    #    raise TypeError, "%s is not a valid surface shader type. shader must be classified as 'shader/surface'" % shadertype
+        newShader = nodetypes.DependNode(
+            _language.mel.renderCreateNode("-asShader", "surfaceShader",
+                                           shadertype, "", 0, 0, 0, 1, 0, ""))
+
     sg = newShader.shadingGroups()[0]
     if name:
         newShader = newShader.rename(name)
@@ -57,7 +59,8 @@ def pointLight(*args, **kwargs):
     Maya Bug Fix:
       - name flag was ignored
     """
-    if kwargs.get('query', kwargs.get('q', False)) or kwargs.get('edit', kwargs.get('e', False)):
+    if kwargs.get('query', kwargs.get('q', False)) \
+            or kwargs.get('edit', kwargs.get('e', False)):
         return cmds.pointLight(*args, **kwargs)
 
     else:
@@ -75,7 +78,8 @@ def spotLight(*args, **kwargs):
     Maya Bug Fix:
       - name flag was ignored
     """
-    if kwargs.get('query', kwargs.get('q', False)) or kwargs.get('edit', kwargs.get('e', False)):
+    if kwargs.get('query', kwargs.get('q', False)) \
+            or kwargs.get('edit', kwargs.get('e', False)):
         return cmds.spotLight(*args, **kwargs)
 
     else:

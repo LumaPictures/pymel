@@ -171,6 +171,7 @@ def _listRepr(s):
 
 def functionTemplateFactory(funcName, module, returnFunc=None,
                             rename=None, uiWidget=False):
+    # type: (...) -> str
     inFunc, funcName, customFunc = factories._getSourceFunction(funcName, module)
     if inFunc is None:
         return ''
@@ -193,12 +194,14 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
     timeRangeFlags = factories._getTimeRangeFlags(funcName)
     if timeRangeFlags:
         timeRangeFlags = _listRepr(timeRangeFlags)
-    # some refactoring done here - to avoid code duplication (and make things clearer),
-    # we now ALWAYS do things in the following order:
-    # 1. Perform operations which modify the execution of the function (ie, adding return funcs)
+    # some refactoring done here - to avoid code duplication (and make things
+    # clearer), we now ALWAYS do things in the following order:
+    # 1. Perform operations which modify the execution of the function (ie,
+    #    adding return funcs)
     # 2. Modify the function descriptors - ie, __doc__, __name__, etc
 
-    # FIXME: merge the unpack case with maybeConvert case in the template: both test for 'not query'
+    # FIXME: merge the unpack case with maybeConvert case in the template:
+    #  both test for 'not query'
 
     # create a repr for a set of flags (but make it ordered so it's stable)
     # unpackFlags = []
@@ -291,8 +294,9 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
 
 
     # FIXME: handle these!
-    # Check if we have not been wrapped yet. if we haven't and our input function is a builtin or we're renaming
-    # then we need a wrap. otherwise we can just change the __doc__ and __name__ and move on
+    # Check if we have not been wrapped yet. if we haven't and our input
+    # function is a builtin or we're renaming then we need a wrap. otherwise
+    # we can just change the __doc__ and __name__ and move on
     if newFunc == inFunc and (type(newFunc) == types.BuiltinFunctionType or rename):
         # we'll need a new function: we don't want to touch built-ins, or
         # rename an existing function, as that can screw things up... just modifying docs

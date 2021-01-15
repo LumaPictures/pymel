@@ -197,11 +197,11 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
             return self.__melnode__
 
     def __repr__(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         Returns
         -------
-        unicode
+        str
         """
         return u"nt.%s(%r)" % (self.__class__.__name__, self.name())
 
@@ -215,12 +215,12 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
     # classes?
     def name(self, update=True, stripNamespace=False, levels=0, long=False,
              stripUnderWorld=False):
-        # type: (bool, bool, int, bool, bool) -> unicode
+        # type: (bool, bool, int, bool, bool) -> str
         '''The name of the node
 
         Returns
         -------
-        unicode
+        str
 
         Parameters
         ----------
@@ -286,7 +286,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
         return name
 
     def namespace(self, root=False):
-        # type: (bool) -> unicode
+        # type: (bool) -> str
         """Returns the namespace of the object with trailing colon included.
 
         See `DependNode.parentNamespace` for a variant which does not include
@@ -300,7 +300,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         Returns
         -------
-        unicode
+        str
         """
         ns = self.parentNamespace()
         if ns or root:
@@ -308,7 +308,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
         return ns
 
     def shortName(self, **kwargs):
-        # type: (**Any) -> unicode
+        # type: (**Any) -> str
         """
         This produces the same results as `DependNode.name` and is included to
         simplify looping over lists of nodes that include both Dag and Depend
@@ -316,12 +316,12 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         Returns
         -------
-        unicode
+        str
         """
         return self.name(**kwargs)
 
     def longName(self, **kwargs):
-        # type: (**Any) -> unicode
+        # type: (**Any) -> str
         """
         This produces the same results as `DependNode.name` and is included to
         simplify looping over lists of nodes that include both Dag and Depend
@@ -329,12 +329,12 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         Returns
         -------
-        unicode
+        str
         """
         return self.name(**kwargs)
 
     def nodeName(self, **kwargs):
-        # type: (**Any) -> unicode
+        # type: (**Any) -> str
         """
         This produces the same results as `DependNode.name` and is included to
         simplify looping over lists of nodes that include both Dag and Depend
@@ -342,7 +342,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         Returns
         -------
-        unicode
+        str
         """
         return self.name(**kwargs)
 
@@ -892,7 +892,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 # Now just wraps NameParser functions
 
     def stripNum(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         Return the name of the node with trailing numbers stripped off.
 
@@ -904,12 +904,12 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         Returns
         -------
-        unicode
+        str
         """
         return other.NameParser(self).stripNum()
 
     def extractNum(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         Return the trailing numbers of the node name.
 
@@ -921,12 +921,12 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         Returns
         -------
-        unicode
+        str
         """
         return other.NameParser(self).extractNum()
 
     def nextUniqueName(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         Increment the trailing number of the object until a unique name is
         found.
@@ -935,12 +935,12 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         Returns
         -------
-        unicode
+        str
         """
         return other.NameParser(self).nextUniqueName()
 
     def nextName(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         Increment the trailing number of the object by 1
 
@@ -952,12 +952,12 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         Returns
         -------
-        unicode
+        str
         """
         return other.NameParser(self).nextName()
 
     def prevName(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         Decrement the trailing number of the object by 1
 
@@ -965,7 +965,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
         Returns
         -------
-        unicode
+        str
         """
         return other.NameParser(self).prevName()
 
@@ -1347,7 +1347,7 @@ class DagNode(Entity):
     # TODO: support for underworld nodes
     def name(self, update=True, long=False, stripNamespace=False, levels=0,
              stripUnderWorld=False):
-        # type: (bool, Optional[bool], bool, int, bool) -> unicode
+        # type: (bool, Optional[bool], bool, int, bool) -> str
         '''The name of the node
 
         Parameters
@@ -1379,7 +1379,7 @@ class DagNode(Entity):
 
         Returns
         -------
-        unicode
+        str
 
 
         Examples
@@ -1508,13 +1508,13 @@ class DagNode(Entity):
         return name
 
     def longName(self, **kwargs):
-        # type: (**Any) -> unicode
+        # type: (**Any) -> str
         """
         The full dag path to the object, including leading pipe ( | )
 
         Returns
         -------
-        unicode
+        str
 
         Examples
         --------
@@ -1574,13 +1574,13 @@ class DagNode(Entity):
     fullPath = longName
 
     def shortName(self, **kwargs):
-        # type: (**Any) -> unicode
+        # type: (**Any) -> str
         """
         The shortest unique name.
 
         Returns
         -------
-        unicode
+        str
 
         Examples
         --------
@@ -1643,13 +1643,13 @@ class DagNode(Entity):
     # TODO: better support for underworld nodes (ie, in conjunction with
     # stripNamespace)
     def nodeName(self, stripUnderWorld=True, **kwargs):
-        # type: (Any, **Any) -> unicode
+        # type: (Any, **Any) -> str
         """
         Just the name of the node, without any dag path
 
         Returns
         -------
-        unicode
+        str
 
         Examples
         --------
@@ -1861,12 +1861,12 @@ class DagNode(Entity):
 # xxx{  Path Info and Modification
 # -------------------------------
     def root(self):
-        # type: () -> unicode
+        # type: () -> str
         """rootOf
 
         Returns
         -------
-        unicode
+        str
         """
         return DagNode('|' + self.longName()[1:].split('|')[0])
 
@@ -6752,7 +6752,7 @@ class Mesh(SurfaceShape):
         >>> # do every other edge between 0 and 10
         >>> for edge in p.e[0:10:2]:
         ...     print(edge)
-        ... 
+        ...
         theMoonShape.e[0]
         theMoonShape.e[2]
         theMoonShape.e[4]
@@ -6778,7 +6778,7 @@ class Mesh(SurfaceShape):
 
         >>> for x in p.vtx[::10]:
         ...     print(x, x.getPosition())
-        ... 
+        ...
         theMoonShape.vtx[0] [0.2705221176..., -0.9009688496..., -0.3392239511...]
         theMoonShape.vtx[10] [-0.7044058442..., -0.6234897971..., 0.3392239511...]
         theMoonShape.vtx[20] [0.9749279022..., -0.2225208580..., 0.0]
@@ -6790,7 +6790,7 @@ class Mesh(SurfaceShape):
 
         >>> # face at index 8 will be included in the sequence
         >>> for f in p.f[4:8]: print(f)
-        ... 
+        ...
         theMoonShape.f[4]
         theMoonShape.f[5]
         theMoonShape.f[6]
@@ -6873,7 +6873,7 @@ class Mesh(SurfaceShape):
     def getVertexColors(self, colorSet=None, defaultUnsetColor=None):
         '''
         Modifications:
-        - raises more informative error if colorSet is missing (or are none) 
+        - raises more informative error if colorSet is missing (or are none)
         '''
         try:
             return self._getVertexColors(colorSet=colorSet,

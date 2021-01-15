@@ -39,7 +39,9 @@ if PY2:
 else:
     from collections import abc
 
-if False:
+TYPE_CHECKING = False
+
+if TYPE_CHECKING:
     from typing import *
     import pymel.core.nodetypes as nodetypes
     import pymel.core.nodetypes as nt
@@ -49,6 +51,8 @@ if False:
 else:
     import pymel.api as _api
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
+    def overload(f):
+        return f
 
 _logger = _getLogger(__name__)
 
@@ -852,14 +856,14 @@ def addAttr(*args, **kwargs):
 
 
 def hasAttr(pyObj, attr, checkShape=True):
-    # type: (PyNode, Union[unicode, Attribute, AttributeSpec], bool) -> bool
+    # type: (PyNode, Union[str, Attribute, AttributeSpec], bool) -> bool
     """
     Convenience function for determining if an object has an attribute.
 
     Parameters
     ----------
     pyObj : PyNode
-    attr : Union[unicode, Attribute, AttributeSpec]
+    attr : Union[str, Attribute, AttributeSpec]
     checkShape : bool
         If enabled, the shape node of a transform will also be
         checked for the attribute.
@@ -915,13 +919,13 @@ def setEnums(attr, enums):
 
 
 def getEnums(attr):
-    # type: (Union[unicode, Attribute]) -> _util.enum.EnumDict
+    # type: (Union[str, Attribute]) -> _util.enum.EnumDict
     """
     Get the enumerators for an enum attribute.
 
     Parameters
     ----------
-    attr : Union[unicode, Attribute]
+    attr : Union[str, Attribute]
 
     Returns
     -------
@@ -971,6 +975,26 @@ def getEnums(attr):
 #  - returns an empty list when the result is None
 #    """
 #    return _util.listForNone(cmds.listAttr(*args, **kwargs))
+
+@overload
+def listConnections(arg, connections=True, plugs=True, **kwargs):
+    # type: (Any, Literal[True], Literal[True], **Any) -> List[Tuple[Attribute, Attribute]]
+    pass
+
+@overload
+def listConnections(arg, connections=True, **kwargs):
+    # type: (Any, Literal[True], **Any) -> List[Tuple[Attribute, PyNode]]
+    pass
+
+@overload
+def listConnections(arg, plugs=True, **kwargs):
+    # type: (Any, Literal[True], *Any) -> List[Attribute]
+    pass
+
+@overload
+def listConnections(arg, **kwargs):
+    # type: (Any, *Any) -> List[PyNode]
+    pass
 
 def listConnections(*args, **kwargs):
     # type: (*Any, **Any) -> List[Union[PyNode, Attribute, Tuple[PyNode, PyNode], Tuple[Attribute, Attribute]]]
@@ -1370,7 +1394,7 @@ def listSets(*args, **kwargs):
 # ----------------------
 
 def nodeType(node, **kwargs):
-    # type: (Any, **Any) -> unicode
+    # type: (Any, **Any) -> str
     """
     Note: this will return the dg node type for an object, like maya.cmds.nodeType,
     NOT the pymel PyNode class.  For objects like components or attributes,
@@ -1378,7 +1402,7 @@ def nodeType(node, **kwargs):
 
     Returns
     -------
-    unicode
+    str
     """
     # still don't know how to do inherited via _api
     if kwargs.get('inherited', kwargs.get('i', False)):
@@ -2110,7 +2134,7 @@ Modifications:
 
     Returns
     -------
-    Union[bool, List[unicode]]
+    Union[bool, List[str]]
     """
     if kwargs and len(kwargs) == 1 and 'satisfies' in kwargs:
         return cmds.getClassification(*args, **kwargs)
@@ -2676,11 +2700,11 @@ class PyNode(_util.ProxyUnicode):
                     return mfn
 
     def __repr__(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         Returns
         -------
-        unicode
+        str
         """
         return u"%s(%r)" % (self.__class__.__name__, self.name())
 
@@ -2790,12 +2814,12 @@ class PyNode(_util.ProxyUnicode):
         return other.NameParser(self).swapNamespace(prefix)
 
     def namespaceList(self):
-        # type: () -> List[unicode]
+        # type: () -> List[str]
         """Useful for cascading references.  Returns all of the namespaces of the calling object as a list
 
         Returns
         -------
-        List[unicode]
+        List[str]
         """
         return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
 
@@ -3322,7 +3346,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
     def name(self, includeNode=True, longName=True, fullAttrPath=False,
              fullDagPath=False, placeHolderIndices=True):
-        # type: (Any, Any, Any, Any, Any) -> unicode
+        # type: (Any, Any, Any, Any, Any) -> str
         """
         Returns the name of the attribute (plug)
 
@@ -3350,7 +3374,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
         Returns
         -------
-        unicode
+        str
         """
 
         obj = self.__apimplug__()
@@ -3394,7 +3418,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     node = plugNode
 
     def plugAttr(self, longName=False, fullPath=False):
-        # type: (Any, Any) -> unicode
+        # type: (Any, Any) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3407,14 +3431,14 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
         Returns
         -------
-        unicode
+        str
         """
         return self.name(includeNode=False,
                          longName=longName,
                          fullAttrPath=fullPath)
 
     def lastPlugAttr(self, longName=False):
-        # type: (Any) -> unicode
+        # type: (Any) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3425,14 +3449,14 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
         Returns
         -------
-        unicode
+        str
         """
         return self.name(includeNode=False,
                          longName=longName,
                          fullAttrPath=False)
 
     def longName(self, fullPath=False):
-        # type: (Any) -> unicode
+        # type: (Any) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3443,14 +3467,14 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
         Returns
         -------
-        unicode
+        str
         """
         return self.name(includeNode=False,
                          longName=True,
                          fullAttrPath=fullPath)
 
     def shortName(self, fullPath=False):
-        # type: (Any) -> unicode
+        # type: (Any) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3461,19 +3485,19 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
         Returns
         -------
-        unicode
+        str
         """
         return self.name(includeNode=False,
                          longName=False,
                          fullAttrPath=fullPath)
 
     def nodeName(self):
-        # type: () -> unicode
+        # type: () -> str
         """The node part of this plug as a string
 
         Returns
         -------
-        unicode
+        str
         """
         return self.plugNode().name()
 
@@ -3546,7 +3570,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     #        or skinCluster1.weightList.weights.elements() for all weightList[x].weights[y]
 
     def elements(self):
-        # type: () -> List[unicode]
+        # type: () -> List[str]
         """
         ``listAttr -multi``
 
@@ -3560,7 +3584,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
         Returns
         -------
-        List[unicode]
+        List[str]
         """
         if self.isElement():
             arrayAttr = self.array()
@@ -3926,13 +3950,13 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
     # getAttr info methods
     def type(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         getAttr -type
 
         Returns
         -------
-        unicode
+        str
         """
         # Note - currently, this returns 'TdataCompound' even for multi,
         # NON-compound attributes, if you feed it the array plug (ie, not
@@ -4802,9 +4826,14 @@ def _formatSlice(sliceObj):
     return sliceStr
 
 
-ProxySlice = _util.proxyClass(slice, 'ProxySlice', module=__name__, dataAttrName='_slice', makeDefaultInit=True)
-# prevent auto-completion generator from getting confused
-ProxySlice.__module__ = __name__
+if TYPE_CHECKING:
+    ProxySlice = slice
+else:
+    ProxySlice = _util.proxyClass(
+        slice, 'ProxySlice', module=__name__, dataAttrName='_slice',
+        makeDefaultInit=True)
+    # prevent auto-completion generator from getting confused
+    ProxySlice.__module__ = __name__
 
 
 # Really, don't need to have another class inheriting from
@@ -5125,7 +5154,7 @@ class Component(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         return None
 
     def name(self):
-        # type: () -> unicode
+        # type: () -> str
         melObj = self.__melobject__()
         if isinstance(melObj, basestring):
             return melObj
@@ -6017,7 +6046,7 @@ class Component1D(DiscreteComponent):
         return [HashableSlice(x.start, x.stop - 1, x.step) for x in _util.sequenceToSlices(array)]
 
     def name(self):
-        # type: () -> unicode
+        # type: () -> str
         # this function produces a name that uses extended slice notation, such as vtx[10:40:2]
         melobj = self.__melobject__()
         if isinstance(melobj, basestring):
@@ -7777,7 +7806,7 @@ class AttributeSpec(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             pass
 
     def name(self):
-        # type: () -> unicode
+        # type: () -> str
         return self.__apimfn__().name()
 
     @_factories.addApiDocs(_api.MFnAttribute, 'parent')

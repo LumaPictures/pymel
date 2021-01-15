@@ -498,20 +498,20 @@ class PyUI(str):
     getParent = parent
 
     def shortName(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         Returns
         -------
-        unicode
+        str
         """
         return str(self).split('|')[-1]
 
     def name(self):
-        # type: () -> unicode
+        # type: () -> str
         """
         Returns
         -------
-        unicode
+        str
         """
         return str(self)
 
