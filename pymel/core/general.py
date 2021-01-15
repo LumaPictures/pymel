@@ -170,7 +170,7 @@ def _getPymelType(arg, name):
 #  Object Manipulation
 # ----------------------
 
-
+@_factories.addCmdDocs
 def select(*args, **kwargs):
     """
     Modifications:
@@ -191,10 +191,10 @@ def select(*args, **kwargs):
             cmds.select(cl=True)
         else:
             raise TypeError(msg)
-#select.__doc__ = mel.help('select') + select.__doc__
 
 
 # TODO: make it handle multiple objects, like original command
+@_factories.addCmdDocs
 def move(*args, **kwargs):
     """
     Modifications:
@@ -216,6 +216,7 @@ def move(*args, **kwargs):
     return cmds.move(*args, **kwargs)
 
 
+@_factories.addCmdDocs
 def scale(obj, *args, **kwargs):
     """
     Modifications:
@@ -231,6 +232,7 @@ def scale(obj, *args, **kwargs):
     return cmds.scale(*args, **kwargs)
 
 
+@_factories.addCmdDocs
 def rotate(obj, *args, **kwargs):
     """
     Modifications:
@@ -250,6 +252,7 @@ def rotate(obj, *args, **kwargs):
 #  Attributes
 # ----------------------
 
+@_factories.addCmdDocs
 def connectAttr(source, destination, **kwargs):
     """
     Maya Bug Fix:
@@ -266,6 +269,7 @@ def connectAttr(source, destination, **kwargs):
         cmds.connectAttr(source, destination, **kwargs)
 
 
+@_factories.addCmdDocs
 def disconnectAttr(source, destination=None, inputs=None, outputs=None,
                    **kwargs):
     """
@@ -312,6 +316,7 @@ def disconnectAttr(source, destination=None, inputs=None, outputs=None,
                 cmds.disconnectAttr(src, dest, **kwargs)
 
 
+@_factories.addCmdDocs
 def getAttr(attr, default=None, **kwargs):
     """
     Maya Bug Fix:
@@ -403,7 +408,7 @@ class AmbiguityWarning(Warning):
     pass
 
 
-# getting and setting
+@_factories.addCmdDocs
 def setAttr(attr, *args, **kwargs):
     """
     Maya Bug Fix:
@@ -637,6 +642,7 @@ def setAttr(attr, *args, **kwargs):
             raise
 
 
+@_factories.addCmdDocs
 def addAttr(*args, **kwargs):
     """
     Modifications:
@@ -855,6 +861,7 @@ def addAttr(*args, **kwargs):
     return res
 
 
+@_factories.addCmdDocs
 def hasAttr(pyObj, attr, checkShape=True):
     # type: (PyNode, Union[str, Attribute, AttributeSpec], bool) -> bool
     """
@@ -996,6 +1003,7 @@ def listConnections(arg, **kwargs):
     # type: (Any, *Any) -> List[PyNode]
     pass
 
+@_factories.addCmdDocs
 def listConnections(*args, **kwargs):
     # type: (*Any, **Any) -> List[Union[PyNode, Attribute, Tuple[PyNode, PyNode], Tuple[Attribute, Attribute]]]
     """
@@ -1089,6 +1097,7 @@ def listConnections(*args, **kwargs):
         return doIt(**kwargs)
 
 
+@_factories.addCmdDocs
 def listHistory(*args, **kwargs):
     # type: (*Any, **Any) -> List[nodetypes.DependNode]
     """
@@ -1139,6 +1148,7 @@ def listFuture(*args, **kwargs):
     return listHistory(*args, **kwargs)
 
 
+@_factories.addCmdDocs
 def listRelatives(*args, **kwargs):
     # type: (*Any, **Any) -> List[nodetypes.DependNode]
     """
@@ -1183,6 +1193,7 @@ def listRelatives(*args, **kwargs):
     return results
 
 
+@_factories.addCmdDocs
 def ls(*args, **kwargs):
     # type: (*Any, **Any) -> List[PyNode]
     r"""
@@ -1370,6 +1381,7 @@ def listTransforms(*args, **kwargs):
     return [PyNode(x) for x in res]  # , ['transform']*len(res) )
 
 
+@_factories.addCmdDocs
 def listSets(*args, **kwargs):
     # type: (*Any, **Any) -> List[PyNode]
     """
@@ -1393,6 +1405,7 @@ def listSets(*args, **kwargs):
 #  Objects
 # ----------------------
 
+@_factories.addCmdDocs
 def nodeType(node, **kwargs):
     # type: (Any, **Any) -> str
     """
@@ -1443,6 +1456,7 @@ def nodeType(node, **kwargs):
         pass
 
 
+@_factories.addCmdDocs
 def group(*args, **kwargs):
     """
     Modifications
@@ -1457,6 +1471,7 @@ def group(*args, **kwargs):
     return PyNode(newGroup)
 
 
+@_factories.addCmdDocs
 def parent(*args, **kwargs):
     # type: (*Any, **Any) -> List[nodetypes.DagNode]
     """
@@ -1719,6 +1734,7 @@ class NodeTracker(object):
         self.endTrack()
 
 
+@_factories.addCmdDocs
 def duplicate(*args, **kwargs):
     # type: (*Any, **Any) -> List[nodetypes.DependNode]
     """
@@ -1955,6 +1971,7 @@ Modifications:
 '''
 
 
+@_factories.addCmdDocs
 def rename(obj, newname, **kwargs):
     """
 Modifications:
@@ -1971,6 +1988,7 @@ Modifications:
     return PyNode(cmds.rename(obj, newname, **kwargs))
 
 
+@_factories.addCmdDocs
 def createNode(*args, **kwargs):
     res = cmds.createNode(*args, **kwargs)
     # createNode can sometimes return None, if the shared=True and name= an object that already exists
@@ -1978,6 +1996,7 @@ def createNode(*args, **kwargs):
         return PyNode(res)
 
 
+@_factories.addCmdDocs
 def sets(*args, **kwargs):
     """
 Modifications
@@ -2109,6 +2128,7 @@ Modifications
     '''
 
 
+@_factories.addCmdDocs
 def delete(*args, **kwargs):
     """
 Modifications:
@@ -2122,6 +2142,7 @@ Modifications:
     cmds.delete(*args, **kwargs)
 
 
+@_factories.addCmdDocs
 def getClassification(*args, **kwargs):
     """
 Modifications:
@@ -2164,6 +2185,7 @@ def selected(**kwargs):
 _thisModule = sys.modules[__name__]
 
 
+# re-wrapped below
 def spaceLocator(*args, **kwargs):
     """
     Modifications:
@@ -2187,6 +2209,7 @@ def spaceLocator(*args, **kwargs):
     return res
 
 
+# re-wrapped below
 def instancer(*args, **kwargs):
     """
     Maya Bug Fix:
@@ -8233,8 +8256,6 @@ SCENE = Scene()
 
 about = _factories.getCmdFunc('about')
 
-addAttr = _factories.addCmdDocs(addAttr)
-
 addExtension = _factories.getCmdFunc('addExtension')
 
 affectedNet = _factories.getCmdFunc('affectedNet')
@@ -8323,8 +8344,6 @@ def commandPort(*args, **kwargs):
     res = cmds.commandPort(*args, **kwargs)
     return res
 
-connectAttr = _factories.addCmdDocs(connectAttr)
-
 connectionInfo = _factories.getCmdFunc('connectionInfo')
 
 @_factories.addCmdDocs
@@ -8365,23 +8384,17 @@ def createDisplayLayer(*args, **kwargs):
             break
     return res
 
-createNode = _factories.addCmdDocs(createNode)
-
 currentUnit = _factories.getCmdFunc('currentUnit')
 
 curveRGBColor = _factories.getCmdFunc('curveRGBColor')
 
 cycleCheck = _factories.getCmdFunc('cycleCheck')
 
-delete = _factories.addCmdDocs(delete)
-
 deleteAttr = _factories.getCmdFunc('deleteAttr')
 
 deleteAttrPattern = _factories.getCmdFunc('deleteAttrPattern')
 
 deleteExtension = _factories.getCmdFunc('deleteExtension')
-
-disconnectAttr = _factories.addCmdDocs(disconnectAttr)
 
 displayAffected = _factories.getCmdFunc('displayAffected')
 
@@ -8411,8 +8424,6 @@ def distanceDimension(*args, **kwargs):
             break
     return res
 
-duplicate = _factories.addCmdDocs(duplicate)
-
 editDisplayLayerGlobals = _factories.getCmdFunc('editDisplayLayerGlobals')
 
 editDisplayLayerMembers = _factories.getCmdFunc('editDisplayLayerMembers')
@@ -8424,12 +8435,6 @@ expandedSelection = _factories.getCmdFunc('expandedSelection')
 filterInstances = _factories.getCmdFunc('filterInstances')
 
 geometryAttrInfo = _factories.getCmdFunc('geometryAttrInfo')
-
-getAttr = _factories.addCmdDocs(getAttr)
-
-getClassification = _factories.addCmdDocs(getClassification)
-
-group = _factories.addCmdDocs(group)
 
 hide = _factories.getCmdFunc('hide')
 
@@ -8478,21 +8483,11 @@ def listAttr(*args, **kwargs):
 
 listAttrPatterns = _factories.getCmdFunc('listAttrPatterns')
 
-listConnections = _factories.addCmdDocs(listConnections)
-
-listHistory = _factories.addCmdDocs(listHistory)
-
 listNodeTypes = _factories.getCmdFunc('listNodeTypes')
 
 listNodesWithIncorrectNames = _factories.getCmdFunc('listNodesWithIncorrectNames')
 
-listRelatives = _factories.addCmdDocs(listRelatives)
-
-listSets = _factories.addCmdDocs(listSets)
-
 lockNode = _factories.getCmdFunc('lockNode')
-
-ls = _factories.addCmdDocs(ls)
 
 makeIdentity = _factories.getCmdFunc('makeIdentity')
 
@@ -8502,11 +8497,7 @@ makePaintable = _factories.getCmdFunc('makePaintable')
 
 matchTransform = _factories.getCmdFunc('matchTransform')
 
-move = _factories.addCmdDocs(move)
-
 nodeCast = _factories.getCmdFunc('nodeCast')
-
-nodeType = _factories.addCmdDocs(nodeType)
 
 objExists = _factories.getCmdFunc('objExists')
 
@@ -8522,8 +8513,6 @@ def paramDimension(*args, **kwargs):
     return res
 
 paramLocator = _factories.getCmdFunc('paramLocator')
-
-parent = _factories.addCmdDocs(parent)
 
 @_factories.addCmdDocs
 def partition(*args, **kwargs):
@@ -8544,8 +8533,6 @@ relationship = _factories.getCmdFunc('relationship')
 
 removeMultiInstance = _factories.getCmdFunc('removeMultiInstance')
 
-rename = _factories.addCmdDocs(rename)
-
 renameAttr = _factories.getCmdFunc('renameAttr')
 
 reorder = _factories.getCmdFunc('reorder')
@@ -8554,19 +8541,13 @@ reorderContainer = _factories.getCmdFunc('reorderContainer')
 
 resetTool = _factories.getCmdFunc('resetTool')
 
-rotate = _factories.addCmdDocs(rotate)
-
 saveToolSettings = _factories.getCmdFunc('saveToolSettings')
-
-scale = _factories.addCmdDocs(scale)
 
 scaleComponents = _factories.getCmdFunc('scaleComponents')
 
 sceneLint = _factories.getCmdFunc('sceneLint')
 
 sculptMeshCacheChangeCloneSource = _factories.getCmdFunc('sculptMeshCacheChangeCloneSource')
-
-select = _factories.addCmdDocs(select)
 
 @_factories.addCmdDocs
 def selectKey(*args, **kwargs):
@@ -8590,11 +8571,7 @@ selectType = _factories.getCmdFunc('selectType')
 
 selectedNodes = _factories.getCmdFunc('selectedNodes')
 
-setAttr = _factories.addCmdDocs(setAttr)
-
 setToolTo = _factories.getCmdFunc('setToolTo')
-
-sets = _factories.addCmdDocs(sets)
 
 shapeCompare = _factories.getCmdFunc('shapeCompare')
 

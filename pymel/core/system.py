@@ -527,6 +527,7 @@ def listNamespaces(root=None, recursive=False, internal=False):
     return Namespace(root or ":").listNamespaces(recursive, internal)
 
 
+@_factories.addCmdDocs
 def namespaceInfo(*args, **kwargs):
     """
     Modifications:
@@ -2433,8 +2434,6 @@ moduleInfo = _factories.getCmdFunc('moduleInfo')
 mouse = _factories.getCmdFunc('mouse')
 
 namespace = _factories.getCmdFunc('namespace')
-
-namespaceInfo = _factories.addCmdDocs(namespaceInfo)
 
 ogs = _factories.getCmdFunc('ogs')
 

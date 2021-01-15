@@ -11,6 +11,7 @@ else:
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 
+@_factories.addCmdDocs
 def pointPosition(*args, **kwargs):
     return _general.datatypes.Point(cmds.pointPosition(*args, **kwargs))
 
@@ -411,8 +412,6 @@ pointCurveConstraint = _factories.getCmdFunc('pointCurveConstraint')
 pointOnCurve = _factories.getCmdFunc('pointOnCurve')
 
 pointOnSurface = _factories.getCmdFunc('pointOnSurface')
-
-pointPosition = _factories.addCmdDocs(pointPosition)
 
 @_factories.addCmdDocs
 def polyAppend(*args, **kwargs):

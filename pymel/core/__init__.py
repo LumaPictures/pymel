@@ -6,7 +6,6 @@ from __future__ import division
 import sys
 import pymel as _pymel
 _pymel.core = sys.modules[__name__]
-import pymel.versions as _versions
 import pymel.internal.startup as _startup
 import pymel.internal as _internal
 
@@ -18,7 +17,6 @@ import pymel.internal.cmdcache as _cmdcache
 import pymel.internal.pmcmds as _pmcmds
 _pmcmds.addAllWrappedCmds()
 
-import pymel.api as _api
 import pymel.api.plugins as _plugins
 from pymel.core.general import *
 from pymel.core.context import *
@@ -31,12 +29,15 @@ from pymel.core.rendering import *
 from pymel.core.language import *
 from pymel.core.other import *
 
-import pymel.core.nodetypes as nodetypes
-import pymel.core.nodetypes as nt
-import pymel.core.datatypes as datatypes
-import pymel.core.datatypes as dt
-import pymel.core.uitypes as uitypes
-import pymel.core.uitypes as ui
+from pymel import api
+from pymel.core import nodetypes
+from pymel.core import datatypes
+from pymel.core import uitypes
+from pymel import versions
+
+nt = nodetypes
+dt = datatypes
+ui = uitypes
 
 from future.utils import PY2
 if PY2:
@@ -209,7 +210,7 @@ def _pluginLoaded(*args):
     # - The plug-in imports pymel, causing initialization and entering here.
     if (pluginName in _pluginData) and 'callbackId' in _pluginData[pluginName] \
             and _pluginData[pluginName]['callbackId'] != None:
-        _api.MEventMessage.removeCallback(_pluginData[pluginName]['callbackId'])
+        api.MEventMessage.removeCallback(_pluginData[pluginName]['callbackId'])
 
     _logger.debug("Plugin loaded: %s", pluginName)
     _pluginData[pluginName] = {}
@@ -243,7 +244,7 @@ def _pluginLoaded(*args):
                 _logger.warning("could not find callback id!")
             else:
                 if id is not None:
-                    _api.MEventMessage.removeCallback(id)
+                    api.MEventMessage.removeCallback(id)
                     if hasattr(id, 'disown'):
                         id.disown()
 
@@ -262,7 +263,7 @@ def _pluginLoaded(*args):
                     continue
                 _addPluginNode(pluginName, mayaType)
 
-        # Note - in my testing, a single _api.MFileIO.isReadingFile() call would
+        # Note - in my testing, a single api.MFileIO.isReadingFile() call would
         # also catch opening + referencing operations... but in commit
         # 6e53d7818e9363d55d417c3a80ea7df94c4998ec, a check only against
         # isReadingFile is commented out... so I'm playing it safe, and assuming
@@ -270,14 +271,14 @@ def _pluginLoaded(*args):
         # not
 
         # Detect if we are currently opening/importing a file and load as a callback versus execute now
-        if (_api.MFileIO.isReadingFile() or _api.MFileIO.isOpeningFile() or
-                _api.MFileIO.isReferencingFile()):
-            if _api.MFileIO.isReferencingFile():
+        if (api.MFileIO.isReadingFile() or api.MFileIO.isOpeningFile() or
+                api.MFileIO.isReferencingFile()):
+            if api.MFileIO.isReferencingFile():
                 _logger.debug("Installing temporary plugin-loaded nodes callback - PostSceneRead")
-                id = _api.MEventMessage.addEventCallback('PostSceneRead', addPluginPyNodes)
-            elif _api.MFileIO.isImportingFile():
+                id = api.MEventMessage.addEventCallback('PostSceneRead', addPluginPyNodes)
+            elif api.MFileIO.isImportingFile():
                 _logger.debug("Installing temporary plugin-loaded nodes callback - SceneImported")
-                id = _api.MEventMessage.addEventCallback('SceneImported', addPluginPyNodes)
+                id = api.MEventMessage.addEventCallback('SceneImported', addPluginPyNodes)
             else:
                 # pre-2012 referencing operations will fall into this branch,
                 # which will not work (ie, pre-2012, plugins loaded due to
@@ -290,9 +291,9 @@ def _pluginLoaded(*args):
                 # messages in commits 6e53d7818e9363d55d417c3a80ea7df94c4998ec
                 # and 81bc5ee28f1775a680449fec8724e21e703a52b8).
                 _logger.debug("Installing temporary plugin-loaded nodes callback - SceneOpened")
-                id = _api.MEventMessage.addEventCallback('SceneOpened', addPluginPyNodes)
+                id = api.MEventMessage.addEventCallback('SceneOpened', addPluginPyNodes)
             _pluginData[pluginName]['callbackId'] = id
-            # scriptJob not respected in batch mode, had to use _api
+            # scriptJob not respected in batch mode, had to use api
             #cmds.scriptJob( event=('SceneOpened',doSomethingElse), runOnce=1 )
         else:
             _logger.debug("Running plugin-loaded nodes callback")
@@ -355,7 +356,7 @@ def _installCallbacks():
         _logger.debug("Adding pluginLoaded callback")
         #_pluginLoadedCB = pluginLoadedCallback(module)
 
-        id = _api.MSceneMessage.addStringArrayCallback(_api.MSceneMessage.kAfterPluginLoad, _pluginLoaded)
+        id = api.MSceneMessage.addStringArrayCallback(api.MSceneMessage.kAfterPluginLoad, _pluginLoaded)
         if hasattr(id, 'disown'):
             id.disown()
     else:
@@ -369,7 +370,7 @@ def _installCallbacks():
         # mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
 
         _logger.debug("Adding pluginUnloaded callback")
-        id = _api.MSceneMessage.addStringArrayCallback(_api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded)
+        id = api.MSceneMessage.addStringArrayCallback(api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded)
         if hasattr(id, 'disown'):
             id.disown()
 
