@@ -4834,6 +4834,16 @@ class AnimCurveEditor(PyUI):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'highlightConnection')
         return res
 
+    @_f.addMelDocs('animCurveEditor', 'keyMinScale')
+    def getKeyMinScale(self, **kwargs):
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'keyMinScale')
+        return res
+
+    @_f.addMelDocs('animCurveEditor', 'keyScale')
+    def getKeyScale(self, **kwargs):
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'keyScale')
+        return res
+
     @_f.addMelDocs('animCurveEditor', 'keyingTime')
     def getKeyingTime(self, **kwargs):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'keyingTime')
@@ -5023,6 +5033,14 @@ class AnimCurveEditor(PyUI):
     @_f.addMelDocs('animCurveEditor', 'highlightConnection')
     def setHighlightConnection(self, val=True, **kwargs):
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'highlightConnection', val)
+
+    @_f.addMelDocs('animCurveEditor', 'keyMinScale')
+    def setKeyMinScale(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'keyMinScale', val)
+
+    @_f.addMelDocs('animCurveEditor', 'keyScale')
+    def setKeyScale(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'keyScale', val)
 
     @_f.addMelDocs('animCurveEditor', 'lockPlayRangeShades')
     def setLockPlayRangeShades(self, val=True, **kwargs):

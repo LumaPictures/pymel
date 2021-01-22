@@ -182,6 +182,8 @@ dynWireCtx = _factories.getCmdFunc('dynWireCtx')
 
 filterButterworthCtx = _factories.getCmdFunc('filterButterworthCtx')
 
+filterGaussianCtx = _factories.getCmdFunc('filterGaussianCtx')
+
 filterKeyReducerCtx = _factories.getCmdFunc('filterKeyReducerCtx')
 
 filterPeakRemoverCtx = _factories.getCmdFunc('filterPeakRemoverCtx')

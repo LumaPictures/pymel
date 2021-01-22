@@ -10046,7 +10046,9 @@ class AnimCurve(DependNode):
     __slots__ = ()
     AnimCurveType = Enum('AnimCurveType', [('TA', 0), ('kAnimCurveTA', 0), ('TL', 1), ('kAnimCurveTL', 1), ('TT', 2), ('kAnimCurveTT', 2), ('TU', 3), ('kAnimCurveTU', 3), ('UA', 4), ('kAnimCurveUA', 4), ('UL', 5), ('kAnimCurveUL', 5), ('UT', 6), ('kAnimCurveUT', 6), ('UU', 7), ('kAnimCurveUU', 7), ('unknown', 8), ('kAnimCurveUnknown', 8)], multiKeys=True)
     InfinityType = Enum('InfinityType', [('constant', 0), ('kConstant', 0), ('linear', 1), ('kLinear', 1), ('cycle', 3), ('kCycle', 3), ('cycleRelative', 4), ('kCycleRelative', 4), ('oscillate', 5), ('kOscillate', 5)], multiKeys=True)
-    if versions.current() >= versions.v2019:
+    if versions.current() >= versions.v2022:
+        TangentType = Enum('TangentType', [('global_', 0), ('kTangentGlobal', 0), ('fixed', 1), ('kTangentFixed', 1), ('linear', 2), ('kTangentLinear', 2), ('flat', 3), ('kTangentFlat', 3), ('smooth', 4), ('kTangentSmooth', 4), ('step', 5), ('kTangentStep', 5), ('slow', 6), ('kTangentSlow', 6), ('fast', 7), ('kTangentFast', 7), ('clamped', 8), ('kTangentClamped', 8), ('plateau', 9), ('kTangentPlateau', 9), ('stepNext', 10), ('kTangentStepNext', 10), ('auto', 11), ('kTangentAuto', 11), ('shared1', 19), ('kTangentShared1', 19), ('shared2', 20), ('kTangentShared2', 20), ('shared3', 21), ('kTangentShared3', 21), ('shared4', 22), ('kTangentShared4', 22), ('shared5', 23), ('kTangentShared5', 23), ('shared6', 24), ('kTangentShared6', 24), ('shared7', 25), ('kTangentShared7', 25), ('shared8', 26), ('kTangentShared8', 26), ('autoMix', 27), ('kTangentAutoMix', 27), ('autoEase', 28), ('kTangentAutoEase', 28), ('autoCustom', 29), ('kTangentAutoCustom', 29), ('customStart', 64), ('kTangentCustomStart', 64), ('customEnd', 32767), ('kTangentCustomEnd', 32767), ('typeCount', 32768), ('kTangentTypeCount', 32768)], multiKeys=True)
+    elif versions.current() >= versions.v2019:
         TangentType = Enum('TangentType', [('global_', 0), ('kTangentGlobal', 0), ('fixed', 1), ('kTangentFixed', 1), ('linear', 2), ('kTangentLinear', 2), ('flat', 3), ('kTangentFlat', 3), ('smooth', 4), ('kTangentSmooth', 4), ('step', 5), ('kTangentStep', 5), ('slow', 6), ('kTangentSlow', 6), ('fast', 7), ('kTangentFast', 7), ('clamped', 8), ('kTangentClamped', 8), ('plateau', 9), ('kTangentPlateau', 9), ('stepNext', 10), ('kTangentStepNext', 10), ('auto', 11), ('kTangentAuto', 11), ('shared1', 19), ('kTangentShared1', 19), ('shared2', 20), ('kTangentShared2', 20), ('shared3', 21), ('kTangentShared3', 21), ('shared4', 22), ('kTangentShared4', 22), ('shared5', 23), ('kTangentShared5', 23), ('shared6', 24), ('kTangentShared6', 24), ('shared7', 25), ('kTangentShared7', 25), ('shared8', 26), ('kTangentShared8', 26), ('customStart', 64), ('kTangentCustomStart', 64), ('customEnd', 32767), ('kTangentCustomEnd', 32767), ('typeCount', 32768), ('kTangentTypeCount', 32768)], multiKeys=True)
     else:
         TangentType = Enum('TangentType', [('global_', 0), ('kTangentGlobal', 0), ('fixed', 1), ('kTangentFixed', 1), ('linear', 2), ('kTangentLinear', 2), ('flat', 3), ('kTangentFlat', 3), ('smooth', 4), ('kTangentSmooth', 4), ('step', 5), ('kTangentStep', 5), ('slow', 6), ('kTangentSlow', 6), ('fast', 7), ('kTangentFast', 7), ('clamped', 8), ('kTangentClamped', 8), ('plateau', 9), ('kTangentPlateau', 9), ('stepNext', 10), ('kTangentStepNext', 10), ('auto', 11), ('kTangentAuto', 11)], multiKeys=True)
@@ -10443,6 +10445,14 @@ class GeometryFilter(DependNode):
         # type: () -> general.PyNode
         res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'deformerSet')
         return _f.ApiArgUtil._castResult(self, res, 'MObject', None)
+
+    @_f.addApiDocs(_api.MFnGeometryFilter, 'getComponentAtIndex')
+    def getComponentAtIndex(self, index):
+        # type: (int) -> general.PyNode
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnGeometryFilter, 'getComponentAtIndex', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MObject', None)
+        return res
 
     @_f.addApiDocs(_api.MFnGeometryFilter, 'envelope')
     def getEnvelope(self):
@@ -17724,6 +17734,11 @@ class ComponentFalloff(DependNode):
     __slots__ = ()
 
 
+class ComponentMatch(DependNode):
+    __melnode__ = 'componentMatch'
+    __slots__ = ()
+
+
 class ComposeMatrix(DependNode):
     __melnode__ = 'composeMatrix'
     __slots__ = ()
@@ -18067,6 +18082,12 @@ class BaseLattice(Shape):
 
 class StereoRigCamera(Camera):
     __melnode__ = 'stereoRigCamera'
+    __slots__ = ()
+
+
+class UfeProxyCameraShape(Camera):
+    __apicls__ = _api.MFnBase
+    __melnode__ = 'ufeProxyCameraShape'
     __slots__ = ()
 
 
@@ -25094,6 +25115,11 @@ class MaterialFacade(Facade):
     __slots__ = ()
 
 
+class FalloffEval(DependNode):
+    __melnode__ = 'falloffEval'
+    __slots__ = ()
+
+
 class Flow(DependNode):
     __melcmd__ = staticmethod(animation.flow)
     __melcmd_isinfo__ = False
@@ -26493,6 +26519,11 @@ class Ffd(WeightGeometryFilter):
 
 class Jiggle(WeightGeometryFilter):
     __melnode__ = 'jiggle'
+    __slots__ = ()
+
+
+class Morph(WeightGeometryFilter):
+    __melnode__ = 'morph'
     __slots__ = ()
 
 
@@ -43455,6 +43486,11 @@ class TimeEditorClip(TimeEditorClipBase):
         res = _f.asQuery(self, animation.timeEditorClip, kwargs, 'animSource')
         return res
 
+    @_f.addMelDocs('timeEditorClip', 'blendMode')
+    def getBlendMode(self, **kwargs):
+        res = _f.asQuery(self, animation.timeEditorClip, kwargs, 'blendMode')
+        return res
+
     @_f.addMelDocs('timeEditorClip', 'children')
     def getChildren(self, **kwargs):
         res = _f.asQuery(self, animation.timeEditorClip, kwargs, 'children')
@@ -43803,6 +43839,10 @@ class TimeEditorClip(TimeEditorClipBase):
     @_f.addMelDocs('timeEditorClip', 'animSource')
     def setAnimSource(self, val=True, **kwargs):
         return _f.asEdit(self, animation.timeEditorClip, kwargs, 'animSource', val)
+
+    @_f.addMelDocs('timeEditorClip', 'blendMode')
+    def setBlendMode(self, val=True, **kwargs):
+        return _f.asEdit(self, animation.timeEditorClip, kwargs, 'blendMode', val)
 
     @_f.addMelDocs('timeEditorClip', 'crossfadeMode')
     def setCrossfadeMode(self, val=True, **kwargs):

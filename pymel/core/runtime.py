@@ -2412,6 +2412,14 @@ ImportWorkspaceFiles = getattr(cmds, 'ImportWorkspaceFiles', None)
 
 InTangentAuto = getattr(cmds, 'InTangentAuto', None)
 
+InTangentAutoCustom = getattr(cmds, 'InTangentAutoCustom', None)
+
+InTangentAutoCustomOptions = getattr(cmds, 'InTangentAutoCustomOptions', None)
+
+InTangentAutoEase = getattr(cmds, 'InTangentAutoEase', None)
+
+InTangentAutoMix = getattr(cmds, 'InTangentAutoMix', None)
+
 InTangentClamped = getattr(cmds, 'InTangentClamped', None)
 
 InTangentFixed = getattr(cmds, 'InTangentFixed', None)
@@ -2423,6 +2431,10 @@ InTangentLinear = getattr(cmds, 'InTangentLinear', None)
 InTangentPlateau = getattr(cmds, 'InTangentPlateau', None)
 
 InTangentSpline = getattr(cmds, 'InTangentSpline', None)
+
+InTangentStepNext = getattr(cmds, 'InTangentStepNext', None)
+
+InTangentStepped = getattr(cmds, 'InTangentStepped', None)
 
 IncreaseCheckerDensity = getattr(cmds, 'IncreaseCheckerDensity', None)
 
@@ -2638,13 +2650,23 @@ MarkingMenuPreferencesWindow = getattr(cmds, 'MarkingMenuPreferencesWindow', Non
 
 MatchPivots = getattr(cmds, 'MatchPivots', None)
 
+MatchPivotsOptions = getattr(cmds, 'MatchPivotsOptions', None)
+
 MatchRotation = getattr(cmds, 'MatchRotation', None)
+
+MatchRotationOptions = getattr(cmds, 'MatchRotationOptions', None)
 
 MatchScaling = getattr(cmds, 'MatchScaling', None)
 
+MatchScalingOptions = getattr(cmds, 'MatchScalingOptions', None)
+
 MatchTransform = getattr(cmds, 'MatchTransform', None)
 
+MatchTransformOptions = getattr(cmds, 'MatchTransformOptions', None)
+
 MatchTranslation = getattr(cmds, 'MatchTranslation', None)
+
+MatchTranslationOptions = getattr(cmds, 'MatchTranslationOptions', None)
 
 MatchUVs = getattr(cmds, 'MatchUVs', None)
 
@@ -2741,6 +2763,10 @@ ModifyUVVectorRelease = getattr(cmds, 'ModifyUVVectorRelease', None)
 ModifyUpperRadiusPress = getattr(cmds, 'ModifyUpperRadiusPress', None)
 
 ModifyUpperRadiusRelease = getattr(cmds, 'ModifyUpperRadiusRelease', None)
+
+Morph = getattr(cmds, 'Morph', None)
+
+MorphOptions = getattr(cmds, 'MorphOptions', None)
 
 MoveCacheToInput = getattr(cmds, 'MoveCacheToInput', None)
 
@@ -3198,6 +3224,14 @@ OrientJointOptions = getattr(cmds, 'OrientJointOptions', None)
 
 OutTangentAuto = getattr(cmds, 'OutTangentAuto', None)
 
+OutTangentAutoCustom = getattr(cmds, 'OutTangentAutoCustom', None)
+
+OutTangentAutoCustomOptions = getattr(cmds, 'OutTangentAutoCustomOptions', None)
+
+OutTangentAutoEase = getattr(cmds, 'OutTangentAutoEase', None)
+
+OutTangentAutoMix = getattr(cmds, 'OutTangentAutoMix', None)
+
 OutTangentClamped = getattr(cmds, 'OutTangentClamped', None)
 
 OutTangentFixed = getattr(cmds, 'OutTangentFixed', None)
@@ -3209,6 +3243,10 @@ OutTangentLinear = getattr(cmds, 'OutTangentLinear', None)
 OutTangentPlateau = getattr(cmds, 'OutTangentPlateau', None)
 
 OutTangentSpline = getattr(cmds, 'OutTangentSpline', None)
+
+OutTangentStepNext = getattr(cmds, 'OutTangentStepNext', None)
+
+OutTangentStepped = getattr(cmds, 'OutTangentStepped', None)
 
 OutlinerCollapseAllItems = getattr(cmds, 'OutlinerCollapseAllItems', None)
 
@@ -4498,8 +4536,6 @@ SetDefaultManipTransform = getattr(cmds, 'SetDefaultManipTransform', None)
 
 SetDrivenKey = getattr(cmds, 'SetDrivenKey', None)
 
-SetDrivenKeyOptions = getattr(cmds, 'SetDrivenKeyOptions', None)
-
 SetEditor = getattr(cmds, 'SetEditor', None)
 
 SetExclusiveToCamera = getattr(cmds, 'SetExclusiveToCamera', None)
@@ -5120,25 +5156,35 @@ TagAsController = getattr(cmds, 'TagAsController', None)
 
 TagAsControllerParent = getattr(cmds, 'TagAsControllerParent', None)
 
+TangentAuto = getattr(cmds, 'TangentAuto', None)
+
+TangentAutoCustom = getattr(cmds, 'TangentAutoCustom', None)
+
+TangentAutoCustomOptions = getattr(cmds, 'TangentAutoCustomOptions', None)
+
+TangentAutoEase = getattr(cmds, 'TangentAutoEase', None)
+
+TangentAutoMix = getattr(cmds, 'TangentAutoMix', None)
+
+TangentClamped = getattr(cmds, 'TangentClamped', None)
+
 TangentConstraint = getattr(cmds, 'TangentConstraint', None)
 
 TangentConstraintOptions = getattr(cmds, 'TangentConstraintOptions', None)
 
-TangentsAuto = getattr(cmds, 'TangentsAuto', None)
+TangentFixed = getattr(cmds, 'TangentFixed', None)
 
-TangentsClamped = getattr(cmds, 'TangentsClamped', None)
+TangentFlat = getattr(cmds, 'TangentFlat', None)
 
-TangentsFixed = getattr(cmds, 'TangentsFixed', None)
+TangentLinear = getattr(cmds, 'TangentLinear', None)
 
-TangentsFlat = getattr(cmds, 'TangentsFlat', None)
+TangentPlateau = getattr(cmds, 'TangentPlateau', None)
 
-TangentsLinear = getattr(cmds, 'TangentsLinear', None)
+TangentSpline = getattr(cmds, 'TangentSpline', None)
 
-TangentsPlateau = getattr(cmds, 'TangentsPlateau', None)
+TangentStepNext = getattr(cmds, 'TangentStepNext', None)
 
-TangentsSpline = getattr(cmds, 'TangentsSpline', None)
-
-TangentsStepped = getattr(cmds, 'TangentsStepped', None)
+TangentStepped = getattr(cmds, 'TangentStepped', None)
 
 TemplateBrushSettings = getattr(cmds, 'TemplateBrushSettings', None)
 
@@ -5572,6 +5618,8 @@ ToggleUVDistortion = getattr(cmds, 'ToggleUVDistortion', None)
 
 ToggleUVEditorIsolateSelectHUD = getattr(cmds, 'ToggleUVEditorIsolateSelectHUD', None)
 
+ToggleUVEditorUVPositionHUD = getattr(cmds, 'ToggleUVEditorUVPositionHUD', None)
+
 ToggleUVEditorUVStatisticsHUD = getattr(cmds, 'ToggleUVEditorUVStatisticsHUD', None)
 
 ToggleUVEditorUVStatisticsHUDOptions = getattr(cmds, 'ToggleUVEditorUVStatisticsHUDOptions', None)
@@ -5849,8 +5897,6 @@ UpdatePSDTextureItem = getattr(cmds, 'UpdatePSDTextureItem', None)
 UpdateReferenceSurface = getattr(cmds, 'UpdateReferenceSurface', None)
 
 UpdateSnapshot = getattr(cmds, 'UpdateSnapshot', None)
-
-UsdLayerEditor = getattr(cmds, 'UsdLayerEditor', None)
 
 UseHardwareShader = getattr(cmds, 'UseHardwareShader', None)
 

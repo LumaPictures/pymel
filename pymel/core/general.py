@@ -8635,6 +8635,8 @@ ungroup = _factories.getCmdFunc('ungroup')
 
 upAxis = _factories.getCmdFunc('upAxis')
 
+weightsColor = _factories.getCmdFunc('weightsColor')
+
 xform = _factories.getCmdFunc('xform')
 
 xformConstraint = _factories.getCmdFunc('xformConstraint')

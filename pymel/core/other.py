@@ -570,6 +570,8 @@ artSelect = _factories.getCmdFunc('artSelect')
 
 artSetPaint = _factories.getCmdFunc('artSetPaint')
 
+attrCompatibility = _factories.getCmdFunc('attrCompatibility')
+
 blend = _factories.getCmdFunc('blend')
 
 caddyManip = _factories.getCmdFunc('caddyManip')

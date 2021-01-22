@@ -2239,8 +2239,6 @@ assignInputDevice = _factories.getCmdFunc('assignInputDevice')
 
 attachDeviceAttr = _factories.getCmdFunc('attachDeviceAttr')
 
-attrCompatibility = _factories.getCmdFunc('attrCompatibility')
-
 audioTrack = _factories.getCmdFunc('audioTrack')
 
 autoSave = _factories.getCmdFunc('autoSave')
