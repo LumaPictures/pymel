@@ -1748,7 +1748,7 @@ class ApiDataTypeGenerator(ApiMethodGenerator):
             'Quaternion',
             'EulerRotation',
         }
-        if versions.current() >= 20220000:
+        if versions.current() >= 20230000:
             raise RuntimeError('last version of maya with setattr bug no longer'
                                ' supported - remove this code!')
         elif self.classname in setAttrBugClasses:
