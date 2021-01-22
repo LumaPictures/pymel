@@ -11038,6 +11038,14 @@ class AngleBetween(DependNode):
         return res
 # ------ Do not edit above this line --------
 
+class UfeProxyCameraShape(Camera):
+    # hardcoding to MFnCamera for now, due to a bug of the mobj reporting it's
+    # apiType as kBase
+    __apicls__ = _api.MFnCamera
+    __melnode__ = 'ufeProxyCameraShape'
+# ------ Do not edit below this line --------
+    __slots__ = ()
+# ------ Do not edit above this line --------
 
 _factories.ApiTypeRegister.register('MSelectionList', SelectionSet)
 
@@ -18082,12 +18090,6 @@ class BaseLattice(Shape):
 
 class StereoRigCamera(Camera):
     __melnode__ = 'stereoRigCamera'
-    __slots__ = ()
-
-
-class UfeProxyCameraShape(Camera):
-    __apicls__ = _api.MFnBase
-    __melnode__ = 'ufeProxyCameraShape'
     __slots__ = ()
 
 
