@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pymel"
-version = "1.2.0a7"
+version = "1.2.0a8"
 description = "Python in Maya Done Right"
 authors = ['Chad Dombrova', 'Paul Molodowitch', 'Olivier Renouard']
 license = "BSD"
