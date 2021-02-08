@@ -4,7 +4,6 @@ Building an Official PyMEL Release
 
 ## 1) Install Dependencies
 
-
   - git
   - graphviz: using an OS package manager like `yum`, `apt-get`, or `brew`, or
     on windows, from an [installer](https://graphviz.gitlab.io/_pages/Download/Download_windows.html)
@@ -33,7 +32,7 @@ Building an Official PyMEL Release
   - make sure environment is clean and that you have the default set of user
     prefs.
 
-  - delete existing cache for version you wish to rebuild
+  - delete existing caches for the version you wish to rebuild
 
   - ensure that the CommandsPython, API, and Nodes doc subdirectories are
     installed. these go in `docs/Maya20XX/en_US/`
@@ -42,7 +41,7 @@ Building an Official PyMEL Release
 
 #### Build the api cache
 
-  - set PYMEL_ERRORLEVEL=WARNING in your environment - this will make pymel
+  - set `PYMEL_ERRORLEVEL=WARNING` in your environment - this will make pymel
     error instead of warning when some odd things happen.  If you are
     encountering a lot of errors, and you need to get something done quickly,
     you can not set this, but it's highly recommended that this is on before
@@ -73,6 +72,7 @@ Building an Official PyMEL Release
     print(pymel.__file__)
     import pymel.internal.factories
     ```
+
   - importing pymel.internal.factories will automatically build the api cache,
     but not the command caches - which is good, because we need to make sure
     some plugins are NOT loaded before building the cmd caches (they can crash
@@ -134,7 +134,6 @@ Building an Official PyMEL Release
 
 ## 3) Generate core modules from templates
 
-
 ### To generate the modules
 
   - build from WINDOWS - important because there is a windows-only bug we need to test for
@@ -178,7 +177,7 @@ Building an Official PyMEL Release
        
       (note that since windows doesn't have tee, you'll see no output...
       look at the contents of pymelTestOut.txt in a text editor, and
-    hit refresh to see changes!)
+      hit refresh to see changes!)
 
     - OR, if on linux/mac:
 
@@ -224,11 +223,11 @@ Indicated by this error:
 
   - In `pymel.api.plugins` add a new `DependNode` sublcass for each missing type:
 
-  ```python
-  # new in 2016
-  if hasattr(mpx, 'MPxBlendShape'):
-      class BlendShape(DependNode, mpx.MPxBlendShape): pass
-  ```
+    ```python
+    # new in 2016
+    if hasattr(mpx, 'MPxBlendShape'):
+        class BlendShape(DependNode, mpx.MPxBlendShape): pass
+    ```
 
   The `DependNode` classes are required for the next step to work (which I
   would like to fix this eventually.)
@@ -244,7 +243,7 @@ Indicated by this error:
     get officially released (at which point the requirements.txt file in this
     directory will be updated and this note will be removed:
     ```
-    git clone http://github.com/python/typeshed $(mayapy -c "import mypy,os;print(os.path.join(mypy.__path__[0], 'typeshed'))"
+    git clone http://github.com/python/typeshed $(mayapy -c "import mypy,os;print(os.path.join(mypy.__path__[0], 'typeshed'))")
     ```
 
   - run `genstubs.sh`:
@@ -418,9 +417,11 @@ errors.
 
 Known Acceptable errors:
 
-  - "ERROR: Unexpected indentation." : this is due to the trailing `..` used to
-    create visual whitespace in the mel command tables.  This might be better
-    done using css...
+```
+"ERROR: Unexpected indentation." : this is due to the trailing `..` used to
+create visual whitespace in the mel command tables.  This might be better
+done using css...
+```
 
 ### Rebuilding the Docs
 
@@ -433,17 +434,19 @@ A few notes on rebuilding:
 
 ## 9) Make Release and Publish
 
-  (TODO: figure out if maintenance/makerelease.py still needed, and
+  > TODO: figure out if maintenance/makerelease.py still needed, and
   strip out excess, or port it's necessary bits to poetry. At
-  minimum, we want the portions that convert the caches to .pyc.zip)
+  minimum, we want the portions that convert the caches to .pyc.zip
 
-  - update the version in `pymel/__init__.py` and `pyproject.toml`, commit + push
+  - update the version in `pymel/__init__.py`, commit + push
 
   - before releasing, make sure to tag the release (TODO: make this part of
     makerelease?):
 
         git tag -a 1.0.5rc1 -m "pymel release 1.0.5rc1"
 
+    This MUST be done to get a proper release, as poetry will read
+    the tag to set it's own version!
   - then make sure you push the tag!
   
         git push origin --tags
@@ -451,11 +454,27 @@ A few notes on rebuilding:
   - then, build with poetry
     - if you've never installed poetry, do:
 
-          pip install poetry
+      Windows:
+
+          python3 -m venv .venv-build
+          .\.venv-build\Scripts\activate
+          pip install -U pip
+          pip install poetry poetry-dynamic-versioning
+
+      Linux:
+
+          python3 -m venv .venv-build
+          source .venv-build/bin/activate
+          pip install -U pip
+          pip install poetry poetry-dynamic-versioning
 
     - then:
 
           poetry build
+
+    - check the dist/ directory.  you should have a single .whl which should not
+      have a `dev` suffix.  if it does, you need to make sure you're building
+      from a commit that corresponds with a tag. then delete `dist/` and rebuild.
 
     - if you've never set test.pypi.org as a poetry repo:
 
@@ -465,18 +484,18 @@ A few notes on rebuilding:
 
           poetry publish -r testpypi
 
-    - then check that your publish worked by installing into a fresh venv:
+    - then check that your publish worked by installing into a fresh venv.
 
       Windows:
 
-          python  -m venv pymel_test_env
-          .\pymel_test_env\Scripts\activate
+          python -m venv .venv-test
+          .\.venv-test\Scripts\activate
           pip install -i https://test.pypi.org/simple/ pymel
 
       Linux/MacOS:
 
-          python  -m venv pymel_test_env
-          source pymel_test_env/bin/activate
+          python -m venv .venv-test
+          source .venv-test/bin/activate
           pip install -i https://test.pypi.org/simple/ pymel
 
       Inspect the contents of pymel_test_env to ensure everything looks ok

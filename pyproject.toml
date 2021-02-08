@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pymel"
-version = "1.2.0"
+version = "0.0.0"
 description = "Python in Maya Done Right"
 authors = ['Chad Dombrova', 'Paul Molodowitch', 'Olivier Renouard']
 license = "BSD"
@@ -27,6 +27,19 @@ sphinx = ">=1.2.3,<1.3"
 [tool.poetry.scripts]
 ipymel = "pymel.tools.ipymel:main"
 
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+# this is the default pattern for matching tags, but excluding the leading 'v'.
+# we could omit this if we started prefixing our tags with 'v'
+pattern = '''
+(?x)                                                (?# ignore whitespace)
+^(?P<base>\d+\.\d+\.\d+)                            (?# e.g., v1.2.3)
+(-?((?P<stage>[a-zA-Z]+)\.?(?P<revision>\d+)?))?    (?# e.g., beta-0)
+(\+(?P<tagged_metadata>.+))?$                       (?# e.g., +linux)
+'''
+
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["poetry>=1.0.2", "poetry-dynamic-versioning"]
 build-backend = "poetry.masonry.api"
