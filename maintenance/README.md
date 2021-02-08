@@ -444,6 +444,8 @@ A few notes on rebuilding:
 
         git tag -a 1.0.5rc1 -m "pymel release 1.0.5rc1"
 
+    This MUST be done to get a proper release, as poetry will read
+    the tag to set it's own version!
   - then make sure you push the tag!
   
         git push origin --tags
