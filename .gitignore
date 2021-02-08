@@ -4,6 +4,7 @@
 *.diff
 *.sublime-project
 *.sublime-workspace
+/.venv*
 /.idea
 /.cache
 /.settings

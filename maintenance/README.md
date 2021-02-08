@@ -450,8 +450,11 @@ A few notes on rebuilding:
 
   - then, build with poetry
     - if you've never installed poetry, do:
-
-          pip install poetry
+    
+          python3 -m venv .venv3
+          . .venv3/bin/activate
+          pip install -U pip
+          pip install poetry poetry-dynamic-versioning
 
     - then:
 
