@@ -450,9 +450,18 @@ A few notes on rebuilding:
 
   - then, build with poetry
     - if you've never installed poetry, do:
-    
-          python3 -m venv .venv3
-          . .venv3/bin/activate
+
+      Windows:
+
+          python3 -m venv .venv-build
+          .\.venv-build\Scripts\activate
+          pip install -U pip
+          pip install poetry poetry-dynamic-versioning
+
+      Linux:
+
+          python3 -m venv .venv-build
+          source .venv-build/bin/activate
           pip install -U pip
           pip install poetry poetry-dynamic-versioning
 
@@ -468,18 +477,18 @@ A few notes on rebuilding:
 
           poetry publish -r testpypi
 
-    - then check that your publish worked by installing into a fresh venv:
+    - then check that your publish worked by installing into a fresh venv.
 
       Windows:
 
-          python  -m venv pymel_test_env
-          .\pymel_test_env\Scripts\activate
+          python -m venv .venv-test
+          .\.venv-test\Scripts\activate
           pip install -i https://test.pypi.org/simple/ pymel
 
       Linux/MacOS:
 
-          python  -m venv pymel_test_env
-          source pymel_test_env/bin/activate
+          python -m venv .venv-test
+          source p.venv-test/bin/activate
           pip install -i https://test.pypi.org/simple/ pymel
 
       Inspect the contents of pymel_test_env to ensure everything looks ok
