@@ -21,9 +21,9 @@ from pymel.api.plugins import mpxNamesToApiEnumNames
 
 _logger = _plogging.getLogger(__name__)
 
-#===============================================================================
+# ==============================================================================
 # Utility classes
-#===============================================================================
+# ==============================================================================
 
 
 class ApiEnum(tuple):
@@ -35,6 +35,7 @@ class ApiEnum(tuple):
         return '%s( %s )' % (self.__class__.__name__, super(ApiEnum, self).__repr__())
 
     def pymelName(self):
+        # type: () -> str
         import pymel.internal.factories as factories
         parts = list(self)
         pymelName = factories.apiClassNameToPymelClassName(self[0])
@@ -49,9 +50,9 @@ def _defaultdictdict(cls, val=None):
     else:
         return _util.defaultdict(dict, val)
 
-#===============================================================================
+# ==============================================================================
 # ghost objects
-#===============================================================================
+# ==============================================================================
 
 
 class GhostObjsOkHere(object):
@@ -107,7 +108,8 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         try:
             obj = dagMod.createNode(mayaType, parent)
         except Exception as err:
-            _logger.debug("Error trying to create ghost node for '%s': %s" % (mayaType, err))
+            _logger.debug("Error trying to create ghost node for '%s': %s" %
+                          (mayaType, err))
             return None
 
     if api.isValidMObject(obj):
@@ -264,9 +266,9 @@ class _GhostObjMaker(object):
                 if delDg:
                     dgMod.doIt()
 
-#===============================================================================
+# ==============================================================================
 # Utilities for query maya node info
-#===============================================================================
+# ==============================================================================
 _ABSTRACT_SUFFIX = ' (abstract)'
 _ASSET_PREFIX = 'adskAssetInstanceNode_'
 
@@ -503,16 +505,21 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
         # might be a result of multiple inheritance being returned strangely by nodeType.
         #
         # an example lineage is:
-        # [u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'SphereLocator',
-        #  u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'aiSkyDomeLight']
+        # [u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape',
+        #  u'locator', u'THlocatorShape', u'SphereLocator',
+        #  u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape',
+        #  u'locator', u'THlocatorShape', u'aiSkyDomeLight']
         # note the repeat - we will try to fix lineages like this, resolving to:
-        # [u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape', u'locator', u'THlocatorShape', u'SphereLocator', u'aiSkyDomeLight']
+        # [u'containerBase', u'entity', u'dagNode', u'shape', u'geometryShape',
+        #  u'locator', u'THlocatorShape', u'SphereLocator', u'aiSkyDomeLight']
 
         # first pop the rightmost element, which is the mayaType...
         if lineage.pop() != mayaType:
-            raise RuntimeError("lineage for %s did not end with it's own node type" % mayaType)
+            raise RuntimeError("lineage for %s did not end with it's own "
+                               "node type" % mayaType)
 
-        # then try to find the first element somewhere else - this should indicate the start of the repeated chain...
+        # then try to find the first element somewhere else - this should
+        # indicate the start of the repeated chain...
         try:
             nextIndex = lineage.index(lineage[0], 1)
         except ValueError:
@@ -535,9 +542,12 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
     if updateCache and lineage:
         if len(set(lineage)) != len(lineage):
             # cyclical lineage:  first discovered with xgen nodes.
-            # might be a result of multiple inheritance being returned strangely by nodeType.
+            # might be a result of multiple inheritance being returned
+            # strangely by nodeType.
             print(mayaType, lineage)
-            _logger.raiseLog(_logger.WARNING, "lineage for node %s is cyclical: %s" % (mayaType, lineage))
+            _logger.raiseLog(_logger.WARNING,
+                             "lineage for node %s is cyclical: %s" %
+                             (mayaType, lineage))
             _cachedInheritances[mayaType] = lineage
             # don't cache any of the parents
             return lineage
@@ -549,16 +559,19 @@ def getInheritance(mayaType, checkManip3D=True, checkCache=True,
             if oldVal is None:
                 _cachedInheritances[thisNode] = thisLineage
             elif oldVal != thisLineage:
-                _logger.raiseLog(_logger.WARNING, "lineage for node %s changed:\n  from %s\n  to   %s)" % (thisNode, oldVal, thisLineage))
+                _logger.raiseLog(_logger.WARNING,
+                                 "lineage for node %s changed:\n  from %s\n"
+                                 "  to   %s)" % (thisNode, oldVal, thisLineage))
                 _cachedInheritances[thisNode] = thisLineage
     return lineage
 
-#===============================================================================
+# ==============================================================================
 # Name utilities
-#===============================================================================
+# ==============================================================================
 
 
 def nodeToApiName(nodeName):
+    # type: (str) -> str
     return 'k' + _util.capitalize(nodeName)
 
 
@@ -603,9 +616,9 @@ API_NAME_MODIFIERS = [(re.compile(find), replace)
 
 apiSuffixes = ['', 'node', 'shape', 'shapenode']
 
-#===============================================================================
+# ==============================================================================
 # Cache classes
-#===============================================================================
+# ==============================================================================
 
 
 class BaseApiClassInfoCache(startup.SubItemCache):
@@ -746,14 +759,15 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
             if tok[0] == tokenize.COMMENT:
                 foundComments = True
                 # if the comment was the only thing on the line - ie, it wasn't
-                # an inline comment - we also strip all empty lines before and after
+                # an inline comment - we also strip all empty lines before and
+                # after
 
                 # first, check to see if the last token was a newline - this is
                 # how we check if it was an inline comment...
                 if not nonComments or isNewline(nonComments[-1]):
                     # ok, now strip the empty lines before...
-                    # note that we still want to leave in ONE newline before, since
-                    # we will strip newlines after!
+                    # note that we still want to leave in ONE newline before,
+                    # since we will strip newlines after!
                     while len(nonComments) > 1 and isNewline(nonComments[-2]):
                         linesRemoved += 1
                         nonComments.pop()
@@ -766,8 +780,8 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
                 linesRemoved += 1
             else:
                 stripNewlines = False
-                # correct the token for the removed newlines, or else untokenize will
-                # insert empty lines
+                # correct the token for the removed newlines, or else untokenize
+                # will insert empty lines
                 nonComments.append((
                     # token type
                     tok[0],
@@ -998,12 +1012,12 @@ class ApiCache(BaseApiClassInfoCache):
     # self.apiEnumsToApiTypes
     # self.apiTypesToApiClasses
 
-    # Lookup of currently existing Maya types as keys with their corresponding API type as values.
-    # Not a read only (static) dict as these can change (if you load a plugin)
-    # self.mayaTypesToApiTypes
+    # Lookup of currently existing Maya types as keys with their corresponding
+    # API type as values. Not a read only (static) dict as these can change
+    # (if you load a plugin) self.mayaTypesToApiTypes
 
-    # lookup tables for a direct conversion between Maya type to their MFn::Types enum
-    # self.mayaTypesToApiEnums
+    # lookup tables for a direct conversion between Maya type to their
+    # MFn::Types enum self.mayaTypesToApiEnums
 
     # creating these will crash Maya!
     CRASH_TYPES = {
@@ -1055,8 +1069,12 @@ class ApiCache(BaseApiClassInfoCache):
     #   - remove hard-code setting of JointFfd's parent to DependNode
 
     API_TO_MFN_OVERRIDES = {
-        'kHikHandle': api.MFnTransform,  # hikHandle inherits from ikHandle, but is not compatible with MFnIkHandle
-        'kFfdDualBase': api.MFnDependencyNode,  # jointFfd inherits from ffd, but is not compatible with MFnGeometryFilter
+        # hikHandle inherits from ikHandle, but is not compatible with
+        # MFnIkHandle:
+        'kHikHandle': api.MFnTransform,
+        # jointFfd inherits from ffd, but is not compatible with
+        # MFnGeometryFilter:
+        'kFfdDualBase': api.MFnDependencyNode,
     }
 
     DEFAULT_API_TYPE = 'kDependencyNode'
@@ -1081,7 +1099,6 @@ class ApiCache(BaseApiClassInfoCache):
         for key, val in enumsToTypes.items():
             if predicate(val):
                 enumsToTypes[key] = converter(val)
-
 
     def fromRawData(self, data):
         # convert from string class names to class objects
@@ -1108,7 +1125,8 @@ class ApiCache(BaseApiClassInfoCache):
     def _buildMayaToApiInfo(self, reservedOnly=False):
 
         self._buildMayaNodeInfo()
-        # Fixes for types that don't have a MFn by doing a node creation and testing it
+        # Fixes for types that don't have a MFn by doing a node creation and
+        # testing it
         unknownTypes = set()
         toCreate = []
 
@@ -1176,11 +1194,16 @@ class ApiCache(BaseApiClassInfoCache):
             self.addMayaType(mayaType, apiType)
 
     def _buildApiTypesList(self):
-        """the list of api types is static.  even when a plugin registers a new maya type, it will be associated with
-        an existing api type"""
+        """
+        the list of api types is static.  even when a plugin registers a new
+        maya type, it will be associated with
+        an existing api type
+        """
 
-        self.apiTypesToApiEnums = dict(inspect.getmembers(api.MFn, lambda x: type(x) is int))
-        self.apiEnumsToApiTypes = dict((self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
+        self.apiTypesToApiEnums = dict(
+            inspect.getmembers(api.MFn, lambda x: type(x) is int))
+        self.apiEnumsToApiTypes = dict(
+            (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
 
     def _fixApiEnumsToApiTypes(self):
         # For the MFn.Type mappings, we can have multiple string names mapping
@@ -1223,7 +1246,8 @@ class ApiCache(BaseApiClassInfoCache):
 
         reservedMayaTypes.update(self.MAYA_TO_API_OVERRIDES)
         reservedMayaTypes.update(self.CRASH_TYPES)
-        # filter to make sure all these types exist in current version (some are Maya2008 only)
+        # filter to make sure all these types exist in current version (some
+        # are Maya2008 only)
         reservedMayaTypes = dict((item[0], item[1])
                                  for item in reservedMayaTypes.items()
                                  if item[1] in self.apiTypesToApiEnums)
@@ -1343,7 +1367,8 @@ class ApiCache(BaseApiClassInfoCache):
         parser = ApiDocParser(api, enumClass=ApiEnum,
                               docLocation=self.docLocation, strict=self.strict)
 
-        for name, obj in inspect.getmembers(api, lambda x: type(x) == type and x.__name__.startswith('M')):
+        for name, obj in inspect.getmembers(
+                api, lambda x: type(x) == type and x.__name__.startswith('M')):
             if parser.shouldSkip(name):
                 continue
             try:
@@ -1390,7 +1415,8 @@ class ApiCache(BaseApiClassInfoCache):
         self.apiTypesToApiClasses = {}
 
         # all of maya OpenMaya api is now imported in module api's namespace
-        mfnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
+        mfnClasses = inspect.getmembers(
+            api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
         for name, mfnClass in mfnClasses:
             current = self.getMfnClsToApiType(mfnClass)
             if not current:
@@ -1511,7 +1537,9 @@ class ApiCache(BaseApiClassInfoCache):
         _logger.debug("...finished ApiCache._buildApiTypeHierarchy")
 
     def addMayaType(self, mayaType, apiType, updateObj=None):
-        """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
+        """
+        Add a type to the MayaTypes lists. Fill as many dictionary caches as we
+        have info for.
 
             - mayaTypesToApiTypes
             - mayaTypesToApiEnums
@@ -1530,7 +1558,8 @@ class ApiCache(BaseApiClassInfoCache):
             self.mayaTypesToApiEnums[mayaType] = apiEnum
 
     def removeMayaType(self, mayaType, updateObj=None):
-        """ Remove a type from the MayaTypes lists.
+        """
+        Remove a type from the MayaTypes lists.
 
             - mayaTypesToApiTypes
             - mayaTypesToApiEnums
@@ -1584,7 +1613,8 @@ class ApiCache(BaseApiClassInfoCache):
         return apiType
 
     def filterPluginNodes(self):
-        '''Remove most plugin nodes from mayaTypesToApiTypes
+        '''
+        Remove most plugin nodes from mayaTypesToApiTypes
 
         When building the cache, filter out most plugin nodes - these are
         easily queried dynamically when the plugin loads, and they just
@@ -1633,7 +1663,8 @@ class ApiCache(BaseApiClassInfoCache):
 
         self._buildApiRelationships()
 
-        # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
+        # merge in the manual overrides: we only do this when we're rebuilding
+        # or in the pymelControlPanel
         _logger.info('merging in dictionary of manual api overrides')
         self._mergeClassOverrides()
 
@@ -1641,7 +1672,8 @@ class ApiCache(BaseApiClassInfoCache):
         if bridgeCache is None:
             bridgeCache = ApiMelBridgeCache()
             bridgeCache.build()
-        _util.mergeCascadingDicts(bridgeCache.apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True)
+        _util.mergeCascadingDicts(bridgeCache.apiClassOverrides,
+                                  self.apiClassInfo, allowDictToListMerging=True)
 
     def melBridgeContents(self):
         return self._mayaApiMelBridge.contents()

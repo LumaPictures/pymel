@@ -42,7 +42,8 @@ if False:
     from typing import *
     import pymel.core.general
     import pymel.core.uitypes
-    C = TypeVar('C', bound=Callable)
+    CallableT = TypeVar('CallableT', bound=Callable)
+    Decorator = Callable[[CallableT], CallableT]
 
 _logger = plogging.getLogger(__name__)
 
@@ -204,7 +205,7 @@ EXCLUDE_METHODS = ['type', 'className', 'create', 'name', 'attribute',
 docstringMode = os.environ.get('PYMEL_DOCSTRINGS_MODE', 'pydoc')
 
 # Lookup from PyNode type name as a string to PyNode type as a class
-pyNodeNamesToPyNodes = {}  # type: Dict[str, Type]
+pyNodeNamesToPyNodes = {}  # type: Dict[str, Type[pymel.core.general.PyNode]]
 
 # Lookup from MFn name to Pymel name
 apiClassNamesToPyNodeNames = {}  # type: Dict[str, str]
@@ -213,8 +214,8 @@ apiClassNamesToPymelTypes = {}  # type: Dict[str, Type]
 
 # Dictionary mapping from maya node type names (ie, surfaceShape) to pymel
 # class names, in this module - ie, SurfaceShape
-mayaTypeNameToPymelTypeName = {}
-pymelTypeNameToMayaTypeName = {}
+mayaTypeNameToPymelTypeName = {}  # type: Dict[str, str]
+pymelTypeNameToMayaTypeName = {}  # type: Dict[str, str]
 
 # Lookup from Api Enums to Pymel Component Classes
 #
@@ -223,7 +224,7 @@ pymelTypeNameToMayaTypeName = {}
 apiEnumsToPyComponents = {}
 
 # child:parent lookup of the pymel classes that derive from DependNode
-pyNodeTypesHierarchy = {}
+pyNodeTypesHierarchy = {}  # type: Dict[Type[pymel.core.general.PyNode], Type[pymel.core.general.PyNode]]
 
 
 #: for certain nodes, the best command on which to base the node class cannot create nodes, but can only provide information.
@@ -602,7 +603,7 @@ def loadCmdDocCache(ignoreError=True):
 
 
 def getCmdFunc(cmdName):
-    # type: (str) -> Callable
+    # type: (str) -> Decorator
     """
     Parameters
     ----------
@@ -610,7 +611,7 @@ def getCmdFunc(cmdName):
 
     Returns
     -------
-    Callable
+    Decorator
     """
     func = getattr(pmcmds, cmdName, None)
     if func is None:
@@ -637,16 +638,16 @@ def _guessCmdName(func):
 
 
 def addCmdDocs(func, cmdName=None):
-    # type: (C, Optional[str]) -> C
+    # type: (CallableT, Optional[str]) -> CallableT
     """
     Parameters
     ----------
-    func : C
+    func : CallableT
     cmdName : Optional[str]
 
     Returns
     -------
-    C
+    CallableT
     """
 
     if cmdName is None:
@@ -1116,7 +1117,8 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
         newFunc = newFuncWithUnpack
 
     if funcName in simpleCommandWraps:
-        # simple wraps: we only do these for functions which have not been manually customized
+        # simple wraps: we only do these for functions which have not been
+        # manually customized
         wraps = simpleCommandWraps[funcName]
         beforeSimpleWrap = newFunc
 
@@ -1148,20 +1150,21 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
 
         newFunc.__doc__ = doc
 
-    #----------------------------
+    # ----------------------------
     # UI commands with callbacks
-    #----------------------------
+    # ----------------------------
 
     callbackFlags = cmdInfo.get('callbackFlags', None)
     if callbackFlags:
         newFunc = fixCallbacks(newFunc, callbackFlags, funcName)
 
-    # Check if we have not been wrapped yet. if we haven't and our input function is a builtin or we're renaming
-    # then we need a wrap. otherwise we can just change the __doc__ and __name__ and move on
+    # Check if we have not been wrapped yet. if we haven't and our input
+    # function is a builtin or we're renaming then we need a wrap. otherwise
+    # we can just change the __doc__ and __name__ and move on
     if newFunc == inFunc and (type(newFunc) == types.BuiltinFunctionType or rename):
         # we'll need a new function: we don't want to touch built-ins, or
-        # rename an existing function, as that can screw things up... just modifying docs
-        # of non-builtin should be fine, though
+        # rename an existing function, as that can screw things up... just
+        # modifying docs of non-builtin should be fine, though
         def newFunc(*args, **kwargs):
             return inFunc(*args, **kwargs)
 
@@ -1185,11 +1188,25 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
     return newFunc
 
 
-def makeCreateFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=None, returnFunc=None):
+def makeCreateFlagMethod(inFunc, flag, newMethodName=None, docstring='',
+                         cmdName=None, returnFunc=None):
+    # type: (CallableT, str, Optional[str], str, Optional[str], Optional[Callable]) -> CallableT
     """
     Add documentation to a method that corresponds to a single command flag
+
+    Parameters
+    ----------
+    inFunc : CallableT
+    flag : str
+    newMethodName : Optional[str]
+    docstring : str
+    cmdName : Optional[str]
+    returnFunc : Optional[Callable]
+
+    Returns
+    -------
+    CallableT
     """
-    #name = 'set' + flag[0].upper() + flag[1:]
     if cmdName is None:
         cmdName = pmcmds.getCmdName(inFunc)
 
@@ -1225,6 +1242,7 @@ def makeCreateFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName
 
 
 def createflag(cmdName, flag):
+    # type: (str, str) -> Decorator
     """create flag decorator"""
     def create_decorator(method):
         wrappedMelFunc = makeCreateFlagMethod(method, flag, pmcmds.getCmdName(method), cmdName=cmdName)
@@ -1241,7 +1259,21 @@ def secondaryflag( cmdName, flag ):
 
 
 def makeQueryFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=None, returnFunc=None):
-    #name = 'get' + flag[0].upper() + flag[1:]
+    # type: (CallableT, str, Optional[str], str, Optional[str], Optional[Callable]) -> CallableT
+    """
+    Parameters
+    ----------
+    inFunc : CallableT
+    flag : str
+    newMethodName : Optional[str]
+    docstring : str
+    cmdName : Optional[str]
+    returnFunc : Optional[Callable]
+
+    Returns
+    -------
+    CallableT
+    """
     if cmdName is None:
         cmdName = pmcmds.getCmdName(inFunc)
 
@@ -1265,6 +1297,7 @@ def makeQueryFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=
 
 
 def queryflag(cmdName, flag):
+    # type: (str, str) -> Decorator
     """query flag decorator"""
     def query_decorator(method):
         wrappedMelFunc = makeQueryFlagMethod(method, flag, pmcmds.getCmdName(method), cmdName=cmdName)
@@ -1304,7 +1337,20 @@ def asQuery(self, func, kwargs, flag):
 
 
 def makeEditFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=None):
-    #name = 'set' + flag[0].upper() + flag[1:]
+    # type: (CallableT, str, Optional[str], str, Optional[str]) -> CallableT
+    """
+    Parameters
+    ----------
+    inFunc : CallableT
+    flag : str
+    newMethodName : Optional[str]
+    docstring : str
+    cmdName : Optional[str]
+
+    Returns
+    -------
+    CallableT
+    """
     if cmdName is None:
         cmdName = pmcmds.getCmdName(inFunc)
 
@@ -1326,6 +1372,7 @@ def makeEditFlagMethod(inFunc, flag, newMethodName=None, docstring='', cmdName=N
 
 
 def editflag(cmdName, flag):
+    # type: (str, str) -> Decorator
     """edit flag decorator"""
     def edit_decorator(method):
         wrappedMelFunc = makeEditFlagMethod(method, flag, pmcmds.getCmdName(method), cmdName=cmdName)
@@ -1335,6 +1382,7 @@ def editflag(cmdName, flag):
 
 
 def addMelDocs(cmdName, flag=None):
+    # type: (str, str) -> Decorator
     """decorator for adding docs"""
 
     if flag:
@@ -2695,7 +2743,7 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
         If True, then __apimfn__ function used to retrieve the proxy class. If False,
         then we assume that the class being wrapped inherits from the underlying api class.
     overloadIndex : Optional[int]
-        which of the overloaded C++ signatures to use as the basis of our wrapped function.
+        which of the overloaded CallableT++ signatures to use as the basis of our wrapped function.
     """
 
     #getattr( api, apiClassName )
@@ -3380,12 +3428,13 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
         return classdict['__melui__'], False
 
 
-def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraAttrs=None):
-    # type: (Any, str, str, str, Any) -> Optional[type]
+def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName,
+                  extraAttrs=None):
+    # type: (types.ModuleType, str, str, str, Any) -> Optional[Type[pymel.core.general.PyNode]]
     """
     Parameters
     ----------
-    module
+    module : types.ModuleType
     mayaType : str
     pyNodeTypeName : str
     parentPyNodeTypeName : str
@@ -3393,9 +3442,8 @@ def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraA
 
     Returns
     -------
-    Optional[type]
+    Optional[Type[pymel.core.general.PyNode]]
     """
-    #_logger.debug( "%s(%s): creating" % (pyNodeTypeName,parentPyNodeTypeName) )
     try:
         ParentPyNode = getattr(module, parentPyNodeTypeName)
     except AttributeError:
@@ -3427,13 +3475,18 @@ def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName, extraA
 
 
 def addCustomPyNode(module, mayaType, extraAttrs=None):
-    # type: (Any, Any, Any) -> Optional[str]
+    # type: (types.ModuleType, str, Any) -> Optional[str]
     """
     create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
 
     This function is used for creating PyNodes via plugins, where the nodes parent's might be abstract
     types not yet created by pymel.  also, this function ensures that the newly created node types are
     added to pymel.all, if that module has been imported.
+
+    Parameters
+    ----------
+    module : types.ModuleType
+    mayaType : str
 
     Returns
     -------
@@ -3452,9 +3505,8 @@ def addCustomPyNode(module, mayaType, extraAttrs=None):
     if not inheritance or not util.isIterable(inheritance):
         _logger.warning("could not get inheritance for mayaType %s" % mayaType)
     else:
-        #__logger.debug(mayaType, inheritance)
-        #__logger.debug("adding new node:", mayaType, apiEnum, inheritence)
-        # some nodes in the hierarchy for this node might not exist, so we cycle through all
+        # some nodes in the hierarchy for this node might not exist, so we
+        # cycle through all
         parent = 'dependNode'
 
         pynodeName = None
@@ -3484,14 +3536,20 @@ def getPymelTypeName(mayaTypeName, create=True):
 
 
 def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
-    # type: (Any, Any, Any, Any) -> Tuple[str, type]
+    # type: (types.ModuleType, str, str, Any) -> Tuple[str, Type[pymel.core.general.PyNode]]
     """
     create a PyNode type for a maya node.
+
+    Parameters
+    ----------
+    module : types.ModuleType
+    mayaType : str
+    parentMayaType : str
 
     Returns
     -------
     name : str
-    class : type
+    class : Type[pymel.core.general.PyNode]
     """
     # unicode is not liked by metaNode
     parentPyNodeTypeName = mayaTypeNameToPymelTypeName.get(parentMayaType)
@@ -3515,6 +3573,7 @@ def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
 
 
 def removePyNode(module, mayaType):
+    # type: (types.ModuleType, str) -> None
     pyNodeTypeName = mayaTypeNameToPymelTypeName.get(mayaType)
     if not pyNodeTypeName:
         _logger.raiseLog(_logger.WARNING,
@@ -3535,16 +3594,19 @@ def removePyNode(module, mayaType):
 
 
 def addPyNodeType(pyNodeType, parentPyNode):
+    # type: (Type[pymel.core.general.PyNode], Type[pymel.core.general.PyNode]) -> None
     pyNodeNamesToPyNodes[pyNodeType.__name__] = pyNodeType
     pyNodeTypesHierarchy[pyNodeType] = parentPyNode
 
 
 def removePyNodeType(pyNodeTypeName):
+    # type: (str) -> None
     pyNodeType = pyNodeNamesToPyNodes.pop(pyNodeTypeName, None)
     pyNodeTypesHierarchy.pop(pyNodeType, None)
 
 
 def clearPyNodeTypes():
+    # type: () -> None
     pyNodeNamesToPyNodes.clear()
     pyNodeTypesHierarchy.clear()
 
@@ -3604,7 +3666,7 @@ class VirtualClassManager(object):
                  preCreate='_preCreateVirtual',
                  create='_createVirtual',
                  postCreate='_postCreateVirtual', ):
-        # type: (Any, bool, str or callable, str or callable, str or callable, str or callable) -> None
+        # type: (Any, bool, Union[str, Callable], Union[str, Callable], Union[str, Callable], Union[str, Callable]) -> None
         """Register a new virtual class
 
         Allows a user to create their own subclasses of leaf PyMEL node classes,
@@ -3697,16 +3759,16 @@ class VirtualClassManager(object):
             True if the _isVirtual callback requires the string name to operate
             on. The object's name is not always immediately avaiable and may
             take an extra calculation to retrieve.
-        isVirtual: `str` or callable
+        isVirtual: Union[str, Callable]
             the function to determine whether an MObject is an instance of this
             class; should take an MObject and name, returns True / or False
-        preCreate: `str` or callable
+        preCreate: Union[str, Callable]
             the function used to modify kwargs before being passed to the
             creation function
-        create: `str` or callable
+        create: Union[str, Callable]
             function to use instead of the standard node creation method;
             takes whatever args are given to the cl
-        postCreate: `str` or callable
+        postCreate: Union[str, Callable]
             the function used to modify the PyNode after it is created.
         """
         if isinstance(isVirtual, basestring):
@@ -3831,7 +3893,7 @@ def toApiTypeEnum(obj, default=None):
 
     Returns
     -------
-    int
+    Optional[int]
     """
     if isinstance(obj, util.ProxyUnicode):
         obj = getattr(obj, '__melnode__', default)
@@ -3900,7 +3962,7 @@ def isMayaType(mayaType):
 
     Parameters
     ----------
-    str
+    mayaType : str
 
     Returns
     -------
@@ -3921,6 +3983,7 @@ def isMayaType(mayaType):
 
 
 def getComponentTypes():
+    # type: () -> Dict[str, List[int]]
     # WTF is kMeshFaceVertComponent?? it doesn't inherit from MFnComponent,
     # and there's also a kMeshVtxFaceComponent (which does)??
     mfnCompBase = api.MFnComponent()

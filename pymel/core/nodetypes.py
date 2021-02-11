@@ -218,10 +218,6 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
         # type: (bool, bool, int, bool, bool) -> str
         '''The name of the node
 
-        Returns
-        -------
-        str
-
         Parameters
         ----------
         update : bool
@@ -244,6 +240,9 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
             ignored; included simply to unify the interface between DependNode
             and DagNode, to make it easier to loop over lists of them
 
+        Returns
+        -------
+        str
 
         Examples
         --------
@@ -460,6 +459,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
     @classmethod
     def typeName(cls):
+        # type: () -> str
         """Similar to type / nodeType, but a classmethod that does no dynamic
         querying"""
         return cls.__melnode__
@@ -480,6 +480,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
             return None
 
     def classification(self, **kwargs):
+        # type: (**Any) -> str
         'getClassification'
         return general.getClassification(self.type(), **kwargs)
         # return self.__apimfn__().classification( self.type() )
@@ -580,6 +581,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 
     @_util.universalmethod
     def attrSpec(obj, attr):  # @NoSelf
+        # type: (Any, Any) -> general.AttributeSpec
         """
         Access to an attribute specifications of a node.  This does not require
         an instance:
@@ -3806,11 +3808,16 @@ class Transform(DagNode):
             raise e
 
     def attr(self, attr, checkShape=True):
-        # type: (Any, Any) -> general.Attribute
+        # type: (str, bool) -> general.Attribute
         """
         when checkShape is enabled, if the attribute does not exist the
         transform but does on the shape, then the shape's attribute will
         be returned.
+
+        Parameters
+        ----------
+        attr : str
+        checkShape : bool
 
         Returns
         -------

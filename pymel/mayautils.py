@@ -177,6 +177,7 @@ def getMayaAppDir(versioned=False):
 
 
 def getUserPrefsDir():
+    # type: () -> Optional[str]
     """Get the prefs directory below the Maya application directory"""
     appDir = getMayaAppDir(versioned=True)
     if appDir:
@@ -184,6 +185,7 @@ def getUserPrefsDir():
 
 
 def getUserScriptsDir():
+    # type: () -> Optional[str]
     """Get the scripts directory below the Maya application directory"""
     appDir = getMayaAppDir(versioned=True)
     if appDir:

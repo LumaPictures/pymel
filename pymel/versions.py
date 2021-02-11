@@ -55,20 +55,22 @@ def parseVersionStr(versionStr, extension=False):
 
     """
     if 'Preview' in versionStr:
-        # Beta versions of Maya may use the format 'Preview Release nn x64', which
-        # doesn't contain the actual Maya version. If we have one of those, we'll
-        # make up the version from the API version. Not foolproof, but should work
-        # in most cases.
+        # Beta versions of Maya may use the format 'Preview Release nn x64',
+        # which doesn't contain the actual Maya version. If we have one of
+        # those, we'll make up the version from the API version. Not foolproof,
+        # but should work in most cases.
         version = str(_MGlobal.apiVersion())[0:4]
         if extension and bitness() == 64:
             version += '-x64'
     else:
-        # problem with service packs addition, must be able to match things such as :
+        # problem with service packs addition, must be able to match things
+        # such as :
         # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
 
-        # NOTE: we're using the same regular expression (parseVersionStr) to parse both the crazy human readable
-        # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid
-        # the regular expression might be getting unwieldy
+        # NOTE: we're using the same regular expression (parseVersionStr) to
+        # parse both the crazy human readable maya versions as returned by
+        # about, and the maya location directory.  to handle both of these i'm
+        # afraid the regular expression might be getting unwieldy
 
         ma = re.search(r"((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
         version = ma.group('base')
@@ -87,9 +89,9 @@ def bitness():
     -------
     int
     """
-    # NOTE: platform.architecture()[0] returns '64bit' on OSX 10.6 (Snow Leopard)
-    # even when Maya is running in 32-bit mode. The struct technique
-    # is more reliable.
+    # NOTE: platform.architecture()[0] returns '64bit' on OSX 10.6
+    # (Snow Leopard) even when Maya is running in 32-bit mode. The struct
+    # technique is more reliable.
     return struct.calcsize("P") * 8
 
 
@@ -184,14 +186,17 @@ def current():
 
 
 def fullName():
+    # type: () -> str
     return _fullName
 
 
 def installName():
+    # type: () -> str
     return _installName
 
 
 def shortName():
+    # type: () -> str
     return _shortName
 
 
@@ -269,5 +274,5 @@ def isEval():
     try:
         return maya.cmds.about(evalVersion=1)
     except AttributeError:
-        raise RuntimeError("This method cannot be used until maya is fully initialized")
-
+        raise RuntimeError("This method cannot be used until maya is fully "
+                           "initialized")

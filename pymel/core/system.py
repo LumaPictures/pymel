@@ -2,11 +2,13 @@
 """
 Functions and classes relating to files, references, and system calls.
 
-In particular, the system module contains the functionality of maya.cmds.file. The file command should not be imported into
-the default namespace because it conflicts with python's builtin file class. Since the file command has so many flags,
-we decided to kill two birds with one stone: by breaking the file command down into multiple functions -- one for each
-primary flag -- the resulting functions are more readable and allow the file command's functionality to be used directly
-within the pymel namespace.
+In particular, the system module contains the functionality of maya.cmds.file.
+The file command should not be imported into the default namespace because it
+conflicts with python's builtin file class. Since the file command has so many
+flags, we decided to kill two birds with one stone: by breaking the file
+command down into multiple functions -- one for each primary flag -- the
+resulting functions are more readable and allow the file command's
+functionality to be used directly within the pymel namespace.
 
 for example, instead of this:
 
@@ -16,17 +18,19 @@ you can do this:
 
     >>> expFile = exportAll( 'test.ma', preserveReferences=1, force=1)
 
-some of the new commands were changed slightly from their flag name to avoid name clashes and to add to readability:
+some of the new commands were changed slightly from their flag name to avoid
+name clashes and to add to readability:
 
     >>> importFile( expFile )  # flag was called import, but that's a python keyword
     >>> ref = createReference( expFile )
     >>> ref # doctest: +ELLIPSIS
     FileReference('...test.ma', refnode='testRN')
 
-Notice that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
+Notice that the 'type' flag is set automatically for you when your path
+includes a '.mb' or '.ma' extension.
 
-Paths returned by these commands are either a `Path` or a `FileReference`, so you can use object-oriented path methods with
-the results::
+Paths returned by these commands are either a `Path` or a `FileReference`,
+so you can use object-oriented path methods with the results::
 
     >>> expFile.exists()
     True
@@ -168,6 +172,7 @@ def feof(fileid):
 
 @_factories.addMelDocs('file', 'sceneName')
 def sceneName():
+    # type: () -> str
     # We don't just use cmds.file(q=1, sceneName=1)
     # because it was sometimes returning an empty string,
     # even when there was a valid file
@@ -180,6 +185,7 @@ def sceneName():
 
 
 def untitledFileName():
+    # type: () -> str
     """
     Obtain the base filename used for untitled scenes. In localized
     environments, this string will contain a translated value.
@@ -209,6 +215,7 @@ class UndoChunk(object):
     """
 
     def __init__(self, name=None):
+        # type: (Optional[str]) -> None
         self.name = name
 
     def __enter__(self):
@@ -249,6 +256,7 @@ class Namespace(str):
         return cls(ns)
 
     def __new__(cls, namespace, create=False):
+        # type: (Namespace, str, bool) -> Namespace
         namespace = ":" + namespace.strip(":")
         if not cmds.namespace(exists=namespace):
             if not create:
@@ -266,6 +274,7 @@ class Namespace(str):
         return self
 
     def __repr__(self):
+        # type: () -> str
         return "%s(%s)" % (self.__class__.__name__, super(Namespace, self).__repr__())
 
     def __add__(self, other):
@@ -418,6 +427,7 @@ class Namespace(str):
         return nodes
 
     def setCurrent(self):
+        # type: () -> None
         cmds.namespace(set=self)
 
     def clean(self, haltOnError=True, reparentOtherChildren=True):
@@ -517,8 +527,14 @@ def listNamespaces_old():
 
 
 def listNamespaces(root=None, recursive=False, internal=False):
-    # type: (Any, Any, Any) -> List[Namespace]
+    # type: (Optional[str], bool, bool) -> List[Namespace]
     """Returns a list of the namespaces in the scene
+
+    Parameters
+    ----------
+    root : Optional[str]
+    recursive : bool
+    internal : bool
 
     Returns
     -------
@@ -632,6 +648,7 @@ class Translator(object):
             return None
 
     def __init__(self, name):
+        # type: (str) -> None
         assert name in cmds.translator(q=1, list=1), \
             "%s is not the name of a registered translator" % name
         self._name = str(name)
@@ -847,6 +864,7 @@ class SingletonABCMeta(_util.Singleton, abc.ABCMeta):
     """
     pass
 
+
 class FileInfo(with_metaclass(SingletonABCMeta, MutableMapping)):
 
     """
@@ -868,8 +886,6 @@ class FileInfo(with_metaclass(SingletonABCMeta, MutableMapping)):
         >>> fileInfo( 'myKey', 'myData' )
 
     Updated to have a fully functional dictiony interface.
-
-
     """
 
     def __getitem__(self, item):
@@ -1321,7 +1337,8 @@ def getReferences(parentReference=None, recursive=False):
 #
 #        # there's no guarantee that:
 #        #  the namespace has not changed since the last cache refresh
-#        #  the refNode has not been renamed since the last cache refresh (doesn't matter if we're using > 2009, where node hashing is not based on name)
+#        #  the refNode has not been renamed since the last cache refresh
+#        # (doesn't matter if we're using > 2009, where node hashing is not based on name)
 #        if not cls.callbacksEnabled or namespace:
 #            # force refresh (only need to try once)
 #            attempts=1
@@ -1386,7 +1403,8 @@ class FileReference(object):
         if pathOrRefNode:
             if isinstance(pathOrRefNode, (basestring, Path)):
                 try:
-                    self._refNode = general.PyNode(mcmds.referenceQuery(str(pathOrRefNode), referenceNode=1))
+                    self._refNode = general.PyNode(
+                        mcmds.referenceQuery(str(pathOrRefNode), referenceNode=1))
                 except RuntimeError:
                     pass
             if not self._refNode:
@@ -1398,11 +1416,13 @@ class FileReference(object):
                     except general.MayaObjectError:
                         pathOrRefNode = str(pathOrRefNode)
                         try:
-                            refNodeName = mcmds.file(pathOrRefNode, q=1, referenceNode=1)
+                            refNodeName = mcmds.file(pathOrRefNode, q=1,
+                                                     referenceNode=1)
                         except RuntimeError:
-                            # referenceQuery command is more stable in certain edge cases, like
-                            # while a file is loading
-                            refNodeName = mcmds.referenceQuery(pathOrRefNode, referenceNode=1)
+                            # referenceQuery command is more stable in certain
+                            # edge cases, like while a file is loading
+                            refNodeName = mcmds.referenceQuery(pathOrRefNode,
+                                                               referenceNode=1)
                         self._refNode = general.PyNode(refNodeName)
 
         elif namespace:
@@ -1423,7 +1443,8 @@ class FileReference(object):
                         # way to test / filter out shared nodes...)
                         pass
             if self._refNode is None:
-                raise RuntimeError("Could not find a reference with the namespace %r" % namespace)
+                raise RuntimeError("Could not find a reference with the "
+                                   "namespace %r" % namespace)
 
         elif refnode:
             self._refNode = general.PyNode(refnode)
@@ -1522,6 +1543,7 @@ class FileReference(object):
 
     @_factories.addMelDocs('namespace', 'exists')
     def namespaceExists(self):
+        # type: () -> bool
         return cmds.namespace(ex=self.namespace)
 
     def _getNamespace(self):
@@ -1579,6 +1601,7 @@ class FileReference(object):
 
     @property
     def refNode(self):
+        # type: () -> general.PyNode
         return self._refNode
 
     @property
