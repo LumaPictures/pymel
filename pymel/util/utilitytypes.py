@@ -635,11 +635,14 @@ class LazyLoadModule(types.ModuleType):
         types.ModuleType.__init__(self, name)
         self.__dict__.update(contents)
         self._lazyGlobals = contents  # globals of original module
+        # keep a reference to the original module so all values in its __dict__
+        # are not set to None by the module destructor when sys.modules[name] is
+        # the last reference to it and is replaced below, this prevents any
+        # problems where another reference to the original module exists (such
+        # as in a PEP-302 loader)
+        self._lazyModule = sys.modules.get(name)
         # add ourselves to sys.modules, overwriting the original module
         sys.modules[name] = self
-        # the above line assigns a None value to all entries in the original globals.
-        # luckily, we have a copy on this module we can use to restore it.
-        self._lazyGlobals.update(self.__dict__)
 
     def __dir__(self):
         # for modules, dir usually only returns what's in the dict, and does
