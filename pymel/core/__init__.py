@@ -252,6 +252,7 @@ def _pluginLoaded(*args):
                     api.MEventMessage.removeCallback(id)
                     if hasattr(id, 'disown'):
                         id.disown()
+                    _pluginData[pluginName]['callbackId'] = None
 
             _pluginData[pluginName]['dependNodes'] = []
             allTypes = set(cmds.ls(nodeTypes=1))
