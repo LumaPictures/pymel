@@ -73,6 +73,31 @@ Building an Official PyMEL Release
     import pymel.internal.factories
     ```
 
+  - NOTE: - you may get a bunch of warnings that look like:
+    ```
+    # Traceback (most recent call last):
+    #   File "C:\Apps\3D\Autodesk\Maya2022\Python27\lib\site-packages\maya\app\renderSetup\model\sceneObservable.py", line 86, in wrapper
+    #     return f(*args, **kwargs)
+    #   File "C:\Apps\3D\Autodesk\Maya2022\Python27\lib\site-packages\maya\app\renderSetup\model\sceneObservable.py", line 245, in _nodeAddedCB
+    #     self._notifyObservers(eventType=SceneObservable.NODE_ADDED, obj=obj)
+    #   File "C:\Apps\3D\Autodesk\Maya2022\Python27\lib\site-packages\maya\app\renderSetup\model\sceneObservable.py", line 86, in wrapper
+    #     return f(*args, **kwargs)
+    #   File "C:\Apps\3D\Autodesk\Maya2022\Python27\lib\site-packages\maya\app\renderSetup\common\guard.py", line 85, in wrapper
+    #     return f(*args, **kwargs)
+    #   File "C:\Apps\3D\Autodesk\Maya2022\Python27\lib\site-packages\maya\app\renderSetup\model\sceneObservable.py", line 233, in _notifyObservers
+    #     self._observables[eventType].itemChanged(**kwArgs)
+    #   File "C:\Apps\3D\Autodesk\Maya2022\Python27\lib\site-packages\maya\app\renderSetup\model\observable.py", line 46, in itemChanged
+    #     o(*posArgs, **kwArgs)
+    #   File "C:\Apps\3D\Autodesk\Maya2022\Python27\lib\site-packages\maya\app\renderSetup\model\weakMethod.py", line 31, in __call__
+    #     self._object(), *posArgs, **kwArgs) if self.isAlive() else None
+    #   File "C:\Apps\3D\Autodesk\Maya2022\Python27\lib\site-packages\maya\app\renderSetup\model\selector.py", line 1426, in onNodeAdded
+    #     not self.isDirty() and len(self.patterns()) > 0 and self.acceptsTypeOrIsSet(OpenMaya.MFnDependencyNode(obj).typeName):
+    #   File "C:\Apps\3D\Autodesk\Maya2022\Python27\lib\site-packages\maya\app\renderSetup\model\selector.py", line 677, in isDirty
+    #     return cmds.isDirty(self.name()+".out", d=True)
+    # ValueError: No object matches name: .out # 
+    ```
+    These seem to not affect the building of the caches, and I have thus far ignored them...
+    
   - importing pymel.internal.factories will automatically build the api cache,
     but not the command caches - which is good, because we need to make sure
     some plugins are NOT loaded before building the cmd caches (they can crash
