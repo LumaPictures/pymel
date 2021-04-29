@@ -241,10 +241,15 @@ def main(argv):
                 mayaBin += '.exe'
             newArgs[0] = mayaBin
 
-            pyCmd = 'import sys; sys.argv = {!r}; execfile({!r})'.format(newArgs,
-                                                                         THIS_FILE)
+            pyCmd = '''\
+import sys
+sys.argv = {newArgs!r}
+with open({filepath!r}) as f:
+    exec(compile(f.read(), {filepath!r}, 'exec'))
+'''.format(newArgs=newArgs, filepath=THIS_FILE)
             melCmd = 'python("{}")'.format(pyCmd.replace('\\', '\\\\')
-                                           .replace('"', r'\"'))
+                                           .replace('"', r'\"')
+                                           .replace('\n', '\\n'))
             mayaArgs = [mayaBin, '-command', melCmd]
             print(mayaArgs)
             sys.exit(subprocess.call(mayaArgs))
