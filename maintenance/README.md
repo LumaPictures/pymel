@@ -157,6 +157,10 @@ Building an Official PyMEL Release
     pymel.internal.factories.loadCmdCache()
     ```
 
+- this will likely CRASH when it finished running... thankfully, this is generally ok, and the cmd caches have generally
+  been written out successfully already (you can confirm by checking for their existence - since you deleted them
+  beforehand, if they're there at all, they should be the good / new ones)
+
 ## 3) Generate core modules from templates
 
 ### To generate the modules
