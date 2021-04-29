@@ -47,8 +47,7 @@ Building an Official PyMEL Release
     you can not set this, but it's highly recommended that this is on before
     building for a final release.
 
-  - start maya - for now, using the python-2 version: `maya -pythonver 2`
-    (Soon, we will switch to building all caches with python 3)
+  - start gui maya - `maya`
 
   - in the script editor, run the following, substituting location of your dev
     version of pymel:
@@ -122,8 +121,7 @@ Building an Official PyMEL Release
   - Quit out of maya (which will save the plugin auto-load prefs)
   - set the environment variable `MAYA_NO_INITIAL_AUTOLOAD_MT=true` to prevent
     the modeling toolkit from being force loaded
-  - start maya - for now, using the python-2 version: `maya -pythonver 2`
-    (Soon, we will switch to building all caches with python 3)
+  - start gui maya - `maya`
   - in the script editor, run the following, substituting location of your dev
     version of pymel:
 
@@ -167,7 +165,7 @@ Building an Official PyMEL Release
 
   - build from WINDOWS - important because there is a windows-only bug we need to test for
   
-  - start gui maya
+  - start gui maya - `maya`
 
   - in the script editor, run the following, substituting location of your dev
     version of pymel:

@@ -6647,6 +6647,12 @@ class MeshEdge(MItComponent1D):
         res = _f.getProxyResult(self, _api.MItMeshEdge, 'isSmooth')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.addApiDocs(_api.MItMeshEdge, 'next')
+    def next(self):
+        # type: () -> None
+        res = _f.getProxyResult(self, _api.MItMeshEdge, 'next')
+        return res
+
     @_f.addApiDocs(_api.MItMeshEdge, 'numConnectedEdges')
     def numConnectedEdges(self):
         # type: () -> int
@@ -7393,6 +7399,12 @@ class NurbsCurveCV(MItComponent1D):
         # type: () -> bool
         res = _f.getProxyResult(self, _api.MItCurveCV, 'isDone')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MItCurveCV, 'next')
+    def next(self):
+        # type: () -> None
+        res = _f.getProxyResult(self, _api.MItCurveCV, 'next')
+        return res
 
     @_f.addApiDocs(_api.MItCurveCV, 'setPosition')
     def setPosition(self, pt, space='preTransform'):
@@ -8385,8 +8397,6 @@ def createDisplayLayer(*args, **kwargs):
     return res
 
 currentUnit = _factories.getCmdFunc('currentUnit')
-
-curveRGBColor = _factories.getCmdFunc('curveRGBColor')
 
 cycleCheck = _factories.getCmdFunc('cycleCheck')
 

@@ -1247,22 +1247,6 @@ def conditionExists(conditionName):
 
 # ------ Do not edit below this line --------
 
-@_factories.addCmdDocs
-def callbacks(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['ac', 'addCallback', 'rc', 'removeCallback']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.callbacks(*args, **kwargs)
-    return res
-
 evalEcho = _factories.getCmdFunc('evalEcho')
 
 evalNoSelectNotify = _factories.getCmdFunc('evalNoSelectNotify')

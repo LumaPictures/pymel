@@ -168,6 +168,22 @@ def batchRender(*args, **kwargs):
 binMembership = _factories.getCmdFunc('binMembership')
 
 @_factories.addCmdDocs
+def callbacks(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ac', 'addCallback', 'rc', 'removeCallback']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.callbacks(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
 def camera(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)

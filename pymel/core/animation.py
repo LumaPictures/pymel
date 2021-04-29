@@ -413,6 +413,8 @@ def copyKey(*args, **kwargs):
 
 copySkinWeights = _factories.getCmdFunc('copySkinWeights')
 
+curveRGBColor = _factories.getCmdFunc('curveRGBColor')
+
 @_factories.addCmdDocs
 def cutKey(*args, **kwargs):
     for flag in ['t', 'time']:
@@ -453,7 +455,7 @@ def deltaMush(*args, **kwargs):
     if isinstance(res, list) and len(res) == 1:
         if kwargs.get('query', kwargs.get('q', False)):
             # unpack for specific query flags
-            unpackFlags = {'en', 'envelope', 'inwardConstraint', 'iwc', 'outwardConstraint', 'owc', 'pbv', 'pinBorderVertices', 'smoothingStep', 'ss'}
+            unpackFlags = {'en', 'envelope', 'inwardConstraint', 'iwc', 'outwardConstraint', 'owc', 'pbv', 'pinBorderVertices', 'si', 'smoothingIterations', 'smoothingStep', 'ss'}
             if not unpackFlags.isdisjoint(kwargs):
                 res = res[0]
         else:
@@ -1006,7 +1008,7 @@ def tension(*args, **kwargs):
     if isinstance(res, list) and len(res) == 1:
         if kwargs.get('query', kwargs.get('q', False)):
             # unpack for specific query flags
-            unpackFlags = {'en', 'envelope', 'inwardConstraint', 'iwc', 'outwardConstraint', 'owc', 'pbv', 'pinBorderVertices', 'smoothingStep', 'ss'}
+            unpackFlags = {'en', 'envelope', 'inwardConstraint', 'iwc', 'outwardConstraint', 'owc', 'pbv', 'pinBorderVertices', 'si', 'smoothingIterations', 'smoothingStep', 'ss'}
             if not unpackFlags.isdisjoint(kwargs):
                 res = res[0]
         else:
