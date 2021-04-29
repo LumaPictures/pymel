@@ -2768,6 +2768,8 @@ Morph = getattr(cmds, 'Morph', None)
 
 MorphOptions = getattr(cmds, 'MorphOptions', None)
 
+MotionLibraryEditor = getattr(cmds, 'MotionLibraryEditor', None)
+
 MoveCacheToInput = getattr(cmds, 'MoveCacheToInput', None)
 
 MoveCurveSeam = getattr(cmds, 'MoveCurveSeam', None)
