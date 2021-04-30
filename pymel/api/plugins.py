@@ -412,6 +412,7 @@ def _loadPlugin():
     thisFile = _pluginFile()
     if not maya.cmds.pluginInfo(thisFile, query=1, loaded=1):
         maya.cmds.loadPlugin(thisFile)
+        assert maya.cmds.pluginInfo(thisFile, query=1, loaded=1)
 
 
 def _unloadPlugin():

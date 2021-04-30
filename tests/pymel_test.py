@@ -223,6 +223,18 @@ def main(argv):
         os.environ['MAYA_DISABLE_CIP'] = '1'
         os.environ['MAYA_DISABLE_CLIC_IPM'] = '1'
 
+        # due to maya's secure plugin loading feature, we need to make sure
+        # that MAYA_PLUG_IN_PATH contains pymel/api, so we can load plugins.py
+        # as a plugin
+        oldPlugPath = os.environ.get('MAYA_PLUG_IN_PATH')
+        newPlugPath = [
+            os.path.join(pymelRoot, 'pymel', 'api'),
+            os.path.join(testsDir, 'plugins'),
+        ]
+        if oldPlugPath is not None:
+            newPlugPath.append(oldPlugPath)
+        os.environ['MAYA_PLUG_IN_PATH'] = os.pathsep.join(newPlugPath)
+
         if parsed.app_dir:
             if not os.path.exists(parsed.app_dir):
                 os.makedirs(parsed.app_dir)
