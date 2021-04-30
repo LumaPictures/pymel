@@ -2960,45 +2960,27 @@ def palettePort(*args, **kwargs):
         res = _factories.maybeConvert(res, uitypes.PalettePort)
     return res
 
-headsUpMessage = _factories.getCmdFunc('headsUpMessage')
+canCreateCaddyManip = _factories.getCmdFunc('canCreateCaddyManip')
+
+@_factories.addCmdDocs
+def falloffCurveAttr(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.falloffCurveAttr(*args, **kwargs)
+    return res
 
 lsUI = _factories.addCmdDocs(lsUI)
 
-windowPref = _factories.getCmdFunc('windowPref')
-
-thumbnailCaptureComponent = _factories.getCmdFunc('thumbnailCaptureComponent')
-
-grabColor = _factories.getCmdFunc('grabColor')
-
-setNodeTypeFlag = _factories.getCmdFunc('setNodeTypeFlag')
-
-@_factories.addCmdDocs
-def annotate(*args, **kwargs):
-    res = cmds.annotate(*args, **kwargs)
-    wraps = _factories.simpleCommandWraps['annotate']
-    for func, wrapCondition in wraps:
-        if wrapCondition.eval(kwargs):
-            res = func(res)
-            break
-    return res
-
-showSelectionInTitle = _factories.getCmdFunc('showSelectionInTitle')
-
-_getPanel = getPanel
-
-@_factories.addCmdDocs
-def getPanel(*args, **kwargs):
-    res = _getPanel(*args, **kwargs)
-    wraps = _factories.simpleCommandWraps['getPanel']
-    for func, wrapCondition in wraps:
-        if wrapCondition.eval(kwargs):
-            res = func(res)
-            break
-    return res
-
-saveAllShelves = _factories.getCmdFunc('saveAllShelves')
-
-savePrefObjects = _factories.getCmdFunc('savePrefObjects')
+saveViewportSettings = _factories.getCmdFunc('saveViewportSettings')
 
 @_factories.addCmdDocs
 def falloffCurve(*args, **kwargs):
@@ -3014,476 +2996,6 @@ def falloffCurve(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.falloffCurve(*args, **kwargs)
-    return res
-
-linearPrecision = _factories.getCmdFunc('linearPrecision')
-
-outputWindow = _factories.getCmdFunc('outputWindow')
-
-buttonManip = _factories.getCmdFunc('buttonManip')
-
-defaultNavigation = _factories.getCmdFunc('defaultNavigation')
-
-@_factories.addCmdDocs
-def nodeTreeLister(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'favoritesCallback', 'fcb', 'rc', 'refreshCommand', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.nodeTreeLister(*args, **kwargs)
-    return res
-
-saveViewportSettings = _factories.getCmdFunc('saveViewportSettings')
-
-@_factories.addCmdDocs
-def viewManip(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['p', 'postCommand', 'pr', 'preCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.viewManip(*args, **kwargs)
-    return res
-
-@_factories.addCmdDocs
-def colorInputWidgetGrp(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.colorInputWidgetGrp(*args, **kwargs)
-    return res
-
-@_factories.addCmdDocs
-def timePort(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.timePort(*args, **kwargs)
-    return res
-
-editorTemplate = _factories.getCmdFunc('editorTemplate')
-
-hotkeySet = _factories.getCmdFunc('hotkeySet')
-
-@_factories.addCmdDocs
-def timeControl(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'pc', 'pressCommand', 'rc', 'releaseCommand', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.timeControl(*args, **kwargs)
-    return res
-
-scriptEditorInfo = _factories.getCmdFunc('scriptEditorInfo')
-
-progressWindow = _factories.getCmdFunc('progressWindow')
-
-@_factories.addCmdDocs
-def picture(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.picture(*args, **kwargs)
-    return res
-
-saveMenu = _factories.getCmdFunc('saveMenu')
-
-minimizeApp = _factories.getCmdFunc('minimizeApp')
-
-@_factories.addCmdDocs
-def hotkeyCheck(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['cmd', 'commandModifier']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.hotkeyCheck(*args, **kwargs)
-    return res
-
-disable = _factories.getCmdFunc('disable')
-
-loadUI = _factories.getCmdFunc('loadUI')
-
-@_factories.addCmdDocs
-def runTimeCommand(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['c', 'ca', 'cl', 'command', 'commandArray', 'commandLanguage', 'dca', 'defaultCommandArray', 'nc', 'ndc', 'nuc', 'numberOfCommands', 'numberOfDefaultCommands', 'numberOfUserCommands', 'uca', 'userCommandArray']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.runTimeCommand(*args, **kwargs)
-    return res
-
-@_factories.addCmdDocs
-def dockControl(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['cc', 'closeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'fcc', 'floatChangeCommand', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.dockControl(*args, **kwargs)
-    return res
-
-@_factories.addCmdDocs
-def hotkeyEditorPanel(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.hotkeyEditorPanel(*args, **kwargs)
-    return res
-
-loadPrefObjects = _factories.getCmdFunc('loadPrefObjects')
-
-createEditor = _factories.getCmdFunc('createEditor')
-
-@_factories.addCmdDocs
-def headsUpDisplay(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['c', 'command']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.headsUpDisplay(*args, **kwargs)
-    return res
-
-@_factories.addCmdDocs
-def treeLister(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'favoritesCallback', 'fcb', 'rc', 'refreshCommand', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.treeLister(*args, **kwargs)
-    return res
-
-spreadSheetEditor = _factories.getCmdFunc('spreadSheetEditor')
-
-inViewMessage = _factories.getCmdFunc('inViewMessage')
-
-deleteUI = _factories.getCmdFunc('deleteUI')
-
-overrideModifier = _factories.getCmdFunc('overrideModifier')
-
-@_factories.addCmdDocs
-def webBrowser(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.webBrowser(*args, **kwargs)
-    return res
-
-refreshEditorTemplates = _factories.getCmdFunc('refreshEditorTemplates')
-
-setFocus = _factories.getCmdFunc('setFocus')
-
-@_factories.addCmdDocs
-def nodeEditor(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['cc', 'cnc', 'contentsChangedCommand', 'createNodeCommand', 'fc', 'fcn', 'filterCreateNodeTypes', 'focusCommand', 'keyPressCommand', 'keyReleaseCommand', 'kpc', 'krc', 'layoutCommand', 'lc', 'pms', 'popupMenuScript', 'scc', 'settingsChangedCallback', 'tabChangeCommand', 'tcc', 'toolTipCommand', 'ttc']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.nodeEditor(*args, **kwargs)
-    return res
-
-connectControl = _factories.getCmdFunc('connectControl')
-
-showWindow = _factories.getCmdFunc('showWindow')
-
-@_factories.addCmdDocs
-def control(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.control(*args, **kwargs)
-    return res
-
-contentBrowser = _factories.getCmdFunc('contentBrowser')
-
-@_factories.addCmdDocs
-def treeView(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['cmc', 'contextMenuCommand', 'dad', 'dc2', 'dgc', 'dpc', 'dragAndDropCommand', 'dragCallback', 'dropCallback', 'ecc', 'editLabelCommand', 'elc', 'expandCollapseCommand', 'idc', 'irc', 'itemDblClickCommand', 'itemDblClickCommand2', 'itemRenamedCommand', 'pc', 'pressCommand', 'rightPressCommand', 'rpc', 'sc', 'scc', 'selectCommand', 'selectionChangedCommand', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.treeView(*args, **kwargs)
-    return res
-
-setUITemplate = _factories.getCmdFunc('setUITemplate')
-
-renameUI = _factories.getCmdFunc('renameUI')
-
-@_factories.addCmdDocs
-def flowLayout(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.flowLayout(*args, **kwargs)
-    return res
-
-textManip = _factories.getCmdFunc('textManip')
-
-menuSetPref = _factories.getCmdFunc('menuSetPref')
-
-componentEditor = _factories.getCmdFunc('componentEditor')
-
-setMenuMode = _factories.getCmdFunc('setMenuMode')
-
-disableIncorrectNameWarning = _factories.getCmdFunc('disableIncorrectNameWarning')
-
-@_factories.addCmdDocs
-def hudSlider(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dc', 'dragCommand', 'pc', 'pressCommand', 'rc', 'releaseCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.hudSlider(*args, **kwargs)
-    return res
-
-saveShelf = _factories.getCmdFunc('saveShelf')
-
-@_factories.addCmdDocs
-def hotkey(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['cmd', 'commandModifier', 'pcr', 'pressCommandRepeat', 'rcr', 'releaseCommandRepeat']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.hotkey(*args, **kwargs)
-    return res
-
-workspacePanel = _factories.getCmdFunc('workspacePanel')
-
-workspaceControlState = _factories.getCmdFunc('workspaceControlState')
-
-dimWhen = _factories.getCmdFunc('dimWhen')
-
-canCreateCaddyManip = _factories.getCmdFunc('canCreateCaddyManip')
-
-setParent = _factories.addCmdDocs(setParent)
-
-@_factories.addCmdDocs
-def soundPopup(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.soundPopup(*args, **kwargs)
-    return res
-
-workspaceLayoutManager = _factories.getCmdFunc('workspaceLayoutManager')
-
-artBuildPaintMenu = _factories.getCmdFunc('artBuildPaintMenu')
-
-setStartupMessage = _factories.getCmdFunc('setStartupMessage')
-
-mayaDpiSetting = _factories.getCmdFunc('mayaDpiSetting')
-
-@_factories.addCmdDocs
-def nameCommand(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['c', 'command']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.nameCommand(*args, **kwargs)
-    return res
-
-@_factories.addCmdDocs
-def hotBox(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['ncc', 'noClickCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.hotBox(*args, **kwargs)
-    return res
-
-@_factories.addCmdDocs
-def hudSliderButton(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['bpc', 'brc', 'buttonPressCommand', 'buttonReleaseCommand', 'sdc', 'sliderDragCommand', 'sliderPressCommand', 'sliderReleaseCommand', 'spc', 'src']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.hudSliderButton(*args, **kwargs)
-    return res
-
-autoPlace = _factories.getCmdFunc('autoPlace')
-
-panelHistory = _factories.getCmdFunc('panelHistory')
-
-@_factories.addCmdDocs
-def componentBox(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.componentBox(*args, **kwargs)
     return res
 
 @_factories.addCmdDocs
@@ -3502,119 +3014,31 @@ def rangeControl(*args, **kwargs):
     res = cmds.rangeControl(*args, **kwargs)
     return res
 
-toggleWindowVisibility = _factories.getCmdFunc('toggleWindowVisibility')
+appHome = _factories.getCmdFunc('appHome')
 
-inViewEditor = _factories.getCmdFunc('inViewEditor')
+panelHistory = _factories.getCmdFunc('panelHistory')
+
+artBuildPaintMenu = _factories.getCmdFunc('artBuildPaintMenu')
 
 @_factories.addCmdDocs
-def soundControl(*args, **kwargs):
+def dockControl(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'pc', 'pressCommand', 'rc', 'releaseCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ['cc', 'closeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'fcc', 'floatChangeCommand', 'vcc', 'visibleChangeCommand']:
         try:
             cb = kwargs[key]
             if callable(cb):
                 kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
         except KeyError:
             pass
-    res = cmds.soundControl(*args, **kwargs)
+    res = cmds.dockControl(*args, **kwargs)
     return res
 
-@_factories.addCmdDocs
-def timeFieldGrp(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.timeFieldGrp(*args, **kwargs)
-    return res
+saveAllShelves = _factories.getCmdFunc('saveAllShelves')
 
-uiTemplate = _factories.addCmdDocs(uiTemplate)
-
-@_factories.addCmdDocs
-def switchTable(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.switchTable(*args, **kwargs)
-    return res
-
-multiTouch = _factories.getCmdFunc('multiTouch')
-
-savePrefs = _factories.getCmdFunc('savePrefs')
-
-editor = _factories.getCmdFunc('editor')
-
-webBrowserPrefs = _factories.getCmdFunc('webBrowserPrefs')
-
-objectTypeUI = _factories.getCmdFunc('objectTypeUI')
-
-@_factories.addCmdDocs
-def swatchDisplayPort(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'pc', 'pressCommand', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.swatchDisplayPort(*args, **kwargs)
-    return res
-
-scmh = _factories.getCmdFunc('scmh')
-
-@_factories.addCmdDocs
-def hudButton(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['pc', 'pressCommand', 'rc', 'releaseCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.hudButton(*args, **kwargs)
-    return res
-
-@_factories.addCmdDocs
-def nodeOutliner(*args, **kwargs):
-    if len(args):
-        doPassSelf = kwargs.pop('passSelf', False)
-    else:
-        doPassSelf = False
-    for key in ['ac', 'addCommand', 'dc', 'dc', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'mc', 'menuCommand', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
-        try:
-            cb = kwargs[key]
-            if callable(cb):
-                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
-        except KeyError:
-            pass
-    res = cmds.nodeOutliner(*args, **kwargs)
-    return res
+savePrefObjects = _factories.getCmdFunc('savePrefObjects')
 
 @_factories.addCmdDocs
 def workspaceControl(*args, **kwargs):
@@ -3633,7 +3057,131 @@ def workspaceControl(*args, **kwargs):
     return res
 
 @_factories.addCmdDocs
-def toolBar(*args, **kwargs):
+def annotate(*args, **kwargs):
+    res = cmds.annotate(*args, **kwargs)
+    wraps = _factories.simpleCommandWraps['annotate']
+    for func, wrapCondition in wraps:
+        if wrapCondition.eval(kwargs):
+            res = func(res)
+            break
+    return res
+
+@_factories.addCmdDocs
+def runTimeCommand(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['c', 'ca', 'cl', 'command', 'commandArray', 'commandLanguage', 'dca', 'defaultCommandArray', 'nc', 'ndc', 'nuc', 'numberOfCommands', 'numberOfDefaultCommands', 'numberOfUserCommands', 'uca', 'userCommandArray']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.runTimeCommand(*args, **kwargs)
+    return res
+
+showWindow = _factories.getCmdFunc('showWindow')
+
+textManip = _factories.getCmdFunc('textManip')
+
+@_factories.addCmdDocs
+def hudButton(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['pc', 'pressCommand', 'rc', 'releaseCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.hudButton(*args, **kwargs)
+    return res
+
+spreadSheetEditor = _factories.getCmdFunc('spreadSheetEditor')
+
+componentEditor = _factories.getCmdFunc('componentEditor')
+
+menuSetPref = _factories.getCmdFunc('menuSetPref')
+
+mayaDpiSetting = _factories.getCmdFunc('mayaDpiSetting')
+
+_getPanel = getPanel
+
+@_factories.addCmdDocs
+def getPanel(*args, **kwargs):
+    res = _getPanel(*args, **kwargs)
+    wraps = _factories.simpleCommandWraps['getPanel']
+    for func, wrapCondition in wraps:
+        if wrapCondition.eval(kwargs):
+            res = func(res)
+            break
+    return res
+
+objectTypeUI = _factories.getCmdFunc('objectTypeUI')
+
+framelessDialog = _factories.getCmdFunc('framelessDialog')
+
+@_factories.addCmdDocs
+def timeControl(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'pc', 'pressCommand', 'rc', 'releaseCommand', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.timeControl(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def hotBox(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ncc', 'noClickCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.hotBox(*args, **kwargs)
+    return res
+
+setStartupMessage = _factories.getCmdFunc('setStartupMessage')
+
+showSelectionInTitle = _factories.getCmdFunc('showSelectionInTitle')
+
+headsUpMessage = _factories.getCmdFunc('headsUpMessage')
+
+@_factories.addCmdDocs
+def nodeOutliner(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['ac', 'addCommand', 'dc', 'dc', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'mc', 'menuCommand', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.nodeOutliner(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def control(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -3645,7 +3193,171 @@ def toolBar(*args, **kwargs):
                 kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
         except KeyError:
             pass
-    res = cmds.toolBar(*args, **kwargs)
+    res = cmds.control(*args, **kwargs)
+    return res
+
+inViewEditor = _factories.getCmdFunc('inViewEditor')
+
+contentBrowser = _factories.getCmdFunc('contentBrowser')
+
+scmh = _factories.getCmdFunc('scmh')
+
+windowPref = _factories.getCmdFunc('windowPref')
+
+saveMenu = _factories.getCmdFunc('saveMenu')
+
+linearPrecision = _factories.getCmdFunc('linearPrecision')
+
+loadUI = _factories.getCmdFunc('loadUI')
+
+webBrowserPrefs = _factories.getCmdFunc('webBrowserPrefs')
+
+@_factories.addCmdDocs
+def swatchDisplayPort(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'pc', 'pressCommand', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.swatchDisplayPort(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def hudSlider(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dc', 'dragCommand', 'pc', 'pressCommand', 'rc', 'releaseCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.hudSlider(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def switchTable(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.switchTable(*args, **kwargs)
+    return res
+
+connectControl = _factories.getCmdFunc('connectControl')
+
+workspacePanel = _factories.getCmdFunc('workspacePanel')
+
+multiTouch = _factories.getCmdFunc('multiTouch')
+
+deleteUI = _factories.getCmdFunc('deleteUI')
+
+toggleWindowVisibility = _factories.getCmdFunc('toggleWindowVisibility')
+
+editorTemplate = _factories.getCmdFunc('editorTemplate')
+
+refreshEditorTemplates = _factories.getCmdFunc('refreshEditorTemplates')
+
+@_factories.addCmdDocs
+def nodeEditor(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['cc', 'cnc', 'contentsChangedCommand', 'createNodeCommand', 'fc', 'fcn', 'filterCreateNodeTypes', 'focusCommand', 'keyPressCommand', 'keyReleaseCommand', 'kpc', 'krc', 'layoutCommand', 'lc', 'pms', 'popupMenuScript', 'scc', 'settingsChangedCallback', 'tabChangeCommand', 'tcc', 'toolTipCommand', 'ttc']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.nodeEditor(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def nodeTreeLister(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'favoritesCallback', 'fcb', 'rc', 'refreshCommand', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.nodeTreeLister(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def componentBox(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.componentBox(*args, **kwargs)
+    return res
+
+renameUI = _factories.getCmdFunc('renameUI')
+
+saveShelf = _factories.getCmdFunc('saveShelf')
+
+setFocus = _factories.getCmdFunc('setFocus')
+
+@_factories.addCmdDocs
+def hotkey(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['cmd', 'commandModifier', 'pcr', 'pressCommandRepeat', 'rcr', 'releaseCommandRepeat']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.hotkey(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def picture(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.picture(*args, **kwargs)
     return res
 
 @_factories.addCmdDocs
@@ -3664,10 +3376,110 @@ def timeField(*args, **kwargs):
     res = cmds.timeField(*args, **kwargs)
     return res
 
-panelConfiguration = _factories.getCmdFunc('panelConfiguration')
+dimWhen = _factories.getCmdFunc('dimWhen')
+
+workspaceLayoutManager = _factories.getCmdFunc('workspaceLayoutManager')
+
+grabColor = _factories.getCmdFunc('grabColor')
+
+overrideModifier = _factories.getCmdFunc('overrideModifier')
+
+scriptEditorInfo = _factories.getCmdFunc('scriptEditorInfo')
+
+inViewMessage = _factories.getCmdFunc('inViewMessage')
+
+defaultNavigation = _factories.getCmdFunc('defaultNavigation')
 
 @_factories.addCmdDocs
-def falloffCurveAttr(*args, **kwargs):
+def hotkeyEditorPanel(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.hotkeyEditorPanel(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def hotkeyCheck(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['cmd', 'commandModifier']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.hotkeyCheck(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def soundControl(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'pc', 'pressCommand', 'rc', 'releaseCommand', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.soundControl(*args, **kwargs)
+    return res
+
+savePrefs = _factories.getCmdFunc('savePrefs')
+
+setNodeTypeFlag = _factories.getCmdFunc('setNodeTypeFlag')
+
+@_factories.addCmdDocs
+def flowLayout(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.flowLayout(*args, **kwargs)
+    return res
+
+workspaceControlState = _factories.getCmdFunc('workspaceControlState')
+
+hotkeySet = _factories.getCmdFunc('hotkeySet')
+
+@_factories.addCmdDocs
+def treeView(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['cmc', 'contextMenuCommand', 'dad', 'dc2', 'dgc', 'dpc', 'dragAndDropCommand', 'dragCallback', 'dropCallback', 'ecc', 'editLabelCommand', 'elc', 'expandCollapseCommand', 'idc', 'irc', 'itemDblClickCommand', 'itemDblClickCommand2', 'itemRenamedCommand', 'pc', 'pressCommand', 'rightPressCommand', 'rpc', 'sc', 'scc', 'selectCommand', 'selectionChangedCommand', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.treeView(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def colorInputWidgetGrp(*args, **kwargs):
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -3679,7 +3491,199 @@ def falloffCurveAttr(*args, **kwargs):
                 kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
         except KeyError:
             pass
-    res = cmds.falloffCurveAttr(*args, **kwargs)
+    res = cmds.colorInputWidgetGrp(*args, **kwargs)
+    return res
+
+buttonManip = _factories.getCmdFunc('buttonManip')
+
+minimizeApp = _factories.getCmdFunc('minimizeApp')
+
+setParent = _factories.addCmdDocs(setParent)
+
+outputWindow = _factories.getCmdFunc('outputWindow')
+
+@_factories.addCmdDocs
+def timePort(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.timePort(*args, **kwargs)
+    return res
+
+thumbnailCaptureComponent = _factories.getCmdFunc('thumbnailCaptureComponent')
+
+autoPlace = _factories.getCmdFunc('autoPlace')
+
+disable = _factories.getCmdFunc('disable')
+
+@_factories.addCmdDocs
+def treeLister(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'favoritesCallback', 'fcb', 'rc', 'refreshCommand', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.treeLister(*args, **kwargs)
+    return res
+
+createEditor = _factories.getCmdFunc('createEditor')
+
+@_factories.addCmdDocs
+def timeFieldGrp(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.timeFieldGrp(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def hudSliderButton(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['bpc', 'brc', 'buttonPressCommand', 'buttonReleaseCommand', 'sdc', 'sliderDragCommand', 'sliderPressCommand', 'sliderReleaseCommand', 'spc', 'src']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.hudSliderButton(*args, **kwargs)
+    return res
+
+setUITemplate = _factories.getCmdFunc('setUITemplate')
+
+@_factories.addCmdDocs
+def soundPopup(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.soundPopup(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def viewManip(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['p', 'postCommand', 'pr', 'preCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.viewManip(*args, **kwargs)
+    return res
+
+panelConfiguration = _factories.getCmdFunc('panelConfiguration')
+
+@_factories.addCmdDocs
+def toolBar(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.toolBar(*args, **kwargs)
+    return res
+
+loadPrefObjects = _factories.getCmdFunc('loadPrefObjects')
+
+disableIncorrectNameWarning = _factories.getCmdFunc('disableIncorrectNameWarning')
+
+uiTemplate = _factories.addCmdDocs(uiTemplate)
+
+@_factories.addCmdDocs
+def webBrowser(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.webBrowser(*args, **kwargs)
+    return res
+
+setMenuMode = _factories.getCmdFunc('setMenuMode')
+
+progressWindow = _factories.getCmdFunc('progressWindow')
+
+editor = _factories.getCmdFunc('editor')
+
+@_factories.addCmdDocs
+def headsUpDisplay(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['c', 'command']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.headsUpDisplay(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def nameCommand(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ['c', 'command']:
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.nameCommand(*args, **kwargs)
     return res
 
 autoLayout.__doc__ = formLayout.__doc__

@@ -194,6 +194,8 @@ AnimationTurntable = getattr(cmds, 'AnimationTurntable', None)
 
 AnimationTurntableOptions = getattr(cmds, 'AnimationTurntableOptions', None)
 
+AppHome = getattr(cmds, 'AppHome', None)
+
 AppendToHairCache = getattr(cmds, 'AppendToHairCache', None)
 
 AppendToHairCacheOptions = getattr(cmds, 'AppendToHairCacheOptions', None)
@@ -2090,12 +2092,6 @@ HypergraphIncreaseDepth = getattr(cmds, 'HypergraphIncreaseDepth', None)
 
 HypergraphWindow = getattr(cmds, 'HypergraphWindow', None)
 
-HypershadeAddOnNodeCreate = getattr(cmds, 'HypershadeAddOnNodeCreate', None)
-
-HypershadeAdditiveGraphingMode = getattr(cmds, 'HypershadeAdditiveGraphingMode', None)
-
-HypershadeAutoSizeNodes = getattr(cmds, 'HypershadeAutoSizeNodes', None)
-
 HypershadeCloseActiveTab = getattr(cmds, 'HypershadeCloseActiveTab', None)
 
 HypershadeCloseAllTabs = getattr(cmds, 'HypershadeCloseAllTabs', None)
@@ -2253,8 +2249,6 @@ HypershadePickWalkLeft = getattr(cmds, 'HypershadePickWalkLeft', None)
 HypershadePickWalkRight = getattr(cmds, 'HypershadePickWalkRight', None)
 
 HypershadePickWalkUp = getattr(cmds, 'HypershadePickWalkUp', None)
-
-HypershadePinByDefault = getattr(cmds, 'HypershadePinByDefault', None)
 
 HypershadePinSelected = getattr(cmds, 'HypershadePinSelected', None)
 
@@ -2768,8 +2762,6 @@ Morph = getattr(cmds, 'Morph', None)
 
 MorphOptions = getattr(cmds, 'MorphOptions', None)
 
-MotionLibraryEditor = getattr(cmds, 'MotionLibraryEditor', None)
-
 MoveCacheToInput = getattr(cmds, 'MoveCacheToInput', None)
 
 MoveCurveSeam = getattr(cmds, 'MoveCurveSeam', None)
@@ -3065,6 +3057,8 @@ NodeEditorToggleZoomIn = getattr(cmds, 'NodeEditorToggleZoomIn', None)
 NodeEditorToggleZoomOut = getattr(cmds, 'NodeEditorToggleZoomOut', None)
 
 NodeEditorTransforms = getattr(cmds, 'NodeEditorTransforms', None)
+
+NodeEditorUnitConversions = getattr(cmds, 'NodeEditorUnitConversions', None)
 
 NodeEditorUnpinSelected = getattr(cmds, 'NodeEditorUnpinSelected', None)
 
@@ -4261,6 +4255,8 @@ SculptSurfacesTool = getattr(cmds, 'SculptSurfacesTool', None)
 SculptSurfacesToolOptions = getattr(cmds, 'SculptSurfacesToolOptions', None)
 
 SearchAndReplaceNames = getattr(cmds, 'SearchAndReplaceNames', None)
+
+SearchEngine = getattr(cmds, 'SearchEngine', None)
 
 SelectAll = getattr(cmds, 'SelectAll', None)
 
@@ -5608,8 +5604,6 @@ ToggleTextureBorderEdges = getattr(cmds, 'ToggleTextureBorderEdges', None)
 
 ToggleTimeSlider = getattr(cmds, 'ToggleTimeSlider', None)
 
-ToggleToolMessage = getattr(cmds, 'ToggleToolMessage', None)
-
 ToggleToolSettings = getattr(cmds, 'ToggleToolSettings', None)
 
 ToggleToolbox = getattr(cmds, 'ToggleToolbox', None)
@@ -5961,10 +5955,6 @@ WeightedTangents = getattr(cmds, 'WeightedTangents', None)
 WhatsNewHighlightingOff = getattr(cmds, 'WhatsNewHighlightingOff', None)
 
 WhatsNewHighlightingOn = getattr(cmds, 'WhatsNewHighlightingOn', None)
-
-WhatsNewStartupDialogOff = getattr(cmds, 'WhatsNewStartupDialogOff', None)
-
-WhatsNewStartupDialogOn = getattr(cmds, 'WhatsNewStartupDialogOn', None)
 
 WireDropoffLocator = getattr(cmds, 'WireDropoffLocator', None)
 

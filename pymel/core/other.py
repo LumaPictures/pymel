@@ -632,8 +632,6 @@ flushIdleQueue = _factories.getCmdFunc('flushIdleQueue')
 
 flushThumbnailCache = _factories.getCmdFunc('flushThumbnailCache')
 
-fontAttributes = _factories.getCmdFunc('fontAttributes')
-
 greasePencil = _factories.getCmdFunc('greasePencil')
 
 greasePencilHelper = _factories.getCmdFunc('greasePencilHelper')

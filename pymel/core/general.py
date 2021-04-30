@@ -8541,6 +8541,8 @@ polySplitCtx2 = _factories.getCmdFunc('polySplitCtx2')
 
 relationship = _factories.getCmdFunc('relationship')
 
+rememberCtxSettings = _factories.getCmdFunc('rememberCtxSettings')
+
 removeMultiInstance = _factories.getCmdFunc('removeMultiInstance')
 
 renameAttr = _factories.getCmdFunc('renameAttr')

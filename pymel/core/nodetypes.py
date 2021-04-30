@@ -1228,6 +1228,12 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
         return res
+
+    @_f.addApiDocs(_api.MFnDependencyNode, 'uniqueName')
+    def uniqueName(self):
+        # type: () -> str
+        res = _f.getProxyResult(self, _api.MFnDependencyNode, 'uniqueName')
+        return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 # ------ Do not edit above this line --------
 
 
@@ -6910,6 +6916,8 @@ class Mesh(SurfaceShape):
     __melnode__ = 'mesh'
     __slots__ = ()
     BoolOperation = Enum('BoolOperation', [('union', 1), ('kUnion', 1), ('difference', 2), ('kDifference', 2), ('intersection', 3), ('kIntersection', 3)], multiKeys=True)
+    if versions.current() >= versions.v2023:
+        BorderInfo = Enum('BorderInfo', [('geomBorder', -2), ('kGeomBorder', -2), ('UVBorder', -1), ('kUVBorder', -1), ('sharedUV', 0), ('kSharedUV', 0), ('unsharedUV', 1), ('kUnsharedUV', 1)], multiKeys=True)
     MColorRepresentation = Enum('MColorRepresentation', [('alpha', 1), ('kAlpha', 1), ('RGB', 3), ('kRGB', 3), ('RGBA', 4), ('kRGBA', 4)], multiKeys=True)
     SplitPlacement = Enum('SplitPlacement', [('onEdge', 0), ('kOnEdge', 0), ('internalPoint', 1), ('kInternalPoint', 1), ('invalid', 2), ('kInvalid', 2)], multiKeys=True)
 
@@ -7111,6 +7119,14 @@ class Mesh(SurfaceShape):
         do, final_do, outTypes = _f.getDoArgs([setName, modifier, currentSelection], [('setName', 'MString', 'in', None), ('modifier', 'MDGModifier', 'in', None), ('currentSelection', 'MSelectionList', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'deleteUVSet', final_do)
         return res
+
+    @_f.addApiDocs(_api.MFnMesh, 'edgeBorderInfo')
+    def edgeBorderInfo(self, edgeId):
+        # type: (int) -> Tuple[Mesh.BorderInfo, int]
+        do, final_do, outTypes = _f.getDoArgs([edgeId], [('edgeId', 'int', 'in', None), ('ReturnStatus', 'uint', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnMesh, 'edgeBorderInfo', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, ('MFnMesh', 'BorderInfo'), None)
+        return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getAssignedUVs')
     def getAssignedUVs(self, uvSet=None):
@@ -7317,6 +7333,13 @@ class Mesh(SurfaceShape):
         res = _f.ApiArgUtil._castResult(self, res, 'int', None)
         return _f.processApiResult(res, outTypes, do)
 
+    @_f.addApiDocs(_api.MFnMesh, 'getMeshShellsIds')
+    def getMeshShellsIds(self, compType):
+        # type: (datatypes.Fn.Type) -> Tuple[List[int], int]
+        do, final_do, outTypes = _f.getDoArgs([compType], [('compType', ('MFn', 'Type'), 'in', None), ('meshShellIds', 'MIntArray', 'out', None), ('nbMeshShells', 'uint', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnMesh, 'getMeshShellsIds', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
     @_f.addApiDocs(_api.MFnMesh, 'getNormalIds')
     def getNormalIds(self):
         # type: () -> Tuple[List[int], List[int]]
@@ -7428,6 +7451,13 @@ class Mesh(SurfaceShape):
         # type: (int, str) -> Tuple[float, float]
         do, final_do, outTypes = _f.getDoArgs([uvId, uvSet], [('uvId', 'int', 'in', None), ('u', 'float', 'out', None), ('v', 'float', 'out', None), ('uvSet', 'MString', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getUV', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
+    @_f.addApiDocs(_api.MFnMesh, 'getUVBorderEdges')
+    def getUVBorderEdges(self, setId):
+        # type: (int) -> List[int]
+        do, final_do, outTypes = _f.getDoArgs([setId], [('setId', 'uint', 'in', None), ('edgeList', 'MIntArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnMesh, 'getUVBorderEdges', final_do)
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getUVSetFamilyNames')
@@ -32091,6 +32121,11 @@ class PolyCBoolOp(PolyBoolOp):
         res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'preserveColor')
         return res
 
+    @_f.addMelDocs('polyCBoolOp', 'tagIntersection')
+    def getTagIntersection(self, **kwargs):
+        res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'tagIntersection')
+        return res
+
     @_f.addMelDocs('polyCBoolOp', 'useCarveBooleans')
     def getUseCarveBooleans(self, **kwargs):
         res = _f.asQuery(self, modeling.polyCBoolOp, kwargs, 'useCarveBooleans')
@@ -32133,6 +32168,10 @@ class PolyCBoolOp(PolyBoolOp):
     @_f.addMelDocs('polyCBoolOp', 'preserveColor')
     def setPreserveColor(self, val=True, **kwargs):
         return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'preserveColor', val)
+
+    @_f.addMelDocs('polyCBoolOp', 'tagIntersection')
+    def setTagIntersection(self, val=True, **kwargs):
+        return _f.asEdit(self, modeling.polyCBoolOp, kwargs, 'tagIntersection', val)
 
     @_f.addMelDocs('polyCBoolOp', 'useCarveBooleans')
     def setUseCarveBooleans(self, val=True, **kwargs):
@@ -38511,6 +38550,11 @@ class PrecompExport(DependNode):
         return res
 
 
+class ProximityFalloff(DependNode):
+    __melnode__ = 'proximityFalloff'
+    __slots__ = ()
+
+
 class ProximityPin(DependNode):
     __melnode__ = 'proximityPin'
     __slots__ = ()
@@ -38695,6 +38739,12 @@ class Reference(DependNode):
     def isReferenceLocked(self):
         # type: () -> bool
         res = _f.getProxyResult(self, _api.MFnReference, 'isLocked')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
+    @_f.addApiDocs(_api.MFnReference, 'isValidReference')
+    def isValidReference(self):
+        # type: () -> bool
+        res = _f.getProxyResult(self, _api.MFnReference, 'isValidReference')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
     @_f.addApiDocs(_api.MFnReference, 'nodes')
@@ -41429,6 +41479,76 @@ class Grid(Texture2d):
         res = _f.asQuery(self, modeling.grid, kwargs, 'divisions')
         return res
 
+    @_f.addMelDocs('grid', 'drawInfiniteGrid')
+    def getDrawInfiniteGrid(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'drawInfiniteGrid')
+        return res
+
+    @_f.addMelDocs('grid', 'fogBase')
+    def getFogBase(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'fogBase')
+        return res
+
+    @_f.addMelDocs('grid', 'fogEnabled')
+    def getFogEnabled(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'fogEnabled')
+        return res
+
+    @_f.addMelDocs('grid', 'fogMinimumCameraDistance')
+    def getFogMinimumCameraDistance(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'fogMinimumCameraDistance')
+        return res
+
+    @_f.addMelDocs('grid', 'fogPower')
+    def getFogPower(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'fogPower')
+        return res
+
+    @_f.addMelDocs('grid', 'gridSizeCameraDistanceFactor')
+    def getGridSizeCameraDistanceFactor(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'gridSizeCameraDistanceFactor')
+        return res
+
+    @_f.addMelDocs('grid', 'gridSizeFixed')
+    def getGridSizeFixed(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'gridSizeFixed')
+        return res
+
+    @_f.addMelDocs('grid', 'gridSizeLogFactorAdjustment')
+    def getGridSizeLogFactorAdjustment(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'gridSizeLogFactorAdjustment')
+        return res
+
+    @_f.addMelDocs('grid', 'gridSizeMinimum')
+    def getGridSizeMinimum(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'gridSizeMinimum')
+        return res
+
+    @_f.addMelDocs('grid', 'gridSizeVarying')
+    def getGridSizeVarying(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'gridSizeVarying')
+        return res
+
+    @_f.addMelDocs('grid', 'lineWidth')
+    def getLineWidth(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'lineWidth')
+        return res
+
+    @_f.addMelDocs('grid', 'majorColor')
+    def getMajorColor(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'majorColor')
+        return res
+
+    @_f.addMelDocs('grid', 'minorColor')
+    def getMinorColor(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'minorColor')
+        return res
+
+    @_f.addMelDocs('grid', 'normalAxis')
+    def getNormalAxis(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'normalAxis')
+        return res
+
     @_f.addMelDocs('grid', 'orthographicLabelPosition')
     def getOrthographicLabelPosition(self, **kwargs):
         res = _f.asQuery(self, modeling.grid, kwargs, 'orthographicLabelPosition')
@@ -41457,6 +41577,21 @@ class Grid(Texture2d):
     @_f.addMelDocs('grid', 'toggle')
     def getToggle(self, **kwargs):
         res = _f.asQuery(self, modeling.grid, kwargs, 'toggle')
+        return res
+
+    @_f.addMelDocs('grid', 'xAxisColor')
+    def getXAxisColor(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'xAxisColor')
+        return res
+
+    @_f.addMelDocs('grid', 'yAxisColor')
+    def getYAxisColor(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'yAxisColor')
+        return res
+
+    @_f.addMelDocs('grid', 'zAxisColor')
+    def getZAxisColor(self, **kwargs):
+        res = _f.asQuery(self, modeling.grid, kwargs, 'zAxisColor')
         return res
 
 
@@ -42970,6 +43105,11 @@ class SubdivToPoly(DependNode):
         res = _f.getProxyResult(self, _api.MFnDependencyNode, 'setAlias', final_do)
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
+
+
+class SubsetFalloff(DependNode):
+    __melnode__ = 'subsetFalloff'
+    __slots__ = ()
 
 
 class SurfaceLuminance(DependNode):

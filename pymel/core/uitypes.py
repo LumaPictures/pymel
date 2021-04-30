@@ -22599,6 +22599,16 @@ class ShelfTabLayout(Layout):
         res = _f.asQuery(self, windows.shelfTabLayout, kwargs, 'showNewTab')
         return res
 
+    @_f.addMelDocs('shelfTabLayout', 'tabIcon')
+    def getTabIcon(self, **kwargs):
+        res = _f.asQuery(self, windows.shelfTabLayout, kwargs, 'tabIcon')
+        return res
+
+    @_f.addMelDocs('shelfTabLayout', 'tabIconIndex')
+    def getTabIconIndex(self, **kwargs):
+        res = _f.asQuery(self, windows.shelfTabLayout, kwargs, 'tabIconIndex')
+        return res
+
     @_f.addMelDocs('shelfTabLayout', 'tabLabel')
     def getTabLabel(self, **kwargs):
         res = _f.asQuery(self, windows.shelfTabLayout, kwargs, 'tabLabel')
@@ -22744,6 +22754,14 @@ class ShelfTabLayout(Layout):
     @_f.addMelDocs('shelfTabLayout', 'showNewTab')
     def setShowNewTab(self, val=True, **kwargs):
         return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'showNewTab', val)
+
+    @_f.addMelDocs('shelfTabLayout', 'tabIcon')
+    def setTabIcon(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'tabIcon', val)
+
+    @_f.addMelDocs('shelfTabLayout', 'tabIconIndex')
+    def setTabIconIndex(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'tabIconIndex', val)
 
     @_f.addMelDocs('shelfTabLayout', 'tabLabel')
     def setTabLabel(self, val=True, **kwargs):
@@ -22966,6 +22984,16 @@ class TabLayout(Layout):
         res = _f.asQuery(self, windows.tabLayout, kwargs, 'showNewTab')
         return res
 
+    @_f.addMelDocs('tabLayout', 'tabIcon')
+    def getTabIcon(self, **kwargs):
+        res = _f.asQuery(self, windows.tabLayout, kwargs, 'tabIcon')
+        return res
+
+    @_f.addMelDocs('tabLayout', 'tabIconIndex')
+    def getTabIconIndex(self, **kwargs):
+        res = _f.asQuery(self, windows.tabLayout, kwargs, 'tabIconIndex')
+        return res
+
     @_f.addMelDocs('tabLayout', 'tabLabel')
     def getTabLabel(self, **kwargs):
         res = _f.asQuery(self, windows.tabLayout, kwargs, 'tabLabel')
@@ -23111,6 +23139,14 @@ class TabLayout(Layout):
     @_f.addMelDocs('tabLayout', 'showNewTab')
     def setShowNewTab(self, val=True, **kwargs):
         return _f.asEdit(self, windows.tabLayout, kwargs, 'showNewTab', val)
+
+    @_f.addMelDocs('tabLayout', 'tabIcon')
+    def setTabIcon(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.tabLayout, kwargs, 'tabIcon', val)
+
+    @_f.addMelDocs('tabLayout', 'tabIconIndex')
+    def setTabIconIndex(self, val=True, **kwargs):
+        return _f.asEdit(self, windows.tabLayout, kwargs, 'tabIconIndex', val)
 
     @_f.addMelDocs('tabLayout', 'tabLabel')
     def setTabLabel(self, val=True, **kwargs):
@@ -29068,11 +29104,6 @@ class ScrollField(PyUI):
         res = _f.asQuery(self, windows.scrollField, kwargs, 'preventOverride')
         return res
 
-    @_f.addMelDocs('scrollField', 'qtFont')
-    def getQtFont(self, **kwargs):
-        res = _f.asQuery(self, windows.scrollField, kwargs, 'qtFont')
-        return res
-
     @_f.addMelDocs('scrollField', 'selection')
     def getSelection(self, **kwargs):
         res = _f.asQuery(self, windows.scrollField, kwargs, 'selection')
@@ -29165,10 +29196,6 @@ class ScrollField(PyUI):
     @_f.addMelDocs('scrollField', 'preventOverride')
     def setPreventOverride(self, val=True, **kwargs):
         return _f.asEdit(self, windows.scrollField, kwargs, 'preventOverride', val)
-
-    @_f.addMelDocs('scrollField', 'qtFont')
-    def setQtFont(self, val=True, **kwargs):
-        return _f.asEdit(self, windows.scrollField, kwargs, 'qtFont', val)
 
     @_f.addMelDocs('scrollField', 'text')
     def setText(self, val=True, **kwargs):
