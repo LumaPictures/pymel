@@ -487,7 +487,7 @@ else:
 ProxyUnicode = proxyClass(
     _proxyStrBase, 'ProxyUnicode',
     module=__name__, dataFuncName='name',
-    remove=['__doc__', '__getslice__', '__contains__', '__len__',
+    remove=['__doc__', '__getslice__', '__contains__', '__len__', '__dir__',
             '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__',  # reserved for higher levels
             'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
             'capitalize', 'swapcase', 'title',
