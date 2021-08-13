@@ -315,7 +315,7 @@ def toPyType(moduleName, objectName):
         # 'bottom' module (ie, myPackage.myModule, NOT myPackage),
         # note that __import__ doesn't actually insert objectName into
         # the locals... which we don't really want anyway
-        module = __import__(moduleName, globals(), locals(), [objectName], -1)
+        module = __import__(moduleName, globals(), locals(), [objectName], 0)
         cls = getattr(module, objectName)
         if res is not None:
             return cls(res)
