@@ -700,7 +700,7 @@ class TestInvertibles(object):
 # test tricky / extended slices: ie, [:3], [:-1], [-3:-1], [5:1:-2], etc
 # test multi-index slices, ie: [1:2, 5:9:2]
 # Add tests for ranges of float parameters: ie, 'nurbsSphere1.v[5.657][3.1:4.2]'
-# Add tests for double-indexed nurbs suface: 'nurbsSphere1.v[1.1:2.2][3.3:4.4]'
+# Add tests for double-indexed nurbs surface: 'nurbsSphere1.v[1.1:2.2][3.3:4.4]'
 # check that indexing uses mel-style ranges (ie, inclusive)
 # Continuous components with negative indices - ie, nurbsSurf[-3.3][-2]
 
@@ -1904,7 +1904,7 @@ class testCase_components(unittest.TestCase):
             self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
 
     def test_negativeContinuousIndices(self):
-        # For continous comps, these should behave just like positive ones...
+        # For continuous comps, these should behave just like positive ones...
         failedComps = []
         def check(pynode, expectedStrings, compData):
             if not self.compsEqual(pynode, expectedStrings, compData):

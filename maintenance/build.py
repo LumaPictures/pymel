@@ -683,7 +683,7 @@ class Conditional(Statement):
             return 'versions.current() >= {}'.format(minTrue)
         elif all(x < versionsTrue[0] or x > versionsTrue[-1]
                  for x in versionsFalse):
-            # now see if trueVersions forms a "continuous range", not interruped
+            # now see if trueVersions forms a "continuous range", not interrupted
             # by any false versions
             lowerBound = VersionedCaches.symbolicVersionName(versionsTrue[0])
             # since versionsFalse is sorted, the first one we find > maxTrue
@@ -696,7 +696,7 @@ class Conditional(Statement):
                 lowerBound, upperBound)
         elif all(x < versionsFalse[0] or x > versionsFalse[-1]
                  for x in versionsTrue):
-            # now see if falseVersions forms a "continuous range", not interruped
+            # now see if falseVersions forms a "continuous range", not interrupted
             # by any true versions
             lowerBound = VersionedCaches.symbolicVersionName(versionsFalse[0])
             # since versionsTrue is sorted, the first one we find > maxFalse

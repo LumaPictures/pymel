@@ -163,7 +163,7 @@ class Parsed(ProxyUni):
             errmsg = "cannot parse '%s' to a valid %s, %d parser errors" % (data, clsname, cls.classparser().errorcount)
             isValid = False
         elif not isinstance(result, cls):
-            # parse successful but returned a different class than exected
+            # parse successful but returned a different class than expected
             errmsg = "parsing '%s' is valid, but as a %s Parsed object, and not as a %s Parsed object as it was parsed against" % (data, result.__class__.__name__, clsname)
             isValid = False
         elif not result == data:

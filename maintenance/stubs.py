@@ -170,7 +170,7 @@ def get_unique_name(basename=None, all_names=()):
     if basename is None:
         basename = '_unknown'
     elif not basename.startswith('_'):
-        # we only use this in cases where the name wasn't orignally
+        # we only use this in cases where the name wasn't originally
         # found in the module - ie, we're just trying to add in
         # something that isn't really supposed to be in the module, but
         # we need it there to refer to it...
