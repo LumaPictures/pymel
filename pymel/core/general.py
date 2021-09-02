@@ -7771,7 +7771,7 @@ class AttributeSpec(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     the same - ie, they are all floating point numerical attributes, are all
     storable, etc.
 
-    For those familar with the API, an Attribute wraps an MPlug, while an
+    For those familiar with the API, an Attribute wraps an MPlug, while an
     AttributeSpec wraps MFnAttribute.
     '''
     __slots__ = ()

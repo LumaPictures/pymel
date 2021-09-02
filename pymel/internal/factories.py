@@ -3453,7 +3453,7 @@ def addCustomPyNode(module, mayaType, extraAttrs=None):
         _logger.warning("could not get inheritance for mayaType %s" % mayaType)
     else:
         #__logger.debug(mayaType, inheritance)
-        #__logger.debug("adding new node:", mayaType, apiEnum, inheritence)
+        #__logger.debug("adding new node:", mayaType, apiEnum, inheritance)
         # some nodes in the hierarchy for this node might not exist, so we cycle through all
         parent = 'dependNode'
 

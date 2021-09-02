@@ -1367,7 +1367,7 @@ class test_PMTypes(unittest.TestCase):
         self.assertEqual(self.o.formated(),'[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
 
     def test_constants(self):
-        # TODO : come up with a programatic way of finding constants
+        # TODO : come up with a programmatic way of finding constants
         s = """
         Vector.xAxis
         Vector.one

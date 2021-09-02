@@ -1230,7 +1230,7 @@ class ApiCache(BaseApiClassInfoCache):
 
         return reservedMayaTypes
 
-    # TODO: eventually, would like to move the node-heirarchy-building stuff
+    # TODO: eventually, would like to move the node-hierarchy-building stuff
     # from cmdcache into here... we could then cache the node inheritance info,
     # instead of constantly re-querying it in various places...
     def _buildMayaNodeInfo(self):
