@@ -3337,6 +3337,9 @@ class Unit(float):
             args = (args._data, args._unit)
         self._data.assign(*args)
 
+    def __str__(self):
+        return str(float(self))
+
     def __repr__(self):
         return 'dt.%s(%s, unit=%r)' % (self.__class__.__name__, self, self.unit)
 
