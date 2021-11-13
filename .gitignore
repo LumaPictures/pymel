@@ -1,5 +1,6 @@
 *.pi
 *.pyc
+*.pyi
 *.txt
 *.diff
 *.sublime-project

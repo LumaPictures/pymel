@@ -8,12 +8,11 @@ outdir = os.path.dirname(os.path.abspath(sys.argv[0]))
 outfile = os.path.join(outdir, 'CHANGELOG.temp')
 
 rev1, rev2 = sys.argv[1:]
-print locals().keys()
 cmd = ["git", "log", "--reverse", "--pretty=format:%s", "--no-merges",
       "{0}..{1}".format(rev1, rev2)]
 
-print cmd
-results = subprocess.check_output(cmd)
+print(cmd)
+results = subprocess.check_output(cmd, text=True)
 
 categories = {
     'fix': [],
@@ -33,7 +32,6 @@ for line in results.split('\n'):
             module = module[:-3]
         if module.startswith('pymel.'):
             module = module[6:]
-        print module, msg
         m = typereg.search(msg.lower())
         msg = msg.strip()
         msg = msg[0].lower() + msg[1:]
@@ -43,6 +41,8 @@ for line in results.split('\n'):
             categories[category].append(line)
             continue
     categories['other'].append(line)
+
+print("Writing %s" % outfile)
 
 with open(outfile, 'w') as f:
 

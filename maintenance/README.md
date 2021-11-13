@@ -191,7 +191,6 @@ Building an Official PyMEL Release
     maintenance.build.generateAll()
     ```
 
-
 ## 4) Run Tests
 
   - cd into tests directory, then
