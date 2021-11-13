@@ -5,6 +5,18 @@ What's New
 **********
 
 ==================================
+Version 1.2.0
+==================================
+
+----------------------------------
+Additions
+----------------------------------
+- all: Add maya-2022 and python3 support!
+- all: Add support for pip installing pymel, and uploading to pypi
+- api: add support for MPxTransform_BoundingBox
+- Update PLY to 3.11
+
+==================================
 Version 1.1.0
 ==================================
 
