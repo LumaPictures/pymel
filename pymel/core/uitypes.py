@@ -456,6 +456,11 @@ class PyUI(str):
                             parent = windows.optionMenu(name, q=1, p=1)
                         elif issubclass(newcls, Menu):
                             parent = windows.menu(name, q=1, p=1)
+                        elif issubclass(newcls, (CommandMenuItem, SubMenuItem)):
+                            # You can't query the parent of menuItem's so we have to check lsUI
+                            for menuItem in cmds.lsUI(long=True, menuItems=True):
+                                if menuItem.endswith(name):
+                                    parent = menuItem.rsplit("|", 1)[0]
                         else:
                             parent = windows.control(name, q=1, p=1)
                         if parent:
