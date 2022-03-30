@@ -62,7 +62,7 @@ class ParsingWarning(UserWarning):
     pass
 
 
-ProxyUni = proxyClass(str, 'ProxyUni', module=__name__, dataFuncName='compileName', remove=['__getitem__', '__doc__'])  # 2009 Beta 2.1 has issues with passing classes with __getitem__
+ProxyUni = proxyClass(str, 'ProxyUni', module=__name__, dataFuncName='compileName', remove=['__getitem__', '__doc__', '__iter__'])  # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 # For parsed objects, Token or upper level constructs
 
