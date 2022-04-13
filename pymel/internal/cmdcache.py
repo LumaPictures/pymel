@@ -25,6 +25,30 @@ from . import startup
 if False:
     from typing import *
 
+    FlagInfo = TypedDict('FlagInfo', {
+        'longname': str,
+        'shortname': str,
+        # args is non-list if numArgs is 0 or 1:
+        'args': Union[Type, List[Type]],
+        'numArgs': int,
+        'docstring': str,
+        # edit, query, multiuse
+        'modes': List[str],
+        'secondaryFlags': List[str],
+        'resultNeedsCasting': bool,
+    })
+
+    CommandInfo = TypedDict('CommandInfo', {
+        'flags': Dict[str, FlagInfo],
+        'shortFlags': Dict[str, FlagInfo],
+        'description': str,
+        'example': str,
+        # module/category (runtime, animation, etc)
+        'type': str,
+        'removedFlags': Optional[Dict[str, str]],
+    })
+
+
 _logger = plogging.getLogger(__name__)
 
 moduleNameShortToLong = {
@@ -282,7 +306,8 @@ def getCmdInfoBasic(command):
                 #_logger.debug(tokens)
                 if len(tokens) > 1 and tokens[0].startswith('-'):
 
-                    args = [typemap.get(x.lower(), util.uncapitalize(x)) for x in tokens[2:]]
+                    args = [typemap.get(x.lower(), util.uncapitalize(x))
+                            for x in tokens[2:]]
                     numArgs = len(args)
 
                     # lags with no args in mel require a boolean val in python
@@ -307,7 +332,13 @@ def getCmdInfoBasic(command):
                     elif longname == '':
                         longname = shortname
 
-                    flags[longname] = {'longname': longname, 'shortname': shortname, 'args': args, 'numArgs': numArgs, 'docstring': ''}
+                    flags[longname] = {
+                        'longname': longname,
+                        'shortname': shortname,
+                        'args': args,
+                        'numArgs': numArgs,
+                        'docstring': ''
+                    }
                     if multiuse:
                         flags[longname].setdefault('modes', []).append('multiuse')
                     shortFlags[shortname] = longname
@@ -315,7 +346,13 @@ def getCmdInfoBasic(command):
     # except:
     #    pass
         #_logger.debug("could not retrieve command info for", command)
-    res = {'flags': flags, 'shortFlags': shortFlags, 'description': '', 'example': '', 'type': 'other'}
+    res = {
+        'flags': flags,
+        'shortFlags': shortFlags,
+        'description': '',
+        'example': '',
+        'type': 'other'
+    }
     if removedFlags:
         res['removedFlags'] = removedFlags
     return res
@@ -964,7 +1001,8 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                             resultType[0] = argtype
 
                     # ensure symmetry between edit and query commands:
-                    # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
+                    # if this flag is queryable and editable, then its queried
+                    # value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
                         # there are certain patterns of asymmetry which we can safely correct:
                         singleItemList = (isinstance(resultType, list)
@@ -999,7 +1037,8 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                             _logger.info('\tresult: %s', val.__repr__())
                             _logger.info('\tpredicted type: %s', argtype)
                             _logger.info('\tactual type:    %s', resultType)
-                            # value is no good. reset to None, so that a default will be generated for edit
+                            # value is no good. reset to None, so that a default
+                            # will be generated for edit
                             val = None
 
                     else:
@@ -1043,7 +1082,8 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                 try:
                     # we use the value returned from query above as defaults
                     # for putting back in as edit args
-                    # but if the return was empty we need to produce something to test on.
+                    # but if the return was empty we need to produce something
+                    # to test on.
                     # NOTE: this is just a guess
                     if val is None:
 
@@ -1282,7 +1322,13 @@ class CmdCache(startup.SubItemCache):
 
         #self.moduleCmds = defaultdict(list)
         self.moduleCmds = dict((k, []) for k in moduleNameShortToLong.keys())
-        self.moduleCmds.update({'other': [], 'runtime': [], 'context': [], 'uiClass': []})
+        self.moduleCmds.update(
+            {'other': [],
+             'runtime': [],
+             'context': [],
+             'uiClass': []
+             }
+        )
 
         def addCommand(funcName):
             # type: (str) -> None
@@ -1376,7 +1422,8 @@ class CmdCache(startup.SubItemCache):
                     id = self.moduleCmds[currModule].index(funcName)
                     self.moduleCmds[currModule].pop(id)
                     self.moduleCmds[module].append(funcName)
-        return (self.cmdlist, self.nodeHierarchy, self.uiClassList, self.nodeCommandList, self.moduleCmds)
+        return (self.cmdlist, self.nodeHierarchy, self.uiClassList,
+                self.nodeCommandList, self.moduleCmds)
 
     def _modifyTypes(self, data, predicate, converter):
         '''convert between class names and class objects'''

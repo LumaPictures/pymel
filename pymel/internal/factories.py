@@ -67,7 +67,7 @@ apiToMelData = None
 apiClassOverrides = None
 
 # CmdCache
-cmdlist = {}
+cmdlist = {}  # type: Dict[str, cmdcache.CommandInfo]
 nodeHierarchy = None
 uiClassList = None
 nodeCommandList = None
@@ -910,6 +910,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None):
 
 
 def _getSourceFunction(funcNameOrObject, module=None):
+    # type: (Union[str, types.FunctionType], Optional[types.ModuleType]) -> Tuple[Optional[types.FunctionType], Optional[str], Optional[bool]]
     inFunc = None
     if isinstance(funcNameOrObject, basestring):
         funcName = funcNameOrObject
@@ -1921,6 +1922,7 @@ class ApiArgUtil(object):
             currentModule = pymelClass.__module__
 
         def toPymelType(apiName):
+            # type: (str) -> str
             moduleName = None
 
             pymelType = apiClassNamesToPymelTypes.get(apiName, None)
@@ -1958,7 +1960,7 @@ class ApiArgUtil(object):
             return pymelName
 
         def getType(apiName):
-
+            # type: (str) -> str
             arrayType = ApiTypeRegister.arrayItemTypes.get(apiName)
             if arrayType:
                 try:

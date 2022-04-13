@@ -1081,6 +1081,7 @@ class ApiCache(BaseApiClassInfoCache):
 
     @classmethod
     def allVersions(cls, allowEmpty=False):
+        # type: (bool) -> List[str]
         return [x for x in super(ApiCache, cls).allVersions(allowEmpty=allowEmpty)
                 if x != 'MelBridge']
 
@@ -1201,9 +1202,9 @@ class ApiCache(BaseApiClassInfoCache):
         """
 
         self.apiTypesToApiEnums = dict(
-            inspect.getmembers(api.MFn, lambda x: type(x) is int))
+            inspect.getmembers(api.MFn, lambda x: type(x) is int))  # type: Dict[str, int]
         self.apiEnumsToApiTypes = dict(
-            (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
+            (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())  # type: Dict[int, str]
 
     def _fixApiEnumsToApiTypes(self):
         # For the MFn.Type mappings, we can have multiple string names mapping
@@ -1404,6 +1405,7 @@ class ApiCache(BaseApiClassInfoCache):
             return enumInt
 
     def getApiEnumToApiType(self, enumInt):
+        # type: (int) -> str
         return self.apiEnumsToApiTypes.get(enumInt,
                                            # 'kInvalid'
                                            self.apiEnumsToApiTypes[0])
