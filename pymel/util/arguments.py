@@ -905,3 +905,28 @@ def izip_longest(*args, **kwds):
             yield tup
     except IndexError:
         pass
+
+
+def getImportableObject(importableName):
+    import importlib
+    if '.' in importableName:
+        modulename, objName = importableName.rsplit('.', 1)
+    else:
+        # if no module, it's in builtins
+        modulename = 'builtins'
+        if PY2:
+            modulename = '__builtin__'
+        objName = importableName
+    moduleobj = importlib.import_module(modulename)
+    return getattr(moduleobj, objName)
+
+
+def getImportableName(obj):
+    import inspect
+    module = inspect.getmodule(obj)
+    import builtins
+    if PY2:
+        import __builtin__ as builtins
+    if module == builtins:
+        return obj.__name__
+    return '{}.{}'.format(module.__name__, obj.__name__)

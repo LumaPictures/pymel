@@ -10,19 +10,15 @@ import re
 import inspect
 import keyword
 
-# Maya imports
-import maya.cmds as cmds
-import maya.mel as mm
-
 # PyMEL imports
 import pymel.util as util
-import pymel.versions as versions
 
 # Module imports
+from . import cachebase
 from . import plogging
-from . import startup
 
-if False:
+TYPE_CHECKING = False
+if TYPE_CHECKING:
     from typing import *
 
     FlagInfo = TypedDict('FlagInfo', {
@@ -265,6 +261,8 @@ def getInternalCmds(errorIfMissing=True):
 
 
 def getCmdInfoBasic(command):
+    import maya.cmds as cmds
+
     typemap = {
         'string': str,
         'length': float,
@@ -462,6 +460,8 @@ def fixCodeExamples(style='maya', force=False):
 
     TODO: auto backup and restore of maya prefs
     """
+    import maya.cmds as cmds
+
     import shutil
 
     # some imports to get things into global / local namespaces
@@ -504,7 +504,7 @@ def fixCodeExamples(style='maya', force=False):
     failed = []
     skipped = []
 
-    crashTempDir = startup._moduleJoin('cache', 'processedExamplesTemp')
+    crashTempDir = cachebase._moduleJoin('cache', 'processedExamplesTemp')
     if os.path.isdir(crashTempDir):
         # If there are results in this dir, it's because we crashed last time
         # we ran. Read in the results here, and add them to the
@@ -756,6 +756,8 @@ def getCallbackFlags(cmdInfo):
 
 
 def getModule(funcName, knownModuleCmds):
+    import maya.mel as mm
+
     # determine to which module this function belongs
     module = None
     if funcName in ['eval', 'file', 'filter', 'help', 'quit']:
@@ -785,6 +787,8 @@ _cmdArgMakers = {}
 
 
 def cmdArgMakers(force=False):
+    import maya.cmds as cmds
+
     global _cmdArgMakers
 
     if _cmdArgMakers and not force:
@@ -850,6 +854,7 @@ def nodeCreationCmd(func, nodeType):
 
 
 def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
+    import maya.cmds as cmds
 
     _logger.info(funcName.center(50, '='))
 
@@ -1233,7 +1238,7 @@ def _getNodeHierarchy(version=None):
         for x in nodeHierarchyTree.preorder()]
 
 
-class CmdExamplesCache(startup.PymelCache):
+class CmdExamplesCache(cachebase.PymelCache):
     NAME = 'mayaCmdsExamples'
     DESC = 'the list of Maya command examples'
     USE_VERSION = True
@@ -1243,12 +1248,12 @@ class CmdProcessedExamplesCache(CmdExamplesCache):
     USE_VERSION = False
 
 
-class CmdDocsCache(startup.PymelCache):
+class CmdDocsCache(cachebase.PymelCache):
     NAME = 'mayaCmdsDocs'
     DESC = 'the Maya command documentation'
 
 
-class CmdCache(startup.SubItemCache):
+class CmdCache(cachebase.SubItemCache):
     NAME = 'mayaCmdsList'
     DESC = 'the list of Maya commands'
     _CACHE_NAMES = '''cmdlist nodeHierarchy uiClassList
@@ -1268,6 +1273,9 @@ class CmdCache(startup.SubItemCache):
         loading all the plugins may crash maya, especially if done from a
         non-GUI session
         """
+        import maya.cmds as cmds
+        import pymel.versions
+
         # Put in a debug, because this can be crashy
         _logger.debug("Starting CmdCache.rebuild...")
 
@@ -1277,7 +1285,7 @@ class CmdCache(startup.SubItemCache):
         # and not
         # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
 
-        long_version = versions.installName()
+        long_version = pymel.versions.installName()
 
         from .parsers import mayaDocsLocation
         cmddocs = os.path.join(mayaDocsLocation(long_version), 'CommandsPython')
@@ -1450,7 +1458,7 @@ class CmdCache(startup.SubItemCache):
                    and obj.endswith('>')
 
         def fromTypeStr(typeStr):
-            return startup.getImportableObject(typeStr[len('<type '):-1])
+            return util.getImportableObject(typeStr[len('<type '):-1])
 
         self._modifyTypes(data, isTypeStr, fromTypeStr)
         return data
@@ -1458,7 +1466,7 @@ class CmdCache(startup.SubItemCache):
     def toRawData(self, data):
         # convert from class objects to string class names
         def toTypeStr(typeObj):
-            return '<type {}>'.format(startup.getImportableName(typeObj))
+            return '<type {}>'.format(util.getImportableName(typeObj))
 
         self._modifyTypes(data, callable, toTypeStr)
         return super(CmdCache, self).toRawData(data)

@@ -13,11 +13,14 @@ import re
 import itertools
 
 import pymel.api as api
-import pymel.versions as versions
 import pymel.util as _util
+from . import cachebase
 from . import startup
 from . import plogging as _plogging
 from pymel.api.plugins import mpxNamesToApiEnumNames
+
+if False:
+    from typing import *
 
 _logger = _plogging.getLogger(__name__)
 
@@ -621,7 +624,7 @@ apiSuffixes = ['', 'node', 'shape', 'shapenode']
 # ==============================================================================
 
 
-class BaseApiClassInfoCache(startup.SubItemCache):
+class BaseApiClassInfoCache(cachebase.SubItemCache):
     CLASSINFO_SUBCACHE_NAME = None
 
     def _modifyEnums(self, data, predicate, converter):
@@ -1104,7 +1107,7 @@ class ApiCache(BaseApiClassInfoCache):
     def fromRawData(self, data):
         # convert from string class names to class objects
         self._modifyApiTypes(data, lambda x: isinstance(x, basestring),
-                             startup.getImportableObject)
+                             _util.getImportableObject)
 
         # json automatically converts integer dict keys to strings...
         # we only need to undo this on read
@@ -1120,7 +1123,7 @@ class ApiCache(BaseApiClassInfoCache):
 
     def toRawData(self, data):
         # convert from class objects to string class names
-        self._modifyApiTypes(data, inspect.isclass, startup.getImportableName)
+        self._modifyApiTypes(data, inspect.isclass, _util.getImportableName)
         return super(ApiCache, self).toRawData(data)
 
     def _buildMayaToApiInfo(self, reservedOnly=False):

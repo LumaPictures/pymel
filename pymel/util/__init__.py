@@ -22,7 +22,7 @@ from .arguments import (
     breadth, listForNone, pairIter, reorder, RemovedKey, AddedKey, ChangedKey,
     compareCascadingDicts, mergeCascadingDicts, setCascadingDictItem,
     getCascadingDictItem, deepPatch, deepPatchAltered, sequenceToSlices,
-    izip_longest)
+    izip_longest, getImportableName, getImportableObject)
 from .utilitytypes import (
     Singleton, defaultdict, metaStatic, defaultlist, ModuleInterceptor,
     readonly, metaReadOnlyAttr, proxyClass, ProxyUnicode, universalmethod,
