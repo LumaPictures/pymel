@@ -154,7 +154,7 @@ def batchRender(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['mc', 'melCommand', 'prc', 'preRenderCommand', 'rco', 'renderCommandOptions']:
+    for key in ('mc', 'melCommand', 'prc', 'preRenderCommand', 'rco', 'renderCommandOptions'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -172,7 +172,7 @@ def callbacks(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ac', 'addCallback', 'rc', 'removeCallback']:
+    for key in ('ac', 'addCallback', 'rc', 'removeCallback'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -188,7 +188,7 @@ def camera(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['hc', 'homeCommand', 'jc', 'journalCommand']:
+    for key in ('hc', 'homeCommand', 'jc', 'journalCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -240,7 +240,7 @@ def defaultLightListCheckBox(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -277,7 +277,7 @@ def exclusiveLightCheckBox(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -328,7 +328,7 @@ def layeredShaderPort(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -344,7 +344,7 @@ def layeredTexturePort(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -377,7 +377,7 @@ def nodeIconButton(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -414,7 +414,7 @@ def prepareRender(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pof', 'pol', 'por', 'postRender', 'postRenderFrame', 'postRenderLayer', 'preRender', 'preRenderFrame', 'preRenderLayer', 'prf', 'prl', 'prr', 'settingsUI', 'sui', 'traversalSetInit', 'tsi']:
+    for key in ('pof', 'pol', 'por', 'postRender', 'postRenderFrame', 'postRenderLayer', 'preRender', 'preRenderFrame', 'preRenderLayer', 'prf', 'prl', 'prr', 'settingsUI', 'sui', 'traversalSetInit', 'tsi'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -432,7 +432,7 @@ def psdChannelOutliner(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -454,7 +454,7 @@ def rampColorPort(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -490,7 +490,7 @@ def renderWindowEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand']:
+    for key in ('cc', 'changeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -506,7 +506,7 @@ def renderer(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['commandRenderProcedure', 'cr']:
+    for key in ('commandRenderProcedure', 'cr'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -549,7 +549,7 @@ def spotLightPreviewPort(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -571,7 +571,7 @@ def textureWindow(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand']:
+    for key in ('cc', 'changeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):

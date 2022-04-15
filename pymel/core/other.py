@@ -544,7 +544,7 @@ def adskAssetListUI(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cms', 'commandSuffix', 'uiC', 'uiCommand']:
+    for key in ('cms', 'commandSuffix', 'uiC', 'uiCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -618,7 +618,7 @@ extendFluid = _factories.getCmdFunc('extendFluid')
 
 @_factories.addCmdDocs
 def flagTest(*args, **kwargs):
-    for flag in ['timeRange', 'tr']:
+    for flag in ('timeRange', 'tr'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -650,7 +650,7 @@ def imageWindowEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand']:
+    for key in ('cc', 'changeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -736,7 +736,7 @@ def repeatLast(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ac', 'acl', 'addCommand', 'addCommandLabel', 'cl', 'cnl', 'commandList', 'commandNameList']:
+    for key in ('ac', 'acl', 'addCommand', 'addCommandLabel', 'cl', 'cnl', 'commandList', 'commandNameList'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -752,7 +752,7 @@ safemodecheckhash = _factories.getCmdFunc('safemodecheckhash')
 
 @_factories.addCmdDocs
 def selectKeyframe(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -778,7 +778,7 @@ texSculptCacheSync = _factories.getCmdFunc('texSculptCacheSync')
 
 @_factories.addCmdDocs
 def timeRangeInfo(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:

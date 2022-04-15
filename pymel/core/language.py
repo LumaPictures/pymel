@@ -1275,7 +1275,7 @@ def scriptJob(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['idleEvent', 'ie', 'tc', 'timeChange']:
+    for key in ('idleEvent', 'ie', 'tc', 'timeChange'):
         try:
             cb = kwargs[key]
             if callable(cb):

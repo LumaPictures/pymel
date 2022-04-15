@@ -173,7 +173,9 @@ def _setRepr(s):
 
 def _listRepr(s):
     # type: (Iterable) -> str
-    return '[' + ', '.join([repr(s) for s in sorted(s)]) + ']'
+    # we use tuple because they are faster to construct than lists and we have
+    # a lot of big lists of flags
+    return '(' + ', '.join([repr(s) for s in sorted(s)]) + ')'
 
 
 def functionTemplateFactory(funcName, module, returnFunc=None,

@@ -839,7 +839,7 @@ def attrColorSliderGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -858,7 +858,7 @@ def attrControlGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand']:
+    for key in ('cc', 'changeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -877,7 +877,7 @@ def attrEnumOptionMenu(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -896,7 +896,7 @@ def attrEnumOptionMenuGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -915,7 +915,7 @@ def attrFieldGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ebc', 'extraButtonCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ebc', 'extraButtonCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -934,7 +934,7 @@ def attrFieldSliderGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ebc', 'extraButtonCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ebc', 'extraButtonCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -953,7 +953,7 @@ def attrNavigationControlGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cad', 'ce', 'cn', 'cnd', 'connectAttrToDropped', 'connectNodeToDropped', 'connectToExisting', 'createNew', 'd', 'defaultTraversal', 'dgc', 'disconnect', 'dpc', 'dragCallback', 'dropCallback', 'dtv', 'ebc', 'extraButtonCommand', 'i', 'ignore', 'relatedNodes', 'ren', 'u', 'unignore', 'vcc', 'visibleChangeCommand']:
+    for key in ('cad', 'ce', 'cn', 'cnd', 'connectAttrToDropped', 'connectNodeToDropped', 'connectToExisting', 'createNew', 'd', 'defaultTraversal', 'dgc', 'disconnect', 'dpc', 'dragCallback', 'dropCallback', 'dtv', 'ebc', 'extraButtonCommand', 'i', 'ignore', 'relatedNodes', 'ren', 'u', 'unignore', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -972,7 +972,7 @@ def attributeMenu(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['regPulldownMenuCommand', 'rpm', 'unregPulldownMenuCommand', 'upm']:
+    for key in ('regPulldownMenuCommand', 'rpm', 'unregPulldownMenuCommand', 'upm'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -991,7 +991,7 @@ def colorIndexSliderGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1010,7 +1010,7 @@ def colorSliderButtonGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['bc', 'buttonCommand', 'cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'sbc', 'symbolButtonCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('bc', 'buttonCommand', 'cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'sbc', 'symbolButtonCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1029,7 +1029,7 @@ def colorSliderGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1048,7 +1048,7 @@ def columnLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1075,7 +1075,7 @@ def floatField(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'ec', 'enterCommand', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'ec', 'enterCommand', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1094,7 +1094,7 @@ def floatFieldGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1113,7 +1113,7 @@ def floatScrollBar(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1132,7 +1132,7 @@ def floatSlider(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1151,7 +1151,7 @@ def floatSlider2(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc1', 'cc2', 'changeCommand1', 'changeCommand2', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc1', 'cc2', 'changeCommand1', 'changeCommand2', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1170,7 +1170,7 @@ def floatSliderButtonGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['bc', 'buttonCommand', 'cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'sbc', 'symbolButtonCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('bc', 'buttonCommand', 'cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'sbc', 'symbolButtonCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1189,7 +1189,7 @@ def floatSliderGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1208,7 +1208,7 @@ def frameLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'collapseCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ec', 'expandCommand', 'pcc', 'pec', 'preCollapseCommand', 'preExpandCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'collapseCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ec', 'expandCommand', 'pcc', 'pec', 'preCollapseCommand', 'preExpandCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1227,7 +1227,7 @@ def iconTextButton(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'command', 'commandRepeatable', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'handleNodeDropCallback', 'hnd', 'labelEditingCallback', 'lec', 'rpt', 'vcc', 'visibleChangeCommand']:
+    for key in ('c', 'command', 'commandRepeatable', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'handleNodeDropCallback', 'hnd', 'labelEditingCallback', 'lec', 'rpt', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1246,7 +1246,7 @@ def iconTextCheckBox(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1265,7 +1265,7 @@ def iconTextRadioButton(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1284,7 +1284,7 @@ def iconTextRadioCollection(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dcm', 'disableCommands']:
+    for key in ('dcm', 'disableCommands'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1303,7 +1303,7 @@ def iconTextScrollList(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'drc', 'dropCallback', 'dropRectCallback', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'drc', 'dropCallback', 'dropRectCallback', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1322,7 +1322,7 @@ def iconTextStaticLabel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1341,7 +1341,7 @@ def intField(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'ec', 'enterCommand', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'ec', 'enterCommand', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1360,7 +1360,7 @@ def intFieldGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1379,7 +1379,7 @@ def intScrollBar(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1398,7 +1398,7 @@ def intSlider(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1417,7 +1417,7 @@ def intSliderGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1436,7 +1436,7 @@ def paneLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'separatorMovedCommand', 'smc', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'separatorMovedCommand', 'smc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1455,7 +1455,7 @@ def panel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1474,7 +1474,7 @@ def radioButton(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1493,7 +1493,7 @@ def radioButtonGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'cc1', 'cc2', 'cc3', 'cc4', 'changeCommand', 'changeCommand1', 'changeCommand2', 'changeCommand3', 'changeCommand4', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'of1', 'of2', 'of3', 'of4', 'ofc', 'offCommand', 'offCommand1', 'offCommand2', 'offCommand3', 'offCommand4', 'on1', 'on2', 'on3', 'on4', 'onCommand', 'onCommand1', 'onCommand2', 'onCommand3', 'onCommand4', 'onc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'cc1', 'cc2', 'cc3', 'cc4', 'changeCommand', 'changeCommand1', 'changeCommand2', 'changeCommand3', 'changeCommand4', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'of1', 'of2', 'of3', 'of4', 'ofc', 'offCommand', 'offCommand1', 'offCommand2', 'offCommand3', 'offCommand4', 'on1', 'on2', 'on3', 'on4', 'onCommand', 'onCommand1', 'onCommand2', 'onCommand3', 'onCommand4', 'onc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1528,7 +1528,7 @@ def symbolButton(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1547,7 +1547,7 @@ def symbolCheckBox(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1574,7 +1574,7 @@ def textField(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['aie', 'alwaysInvokeEnterCommandOnReturn', 'cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ec', 'enterCommand', 'receiveFocusCommand', 'rfc', 'tcc', 'textChangedCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('aie', 'alwaysInvokeEnterCommandOnReturn', 'cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ec', 'enterCommand', 'receiveFocusCommand', 'rfc', 'tcc', 'textChangedCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1593,7 +1593,7 @@ def textFieldButtonGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['bc', 'buttonCommand', 'cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'fcc', 'forceChangeCommand', 'tcc', 'textChangedCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('bc', 'buttonCommand', 'cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'fcc', 'forceChangeCommand', 'tcc', 'textChangedCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1612,7 +1612,7 @@ def textFieldGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'fcc', 'forceChangeCommand', 'tcc', 'textChangedCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'fcc', 'forceChangeCommand', 'tcc', 'textChangedCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1631,7 +1631,7 @@ def text(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'drc', 'dropCallback', 'dropRectCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'drc', 'dropCallback', 'dropRectCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1650,7 +1650,7 @@ def textScrollList(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dcc', 'deleteKeyCommand', 'dgc', 'dkc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('dcc', 'deleteKeyCommand', 'dgc', 'dkc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1674,7 +1674,7 @@ def toolButton(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1701,7 +1701,7 @@ def window(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'closeCommand', 'minimizeCommand', 'mnc', 'rc', 'restoreCommand']:
+    for key in ('cc', 'closeCommand', 'minimizeCommand', 'mnc', 'rc', 'restoreCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1728,7 +1728,7 @@ def blendShapePanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1747,7 +1747,7 @@ def button(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1766,7 +1766,7 @@ def checkBox(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ofc', 'offCommand', 'onCommand', 'onc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1785,7 +1785,7 @@ def checkBoxGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'cc1', 'cc2', 'cc3', 'cc4', 'changeCommand', 'changeCommand1', 'changeCommand2', 'changeCommand3', 'changeCommand4', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'of1', 'of2', 'of3', 'of4', 'ofc', 'offCommand', 'offCommand1', 'offCommand2', 'offCommand3', 'offCommand4', 'on1', 'on2', 'on3', 'on4', 'onCommand', 'onCommand1', 'onCommand2', 'onCommand3', 'onCommand4', 'onc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'cc1', 'cc2', 'cc3', 'cc4', 'changeCommand', 'changeCommand1', 'changeCommand2', 'changeCommand3', 'changeCommand4', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'of1', 'of2', 'of3', 'of4', 'ofc', 'offCommand', 'offCommand1', 'offCommand2', 'offCommand3', 'offCommand4', 'on1', 'on2', 'on3', 'on4', 'onCommand', 'onCommand1', 'onCommand2', 'onCommand3', 'onCommand4', 'onc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1820,7 +1820,7 @@ def formLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1841,7 +1841,7 @@ def menu(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce']:
+    for key in ('pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1860,7 +1860,7 @@ def menuBarLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1879,7 +1879,7 @@ def menuEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'obc', 'optionBoxCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'obc', 'optionBoxCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1898,7 +1898,7 @@ def menuItem(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'cmd', 'command', 'commandModifier', 'ddc', 'dmc', 'dragDoubleClickCommand', 'dragMenuCommand', 'ec', 'echoCommand', 'ecr', 'enableCommandRepeat', 'pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce', 'rtc', 'runTimeCommand']:
+    for key in ('c', 'cmd', 'command', 'commandModifier', 'ddc', 'dmc', 'dragDoubleClickCommand', 'dragMenuCommand', 'ec', 'echoCommand', 'ecr', 'enableCommandRepeat', 'pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce', 'rtc', 'runTimeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1933,7 +1933,7 @@ def scrollField(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'cc', 'changeCommand', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ec', 'enterCommand', 'keyPressCommand', 'kpc', 'vcc', 'visibleChangeCommand']:
+    for key in ('c', 'cc', 'changeCommand', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ec', 'enterCommand', 'keyPressCommand', 'kpc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1952,7 +1952,7 @@ def scrollLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'rc', 'resizeCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'rc', 'resizeCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1971,7 +1971,7 @@ def scriptedPanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -1998,7 +1998,7 @@ def shelfButton(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'command', 'commandRepeatable', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'ecr', 'enableCommandRepeat', 'handleNodeDropCallback', 'hnd', 'labelEditingCallback', 'lec', 'rpt', 'vcc', 'visibleChangeCommand']:
+    for key in ('c', 'command', 'commandRepeatable', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'ecr', 'enableCommandRepeat', 'handleNodeDropCallback', 'hnd', 'labelEditingCallback', 'lec', 'rpt', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2017,7 +2017,7 @@ def shelfLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2036,7 +2036,7 @@ def shelfTabLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'closeTabCommand', 'ctc', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'newTabCommand', 'ntc', 'pmc', 'postMenuCommand', 'preSelectCommand', 'psc', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'closeTabCommand', 'ctc', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'newTabCommand', 'ntc', 'pmc', 'postMenuCommand', 'preSelectCommand', 'psc', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2055,7 +2055,7 @@ def tabLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'closeTabCommand', 'ctc', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'newTabCommand', 'ntc', 'pmc', 'postMenuCommand', 'preSelectCommand', 'psc', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'closeTabCommand', 'ctc', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'newTabCommand', 'ntc', 'pmc', 'postMenuCommand', 'preSelectCommand', 'psc', 'sc', 'selectCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2074,7 +2074,7 @@ def outlinerEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['sec', 'selectCommand', 'soc', 'sortCommand']:
+    for key in ('sec', 'selectCommand', 'soc', 'sortCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2093,7 +2093,7 @@ def optionMenu(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['acc', 'alwaysCallChangeCommand', 'beforeShowPopup', 'bsp', 'cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce', 'vcc', 'visibleChangeCommand']:
+    for key in ('acc', 'alwaysCallChangeCommand', 'beforeShowPopup', 'bsp', 'cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2117,7 +2117,7 @@ def outlinerPanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2136,7 +2136,7 @@ def optionMenuGrp(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2160,7 +2160,7 @@ def animCurveEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dcc', 'denormalizeCurvesCommand', 'm', 'menu', 'ncc', 'normalizeCurvesCommand']:
+    for key in ('dcc', 'denormalizeCurvesCommand', 'm', 'menu', 'ncc', 'normalizeCurvesCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2187,7 +2187,7 @@ def separator(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2206,7 +2206,7 @@ def visor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cmd', 'command']:
+    for key in ('cmd', 'command'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2225,7 +2225,7 @@ def layout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2244,7 +2244,7 @@ def layoutDialog(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ui', 'uiScript']:
+    for key in ('ui', 'uiScript'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2263,7 +2263,7 @@ def layerButton(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'cc', 'changeCommand', 'command', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'hideOnPlaybackCommand', 'hpc', 'rc', 'renameCommand', 'tc', 'typeCommand', 'vc', 'vcc', 'visibleChangeCommand', 'visibleCommand']:
+    for key in ('c', 'cc', 'changeCommand', 'command', 'dcc', 'dgc', 'doubleClickCommand', 'dpc', 'dragCallback', 'dropCallback', 'hideOnPlaybackCommand', 'hpc', 'rc', 'renameCommand', 'tc', 'typeCommand', 'vc', 'vcc', 'visibleChangeCommand', 'visibleCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2282,7 +2282,7 @@ def hyperGraph(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['bco', 'breakConnectionCommand', 'ddc', 'directoryPressCommand', 'dp', 'dragAndDropBehaviorCommand', 'edc', 'edd', 'edgeDblClickCommand', 'edgeDimmedDblClickCommand', 'edgeDropCommand', 'edgePressCommand', 'edgeReleaseCommand', 'edr', 'ep', 'er', 'fc', 'focusCommand', 'nco', 'ndc', 'ndr', 'nm', 'nodeConnectCommand', 'nodeDblClickCommand', 'nodeDropCommand', 'nodeMenuCommand', 'nodePressCommand', 'nodeReleaseCommand', 'np', 'nr']:
+    for key in ('bco', 'breakConnectionCommand', 'ddc', 'directoryPressCommand', 'dp', 'dragAndDropBehaviorCommand', 'edc', 'edd', 'edgeDblClickCommand', 'edgeDimmedDblClickCommand', 'edgeDropCommand', 'edgePressCommand', 'edgeReleaseCommand', 'edr', 'ep', 'er', 'fc', 'focusCommand', 'nco', 'ndc', 'ndr', 'nm', 'nodeConnectCommand', 'nodeDblClickCommand', 'nodeDropCommand', 'nodeMenuCommand', 'nodePressCommand', 'nodeReleaseCommand', 'np', 'nr'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2301,7 +2301,7 @@ def hyperPanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2328,7 +2328,7 @@ def rowColumnLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2347,7 +2347,7 @@ def rowLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2366,7 +2366,7 @@ def renderWindowEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand']:
+    for key in ('cc', 'changeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2395,7 +2395,7 @@ def scriptTable(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['acc', 'afterCellChangedCmd', 'cbc', 'ccc', 'cellBackgroundColorCommand', 'cellChangedCmd', 'cellForegroundColorCommand', 'cfc', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'gcc', 'getCellCmd', 'rowsRemovedCmd', 'rowsToBeRemovedCmd', 'rrc', 'rtc', 'scc', 'selectionChangedCmd', 'vcc', 'visibleChangeCommand']:
+    for key in ('acc', 'afterCellChangedCmd', 'cbc', 'ccc', 'cellBackgroundColorCommand', 'cellChangedCmd', 'cellForegroundColorCommand', 'cfc', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'gcc', 'getCellCmd', 'rowsRemovedCmd', 'rowsToBeRemovedCmd', 'rrc', 'rtc', 'scc', 'selectionChangedCmd', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2414,7 +2414,7 @@ def keyframeStats(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2433,7 +2433,7 @@ def keyframeOutliner(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2452,7 +2452,7 @@ def canvas(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'pc', 'pressCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'pc', 'pressCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2471,7 +2471,7 @@ def channelBox(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2490,7 +2490,7 @@ def gradientControl(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2509,7 +2509,7 @@ def gradientControlNoAttr(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'ckc', 'currentKeyChanged', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'ckc', 'currentKeyChanged', 'dc', 'dgc', 'dpc', 'dragCallback', 'dragCommand', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2528,7 +2528,7 @@ def gridLayout(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2547,7 +2547,7 @@ def messageLine(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2566,7 +2566,7 @@ def popupMenu(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce']:
+    for key in ('pmc', 'pmo', 'postMenuCommand', 'postMenuCommandOnce'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2585,7 +2585,7 @@ def modelEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ec', 'editorChanged', 'obf', 'objectFilter', 'objectFilterList', 'objectFilterListUI', 'objectFilterUI', 'obu', 'ofl', 'ofu']:
+    for key in ('ec', 'editorChanged', 'obf', 'objectFilter', 'objectFilterList', 'objectFilterListUI', 'objectFilterUI', 'obu', 'ofl', 'ofu'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2609,7 +2609,7 @@ def modelPanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2628,7 +2628,7 @@ def helpLine(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2647,7 +2647,7 @@ def hardwareRenderPanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2666,7 +2666,7 @@ def image(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2685,7 +2685,7 @@ def nodeIconButton(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2704,7 +2704,7 @@ def commandLine(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ec', 'enterCommand', 'vcc', 'visibleChangeCommand']:
+    for key in ('c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'ec', 'enterCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2723,7 +2723,7 @@ def progressBar(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2742,7 +2742,7 @@ def defaultLightListCheckBox(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2761,7 +2761,7 @@ def exclusiveLightCheckBox(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2780,7 +2780,7 @@ def clipSchedulerOutliner(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2815,7 +2815,7 @@ def devicePanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2834,7 +2834,7 @@ def dynPaintEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand']:
+    for key in ('cc', 'changeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2853,7 +2853,7 @@ def nameField(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'nameChangeCommand', 'ncc', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'nameChangeCommand', 'ncc', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2872,7 +2872,7 @@ def cmdScrollFieldExecuter(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cco', 'commandCompletion', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'fcc', 'fileChangedCommand', 'filterKeyPress', 'fkp', 'mcc', 'modificationChangedCommand', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cco', 'commandCompletion', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'fcc', 'fileChangedCommand', 'filterKeyPress', 'fkp', 'mcc', 'modificationChangedCommand', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2891,7 +2891,7 @@ def cmdScrollFieldReporter(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'eac', 'echoAllCommands', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'eac', 'echoAllCommands', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2910,7 +2910,7 @@ def cmdShell(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2929,7 +2929,7 @@ def nameField(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'nameChangeCommand', 'ncc', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'nameChangeCommand', 'ncc', 'receiveFocusCommand', 'rfc', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2948,7 +2948,7 @@ def palettePort(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'ce', 'changeCommand', 'colorEdited', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'ce', 'changeCommand', 'colorEdited', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2988,7 +2988,7 @@ def falloffCurve(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('cc', 'changeCommand', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):

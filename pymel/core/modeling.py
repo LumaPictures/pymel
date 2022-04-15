@@ -710,7 +710,7 @@ def polyInstallAction(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cn', 'commandName']:
+    for key in ('cn', 'commandName'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -948,7 +948,7 @@ def polySelectConstraintMonitor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand']:
+    for key in ('cc', 'changeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):

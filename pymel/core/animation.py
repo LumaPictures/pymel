@@ -194,7 +194,7 @@ def animCurveEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dcc', 'denormalizeCurvesCommand', 'm', 'menu', 'ncc', 'normalizeCurvesCommand']:
+    for key in ('dcc', 'denormalizeCurvesCommand', 'm', 'menu', 'ncc', 'normalizeCurvesCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -230,7 +230,7 @@ bakeClip = _factories.getCmdFunc('bakeClip')
 
 @_factories.addCmdDocs
 def bakeDeformer(*args, **kwargs):
-    for flag in ['customRangeOfMotion', 'rom']:
+    for flag in ('customRangeOfMotion', 'rom'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -242,7 +242,7 @@ def bakeDeformer(*args, **kwargs):
 
 @_factories.addCmdDocs
 def bakeResults(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -254,7 +254,7 @@ def bakeResults(*args, **kwargs):
 
 @_factories.addCmdDocs
 def bakeSimulation(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -281,7 +281,7 @@ def blendShapePanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -293,7 +293,7 @@ def blendShapePanel(*args, **kwargs):
 
 @_factories.addCmdDocs
 def blendTwoAttr(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -314,7 +314,7 @@ def boneLattice(*args, **kwargs):
 
 @_factories.addCmdDocs
 def bufferCurve(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -365,7 +365,7 @@ def clipSchedulerOutliner(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -404,7 +404,7 @@ copyFlexor = _factories.getCmdFunc('copyFlexor')
 
 @_factories.addCmdDocs
 def copyKey(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -420,7 +420,7 @@ curveRGBColor = _factories.getCmdFunc('curveRGBColor')
 
 @_factories.addCmdDocs
 def cutKey(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -493,7 +493,7 @@ findDeformers = _factories.getCmdFunc('findDeformers')
 
 @_factories.addCmdDocs
 def findKeyframe(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -509,7 +509,7 @@ def flexor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dc', 'deformerCommand']:
+    for key in ('dc', 'deformerCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -612,7 +612,7 @@ def jointLattice(*args, **kwargs):
 
 @_factories.addCmdDocs
 def keyTangent(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -626,7 +626,7 @@ _keyframe = keyframe
 
 @_factories.addCmdDocs
 def keyframe(*args, **kwargs):
-    for flag in ['index', 't', 'time']:
+    for flag in ('index', 't', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -642,7 +642,7 @@ def keyframeOutliner(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -658,7 +658,7 @@ def keyframeStats(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -692,7 +692,7 @@ movIn = _factories.getCmdFunc('movIn')
 
 @_factories.addCmdDocs
 def movOut(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -763,7 +763,7 @@ def parentConstraint(*args, **kwargs):
 
 @_factories.addCmdDocs
 def pasteKey(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -831,7 +831,7 @@ def posePanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -867,7 +867,7 @@ def scaleConstraint(*args, **kwargs):
 
 @_factories.addCmdDocs
 def scaleKey(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -911,7 +911,7 @@ def shapePanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -932,7 +932,7 @@ shotRipple = _factories.getCmdFunc('shotRipple')
 
 @_factories.addCmdDocs
 def simplify(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -963,7 +963,7 @@ skinPercent = _factories.getCmdFunc('skinPercent')
 
 @_factories.addCmdDocs
 def snapKey(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -1061,7 +1061,7 @@ def timeEditorPanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['m', 'menu']:
+    for key in ('m', 'menu'):
         try:
             cb = kwargs[key]
             if callable(cb):

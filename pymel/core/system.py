@@ -2306,7 +2306,7 @@ def devicePanel(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pmp', 'popupMenuProcedure']:
+    for key in ('pmp', 'popupMenuProcedure'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2346,7 +2346,7 @@ def exportEdits(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ec', 'editCommand']:
+    for key in ('ec', 'editCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2364,7 +2364,7 @@ def fileBrowserDialog(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['fc', 'fileCommand']:
+    for key in ('fc', 'fileCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2382,7 +2382,7 @@ def fileDialog2(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['fileTypeChanged', 'ftc', 'oc2', 'oca', 'ocm', 'ocr', 'oin', 'optionsUICancel', 'optionsUICommit', 'optionsUICommit2', 'optionsUICreate', 'optionsUIInit', 'sc', 'selectionChanged']:
+    for key in ('fileTypeChanged', 'ftc', 'oc2', 'oca', 'ocm', 'ocr', 'oin', 'optionsUICancel', 'optionsUICommit', 'optionsUICommit2', 'optionsUICreate', 'optionsUIInit', 'sc', 'selectionChanged'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2436,7 +2436,7 @@ def loadPlugin(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ac', 'addCallback', 'rc', 'removeCallback']:
+    for key in ('ac', 'addCallback', 'rc', 'removeCallback'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2472,7 +2472,7 @@ def pluginInfo(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'cc', 'changedCommand', 'cnc', 'command', 'constraintCommand', 'controlCommand', 'ctc', 'mec', 'modelEditorCommand']:
+    for key in ('c', 'cc', 'changedCommand', 'cnc', 'command', 'constraintCommand', 'controlCommand', 'ctc', 'mec', 'modelEditorCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2488,7 +2488,7 @@ def preloadRefEd(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['sc', 'selectCommand']:
+    for key in ('sc', 'selectCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2512,7 +2512,7 @@ def reference(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ec', 'editCommand']:
+    for key in ('ec', 'editCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2528,7 +2528,7 @@ def referenceEdit(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ec', 'editCommand']:
+    for key in ('ec', 'editCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2546,7 +2546,7 @@ def referenceQuery(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ec', 'editCommand']:
+    for key in ('ec', 'editCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2568,7 +2568,7 @@ def saveImage(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand']:
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2584,7 +2584,7 @@ def sceneEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['sc', 'selectCommand']:
+    for key in ('sc', 'selectCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -2632,7 +2632,7 @@ def unloadPlugin(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ac', 'addCallback', 'rc', 'removeCallback']:
+    for key in ('ac', 'addCallback', 'rc', 'removeCallback'):
         try:
             cb = kwargs[key]
             if callable(cb):

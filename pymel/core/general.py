@@ -8284,7 +8284,7 @@ def assembly(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['aoc', 'cob', 'createOptionBoxProc', 'listRepTypesProc', 'lrp', 'postCreateUIProc', 'prc', 'proc', 'repTypeLabelProc', 'rtp']:
+    for key in ('aoc', 'cob', 'createOptionBoxProc', 'listRepTypesProc', 'lrp', 'postCreateUIProc', 'prc', 'proc', 'repTypeLabelProc', 'rtp'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -8326,7 +8326,7 @@ def commandLogging(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['lc', 'logCommands', 'rc', 'recordCommands']:
+    for key in ('lc', 'logCommands', 'rc', 'recordCommands'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -8342,7 +8342,7 @@ def commandPort(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['returnNumCommands', 'rnc']:
+    for key in ('returnNumCommands', 'rnc'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -8559,7 +8559,7 @@ sculptMeshCacheChangeCloneSource = _factories.getCmdFunc('sculptMeshCacheChangeC
 
 @_factories.addCmdDocs
 def selectKey(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -8625,7 +8625,7 @@ def toolPropertyWindow(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['sel', 'selectCommand', 'showCommand', 'shw']:
+    for key in ('sel', 'selectCommand', 'showCommand', 'shw'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -8659,7 +8659,7 @@ def assignCommand(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'cmd', 'command', 'commandModifier', 'ecr', 'enableCommandRepeat', 'sourceUserCommands', 'suc']:
+    for key in ('c', 'cmd', 'command', 'commandModifier', 'ecr', 'enableCommandRepeat', 'sourceUserCommands', 'suc'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -8702,7 +8702,7 @@ def selectionConnection(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['addScript', 'addScript', 'removeScript', 'rs']:
+    for key in ('addScript', 'addScript', 'removeScript', 'rs'):
         try:
             cb = kwargs[key]
             if callable(cb):
