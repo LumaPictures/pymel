@@ -43,6 +43,7 @@ TYPE_CHECKING = False
 
 if TYPE_CHECKING:
     from typing import *
+    from typing import overload  # explicit import required for stubs
     import pymel.core.nodetypes as nodetypes
     import pymel.core.nodetypes as nt
     import pymel.core.other as other
@@ -580,7 +581,8 @@ def setAttr(attr, *args, **kwargs):
                 if force and not cmds.objExists(attr):  # attr.exists():
                     import pymel.util.nameparse as nameparse
                     attrName = nameparse.parse(attr)
-                    assert attrName.isAttributeName(), "passed object is not an attribute"
+                    assert attrName.isAttributeName(), \
+                        "passed object is not an attribute"
                     if isinstance(arg, basestring):
                         addAttr(attrName.nodePath, ln=attrName.attribute,
                                 dt='string')
@@ -1047,7 +1049,8 @@ def listConnections(*args, **kwargs):
             return []
         return [(CastObj(a), CastObj(b)) for (a, b) in _util.pairIter(l)]
 
-    # group the core functionality into a funcion, so we can call in a loop when passed a list of types
+    # group the core functionality into a funcion, so we can call in a loop when
+    # passed a list of types
     def doIt(**kwargs):
         if kwargs.get('connections', kwargs.get('c', False)):
 
@@ -2225,7 +2228,8 @@ def instancer(*args, **kwargs):
     else:
         instancers = cmds.ls(type='instancer')
         cmds.instancer(*args, **kwargs)
-        return PyNode(list(set(cmds.ls(type='instancer')).difference(instancers))[0], 'instancer')
+        return PyNode(list(set(
+            cmds.ls(type='instancer')).difference(instancers))[0], 'instancer')
 
 
 # -------------------------
@@ -3206,15 +3210,11 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
                 indices = index
             for i in indices:
                 cmds.removeMultiInstance(self[i], b=break_)
+
     __delitem__ = removeMultiInstance
 
     def attr(self, attr):
-        # type: (Any) -> Attribute
-        """
-        Returns
-        -------
-        Attribute
-        """
+        # type: (str) -> Attribute
         node = self.node()
         try:
             plug = self.__apimplug__()
@@ -3230,15 +3230,18 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             raise MayaAttributeError('%s.%s' % (self, attr))
 
     def __getattr__(self, attr):
+        # type: (str) -> Attribute
         try:
             return self.attr(attr)
         except MayaAttributeError:
             raise AttributeError("%r has no attribute or method named '%s'" %
                                  (self, attr))
+
     # Added the __call__ so to generate a more appropriate exception when a
     # class method is not found
     def __call__(self, *args, **kwargs):
-        raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
+        raise TypeError("The object <%s> does not support the '%s' method" %
+                        (repr(self.node()), self.plugAttr()))
 
     # Need an iterator which is NOT self, so that we can have independent
     # iterators - ie, so if we do:
@@ -3248,6 +3251,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     # and not
     #     ( (self[0], self[1]), (self[2], self[3]), (self[4], self[5]) ... )
     def __iter__(self):
+        # type: () -> Iterator[Attribute]
         """
         iterator for multi-attributes
 
@@ -3441,7 +3445,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     node = plugNode
 
     def plugAttr(self, longName=False, fullPath=False):
-        # type: (Any, Any) -> str
+        # type: (bool, bool) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3451,17 +3455,13 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             't.tx'
             >>> at.plugAttr(longName=True, fullPath=True)
             'translate.translateX'
-
-        Returns
-        -------
-        str
         """
         return self.name(includeNode=False,
                          longName=longName,
                          fullAttrPath=fullPath)
 
     def lastPlugAttr(self, longName=False):
-        # type: (Any) -> str
+        # type: (bool) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3469,17 +3469,13 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             'tx'
             >>> at.lastPlugAttr(longName=True)
             'translateX'
-
-        Returns
-        -------
-        str
         """
         return self.name(includeNode=False,
                          longName=longName,
                          fullAttrPath=False)
 
     def longName(self, fullPath=False):
-        # type: (Any) -> str
+        # type: (bool) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3487,17 +3483,13 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             'translateX'
             >>> at.longName(fullPath=True)
             'translate.translateX'
-
-        Returns
-        -------
-        str
         """
         return self.name(includeNode=False,
                          longName=True,
                          fullAttrPath=fullPath)
 
     def shortName(self, fullPath=False):
-        # type: (Any) -> str
+        # type: (bool) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3505,10 +3497,6 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             'tx'
             >>> at.shortName(fullPath=True)
             't.tx'
-
-        Returns
-        -------
-        str
         """
         return self.name(includeNode=False,
                          longName=False,
@@ -3525,6 +3513,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         return self.plugNode().name()
 
     def attrName(self, longName=False, includeNode=False):
+        # type: (bool, bool) -> str
         """Just the name of the attribute for this plug
 
         This will have no indices, no parent attributes, etc...
@@ -3681,7 +3670,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
     def isConnectedTo(self, other, ignoreUnitConversion=False,
                       checkLocalArray=False, checkOtherArray=False):
-        # type: (Any, Any, Any, Any) -> bool
+        # type: (Any, bool, bool, bool) -> bool
         """
         Determine if the attribute is connected to the passed attribute.
 
@@ -3690,10 +3679,6 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         If checkOtherArray is True and the passed attribute is a multi/array, the passed attribute's elements will also be tested.
 
         If checkLocalArray and checkOtherArray are used together then all element combinations will be tested.
-
-        Returns
-        -------
-        bool
         """
 
         if cmds.isConnected(self, other,
@@ -3852,7 +3837,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         return cmds.deleteAttr(self)
 
     def remove(self, **kwargs):
-        'removeMultiInstance'
+        """removeMultiInstance"""
         #kwargs['break'] = True
         return cmds.removeMultiInstance(self, **kwargs)
 
@@ -4027,11 +4012,11 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             self._setLocked(locked)
 
     def lock(self, checkReference=CHECK_ATTR_BEFORE_LOCK):
-        "setAttr -locked 1"
+        """setAttr -locked 1"""
         return self.setLocked(True, checkReference=checkReference)
 
     def unlock(self, checkReference=CHECK_ATTR_BEFORE_LOCK):
-        "setAttr -locked 0"
+        """setAttr -locked 0"""
         return self.setLocked(False, checkReference=checkReference)
 
     def isMuted(self):
@@ -4110,6 +4095,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         return cmds.attributeQuery(self.attrName(), node=self.node(), uac=True)
 
     def indexMatters(self):
+        # type: () -> bool
         return self.__apimattr__().indexMatters()
 
     def exists(self):
@@ -4472,8 +4458,18 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         else:
             return None
 
+    @overload
+    def getParent(self, generations=None, arrays=False):
+        # type: (None, bool) -> List[Attribute]
+        pass
+
+    @overload
     def getParent(self, generations=1, arrays=False):
-        # type: (Any, Any) -> Attribute
+        # type: (int, bool) -> Attribute
+        pass
+
+    def getParent(self, generations=1, arrays=False):
+        # type: (Optional[int], bool) -> Attribute
         """
         Modifications:
             - added optional generations keyword arg, which gives the number of
@@ -4512,7 +4508,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             return Attribute(self.node(), res)
 
     def getAllParents(self, arrays=False):
-        # type: (Any) -> List[Attribute]
+        # type: (bool) -> List[Attribute]
         """
         Return a list of all parents above this.
 

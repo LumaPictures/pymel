@@ -9,6 +9,7 @@ import pymel.internal.factories as _factories
 import pymel.core.general as _general
 
 if False:
+    from typing import *
     from maya import cmds
 else:
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
@@ -27,6 +28,7 @@ def currentTime(*args, **kwargs):
 
 
 def getCurrentTime():
+    # type: () -> float
     """get the current time as a float"""
     return cmds.currentTime(q=1)
 
@@ -38,6 +40,7 @@ def setCurrentTime(time):
 
 @_factories.addCmdDocs
 def listAnimatable(*args, **kwargs):
+    # type: (...) -> List[_general.PyNode]
     """
     Modifications:
         - returns an empty list when the result is None
@@ -54,7 +57,7 @@ def keyframe(*args, **kwargs):
         - if both valueChange and timeChange are queried, the result will be a list of (time,value) pairs
     """
     res = _util.listForNone(cmds.keyframe(*args, **kwargs))
-    if kwargs.get('query', kwargs.get('q', False) ) and \
+    if kwargs.get('query', kwargs.get('q', False)) and \
             kwargs.get('valueChange', kwargs.get('vc', False)) and kwargs.get('timeChange', kwargs.get('tc', False)):
         return list(_util.pairIter(res))
     return res
@@ -79,7 +82,7 @@ def _constraint(func):
                 aimConstraint('pCube1_aimConstraint1', q=1, weight=True)
         """
         if kwargs.get('query', kwargs.get('q', False) and len(args) == 1):
-            # Fix the big with angle offset query always being in radians
+            # Fix the bug with angle offset query always being in radians
             if kwargs.get('offset', kwargs.get('o', None)):
                 return _general.getAttr(str(args[0]) + ".offset")
 

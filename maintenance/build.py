@@ -30,6 +30,8 @@ from pymel.internal import plogging
 from pymel.internal import pmcmds
 from pymel.internal import apicache
 
+import maintenance.buildutil
+
 if False:
     from typing import *
 
@@ -41,22 +43,23 @@ _logger = plogging.getLogger(__name__)
 START_MARKER = '# ------ Do not edit below this line --------'
 END_MARKER =   '# ------ Do not edit above this line --------'
 
-CORE_CMD_MODULES = [
-    ('pymel.core.animation', '_general.PyNode'),
-    ('pymel.core.context', None),
-    ('pymel.core.effects', '_general.PyNode'),
-    ('pymel.core.general', 'PyNode'),
-    ('pymel.core.language', None),
-    ('pymel.core.modeling', '_general.PyNode'),
-    ('pymel.core.other', None),
-    ('pymel.core.rendering', '_general.PyNode'),
-    ('pymel.core.runtime', None),
-    ('pymel.core.system', None),
-]
-
 
 env = Environment(loader=PackageLoader('maintenance', 'templates'),
                   trim_blocks=True, lstrip_blocks=True)
+
+
+def makeTypeComment(signature):
+    # type: (factories.Annotations) -> str
+    args = signature.get('args')
+    if args is not None:
+        argSig = ', '.join(args)
+    else:
+        argSig = '...'
+    comment = '# type: (%s)' % argSig
+    result = signature.get('result')
+    if result is None:
+        result = 'Any'
+    return comment + ' -> ' + result
 
 
 class NewOverrideError(RuntimeError):
@@ -164,12 +167,12 @@ def importableName(func, module=None, moduleMap=None):
 
 
 def _setRepr(s):
-    # type: (Set) -> str
+    # type: (Iterable) -> str
     return '{' + ', '.join([repr(s) for s in sorted(s)]) + '}'
 
 
 def _listRepr(s):
-    # type: (List) -> str
+    # type: (Iterable) -> str
     return '[' + ', '.join([repr(s) for s in sorted(s)]) + ']'
 
 
@@ -238,32 +241,33 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
     if unpackFlags:
         unpackFlags = _setRepr(unpackFlags)
 
-    if funcName in factories.simpleCommandWraps:
-        # simple wraps: we only do these for functions which have not been
-        # manually customized
-        wraps = factories.simpleCommandWraps[funcName]
-        doc = 'Modifications:\n'
-        for func, wrapCondition in wraps:
-            if wrapCondition != Always:
-                # use only the long flag name
-                flags = ' for flags: ' + str(wrapCondition)
-            elif len(wraps) > 1:
-                flags = ' for all other flags'
-            else:
-                flags = ''
-            if func.__doc__:
-                funcString = func.__doc__.strip()
-            else:
-                funcString = pmcmds.getCmdName(func) + '(result)'
-            doc += '  - ' + funcString + flags + '\n'
+    # if funcName in factories.simpleCommandWraps:
+    #     # simple wraps: we only do these for functions which have not been
+    #     # manually customized
+    #     wraps = factories.simpleCommandWraps[funcName]
+    #     doc = 'Modifications:\n'
+    #     for func, wrapCondition in wraps:
+    #         if wrapCondition != Always:
+    #             # use only the long flag name
+    #             flags = ' for flags: ' + str(wrapCondition)
+    #         elif len(wraps) > 1:
+    #             flags = ' for all other flags'
+    #         else:
+    #             flags = ''
+    #         if func.__doc__:
+    #             funcString = func.__doc__.strip()
+    #         else:
+    #             funcString = pmcmds.getCmdName(func) + '(result)'
+    #         doc += '  - ' + funcString + flags + '\n'
 
     existing = inFunc.__module__ == module.__name__
     resultNeedsUnpacking = cmdInfo.get('resultNeedsUnpacking', False)
     callbackFlags = cmdInfo.get('callbackFlags', None)
     if callbackFlags:
         callbackFlags = _listRepr(callbackFlags)
-    wrapped = funcName in factories.simpleCommandWraps
-    if any([timeRangeFlags, returnFunc, resultNeedsUnpacking, unpackFlags, wrapped, callbackFlags]):
+    isWrapped = funcName in factories.simpleCommandWraps
+    if any([timeRangeFlags, returnFunc, resultNeedsUnpacking, unpackFlags,
+            isWrapped, callbackFlags]):
         sourceFuncName = importableName(inFunc,
                                         moduleMap={'pymel.internal.pmcmds': 'cmds'})
 
@@ -282,13 +286,15 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
         template = env.get_template('commandfunc.py')
         rendered = template.render(
             funcName=rename or funcName,
-            commandName=funcName, timeRangeFlags=timeRangeFlags,
+            commandName=funcName,
+            timeRangeFlags=timeRangeFlags,
             sourceFuncName=sourceFuncName,
             returnFunc=returnFunc,
             resultNeedsUnpacking=resultNeedsUnpacking,
             unpackFlags=unpackFlags,
-            simpleWraps=wrapped,
-            callbackFlags=callbackFlags, uiWidget=uiWidget)
+            simpleWraps=isWrapped,
+            callbackFlags=callbackFlags,
+            uiWidget=uiWidget)
         if PY2:
             rendered = rendered.encode()
         return result + rendered
@@ -313,15 +319,16 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
                 newName=rename or funcName,
                 origName=funcName,
                 explicitCmdName=explicitCmdName)
-        # no doc in runtime module
-        if module.__name__ == 'pymel.core.runtime':
-            return "\n{newName} = getattr(cmds, '{origName}', None)\n".format(
-                newName=rename or funcName,
-                origName=funcName)
         else:
-            return "\n{newName} = _factories.getCmdFunc('{origName}')\n".format(
-                newName=rename or funcName,
-                origName=funcName)
+            # no doc in runtime module
+            if module.__name__ == 'pymel.core.runtime':
+                return "\n{newName} = getattr(cmds, '{origName}', None)\n".format(
+                    newName=rename or funcName,
+                    origName=funcName)
+            else:
+                return "\n{newName} = _factories.getCmdFunc('{origName}')\n".format(
+                    newName=rename or funcName,
+                    origName=funcName)
 
     # FIXME: THIS IS UNREACHABLE
     #   handle these!
@@ -759,8 +766,8 @@ class ModuleGenerator(object):
         # keyed by full class name (including module):
         self.classSuffixes = {}  # type: Dict[str, str]
 
-    @classmethod
-    def getClassLocations(cls, moduleName):
+    @staticmethod
+    def getClassLocations(moduleName):
         # type: (str) -> List[Tuple[int, int, str]]
         """
         Inspect the passed module to determine the start and end line numbers
@@ -770,6 +777,7 @@ class ModuleGenerator(object):
         classLocations = []
         for clsname, clsobj in inspect.getmembers(moduleObject, inspect.isclass):
             try:
+                print('.', end='', file=sys.__stdout__)
                 clsmodule = inspect.getmodule(clsobj)
                 if clsmodule != moduleObject:
                     continue
@@ -783,12 +791,6 @@ class ModuleGenerator(object):
         classLocations.sort()
         return classLocations
 
-    def getModuleLines(self, module):
-        # type: (Union[types.ModuleType, str]) -> List[str]
-        if isinstance(module, types.ModuleType):
-            module = module.__name__
-        return self.moduleLines[module]
-
     def reset(self, module):
         # type: (str) -> None
         """
@@ -799,7 +801,10 @@ class ModuleGenerator(object):
             raise RuntimeError("You probably don't want to reset an already-"
                                "reset or edited module")
 
+        # this part can be very slow
+        print("Finding all class locations for module %s" % module, file=sys.__stdout__)
         classLocations = self.getClassLocations(module)
+        print(file=sys.__stdout__)
 
         source = _getModulePath(module)
         with open(source, 'r', newline='\n') as f:
@@ -879,7 +884,7 @@ class ModuleGenerator(object):
 
         lines.append(START_MARKER)
 
-        print("writing reset", source)
+        print("writing reset %s" % source, file=sys.__stdout__)
         with open(source, 'w', newline='\n') as f:
             f.write('\n'.join(lines))
         self.moduleLines[module] = lines
@@ -1155,7 +1160,7 @@ def getApiTemplateData(apiClass, apiMethodName, newName=None, proxy=True,
         'unitType': repr(str(unitType)) if unitType else None,
         'deprecated': deprecated,
         'signature': signature,
-        'typeComment': argHelper.getTypeComment(),
+        'typeComment': makeTypeComment(argHelper.getAnnotations()),
         'aliases': aliases,
         'properties': properties,  # property aliases
     }
@@ -1265,10 +1270,10 @@ class BaseGenerator(object):
         # ------------------------
         #   MEL Methods
         # ------------------------
-        melCmdName, infoCmd = self.getMelCmd()
+        melCmdName, isInfoCmd = self.getMelCmd()
 
         try:
-            cmdInfo = factories.cmdlist[melCmdName]
+            helper = maintenance.buildutil.MelFunctionHelper(melCmdName)
         except KeyError:
             pass
             #_logger.debug("No MEL command info available for %s" % melCmdName)
@@ -1285,14 +1290,14 @@ class BaseGenerator(object):
             #     func = getattr(pmcmds, melCmdName)
 
             pmSourceFunc = True
-            cmdPath = '%s.%s' % (cmdInfo['type'], melCmdName)
+            cmdPath = '%s.%s' % (helper.info['type'], melCmdName)
 
             # FIXME: add documentation
             # classdict['__doc__'] = util.LazyDocString((newcls, self.docstring, (melCmdName,), {}))
 
             self.assign('__melcmd__', cmdPath)
             self.assign('__melcmdname__', melCmdName)
-            self.assign('__melcmd_isinfo__', infoCmd)
+            self.assign('__melcmd_isinfo__', isInfoCmd)
 
             # base set of disallowed methods (for MEL)
             filterAttrs = {'name', 'getName', 'setName'}
@@ -1311,6 +1316,7 @@ class BaseGenerator(object):
             # filterAttrs.update({'getParent'}.intersection(self.herited))
 
             def getMelName(methodName):
+                # type: (str) -> Optional[str]
                 bridgeInfo = factories._getApiOverrideData(self.classname,
                                                            methodName)
                 melName = bridgeInfo.get('melName', methodName)
@@ -1328,7 +1334,7 @@ class BaseGenerator(object):
                     return None
                 return melName
 
-            for flag, flagInfo in cmdInfo['flags'].items():
+            for flag, flagInfo in helper.info['flags'].items():
                 # don't create methods for query or edit, or for flags which
                 # only serve to modify other flags
                 if flag in ['query', 'edit'] or 'modified' in flagInfo:
@@ -1348,20 +1354,21 @@ class BaseGenerator(object):
                     methodName = getMelName(methodName)
 
                     if methodName:
-                        returnFunc = None
-                        if flagInfo.get('resultNeedsCasting', False):
-                            returnFunc = flagInfo['args']
+                        annotations = {'result': helper.getFlagType(flagInfo)}
 
                         self.addMelMethod(methodName, {
                             'command': melCmdName,
                             'type': 'query',
                             'flag': flag,
-                            'returnFunc': importableName(returnFunc) if returnFunc else None,
+                            'returnFunc': (importableName(flagInfo['args'])
+                                           if flagInfo.get('resultNeedsCasting', False)
+                                           else None),
                             'func': cmdPath,
+                            'typeComment': makeTypeComment(annotations),
                         })
 
                 # edit command
-                if 'edit' in modes or (infoCmd and 'create' in modes):
+                if 'edit' in modes or (isInfoCmd and 'create' in modes):
                     # if there is a corresponding query we use the 'set' prefix.
                     if 'query' in modes:
                         methodName = 'set' + util.capitalize(flag)
@@ -1377,12 +1384,14 @@ class BaseGenerator(object):
                         # FIXME: the 2nd argument is wrong, so I think this
                         #  is broken
                         # fixedFunc = fixCallbacks(func, melCmdName)
+                        annotations = {'result': 'None'}
 
                         self.addMelMethod(methodName, {
                             'command': melCmdName,
                             'type': 'edit',
                             'flag': flag,
                             'func': cmdPath,
+                            'typeComment': makeTypeComment(annotations),
                         })
 
     def getMelCmd(self):
@@ -2037,28 +2046,28 @@ class NodeTypeGenerator(ApiMethodsGenerator):
     def getMelCmd(self):
         # type: () -> Tuple[str, bool]
         """
-        Retrieves the name of the mel command for the node that the generated class wraps,
-        and whether it is an info command.
+        Retrieves the name of the mel command for the node that the generated
+        class wraps, and whether it is an info command.
 
-        Derives the command name from the mel node name - so '__melnode__' must already be set
-        in classdict.
+        Derives the command name from the mel node name - so '__melnode__' must
+        already be set in classdict.
         """
         nodeCmd = None
         if self.existingClass is not None:
             nodeCmd = getattr(self.existingClass, '__melcmdname__', None)
         if nodeCmd:
-            infoCmd = getattr(self.existingClass, '__melcmd_isinfo__', False)
+            isInfoCmd = getattr(self.existingClass, '__melcmd_isinfo__', False)
         else:
-            infoCmd = False
+            isInfoCmd = False
             try:
                 nodeCmd = factories.cmdcache.nodeTypeToNodeCommand[self.mayaType]
             except KeyError:
                 try:
                     nodeCmd = factories.nodeTypeToInfoCommand[self.mayaType]
-                    infoCmd = True
+                    isInfoCmd = True
                 except KeyError:
                     nodeCmd = self.mayaType
-        return nodeCmd, infoCmd
+        return nodeCmd, isInfoCmd
 
 
 class ApiUnitsGenerator(ApiDataTypesGenerator):
@@ -2425,6 +2434,9 @@ def generateAll(allowNonWindows=False):
     import copy
     import linecache
 
+    print("check console for output (script editor does regularly flush output)",
+          file=sys.__stdout__)
+
     # by default, we only allow building these from windows, because we need to
     # test for the __setattr__ bug that only happens on windows.
     if not allowNonWindows and os.name != 'nt':
@@ -2439,9 +2451,11 @@ def generateAll(allowNonWindows=False):
         # import pymel.core, so resetter can read class source info
         import pymel.core
 
+        print("resetting modules", file=sys.__stdout__)
+
         # Reset modules, before import
         generator = ModuleGenerator()
-        for module, _ in CORE_CMD_MODULES:
+        for module, _ in maintenance.buildutil.CORE_CMD_MODULES:
             generator.reset(module)
 
         generator.reset('pymel.core.windows')
@@ -2449,6 +2463,7 @@ def generateAll(allowNonWindows=False):
         generator.reset('pymel.core.uitypes')
         generator.reset('pymel.core.datatypes')
 
+        print("reloading pymel.core", file=sys.__stdout__)
         # "Reload" pymel.core modules, so we use the reset versions
         _deleteImportedCoreModules()
         import pymel.core
@@ -2460,18 +2475,27 @@ def generateAll(allowNonWindows=False):
             factories.ApiTypeRegister.inCast.keys())
 
         # Generate Functions
-        for module, returnFunc in CORE_CMD_MODULES:
+        for module, returnFunc in maintenance.buildutil.CORE_CMD_MODULES:
+            print("generating %s" % module, file=sys.__stdout__)
             generator.generateFunctions(module, returnFunc)
 
+        print("generating pymel.core.windows", file=sys.__stdout__)
         generator.generateUIFunctions()
 
+        print("generating pymel.core.nodetypes", file=sys.__stdout__)
         generator.generateTypes(iterPyNodeText(),
                                 'pymel.core.nodetypes',
                                 suffix='\ndynModule = _addTypeNames()\n')
+
+        print("generating pymel.core.uitypes", file=sys.__stdout__)
         generator.generateTypes(iterUIText(),
                                 'pymel.core.uitypes',
                                 suffix='\n_addTypeNames()\n')
+
+        print("generating pymel.core.general", file=sys.__stdout__)
         generator.generateTypes(iterApiTypeText(), 'pymel.core.general')
+
+        print("generating pymel.core.datatypes", file=sys.__stdout__)
         generator.generateTypes(iterApiDataTypeText(), 'pymel.core.datatypes')
 
         compileall.compile_dir(os.path.dirname(pymel.core.__file__),

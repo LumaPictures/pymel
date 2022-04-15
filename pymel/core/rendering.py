@@ -27,7 +27,6 @@ def createSurfaceShader(shadertype, name=None):
     classification = _general.getClassification(shadertype)
     # print classification
 
-    newShader = None
     from . import nodetypes
     # if 'shader/surface' in classification:
     if 'rendernode/mentalray/material' in classification:

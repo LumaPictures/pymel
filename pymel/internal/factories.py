@@ -16,7 +16,6 @@ import types
 import os
 import inspect
 import sys
-import textwrap
 import time
 import traceback
 
@@ -44,6 +43,16 @@ if False:
     import pymel.core.uitypes
     CallableT = TypeVar('CallableT', bound=Callable)
     Decorator = Callable[[CallableT], CallableT]
+
+    Annotations = TypedDict(
+        'Annotations',
+        {
+            'result': str,
+            'args': Optional[List[str]]
+        },
+        total=False,
+    )
+
 
 _logger = plogging.getLogger(__name__)
 
@@ -713,6 +722,7 @@ def addFlagCmdDocsCallback(cmdName, flag, docstring):
 
 
 def _getTimeRangeFlags(cmdName):
+    # type: (str) -> Set[str]
     """
     used parsed data and naming convention to determine which flags are
     callbacks
@@ -1908,7 +1918,8 @@ class ApiArgUtil(object):
                 proto += ' --> (%s)' % ', '.join([str(x) for x in results])
         return proto
 
-    def getTypeComment(self):
+    def getAnnotations(self):
+        # type: () -> Annotations
         inArgs = self.inArgs()
         outArgs = self.outArgs()
         returnType = self.getReturnType()
@@ -1923,6 +1934,8 @@ class ApiArgUtil(object):
 
         def toPymelType(apiName):
             # type: (str) -> str
+
+            # FIXME: Quaternion is not getting datatypes module prepended in nodetypes module
             moduleName = None
 
             pymelType = apiClassNamesToPymelTypes.get(apiName, None)
@@ -1977,8 +1990,6 @@ class ApiArgUtil(object):
                 continue
             args.append(getType(types[x]))
 
-        comment = '# type: (%s)' % ', '.join(args)
-
         results = []
         if returnType:
             results.append(getType(returnType))
@@ -1991,7 +2002,11 @@ class ApiArgUtil(object):
             result = 'Tuple[%s]' % ', '.join(results)
         else:
             result = 'None'
-        return comment + ' -> ' + result
+
+        return {
+            'result': result,
+            'args': args
+        }
 
     def castInput(self, argName, input):
         # type: (str, Any) -> Any

@@ -216,7 +216,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
     def name(self, update=True, stripNamespace=False, levels=0, long=False,
              stripUnderWorld=False):
         # type: (bool, bool, int, bool, bool) -> str
-        '''The name of the node
+        """The name of the node
 
         Parameters
         ----------
@@ -269,7 +269,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
         'bar:stuff:blinn1'
         >>> node.name(stripNamespace=True, levels=2)
         'stuff:blinn1'
-        '''
+        """
         if update or self._name is None:
             try:
                 self._updateName()
@@ -306,46 +306,42 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
             ns += ':'
         return ns
 
-    def shortName(self, **kwargs):
-        # type: (**Any) -> str
+    def shortName(self, update=True, stripNamespace=False, levels=0, long=False,
+                 stripUnderWorld=False):
+        # type: (bool, bool, int, bool, bool) -> str
         """
         This produces the same results as `DependNode.name` and is included to
         simplify looping over lists of nodes that include both Dag and Depend
         nodes.
-
-        Returns
-        -------
-        str
         """
-        return self.name(**kwargs)
+        return self.name(update=update, stripNamespace=stripNamespace,
+                         levels=levels, long=long,
+                         stripUnderWorld=stripUnderWorld)
 
-    def longName(self, **kwargs):
-        # type: (**Any) -> str
-        """
-        This produces the same results as `DependNode.name` and is included to
-        simplify looping over lists of nodes that include both Dag and Depend
-        nodes.
-
-        Returns
-        -------
-        str
-        """
-        return self.name(**kwargs)
-
-    def nodeName(self, **kwargs):
-        # type: (**Any) -> str
+    def longName(self, update=True, stripNamespace=False, levels=0, long=False,
+                 stripUnderWorld=False):
+        # type: (bool, bool, int, bool, bool) -> str
         """
         This produces the same results as `DependNode.name` and is included to
         simplify looping over lists of nodes that include both Dag and Depend
         nodes.
-
-        Returns
-        -------
-        str
         """
-        return self.name(**kwargs)
+        return self.name(update=update, stripNamespace=stripNamespace,
+                         levels=levels, long=long,
+                         stripUnderWorld=stripUnderWorld)
 
-    #rename = rename
+    def nodeName(self, update=True, stripNamespace=False, levels=0, long=False,
+                 stripUnderWorld=False):
+        # type: (bool, bool, int, bool, bool) -> str
+        """
+        This produces the same results as `DependNode.name` and is included to
+        simplify looping over lists of nodes that include both Dag and Depend
+        nodes.
+        """
+        return self.name(update=update, stripNamespace=stripNamespace,
+                         levels=levels, long=long,
+                         stripUnderWorld=stripUnderWorld)
+
     def rename(self, name, **kwargs):
         # type: (Any, **Any) -> DependNode
         """
@@ -429,8 +425,8 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
 # xxx{    Presets
 # -------------------------
 
-    def savePreset(self, presetName, custom=None, attributes=[]):
-
+    def savePreset(self, presetName, custom=None, attributes=()):
+        # type: (str, Optional[str], Iterable[str]) -> None
         kwargs = {'save': True}
         if attributes:
             kwargs['attributes'] = ' '.join(attributes)
@@ -1868,13 +1864,14 @@ class DagNode(Entity):
 # -------------------------------
 # xxx{  Path Info and Modification
 # -------------------------------
+
     def root(self):
-        # type: () -> str
+        # type: () -> DagNode
         """rootOf
 
         Returns
         -------
-        str
+        DagNode
         """
         return DagNode('|' + self.longName()[1:].split('|')[0])
 
@@ -2310,7 +2307,7 @@ class DagNode(Entity):
         return child
 
     def __or__(self, child, **kwargs):
-        # type: (Any, **Any) -> DagNode
+        # type: (DagNode, **Any) -> DagNode
         """
         operator for `addChild`. Use to easily daisy-chain together parenting operations.
         The operation order visually mimics the resulting dag path:

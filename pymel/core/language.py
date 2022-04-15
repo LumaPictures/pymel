@@ -516,7 +516,8 @@ class MelGlobals(MutableMapping, _Parent):
             array = False
             proc_name = 'pymel_get_global_' + type
         declaration = cls._get_decl_statement(type, variable)
-        cmd = "global proc %s %s() { %s; return %s; } %s();" % (type, proc_name, declaration, variable, proc_name)
+        cmd = "global proc %s %s() { %s; return %s; } %s();" % \
+              (type, proc_name, declaration, variable, proc_name)
         # print cmd
         res = _mm.eval(cmd)
         if array:
@@ -564,7 +565,7 @@ class MelGlobals(MutableMapping, _Parent):
         return mel.env()
 
 
-melGlobals = MelGlobals()
+melGlobals = MelGlobals()  # type: MelGlobals  # this annotation is here for stubgen
 
 
 # for backward compatibility
@@ -605,7 +606,7 @@ class Catch(object):
         Catch.success = None
 
 
-catch = Catch()
+catch = Catch()  # type: Catch  # this annotation is here for stubgen
 
 
 class OptionVarList(tuple):
@@ -821,7 +822,7 @@ class Env(object):
         self.animEndTime = playbackTimes[3]
     playbackTimes = property(getPlaybackTimes, setPlaybackTimes)
 
-env = Env()
+env = Env()  # type: Env  # this annotation is here for stubgen
 
 
 # -------------------------
@@ -1016,6 +1017,7 @@ class Mel(object):
     proc = None
 
     def __getattr__(self, command):
+        # type: (str) -> MelCallable
         if command.startswith('__') and command.endswith('__'):
             try:
                 return self.__dict__[command]
@@ -1105,8 +1107,10 @@ class Mel(object):
                     errors += [nativeMsg]
 
         # setup the callback:
-        # assigning ids to a list avoids the swig memory leak warning, which would scare a lot of people even though
-        # it is harmless.  hoping we get a real solution to this so that we don't have to needlessly accumulate this data
+        # assigning ids to a list avoids the swig memory leak warning, which
+        # would scare a lot of people even though it is harmless.  hoping we
+        # get a real solution to this so that we don't have to needlessly
+        # accumulate this data
         id = _api.MCommandMessage.addCommandOutputCallback(errorCallback, None)
 
         try:
@@ -1200,7 +1204,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        _mm.eval( """error %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval("""error %s %s""" % (flags, pythonToMel(msg)))
 
     @staticmethod
     def warning(msg, showLineNumber=False):
@@ -1208,7 +1212,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        _mm.eval( """warning %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval("""warning %s %s""" % (flags, pythonToMel(msg)))
 
     @staticmethod
     def trace(msg, showLineNumber=False):
@@ -1216,7 +1220,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        _mm.eval( """trace %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval("""trace %s %s""" % (flags, pythonToMel(msg)))
 
     @staticmethod
     def tokenize(*args):
@@ -1228,7 +1232,7 @@ class Mel(object):
     globals = melGlobals
 
 
-mel = Mel()
+mel = Mel()  # type: Mel  # this annotation is here for stubgen
 
 
 def conditionExists(conditionName):

@@ -1,5 +1,6 @@
 @_f.addMelDocs('{{ method.command }}', '{{ method.flag }}')
 def {{ method.name }}(self, **kwargs):
+    {{ method.typeComment }}
     res = _f.asQuery(self, {{ method.func }}, kwargs, '{{ method.flag }}')
   {% if method.returnFunc %}
     res = {{ method.returnFunc }}(res)

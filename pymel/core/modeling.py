@@ -13,6 +13,7 @@ else:
 
 @_factories.addCmdDocs
 def pointPosition(*args, **kwargs):
+    # type: (...) -> _general.datatypes.Point
     return _general.datatypes.Point(cmds.pointPosition(*args, **kwargs))
 
 

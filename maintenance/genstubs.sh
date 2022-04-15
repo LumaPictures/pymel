@@ -9,4 +9,9 @@ echo `pwd`
 # in the source (it produces pyi files for packages, e.g. pymel/core.pyi)
 find pymel/ -name '*.pyi' -exec rm -f {} \;
 # build the stubs
-mayapy -c "import mypy.stubgen;mypy.stubgen.main()" --no-import -o ./ pymel/*.py pymel/api pymel/core pymel/internal pymel/util
+#python3 -m mypy --version
+
+#python3 -c "import mypy.stubgen;mypy.stubgen.main()" --no-import -o ./ pymel/*.py pymel/api pymel/core pymel/internal pymel/util
+
+#stubgen --no-import -o ./ pymel/core
+python3 -m maintenance.buildstubs --no-import -o ./ pymel/core pymel/util pymel/all.py pymel/versions.py pymel/mayautils.py

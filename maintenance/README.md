@@ -171,24 +171,24 @@ Building an Official PyMEL Release
     version of pymel:
 
     ```python
-    import sys
-    import os
-    pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
-    pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
-    if not os.path.isfile(pymelInit):
-        raise RuntimeError('invalid pymel path: %s' % pymelPath)
-    if sys.path[0] != pymelPath:
-        sys.path.insert(0, pymelPath)
-    import pymel
-    if not pymel.__file__.startswith(pymelInit):  # don't check equality, it may be a .pyc
-        for mod in list(sys.modules):
-            if mod.split('.')[0] == 'pymel':
-                del sys.modules[mod]
-    import pymel
-    assert pymel.__file__.startswith(pymelInit)
-    import maintenance.build
-    assert maintenance.build.__file__.startswith(pymelPath)
-    maintenance.build.generateAll()
+import sys
+import os
+pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
+pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
+if not os.path.isfile(pymelInit):
+    raise RuntimeError('invalid pymel path: %s' % pymelPath)
+if sys.path[0] != pymelPath:
+    sys.path.insert(0, pymelPath)
+import pymel
+if not pymel.__file__.startswith(pymelInit):  # don't check equality, it may be a .pyc
+    for mod in list(sys.modules):
+        if mod.split('.')[0] == 'pymel':
+            del sys.modules[mod]
+import pymel
+assert pymel.__file__.startswith(pymelInit)
+import maintenance.build
+assert maintenance.build.__file__.startswith(pymelPath)
+maintenance.build.generateAll()
     ```
 
 ## 4) Run Tests
@@ -321,6 +321,9 @@ Indicated by this error:
 
 
 ## 8) Build Docs
+
+Note that now that pymel is distributed via pypi, this is not required to create
+a release.  But we do need to update readthedocs.
 
 ### 8a) Build the processed examples
 
