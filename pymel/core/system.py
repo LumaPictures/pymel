@@ -74,7 +74,8 @@ if PY2:
 else:
     from collections.abc import MutableMapping
 
-if False:
+TYPE_CHECKING = False
+if TYPE_CHECKING:
     from typing import *
     from typing import overload  # explicit import required for stubs
     from maya import cmds
@@ -87,33 +88,38 @@ else:
 _logger = _internal.getLogger(__name__)
 
 
-try:
-    from pymel.internal.startup import pymel_options as _pymel_options
-    # attempt to import a custom path class to use as the base for pymel's
-    # Path class
-    basePathName = _pymel_options['path_class']
-    buf = basePathName.split('.')
-    moduleName = '.'.join(buf[:-1])
-    className = buf[-1]
+def _findPathClass():
+    # type: () -> Type[_util.path]
     try:
-        pathModule = __import__(moduleName, globals(), locals(), [''])
-    except Exception as e:
-        _logger.warning("Could not import %r module containing custom base "
-                        "Path class: %s" % (moduleName, e))
-        raise AssertionError
+        from pymel.internal.startup import pymel_options as _pymel_options
+        # attempt to import a custom path class to use as the base for pymel's
+        # Path class
+        basePathName = _pymel_options['path_class']
+        buf = basePathName.split('.')
+        moduleName = '.'.join(buf[:-1])
+        className = buf[-1]
+        try:
+            pathModule = __import__(moduleName, globals(), locals(), [''])
+        except Exception as e:
+            _logger.warning("Could not import %r module containing custom base "
+                            "Path class: %s" % (moduleName, e))
+            raise AssertionError
 
-    try:
-        pathClass = getattr(pathModule, className)
-        _logger.info("Using custom path class %s" % (basePathName))
-    except AttributeError as e:
-        _logger.warning("Custom path class %s could not be found in "
-                        "module %s" % (className, pathModule))
-        raise AssertionError
-except (KeyError, AssertionError):
-    pathClass = _util.path
+        try:
+            pathClass = getattr(pathModule, className)
+            _logger.info("Using custom path class %s" % (basePathName,))
+            return pathClass
+        except AttributeError as e:
+            _logger.warning("Custom path class %s could not be found in "
+                            "module %s" % (className, pathModule))
+            raise AssertionError
+    except (KeyError, AssertionError):
+        return _util.path
+
+pathClass = _findPathClass()
 
 
-def _getTypeFromExtension(path, mode='write'):
+def getTypeFromExtension(path, mode='write'):
     # type: (str, str) -> str
     """
     Parameters
@@ -135,11 +141,13 @@ def _getTypeFromExtension(path, mode='write'):
     ext = Path(path).ext
     return str(Translator.fromExtension(ext, mode=mode))
 
+# for backward compatibiltiy
+_getTypeFromExtension = getTypeFromExtension
 
 def _setTypeKwargFromExtension(path, kwargs, mode='write'):
     if 'type' not in kwargs and 'typ' not in kwargs:
         try:
-            fileType = _getTypeFromExtension(path, mode=mode)
+            fileType = getTypeFromExtension(path, mode=mode)
         except Exception:
             pass
         else:
@@ -172,7 +180,7 @@ def feof(fileid):
 
 @_factories.addMelDocs('file', 'sceneName')
 def sceneName():
-    # type: () -> str
+    # type: () -> Path
     # We don't just use cmds.file(q=1, sceneName=1)
     # because it was sometimes returning an empty string,
     # even when there was a valid file
@@ -204,9 +212,9 @@ class UndoChunk(object):
     >>> pm.ls("MyNode*", type='transform')
     []
     >>> with pm.UndoChunk():
-    ...     res = pm.createNode('transform', name="MyNode1")
-    ...     res = pm.createNode('transform', name="MyNode2")
-    ...     res = pm.createNode('transform', name="MyNode3")
+    ...     res = pm.createNode(pm.nt.Transform, name="MyNode1")
+    ...     res = pm.createNode(pm.nt.Transform, name="MyNode2")
+    ...     res = pm.createNode(pm.nt.Transform, name="MyNode3")
     >>> pm.ls("MyNode*", type='transform')
     [nt.Transform('MyNode1'), nt.Transform('MyNode2'), nt.Transform('MyNode3')]
     >>> pm.undo() # Due to the undo chunk, all three are undone at once
@@ -324,7 +332,7 @@ class Namespace(str):
             return None
 
     def ls(self, pattern="*", **kwargs):
-        # type: (Any, **Any) -> List[general.PyNode]
+        # type: (str, **Any) -> List[general.PyNode]
         """
         Returns
         -------
@@ -333,7 +341,7 @@ class Namespace(str):
         return general.ls(self + pattern, **kwargs)
 
     def getNode(self, nodeName, verify=True):
-        # type: (Any, Any) -> general.PyNode
+        # type: (str, bool) -> general.PyNode
         """
         Returns
         -------
@@ -368,7 +376,8 @@ class Namespace(str):
         try:
             # workaround: namespaceInfo sometimes returns duplicates
             seen = set()
-            namespaces = [self.__class__(ns)
+            namespaces = [
+                self.__class__(ns)
                 for ns in (cmds.namespaceInfo(listOnlyNamespaces=True) or [])
                 if not (ns in seen or seen.add(ns))]
 
@@ -601,6 +610,7 @@ class Translator(object):
 
     @staticmethod
     def listRegistered():
+        # type: () -> List[str]
         return cmds.translator(q=1, list=1)
 
     @staticmethod
@@ -654,13 +664,17 @@ class Translator(object):
         self._name = str(name)
 
     def __str__(self):
+        # type: () -> str
         return self._name
 
     def __repr__(self):
+        # type: () -> str
         return '%s(%r)' % (self.__class__.__name__, self._name)
 
     def extension(self):
+        # type: () -> str
         return cmds.translator(self._name, q=1, ext=1)
+
     ext = property(extension)
     name = property(__str__)
 
@@ -696,9 +710,11 @@ class Translator(object):
 class WorkspaceEntryDict(object):
 
     def __init__(self, entryType):
+        # type: (str) -> None
         self.entryType = entryType
 
     def __repr__(self):
+        # type: () -> str
         return '%s(%r)' % (self.__class__.__name__, self.entryType)
 
     def __getitem__(self, item):
@@ -711,9 +727,11 @@ class WorkspaceEntryDict(object):
         return cmds.workspace(**{self.entryType: [item, value]})
 
     def __contains__(self, key):
+        # type: (str) -> bool
         return key in self.keys()
 
     def items(self):
+        # type: () -> List[Tuple[str, str]]
         entries = _util.listForNone(cmds.workspace(**{'q': 1, self.entryType: 1}))
         res = []
         for i in range(0, len(entries), 2):
@@ -721,9 +739,11 @@ class WorkspaceEntryDict(object):
         return res
 
     def keys(self):
+        # type: () -> List[str]
         return cmds.workspace(**{'q': 1, self.entryType + 'List': 1})
 
     def values(self):
+        # type: () -> List[str]
         entries = _util.listForNone(cmds.workspace(**{'q': 1, self.entryType: 1}))
         res = []
         for i in range(0, len(entries), 2):
@@ -738,6 +758,7 @@ class WorkspaceEntryDict(object):
 
     def __iter__(self):
         return iter(self.keys())
+
     has_key = __contains__
 
 
@@ -791,12 +812,6 @@ class Workspace(with_metaclass(_util.Singleton, object)):
     renderTypes = WorkspaceEntryDict('renderType')
     variables = WorkspaceEntryDict('variable')
 
-#    def __init__(self):
-#        self.objectTypes = WorkspaceEntryDict( 'objectType' )
-#        self.fileRules     = WorkspaceEntryDict( 'fileRule' )
-#        self.renderTypes = WorkspaceEntryDict( 'renderType' )
-#        self.variables     = WorkspaceEntryDict( 'variable' )
-
     @classmethod
     def open(self, workspace):
         return cmds.workspace(workspace, openWorkspace=1)
@@ -819,6 +834,7 @@ class Workspace(with_metaclass(_util.Singleton, object)):
 
     @classmethod
     def getPath(self):
+        # type: () -> Path
         return Path(cmds.workspace(q=1, fullName=1))
 
     @classmethod
@@ -827,6 +843,7 @@ class Workspace(with_metaclass(_util.Singleton, object)):
 
     @classmethod
     def getcwd(self):
+        # type: () -> Path
         return Path(cmds.workspace(q=1, dir=1))
 
     @classmethod
@@ -835,10 +852,12 @@ class Workspace(with_metaclass(_util.Singleton, object)):
 
     @property
     def path(self):
+        # type: () -> Path
         return Path(cmds.workspace(q=1, fullName=1))
 
     @property
     def name(self):
+        # type: () -> str
         return cmds.workspace(q=1, act=1)
 
     def __call__(self, *args, **kwargs):
@@ -850,7 +869,7 @@ class Workspace(with_metaclass(_util.Singleton, object)):
         return cmds.workspace(expandName=path)
 
 
-workspace = Workspace()
+workspace = Workspace()  # type: Workspace  # for stubs
 
 
 # ----------------------------------------------
@@ -911,6 +930,7 @@ class FileInfo(with_metaclass(SingletonABCMeta, MutableMapping)):
         cmds.fileInfo(item, value)
 
     def __delitem__(self, item):
+        # type: (str) -> None
         cmds.fileInfo(remove=item)
 
     def __call__(self, *args, **kwargs):
@@ -923,12 +943,15 @@ class FileInfo(with_metaclass(SingletonABCMeta, MutableMapping)):
             cmds.fileInfo(*args, **kwargs)
 
     def items(self):
+        # type: () -> List[Tuple[str, str]]
         return list(zip(self.keys(), self.values()))
 
     def keys(self):
+        # type: () -> List[str]
         return cmds.fileInfo(q=True)[::2]
 
     def __iter__(self):
+        # type: () -> Iterator[str]
         return iter(self.keys())
 
     def __len__(self):
@@ -936,7 +959,8 @@ class FileInfo(with_metaclass(SingletonABCMeta, MutableMapping)):
 
     has_key = MutableMapping.__contains__
 
-fileInfo = FileInfo()
+
+fileInfo = FileInfo()  # type: FileInfo  # for stubs
 
 
 # ----------------------------------------------
@@ -981,31 +1005,59 @@ class Path(pathClass):
 # FileReference
 # ==============================================================================
 
+# this is the default: namespaces=False, refNodes=False, references=True
 @overload
+def iterReferences(parentReference=None, recursive=False,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, str, Optional[bool], Optional[bool]) -> Iterator[FileReference]
+    pass
+
+@overload
+def iterReferences(parentReference=None, recursive=False,
+                   namespaces=True,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[True], str, Optional[bool], Optional[bool]) -> Iterator[Tuple[str, FileReference]]
+    pass
+
+@overload
+def iterReferences(parentReference=None, recursive=False,
+                   refNodes=True,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[True], str, Optional[bool], Optional[bool]) -> Iterator[Tuple[nt.Reference, FileReference]]
+    pass
+
+@overload
+def iterReferences(parentReference=None, recursive=False,
+                   namespaces=True, refNodes=False, references=False,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[True], Literal[False], Literal[False], str, Optional[bool], Optional[bool]) -> Iterator[str]
+    pass
+
+@overload
+def iterReferences(parentReference=None, recursive=False,
+                   namespaces=False, refNodes=True, references=False,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[False], Literal[True], Literal[False], str, Optional[bool], Optional[bool]) -> Iterator[nt.Reference]
+    pass
+
+@overload
+def iterReferences(parentReference=None, recursive=False,
+                   namespaces=True, refNodes=True, references=False,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[True], Literal[True], Literal[False], str, Optional[bool], Optional[bool]) -> Iterator[Tuple[str, nt.Reference]]
+    pass
+
+@overload
+def iterReferences(parentReference=None, recursive=False,
+                   namespaces=True, refNodes=True, references=True,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[True], Literal[True], Literal[True], str, Optional[bool], Optional[bool]) -> Iterator[Tuple[str, nt.Reference, FileReference]]
+    pass
+
 def iterReferences(parentReference=None, recursive=False, namespaces=False,
                    refNodes=False, references=True, recurseType='depth',
                    loaded=None, unloaded=None):
-    # type: (Union[str, Path, FileReference], bool, Literal[False], Literal[False], Literal[True], str, Optional[bool], Optional[bool]) -> Iterator[FileReference]
-    pass
-
-@overload
-def iterReferences(parentReference=None, recursive=False, namespaces=True,
-                   refNodes=False, references=False, recurseType='depth',
-                   loaded=None, unloaded=None):
-    # type: (Union[str, Path, FileReference], bool, Literal[True], Literal[False], Literal[False], str, Optional[bool], Optional[bool]) -> Iterator[str]
-    pass
-
-@overload
-def iterReferences(parentReference=None, recursive=False, namespaces=False,
-                   refNodes=True, references=False, recurseType='depth',
-                   loaded=None, unloaded=None):
-    # type: (Union[str, Path, FileReference], bool, Literal[False], Literal[True], Literal[False], str, Optional[bool], Optional[bool]) -> Iterator[nt.Reference]
-    pass
-
-def iterReferences(parentReference=None, recursive=False, namespaces=False,
-                   refNodes=False, references=True, recurseType='depth',
-                   loaded=None, unloaded=None):
-    # type: (Union[str, Path, FileReference], bool, bool, bool, bool, str, Optional[bool], Optional[bool]) -> Iterator[Union[FileReference, Tuple[str, FileReference], Tuple[str, FileReference, nt.Reference]]]
+    # type: (Union[str, Path, FileReference, None], bool, bool, bool, bool, str, Optional[bool], Optional[bool]) -> Iterator[Union[FileReference, Tuple[str, FileReference], Tuple[str, FileReference, nt.Reference]]]
     """
     returns references in the scene as a list of value tuples.
 
@@ -1017,7 +1069,7 @@ def iterReferences(parentReference=None, recursive=False, namespaces=False,
 
     Parameters
     ----------
-    parentReference : Union[str, Path, FileReference]
+    parentReference : Union[str, Path, FileReference, None]
         a reference to get sub-references from. If None (default), the current
         scene is used.
     recursive : bool
@@ -1116,15 +1168,65 @@ def iterReferences(parentReference=None, recursive=False, namespaces=False,
                 refs.extend(cmds.file(ref, q=1, reference=1))
 
 
+# this is the default: namespaces=False, refNodes=False, references=True
+@overload
+def listReferences(parentReference=None, recursive=False,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, str, Optional[bool], Optional[bool]) -> List[FileReference]
+    pass
+
+@overload
+def listReferences(parentReference=None, recursive=False,
+                   namespaces=True,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[True], str, Optional[bool], Optional[bool]) -> List[Tuple[str, FileReference]]
+    pass
+
+@overload
+def listReferences(parentReference=None, recursive=False,
+                   refNodes=True,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[True], str, Optional[bool], Optional[bool]) -> List[Tuple[nt.Reference, FileReference]]
+    pass
+
+@overload
+def listReferences(parentReference=None, recursive=False,
+                   namespaces=True, refNodes=False, references=False,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[True], Literal[False], Literal[False], str, Optional[bool], Optional[bool]) -> List[str]
+    pass
+
+@overload
+def listReferences(parentReference=None, recursive=False,
+                   namespaces=False, refNodes=True, references=False,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[False], Literal[True], Literal[False], str, Optional[bool], Optional[bool]) -> List[nt.Reference]
+    pass
+
+@overload
+def listReferences(parentReference=None, recursive=False,
+                   namespaces=True, refNodes=True, references=False,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[True], Literal[True], Literal[False], str, Optional[bool], Optional[bool]) -> List[Tuple[str, nt.Reference]]
+    pass
+
+@overload
+def listReferences(parentReference=None, recursive=False,
+                   namespaces=True, refNodes=True, references=True,
+                   recurseType='depth', loaded=None, unloaded=None):
+    # type: (Union[str, Path, FileReference, None], bool, Literal[True], Literal[True], Literal[True], str, Optional[bool], Optional[bool]) -> Iterator[Tuple[str, nt.Reference, FileReference]]
+    pass
+
+
 def listReferences(parentReference=None, recursive=False, namespaces=False,
                    refNodes=False, references=True, loaded=None, unloaded=None):
-    # type: (Union[str, Path, FileReference], bool, bool, bool, bool, Optional[bool], Optional[bool]) -> List[Union[FileReference, Tuple[str, FileReference], Tuple[str, FileReference, nt.Reference]]]
+    # type: (Union[str, Path, FileReference, None], bool, bool, bool, bool, Optional[bool], Optional[bool]) -> List[Union[FileReference, Tuple[str, FileReference], Tuple[str, FileReference, nt.Reference]]]
     """
     Like iterReferences, except returns a list instead of an iterator.
 
     Parameters
     ----------
-    parentReference : Union[str, Path, FileReference]
+    parentReference : Union[str, Path, FileReference, None]
         a reference to get sub-references from. If None (default), the current
         scene is used.
     recursive : bool
@@ -1384,16 +1486,28 @@ class FileReference(object):
 
     """
 
-#    the reference class now uses a reference node as it's basis, because if we store the refNode as a PyNode, we can
-#    quickly and automatically get any updates made to its name through outside methods.  almost any reference info can be queried using the
-#    refNode (without resorting to a path, which might change without us knowing), including resolved and unresolved
-#    paths.  namespaces are still the one weak spot, for which we must first get a path with copy number.  the use of
-#    a refNode precludes the need for the caching system, so long as a) using referenceQuery to get file paths from a refNode
-#    provides adequate performance, and b) using referenceQuery in __init__ to get a refNode from a path is os agnostic.
-#    in general, since almost all the internal queries use the refNode,
-#    there should be little need for the paths, except for displaying to the user.
+    # the reference class now uses a reference node as it's basis, because if
+    # we store the refNode as a PyNode, we can quickly and automatically get
+    # any updates made to its name through outside methods.  almost any
+    # reference info can be queried using the refNode (without resorting to a
+    # path, which might change without us knowing), including resolved and
+    # unresolved paths.  namespaces are still the one weak spot, for which we
+    # must first get a path with copy number.  the use of a refNode precludes
+    # the need for the caching system, so long as a) using referenceQuery to get
+    # file paths from a refNode provides adequate performance, and b) using
+    # referenceQuery in __init__ to get a refNode from a path is os agnostic.
+    # in general, since almost all the internal queries use the refNode,
+    # there should be little need for the paths, except for displaying to the user.
 
     def __init__(self, pathOrRefNode=None, namespace=None, refnode=None):
+        # type: (Optional[Union[str, nt.Reference]], Optional[str], Optional[Union[str, nt.Reference]]) -> None
+        """
+        Parameters
+        ----------
+        pathOrRefNode : Optional[Union[str, nt.Reference]]
+        namespace : Optional[str]
+        refnode : Optional[Union[str, nt.Reference]]
+        """
         import pymel.core.general
         from . import nodetypes
         # for speed reasons, we use raw maya.cmds, instead of pmcmds, for some
@@ -1546,12 +1660,15 @@ class FileReference(object):
         # type: () -> bool
         return cmds.namespace(ex=self.namespace)
 
-    def _getNamespace(self):
+    @property
+    def namespace(self):
+        # type: () -> str
         return cmds.file(self.withCopyNumber(), q=1, ns=1)
 
-    def _setNamespace(self, namespace):
-        return cmds.file(self.withCopyNumber(), e=1, ns=namespace)
-    namespace = property(_getNamespace, _setNamespace)
+    @namespace.setter
+    def namespace(self, namespace):
+        # type: (str) -> None
+        cmds.file(self.withCopyNumber(), e=1, ns=namespace)
 
     @property
     def fullNamespace(self):
@@ -1601,7 +1718,7 @@ class FileReference(object):
 
     @property
     def refNode(self):
-        # type: () -> general.PyNode
+        # type: () -> nt.Reference
         return self._refNode
 
     @property
@@ -1733,6 +1850,7 @@ class FileReference(object):
 
     @_factories.addMelDocs('referenceQuery', 'nodes')
     def nodes(self, recursive=False):
+        # type: (bool) -> List[nt.DependNode]
         import pymel.core.general
         nodes = cmds.referenceQuery(str(self.refNode), nodes=1, dagPath=1)
         if not nodes:
@@ -2053,6 +2171,7 @@ def _correctPath(path):
 
 @_factories.addMelDocs('file', 'reference')
 def createReference(filepath, **kwargs):
+    # type: (str, **Any) -> FileReference
     kwargs['reference'] = True
     res = cmds.file(filepath, **kwargs)
     if kwargs.get('returnNewNodes', kwargs.get('rnn', False)):
@@ -2062,6 +2181,7 @@ def createReference(filepath, **kwargs):
 
 @_factories.addMelDocs('file', 'loadReference')
 def loadReference(filepath, **kwargs):
+    # type: (str, **Any) -> FileReference
     kwargs['loadReference'] = True
     res = cmds.file(filepath, **kwargs)
     if res is None:
@@ -2087,6 +2207,7 @@ def loadReference(filepath, **kwargs):
 
 @_factories.addMelDocs('file', 'exportAll')
 def exportAll(exportPath, **kwargs):
+    # type: (str, **Any) -> Path
     _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportAll'] = True
     res = cmds.file(exportPath, **kwargs)
@@ -2097,6 +2218,7 @@ def exportAll(exportPath, **kwargs):
 
 @_factories.addMelDocs('file', 'exportAsReference')
 def exportAsReference(exportPath, **kwargs):
+    # type: (str, **Any) -> FileReference
     _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportAsReference'] = True
     res = cmds.file(exportPath, **kwargs)
@@ -2107,6 +2229,7 @@ def exportAsReference(exportPath, **kwargs):
 
 @_factories.addMelDocs('file', 'exportSelected')
 def exportSelected(exportPath, **kwargs):
+    # type: (str, **Any) -> Path
     _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportSelected'] = True
     res = cmds.file(exportPath, **kwargs)
@@ -2117,6 +2240,7 @@ def exportSelected(exportPath, **kwargs):
 
 @_factories.addMelDocs('file', 'exportAnim')
 def exportAnim(exportPath, **kwargs):
+    # type: (str, **Any) -> Path
     _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportAnim'] = True
     res = cmds.file(exportPath, **kwargs)
@@ -2127,6 +2251,7 @@ def exportAnim(exportPath, **kwargs):
 
 @_factories.addMelDocs('file', 'exportSelectedAnim')
 def exportSelectedAnim(exportPath, **kwargs):
+    # type: (str, **Any) -> Path
     _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportSelectedAnim'] = True
     res = cmds.file(exportPath, **kwargs)
@@ -2137,6 +2262,7 @@ def exportSelectedAnim(exportPath, **kwargs):
 
 @_factories.addMelDocs('file', 'exportAnimFromReference')
 def exportAnimFromReference(exportPath, **kwargs):
+    # type: (str, **Any) -> Path
     _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportAnimFromReference'] = True
     res = cmds.file(exportPath, **kwargs)
@@ -2147,6 +2273,7 @@ def exportAnimFromReference(exportPath, **kwargs):
 
 @_factories.addMelDocs('file', 'exportSelectedAnimFromReference')
 def exportSelectedAnimFromReference(exportPath, **kwargs):
+    # type: (str, **Any) -> Path
     _setTypeKwargFromExtension(exportPath, kwargs)
     kwargs['exportSelectedAnimFromReference'] = True
     res = cmds.file(exportPath, **kwargs)
@@ -2355,8 +2482,6 @@ def exportEdits(*args, **kwargs):
             pass
     res = cmds.exportEdits(*args, **kwargs)
     return res
-
-fcheck = _factories.getCmdFunc('fcheck')
 
 @_factories.addCmdDocs
 def fileBrowserDialog(*args, **kwargs):
@@ -2647,5 +2772,3 @@ warning = _factories.getCmdFunc('warning')
 whatsNewHighlight = _factories.getCmdFunc('whatsNewHighlight')
 
 workspace = _factories.addCmdDocs(workspace, cmdName='workspace')
-
-xpmPicker = _factories.getCmdFunc('xpmPicker')

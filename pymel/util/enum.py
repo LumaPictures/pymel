@@ -626,6 +626,7 @@ class EnumDict(utilitytypes.EquivalencePairs):
         return "%s(%s)" % (self.__class__.__name__, super(EnumDict, self).__repr__())
 
     def value(self, key):
+        # type: (Union[str, int]) -> int
         """
         get an index value from a key. this method always returns an index. if a valid index is passed instead of a key, the index will
         be returned unchanged.  this is useful when you need an index, but are not certain whether you are starting with a key or an index.
@@ -658,6 +659,7 @@ class EnumDict(utilitytypes.EquivalencePairs):
                 raise ValueError("invalid enumerator key: %r" % key)
 
     def key(self, index):
+        # type: (int) -> str
         """
         get a key value from an index. this method always returns a key. if a valid key is passed instead of an index, the key will
         be returned unchanged.  this is useful when you need a key, but are not certain whether you are starting with a key or an index.

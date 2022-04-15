@@ -53,7 +53,6 @@ if False:
         total=False,
     )
 
-
 _logger = plogging.getLogger(__name__)
 
 # Initialize the cache globals
@@ -113,7 +112,6 @@ class ApiMethodMissingError(MissingInCacheError):
         return "method {} of {} cannot be found - perhaps it is not available" \
                " in this version of maya?".format(self.methodName,
                                                   self.apiClassName)
-
 
 
 # Though the global variables and the attributes on _apiCacheInst SHOULD
@@ -301,7 +299,7 @@ def toPyUI(res):
 def toPyType(moduleName, objectName):
     # type: (str, str) -> Callable[[Any], Any]
     """
-    Returns a function which casts it's single argument to
+    Returns a function which casts its single argument to
     an object with the given name in the given module (name).
 
     The module / object are given as strings, so that the module
@@ -646,8 +644,8 @@ def _guessCmdName(func):
         return func.__class__.__name__
 
 
-def addCmdDocs(func, cmdName=None):
-    # type: (CallableT, Optional[str]) -> CallableT
+def addCmdDocs(func, cmdName=None, excludeFlags=None):
+    # type: (CallableT, Optional[str], Optional[Iterable[str]]) -> CallableT
     """
     Parameters
     ----------
@@ -665,13 +663,14 @@ def addCmdDocs(func, cmdName=None):
         docstring = func.__doc__
     else:
         docstring = ''
-    util.addLazyDocString(func, addCmdDocsCallback, cmdName, docstring)
+    util.addLazyDocString(func, addCmdDocsCallback, cmdName, docstring,
+                          excludeFlags=excludeFlags)
     return func
 
 
-def addCmdDocsCallback(cmdName, docstring=''):
+def addCmdDocsCallback(cmdName, docstring='', excludeFlags=None):
     try:
-        return docBuilderCls(cmdName).build(docstring)
+        return docBuilderCls(cmdName).build(docstring, excludeFlags=excludeFlags)
     except MelCommandMissingError as e:
         # % formatter deals with unicode, but keeps strings str if not unicode
         return '%s' % e
@@ -1189,7 +1188,7 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
 
     if cmdlist[funcName]['type'] != 'runtime':
         # runtime functions have no docs
-        addCmdDocs(newFunc, funcName)
+        addCmdDocs(newFunc, cmdName=funcName)
 
     if rename:
         newFunc.__name__ = rename
@@ -1386,14 +1385,16 @@ def editflag(cmdName, flag):
     # type: (str, str) -> Decorator
     """edit flag decorator"""
     def edit_decorator(method):
-        wrappedMelFunc = makeEditFlagMethod(method, flag, pmcmds.getCmdName(method), cmdName=cmdName)
+        wrappedMelFunc = makeEditFlagMethod(method, flag,
+                                            pmcmds.getCmdName(method),
+                                            cmdName=cmdName)
         wrappedMelFunc.__module__ = method.__module__
         return wrappedMelFunc
     return edit_decorator
 
 
-def addMelDocs(cmdName, flag=None):
-    # type: (str, str) -> Decorator
+def addMelDocs(cmdName, flag=None, excludeFlags=None):
+    # type: (str, Optional[str], Optional[Iterable[str]]) -> Decorator
     """decorator for adding docs"""
 
     if flag:
@@ -1407,10 +1408,11 @@ def addMelDocs(cmdName, flag=None):
         # A command
         def doc_decorator(func):
             try:
-                wrappedMelFunc = addCmdDocs(func, cmdName)
+                wrappedMelFunc = addCmdDocs(func, cmdName=cmdName,
+                                            excludeFlags=excludeFlags)
                 wrappedMelFunc.__module__ = func.__module__
             except KeyError:
-                _logger.info(("No documentation available %s command" % (cmdName)))
+                _logger.info(("No documentation available %s command" % (cmdName,)))
                 wrappedMelFunc = func
             return wrappedMelFunc
 
@@ -1932,69 +1934,92 @@ class ApiArgUtil(object):
         else:
             currentModule = pymelClass.__module__
 
-        def toPymelType(apiName):
-            # type: (str) -> str
-
+        def toPymelType(apiName, asResult=False):
+            # type: (str, bool) -> str
+            """
+            Parameters
+            ----------
+            apiName : str
+            asResult : bool
+                the native type used for an API type varies depending on whether
+                it is being used as an argument or a result.
+            """
             # FIXME: Quaternion is not getting datatypes module prepended in nodetypes module
             moduleName = None
 
-            pymelType = apiClassNamesToPymelTypes.get(apiName, None)
-            if pymelType is not None:
-                moduleName = pymelType.__module__
-                pymelName = pymelType.__name__
+            # PyNode is registered for these two types, but for the sake of
+            # annotations, these overrides are usually more accurate (always
+            # more accurate in the case of MDagPath)
+            overrides = {
+                'MObject': 'pymel.core.nodetypes.DependNode',
+                'MDagPath': 'pymel.core.nodetypes.DagNode',
+            }
+            pymelName = overrides.get(apiName, None)
+            if pymelName:
+                moduleName, pymelName = pymelName.rsplit('.', 1)
             else:
-                try:
-                    pymelName = ApiTypeRegister.types[apiName]
-                except KeyError:
-                    match = re.match('^(?:(MIt)|(MFn)|(M))([A-Z]+.*)', apiName)
-                    assert match is not None, apiName
-                    isGeneral, isNode, isData, pymelName = match.groups()
-
-                    if pymelName == 'Attribute':
-                        moduleName = 'pymel.core.general'
-                    elif isGeneral:
-                        moduleName = 'pymel.core.general'
-                    elif isNode:
-                        moduleName = 'pymel.core.nodetypes'
-                    elif isData:
-                        moduleName = 'pymel.core.datatypes'
+                pymelType = apiClassNamesToPymelTypes.get(apiName, None)
+                if pymelType is not None:
+                    moduleName = pymelType.__module__
+                    pymelName = pymelType.__name__
                 else:
-                    if isinstance(pymelName, tuple):
-                        pymelName = 'Tuple[%s]' % ', '.join(pymelName)
+                    try:
+                        pymelName = ApiTypeRegister.types[apiName]
+                    except KeyError:
+                        match = re.match('^(?:(MIt)|(MFn)|(M))([A-Z]+.*)', apiName)
+                        assert match is not None, apiName
+                        isGeneral, isNode, isData, pymelName = match.groups()
+
+                        if pymelName == 'Attribute':
+                            moduleName = 'pymel.core.general'
+                        elif isGeneral:
+                            moduleName = 'pymel.core.general'
+                        elif isNode:
+                            moduleName = 'pymel.core.nodetypes'
+                        elif isData:
+                            moduleName = 'pymel.core.datatypes'
                     else:
-                        moduleName, pymelName = pymelName.rsplit('.', 1)
+                        if isinstance(pymelName, tuple):
+                            pymelName = 'Tuple[%s]' % ', '.join(pymelName)
+                        else:
+                            moduleName, pymelName = pymelName.rsplit('.', 1)
 
             if moduleName == 'pymel.core.nodetypes' and currentModule != 'pymel.core.nodetypes':
-                return 'nt.' + pymelName
-            if moduleName == 'pymel.core.datatypes' and currentModule != 'pymel.core.datatypes':
-                return 'datatypes.' + pymelName
-            if moduleName == 'pymel.core.general' and currentModule != 'pymel.core.general':
-                return 'general.' + pymelName
-            return pymelName
+                result = 'nt.' + pymelName
+            elif moduleName == 'pymel.core.datatypes' and currentModule != 'pymel.core.datatypes':
+                result = 'datatypes.' + pymelName
+            elif moduleName == 'pymel.core.general' and currentModule != 'pymel.core.general':
+                result = 'general.' + pymelName
+            else:
+                result = pymelName
 
-        def getType(apiName):
-            # type: (str) -> str
+            if not asResult and pymelName in ['Attribute', 'DependNode', 'DagPath']:
+                result = 'str | %s' % result
+            return result
+
+        def getType(apiName, asResult):
+            # type: (str, bool) -> str
             arrayType = ApiTypeRegister.arrayItemTypes.get(apiName)
             if arrayType:
                 try:
-                    pymelName = toPymelType(arrayType.__name__)
+                    pymelName = toPymelType(arrayType.__name__, asResult=asResult)
                 except AssertionError:
                     pymelName = arrayType.__name__
                 return 'List[%s]' % pymelName
             else:
-                pymelName = toPymelType(str(apiName))
+                pymelName = toPymelType(str(apiName), asResult=asResult)
             return pymelName
 
         for x in inArgs:
             if types[x] == 'MAnimCurveChange':
                 continue
-            args.append(getType(types[x]))
+            args.append(getType(types[x], asResult=False))
 
         results = []
         if returnType:
-            results.append(getType(returnType))
+            results.append(getType(returnType, asResult=True))
         for x in outArgs:
-            results.append(getType(types[x]))
+            results.append(getType(types[x], asResult=True))
 
         if len(results) == 1:
             result = results[0]
@@ -2054,7 +2079,8 @@ class ApiArgUtil(object):
         try:
             return apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
         except ValueError:
-            raise ValueError("expected an enum of type %s.%s: got %r" % (apiClassName, enumName, input))
+            raise ValueError("expected an enum of type %s.%s: got %r" %
+                             (apiClassName, enumName, input))
 
     @staticmethod
     def fromInternalUnits(result, returnType, unit=None):
@@ -2184,7 +2210,8 @@ class ApiArgUtil(object):
                 continue
 
             if isinstance(default, apicache.ApiEnum):
-                # convert enums from apiName to pymelName. the default will be the readable string name
+                # convert enums from apiName to pymelName. the default will be
+                # the readable string name
                 apiClassName, enumName, enumValue = default
                 try:
                     enumList = apiClassInfo[apiClassName]['enums'][enumName]['values']

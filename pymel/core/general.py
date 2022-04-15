@@ -42,13 +42,40 @@ else:
 TYPE_CHECKING = False
 
 if TYPE_CHECKING:
-    from typing import *
-    from typing import overload  # explicit import required for stubs
+    from typing import Any, Callable, Dict, Iterable, Iterator, List, Pattern, Sequence, Tuple, Type, TypeVar, Union, overload
+    from typing_extensions import Literal, TypeGuard
     import pymel.core.nodetypes as nodetypes
     import pymel.core.nodetypes as nt
     import pymel.core.other as other
     from maya import cmds
     import maya.OpenMaya as _api
+    T = TypeVar('T')
+    DependNodeT = TypeVar('DependNodeT', bound=nodetypes.DependNode)
+    DependNodeT1 = TypeVar('DependNodeT1', bound=nodetypes.DependNode)
+    DependNodeT2 = TypeVar('DependNodeT2', bound=nodetypes.DependNode)
+    DependNodeT3 = TypeVar('DependNodeT3', bound=nodetypes.DependNode)
+    DagNodeT = TypeVar('DagNodeT', bound=nodetypes.DagNode)
+    ShapeT = TypeVar('ShapeT', bound=nodetypes.Shape)
+    TransformT = TypeVar('TransformT', bound=nodetypes.Transform)
+
+    PatternTypes = Union[str, Pattern, List[Union[str, Pattern]]]
+    SelectableTypes = nodetypes.DependNode  # Union[nodetypes.DependNode, Attribute, Component]
+    EnumArgTypes = Union[
+        Dict[str, int],
+        Dict[int, str],
+        _util.EnumDict,
+        str,
+    ]
+    TypeArgTypes = Union[
+        str,
+        Type[nodetypes.DependNode],
+        Tuple[Union[str, Type[nodetypes.DependNode]], ...],
+    ]
+    LimitedTypeArgTypes = Union[
+        str,
+        Iterable[Union[str, Type[nodetypes.DependNode]]]
+    ]
+
 else:
     import pymel.api as _api
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
@@ -167,6 +194,23 @@ def _getPymelType(arg, name):
 # Docs state 'If there is only a single object specified then the selected objects are parented to that object. '
 # ...but actual behavior is to parent the named object (and any other selected objects) to the last selected object
 
+if TYPE_CHECKING:
+    @overload
+    def objectType(arg, isAType):
+        # type: (Any, Type[T]) -> TypeGuard[T]
+        pass
+
+    @overload
+    def objectType(arg, isType):
+        # type: (Any, Type[T]) -> TypeGuard[T]
+        pass
+
+    @overload
+    def objectType(*args, **kwargs):
+        pass
+else:
+    objectType = _factories.getCmdFunc('objectType')
+
 # ----------------------
 #  Object Manipulation
 # ----------------------
@@ -273,6 +317,7 @@ def connectAttr(source, destination, **kwargs):
 @_factories.addCmdDocs
 def disconnectAttr(source, destination=None, inputs=None, outputs=None,
                    **kwargs):
+    # type: (Union[str, Attribute], Union[str, Attribute, None], Optional[bool], Optional[bool], Any) -> None
     """
     Modifications:
       - If no destination is passed, then all inputs will be disconnected if inputs
@@ -643,6 +688,11 @@ def setAttr(attr, *args, **kwargs):
             # re-raise
             raise
 
+@overload
+def addAttr(args, type=Ellipsis, childSuffixes=Ellipsis, enumName=Ellipsis, **kwargs):
+    # type: (*Any, Union[str, Type], Sequence[str],EnumArgTypes, **Any) -> Any
+    pass
+
 
 @_factories.addCmdDocs
 def addAttr(*args, **kwargs):
@@ -904,6 +954,7 @@ def hasAttr(pyObj, attr, checkShape=True):
 # ----------------------
 
 def _toEnumStr(enums):
+    # type: (EnumArgTypes) -> str
     if isinstance(enums, dict):
         firstKey = next(iter(enums.keys()))
         firstVal = next(iter(enums.values()))
@@ -985,24 +1036,80 @@ def getEnums(attr):
 #    """
 #    return _util.listForNone(cmds.listAttr(*args, **kwargs))
 
+# connections=True, plugs=True
+# `type` has no affect on result type -> List[Attribute, Attribute]
 @overload
-def listConnections(arg, connections=True, plugs=True, **kwargs):
-    # type: (Any, Literal[True], Literal[True], **Any) -> List[Tuple[Attribute, Attribute]]
+def listConnections(args, connections=True, plugs=True, sourceFirst=Ellipsis, type=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[True], bool, TypeArgTypes, **Any) -> List[Tuple[Attribute, Attribute]]
     pass
 
+# type arg is only honored if shapes=True, otherwise, shapes are returned as xforms.
+# connections=True, shapes=True, type=TypeT -> List[Attribute, TypeT]
 @overload
-def listConnections(arg, connections=True, **kwargs):
-    # type: (Any, Literal[True], **Any) -> List[Tuple[Attribute, PyNode]]
+def listConnections(args, connections=True, shapes=True, type=None, plugs=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[True], Type[DependNodeT], Literal[False],**Any) -> List[Tuple[Attribute, DependNodeT]]
     pass
 
+# connections=True, shapes=True, type=LimitedTypeArgTypes -> List[Attribute, DependNode]
 @overload
-def listConnections(arg, plugs=True, **kwargs):
-    # type: (Any, Literal[True], *Any) -> List[Attribute]
+def listConnections(args, connections=True, shapes=True, type=None, plugs=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[True], LimitedTypeArgTypes, Literal[False],**Any) -> List[Tuple[Attribute, nodetypes.DependNode]]
     pass
 
+# connections=True, type=Type[Shape] -> List[Attribute, Transform]
 @overload
-def listConnections(arg, **kwargs):
-    # type: (Any, *Any) -> List[PyNode]
+def listConnections(args, connections=True, shapes=Ellipsis, plugs=Ellipsis, type=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[False], Literal[False], Type[nodetypes.Shape], **Any) -> List[Tuple[Attribute, nodetypes.Transform]]
+    pass
+
+# connections=True, type=Type[TransformT] -> List[Attribute, TransformT]
+@overload
+def listConnections(args, connections=True, shapes=Ellipsis, plugs=Ellipsis, type=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[False], Literal[False], Type[TransformT], **Any) -> List[Tuple[Attribute, TransformT]]
+    pass
+
+# connections=True, type=LimitedTypeArgTypes -> List[Attribute, DependNode]
+@overload
+def listConnections(args, connections=True, shapes=Ellipsis, plugs=Ellipsis, type=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[False], Literal[False], LimitedTypeArgTypes, **Any) -> List[Tuple[Attribute, nodetypes.DependNode]]
+    pass
+
+# plugs=True -> List[Attribute]
+# `type` has no affect on result type
+@overload
+def listConnections(args, plugs=True, connections=Ellipsis, type=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[False], TypeArgTypes, *Any) -> List[Attribute]
+    pass
+
+# type arg is only honored if shapes=True, otherwise, shapes are returned as xforms.
+# type=TypeT, shapes=True -> List[TypeT]
+@overload
+def listConnections(args, type=None, shapes=True, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+    # type: (Any, Type[DependNodeT], Literal[True], Literal[False], Literal[False], *Any) -> List[DependNodeT]
+    pass
+
+# type=Type[Shape] -> List[Transform]
+@overload
+def listConnections(args, type=None, shapes=Ellipsis, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+    # type: (Any, Type[nodetypes.Shape], Literal[False], Literal[False], Literal[False], *Any) -> List[nodetypes.Transform]
+    pass
+
+# type=Type[TransformT] -> List[TransformT]
+@overload
+def listConnections(args, type=None, shapes=Ellipsis, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+    # type: (Any, Type[TransformT], Literal[False], Literal[False], Literal[False], *Any) -> List[TransformT]
+    pass
+
+# type=Type[DependNode] -> List[DependNode]
+@overload
+def listConnections(args, type=None, shapes=Ellipsis, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+    # type: (Any, Type[nodetypes.DependNode], Literal[False], Literal[False], Literal[False], *Any) -> List[nodetypes.DependNode]
+    pass
+
+# uninspectable type
+@overload
+def listConnections(args, type=Ellipsis, **kwargs):
+    # type: (Any, LimitedTypeArgTypes, **Any) -> List[nodetypes.DependNode]
     pass
 
 @_factories.addCmdDocs
@@ -1049,7 +1156,7 @@ def listConnections(*args, **kwargs):
             return []
         return [(CastObj(a), CastObj(b)) for (a, b) in _util.pairIter(l)]
 
-    # group the core functionality into a funcion, so we can call in a loop when
+    # group the core functionality into a function, so we can call in a loop when
     # passed a list of types
     def doIt(**kwargs):
         if kwargs.get('connections', kwargs.get('c', False)):
@@ -1058,12 +1165,13 @@ def listConnections(*args, **kwargs):
                 source = kwargs.get('source', kwargs.get('s', True))
                 dest = kwargs.get('destination', kwargs.get('d', True))
 
+                # any call where source=True (default) we should flip the order
                 if source:
                     if not dest:
                         return [(s, d) for d, s in makePairs(
                             cmds.listConnections(*args, **kwargs))]
                     else:
-                        res = []
+                        # first get the sources, flipping source and dest
                         kwargs.pop('destination', None)
                         kwargs['d'] = False
                         res = [(s, d) for d, s in makePairs(
@@ -1100,6 +1208,16 @@ def listConnections(*args, **kwargs):
         return doIt(**kwargs)
 
 
+@overload
+def listHistory(args, type=None, exactType=Ellipsis, **kwargs):
+    # type: (Any, Type[DependNodeT], Optional[str], *Any) -> List[DependNodeT]
+    pass
+
+@overload
+def listHistory(args, type=Ellipsis, exactType=Ellipsis, **kwargs):
+    # type: (*Any, Optional[str], Optional[str], **Any) -> List[nodetypes.DependNode]
+    pass
+
 @_factories.addCmdDocs
 def listHistory(*args, **kwargs):
     # type: (*Any, **Any) -> List[nodetypes.DependNode]
@@ -1116,13 +1234,14 @@ def listHistory(*args, **kwargs):
     -------
     List[nodetypes.DependNode]
     """
-    args = tuple(None if isinstance(x, (list, tuple, set, frozenset)) and not x
-                 else x for x in args)
     type = exactType = None
     if 'type' in kwargs:
         type = kwargs.pop('type')
     if 'exactType' in kwargs:
         exactType = kwargs.pop('exactType')
+
+    args = tuple(None if isinstance(x, (list, tuple, set, frozenset)) and not x
+                 else x for x in args)
 
     results = [PyNode(x) for x in _util.listForNone(cmds.listHistory(*args, **kwargs))]
 
@@ -1134,6 +1253,20 @@ def listHistory(*args, **kwargs):
     return results
 
 
+@overload
+@_factories.addMelDocs('listHistory', excludeFlags=['future'])
+def listFuture(args, type=None, exactType=Ellipsis, **kwargs):
+    # type: (Any, Type[DependNodeT], Optional[str], *Any) -> List[DependNodeT]
+    pass
+
+@overload
+@_factories.addMelDocs('listHistory', excludeFlags=['future'])
+def listFuture(args, type=Ellipsis, exactType=Ellipsis, **kwargs):
+    # type: (*Any, Optional[str], Optional[str], **Any) -> List[nodetypes.DependNode]
+    pass
+
+# This could be created using functools.partial to preserve type annotations
+@_factories.addMelDocs('listHistory', excludeFlags=['future'])
 def listFuture(*args, **kwargs):
     # type: (*Any, **Any) -> List[nodetypes.DependNode]
     """
@@ -1151,9 +1284,24 @@ def listFuture(*args, **kwargs):
     return listHistory(*args, **kwargs)
 
 
+@overload
+def listRelatives(args, type=None, **kwargs):
+    # type: (*Any, Type[DagNodeT], **Any) -> List[DagNodeT]
+    pass
+
+@overload
+def listRelatives(args, shapes=True, **kwargs):
+    # type: (*Any, Literal[True], **Any) -> List[nodetypes.Shape]
+    pass
+
+@overload
+def listRelatives(args, type=Ellipsis, **kwargs):
+    # type: (*Any, Union[str, Iterable[Union[str, Type[nodetypes.DagNode]]]], **Any) -> List[nodetypes.DagNode]
+    pass
+
 @_factories.addCmdDocs
 def listRelatives(*args, **kwargs):
-    # type: (*Any, **Any) -> List[nodetypes.DependNode]
+    # type: (*Any, **Any) -> List[nodetypes.DagNode]
     """
     Maya Bug Fix:
       - allDescendents and shapes flags did not work in combination
@@ -1195,6 +1343,82 @@ def listRelatives(*args, **kwargs):
         return [result for result in results if not result.intermediateObject.get()]
     return results
 
+# type=Type
+@overload
+def ls(args, type=None, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Type[DependNodeT], bool, PatternTypes, **Any) -> List[DependNodeT]
+    pass
+
+# type=(Type1, Type2)
+@overload
+def ls(args, type=None, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Tuple[Type[DependNodeT1], Type[DependNodeT2]], bool, PatternTypes, **Any) -> List[Union[DependNodeT1, DependNodeT2]]
+    pass
+
+# exactType=Type
+@overload
+def ls(args, exactType=None, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Type[DependNodeT], bool, PatternTypes, **Any) -> List[DependNodeT]
+    pass
+
+@overload
+def ls(args, textures=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.DependNode]
+    pass
+
+@overload
+def ls(args, references=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.Reference]
+    pass
+
+@overload
+def ls(args, cameras=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.Camera]
+    pass
+
+@overload
+def ls(args, assemblies=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.Transform]
+    pass
+
+@overload
+def ls(args, transforms=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.Transform]
+    pass
+
+@overload
+def ls(args, shapes=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.Shape]
+    pass
+
+@overload
+def ls(args, dag=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.DagNode]
+    pass
+
+# when specifying types arg, the result will never be a Component
+@overload
+def ls(args, type=None, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, LimitedTypeArgTypes, bool, PatternTypes, **Any) -> List[nodetypes.DependNode]
+    pass
+
+# selected=True, objectOnly=True: result will not be a Component
+@overload
+def ls(args, selection=True, objectsOnly=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.DependNode]
+    pass
+
+# selected=True: result may be a Component
+@overload
+def ls(args, selection=True, objectsOnly=Ellipsis, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[False], bool, PatternTypes, **Any) -> List[SelectableTypes]
+    pass
+
+# selected omitted or False: result will not be a Component
+@overload
+def ls(args, selection=Ellipsis, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[False], bool, PatternTypes, **Any) -> List[nodetypes.DependNode]
+    pass
 
 @_factories.addCmdDocs
 def ls(*args, **kwargs):
@@ -1386,7 +1610,7 @@ def listTransforms(*args, **kwargs):
 
 @_factories.addCmdDocs
 def listSets(*args, **kwargs):
-    # type: (*Any, **Any) -> List[PyNode]
+    # type: (*Any, **Any) -> List[nodetypes.ObjectSet]
     """
     Modifications:
       - returns wrapped classes
@@ -1461,6 +1685,7 @@ def nodeType(node, **kwargs):
 
 @_factories.addCmdDocs
 def group(*args, **kwargs):
+    # type: (*Any, **Any) -> nodetypes.Transform
     """
     Modifications
       - if no objects are passed or selected, the empty flag is automatically set
@@ -1736,6 +1961,20 @@ class NodeTracker(object):
     def __exit__(self, exctype, excval, exctb):
         self.endTrack()
 
+@overload
+def duplicate(arg, **kwargs):
+    # type: (DependNodeT, **Any) -> List[DependNodeT]
+    pass
+
+@overload
+def duplicate(arg, **kwargs):
+    # type: (Iterable[DependNodeT], **Any) -> List[DependNodeT]
+    pass
+
+@overload
+def duplicate(*args, **kwargs):
+    # type: (*Any, **Any) -> List[nodetypes.DependNode]
+    pass
 
 @_factories.addCmdDocs
 def duplicate(*args, **kwargs):
@@ -1976,6 +2215,7 @@ Modifications:
 
 @_factories.addCmdDocs
 def rename(obj, newname, **kwargs):
+    # type: (Union[str, nodetypes.DependNode], str, **Any) -> nodetypes.DependNode
     """
 Modifications:
     - if the full path to an object is passed as the new name, the shortname of the object will automatically be used
@@ -1991,8 +2231,19 @@ Modifications:
     return PyNode(cmds.rename(obj, newname, **kwargs))
 
 
+@overload
+def createNode(arg, **kwargs):
+    # type: (Type[DependNodeT], **Any) -> DependNodeT
+    pass
+
+@overload
+def createNode(*args, **kwargs):
+    # type: (*Any, **Any) -> nodetypes.DependNode
+    pass
+
 @_factories.addCmdDocs
 def createNode(*args, **kwargs):
+    # type: (*Any, **Any) -> nodetypes.DependNode
     res = cmds.createNode(*args, **kwargs)
     # createNode can sometimes return None, if the shared=True and name= an object that already exists
     if res:
@@ -2147,6 +2398,7 @@ Modifications:
 
 @_factories.addCmdDocs
 def getClassification(*args, **kwargs):
+    # type: (*Any, **Any) -> List[str]
     """
 Modifications:
   - previously returned a list with a single colon-separated string of classifications. now returns a list of classifications
@@ -2171,6 +2423,7 @@ Modifications:
 # -------------------------
 
 def uniqueObjExists(name):
+    # type: (Union[str, PyNode]) -> bool
     '''
     Returns True if name uniquely describes an object in the scene.
     '''
@@ -2860,7 +3113,7 @@ class PyNode(_util.ProxyUnicode):
         return other.NameParser(self).addPrefix(prefix)
 
     def exists(self, **kwargs):
-        "objExists"
+        """objExists"""
         try:
             # use __apimobject__, not __apiobject__, because that's the one
             # that calls _api.isValidMObjectHandle (ie, we don't want to get
@@ -3737,6 +3990,49 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         # no return
         cmds.disconnectAttr(self, other)
 
+    # connections=True, plugs=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, connections=True, plugs=True, sourceFirst=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[True], bool, TypeArgTypes, **Any) -> List[Tuple[Attribute, Attribute]]
+        pass
+
+    # connections=True, type=Type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, connections=True, type=None, plugs=Ellipsis, **kwargs):
+        # type: (Literal[True], Type[DependNodeT], Literal[False], **Any) -> List[Tuple[Attribute, DependNodeT]]
+        pass
+
+    # connections=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, connections=True, plugs=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[False], LimitedTypeArgTypes, **Any) -> List[Tuple[Attribute, nodetypes.DependNode]]
+        pass
+
+    # plugs=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, plugs=True, connections=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[False], TypeArgTypes, *Any) -> List[Attribute]
+        pass
+
+    # type=Type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, type=None, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+        # type: (Type[DependNodeT], Literal[False], Literal[False], *Any) -> List[DependNodeT]
+        pass
+
+    # uninspectable type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, type=Ellipsis, **kwargs):
+        # type: (LimitedTypeArgTypes, **Any) -> List[nodetypes.DependNode]
+        pass
+
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
     def inputs(self, **kwargs):
         # type: (**Any) -> List[PyNode]
         """
@@ -3756,6 +4052,49 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
         return listConnections(self, **kwargs)
 
+    # connections=True, plugs=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, connections=True, plugs=True, sourceFirst=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[True], bool, TypeArgTypes, **Any) -> List[Tuple[Attribute, Attribute]]
+        pass
+
+    # connections=True, type=Type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, connections=True, type=None, plugs=Ellipsis, **kwargs):
+        # type: (Literal[True], Type[DependNodeT], Literal[False], **Any) -> List[Tuple[Attribute, DependNodeT]]
+        pass
+
+    # connections=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, connections=True, plugs=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[False], LimitedTypeArgTypes, **Any) -> List[Tuple[Attribute, nodetypes.DependNode]]
+        pass
+
+    # plugs=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, plugs=True, connections=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[False], TypeArgTypes, *Any) -> List[Attribute]
+        pass
+
+    # type=Type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, type=None, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+        # type: (Type[DependNodeT], Literal[False], Literal[False], *Any) -> List[DependNodeT]
+        pass
+
+    # uninspectable type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, type=Ellipsis, **kwargs):
+        # type: (LimitedTypeArgTypes, **Any) -> List[nodetypes.DependNode]
+        pass
+
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
     def outputs(self, **kwargs):
         # type: (**Any) -> List[PyNode]
         """

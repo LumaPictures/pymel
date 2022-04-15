@@ -265,13 +265,7 @@ Indicated by this error:
 
 ## 6) Build Stubs (new)
 
-  - Fix up the mypy typeshed. This is only required until my fixes to mypy stubgen
-    get officially released (at which point the requirements.txt file in this
-    directory will be updated and this note will be removed:
-    ```
-    git clone http://github.com/python/typeshed $(mayapy -c "import mypy,os;print(os.path.join(mypy.__path__[0], 'typeshed'))")
-    ```
-
+  - TEMP: install custom version of mypy with stubgen changes: `pip install -U ../mypy`
   - run `genstubs.sh`:
     ```
     maintenance/genstubs.sh

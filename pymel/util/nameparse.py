@@ -999,6 +999,7 @@ class MayaNodePath(NameParsed):
 
     @property
     def parts(self):
+        # type: () -> Sequence[Parsed]
         """ All parts of that node name, including separators """
         return self.sub
 

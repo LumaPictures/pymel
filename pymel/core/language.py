@@ -734,14 +734,14 @@ class OptionVarDict(MutableMapping):
         return len(self.keys())
 
 
-optionVar = OptionVarDict()
+optionVar = OptionVarDict()  # type: OptionVarDict  # this annotation is here for stubgen
 
 
 class Env(object):
 
     """ A Singleton class to represent Maya current optionVars and settings """
 
-    optionVars = OptionVarDict()
+    optionVars = OptionVarDict()  # type: OptionVarDict  # this annotation is here for stubgen
     # grid = Grid()
     # playbackOptions = PlaybackOptions()
 

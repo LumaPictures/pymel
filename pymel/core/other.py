@@ -13,7 +13,11 @@ import inspect
 
 import pymel.internal.factories as _factories
 if False:
+    from typing import *
     from maya import cmds
+
+    NameParserT = TypeVar('NameParserT', bound=NameParser)
+    DependNodeNameT = TypeVar('DependNodeNameT', bound=DependNodeName)
 else:
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
@@ -61,6 +65,7 @@ class NameParser(str):
         #raise AttributeNameError, 'AttributeName does not exist %s' % attr
 
     def stripNamespace(self, levels=0):
+        # type: (NameParserT, int) -> NameParserT
         """
         Returns a new instance of the object with its namespace removed.  The calling instance is unaffected.
         The optional levels keyword specifies how many levels of cascading namespaces to strip, starting with the topmost (leftmost).
@@ -68,7 +73,6 @@ class NameParser(str):
 
             >>> NameParser('foo:bar.spangle').stripNamespace()
             AttributeName('bar.spangle')
-
         """
 
         nodes = []
@@ -83,6 +87,7 @@ class NameParser(str):
         return self.__class__('|'.join(nodes))
 
     def stripGivenNamespace(self, namespace, partial=True):
+        # type: (NameParserT, str, bool) -> NameParserT
         """
         Returns a new instance of the object with any occurrences of the given namespace removed.  The calling instance is unaffected.
         The given namespace may end with a ':', or not.
@@ -117,6 +122,7 @@ class NameParser(str):
         return self.__class__('|'.join(nodes))
 
     def swapNamespace(self, prefix):
+        # type: (NameParserT, str) -> NameParserT
         """
         Returns a new instance of the object with its current namespace
         replaced with the provided one.
@@ -128,6 +134,7 @@ class NameParser(str):
         return self.__class__.addPrefix(self.stripNamespace(), prefix)
 
     def namespaceList(self):
+        # type: () -> List[str]
         """
         Useful for cascading references.
 
@@ -136,6 +143,7 @@ class NameParser(str):
         return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
 
     def namespace(self):
+        # type: () -> str
         """
         Returns the namespace of the object with trailing colon included
         """
@@ -145,6 +153,7 @@ class NameParser(str):
         return ''
 
     def addPrefix(self, prefix):
+        # type: (NameParserT, str) -> NameParserT
         'addPrefixToName'
         name = self
         leadingSlash = False
@@ -157,6 +166,7 @@ class NameParser(str):
         return self.__class__(name)
 
     def attr(self, attr):
+        # type: (str) -> AttributeName
         """access to AttributeName of a node. returns an instance of the
         AttributeName class for the given AttributeName.
 
@@ -194,6 +204,7 @@ class AttributeName(NameParser):
                         (repr(self.node()), self.plugAttr()))
 
     def array(self):
+        # type: () -> AttributeName
         """
         Returns the array (multi) AttributeName of the current element
             >>> n = AttributeName('lambert1.groupNodes[0]')
@@ -206,6 +217,7 @@ class AttributeName(NameParser):
             raise TypeError("%s is not a multi AttributeName" % self)
 
     def plugNode(self):
+        # type: () -> NameParser
         """plugNode
 
         >>> NameParser('foo:bar.spangle.banner').plugNode()
@@ -217,6 +229,7 @@ class AttributeName(NameParser):
     node = plugNode
 
     def plugAttr(self):
+        # type: () -> str
         """plugAttr
 
         >>> NameParser('foo:bar.spangle.banner').plugAttr()
@@ -230,6 +243,7 @@ class AttributeName(NameParser):
         return '.'.join(str(self).split('.')[1:])
 
     def lastPlugAttr(self):
+        # type: () -> str
         """
         >>> NameParser('foo:bar.spangle.banner').lastPlugAttr()
         'banner'
@@ -238,6 +252,7 @@ class AttributeName(NameParser):
         return self.split('.')[-1]
 
     def nodeName(self):
+        # type: () -> str
         'basename'
         return self.split('|')[-1]
 
@@ -255,6 +270,7 @@ class AttributeName(NameParser):
             return None
 
     def getParent(self, generations=1):
+        # type: (int) -> AttributeName
         """
         Returns the parent attribute
 
@@ -326,12 +342,14 @@ class DependNodeName(NameParser):
     # ------------------------------
 
     def node(self):
+        # type: (DependNodeNameT) -> DependNodeNameT
         """
         for compatibility with AttributeName class
         """
         return self
 
     def nodeName(self):
+        # type: (DependNodeNameT) -> DependNodeNameT
         """
         for compatibility with DagNodeName class
         """
@@ -344,6 +362,7 @@ class DependNodeName(NameParser):
     _numPartReg = re.compile('([0-9]+)$')
 
     def stripNum(self):
+        # type: () -> str
         """
         Return the name of the node with trailing numbers stripped off.
 
@@ -354,6 +373,7 @@ class DependNodeName(NameParser):
             return str(self)
 
     def extractNum(self):
+        # type: () -> str
         """
         Return the trailing numbers of the node name.
 
@@ -367,6 +387,7 @@ class DependNodeName(NameParser):
                              "object %s" % self)
 
     def nextUniqueName(self):
+        # type: (DependNodeNameT) -> DependNodeNameT
         """
         Increment the trailing number of the object until a unique name is found
 
@@ -383,6 +404,7 @@ class DependNodeName(NameParser):
         return name
 
     def nextName(self):
+        # type: (DependNodeNameT) -> DependNodeNameT
         """Increment the trailing number of the object by 1"""
 
         groups = DependNodeName._numPartReg.split(self)
@@ -395,6 +417,7 @@ class DependNodeName(NameParser):
                              "object %s" % self)
 
     def prevName(self):
+        # type: (DependNodeNameT) -> DependNodeNameT
         """Decrement the trailing number of the object by 1"""
         groups = DependNodeName._numPartReg.split(self)
         if len(groups) > 1:
@@ -426,10 +449,12 @@ class DagNodeName(DependNodeName):
     #    DagNodeName Path Info
     # -------------------------
     def root(self):
+        # type: () -> DagNodeName
         """rootOf"""
         return DagNodeName('|' + self.longName()[1:].split('|')[0])
 
     def getRoot(self):
+        # type: () -> DagNodeName
         """unlike the root command which determines the parent via string formatting, this
         command uses the listRelatives command"""
 
@@ -443,11 +468,13 @@ class DagNodeName(DependNodeName):
         return cur
 
     def firstParent(self):
+        # type: () -> DagNodeName
         """firstParentOf"""
 
         return DagNodeName('|'.join(self.split('|')[:-1]))
 
     def getParent(self, generations=1):
+        # type: (int) -> DagNodeName
         """
         Returns the parent node
 
@@ -488,6 +515,7 @@ class DagNodeName(DependNodeName):
 #            return self
 
     def nodeName(self):
+        # type: () -> str
         """basename"""
         return self.split('|')[-1]
 

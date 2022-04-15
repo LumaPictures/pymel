@@ -337,21 +337,21 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
     # Check if we have not been wrapped yet. if we haven't and our input
     # function is a builtin or we're renaming then we need a wrap. otherwise
     # we can just change the __doc__ and __name__ and move on
-    if newFunc == inFunc and (type(newFunc) == types.BuiltinFunctionType or rename):
-        # we'll need a new function: we don't want to touch built-ins, or
-        # rename an existing function, as that can screw things up... just modifying docs
-        # of non-builtin should be fine, though
-        def newFunc(*args, **kwargs):
-            return inFunc(*args, **kwargs)
-
-    # 2. Modify the function descriptors - ie, __doc__, __name__, etc
-    if customFunc:
-        # copy over the exisitng docs
-        if not newFunc.__doc__:
-            newFunc.__doc__ = inFunc.__doc__
-        elif inFunc.__doc__:
-            newFunc.__doc__ = inFunc.__doc__
-    addCmdDocs(newFunc, funcName)
+    # if newFunc == inFunc and (type(newFunc) == types.BuiltinFunctionType or rename):
+    #     # we'll need a new function: we don't want to touch built-ins, or
+    #     # rename an existing function, as that can screw things up... just modifying docs
+    #     # of non-builtin should be fine, though
+    #     def newFunc(*args, **kwargs):
+    #         return inFunc(*args, **kwargs)
+    #
+    # # 2. Modify the function descriptors - ie, __doc__, __name__, etc
+    # if customFunc:
+    #     # copy over the exisitng docs
+    #     if not newFunc.__doc__:
+    #         newFunc.__doc__ = inFunc.__doc__
+    #     elif inFunc.__doc__:
+    #         newFunc.__doc__ = inFunc.__doc__
+    # addCmdDocs(newFunc, cmdName=funcName)
 
 
 def _getModulePath(module):
@@ -1177,21 +1177,15 @@ class BaseGenerator(object):
     for method in methodNames(util.ProxyUnicode):
         classToMethodTypes['DependNode'][method] = 'str'
 
-    def __init__(self, classname, existingClass, parentClasses, parentMethods):
-        # type: (str, Type, Sequence[str], Iterable[str]) -> None
-        """
-        Parameters
-        ----------
-        classname : str
-        existingClass : Type
-        parentClasses : Sequence[str]
-        parentMethods : Iterable[str]
-        """
+    def __init__(self, classname, existingClass, parentClasses, parentMethods,
+                 moduleName):
+        # type: (str, Type, Sequence[str], Iterable[str], Optional[str]) -> None
         self.classname = classname
         self.parentClassname = parentClasses[0] if parentClasses else None
         self.herited = parentMethods
         self.parentClasses = parentClasses
         self.existingClass = existingClass
+        self.moduleName = moduleName
         self.attrs = {}  # type: Dict[str, Statement]
         self.methods = {}  # type: Dict[str, Method]
 
@@ -1275,7 +1269,8 @@ class BaseGenerator(object):
         melCmdName, isInfoCmd = self.getMelCmd()
 
         try:
-            helper = maintenance.buildutil.MelFunctionHelper(melCmdName)
+            helper = maintenance.buildutil.MelFunctionHelper(melCmdName,
+                                                             self.moduleName)
         except KeyError:
             pass
             #_logger.debug("No MEL command info available for %s" % melCmdName)
@@ -1356,7 +1351,15 @@ class BaseGenerator(object):
                     methodName = getMelName(methodName)
 
                     if methodName:
-                        annotations = {'result': helper.getFlagType(flagInfo)}
+                        # as a rule of thumb, using the flag type as the
+                        # result holds true if the flag supports both query/edit
+                        if 'edit' in modes:
+                            resultType = helper.getFlagType(flagInfo, asResult=True)
+                        else:
+                            resultType = 'Any'
+                        annotations = {
+                            'result': resultType
+                        }
 
                         self.addMelMethod(methodName, {
                             'command': melCmdName,
@@ -1386,7 +1389,10 @@ class BaseGenerator(object):
                         # FIXME: the 2nd argument is wrong, so I think this
                         #  is broken
                         # fixedFunc = fixCallbacks(func, melCmdName)
-                        annotations = {'result': 'None'}
+                        annotations = {
+                            'args': [helper.getFlagType(flagInfo, asResult=False), '**Any'],
+                            'result': 'None'
+                        }
 
                         self.addMelMethod(methodName, {
                             'command': melCmdName,
@@ -1470,20 +1476,11 @@ class ApiMethodsGenerator(BaseGenerator):
     proxy = True
 
     def __init__(self, classname, existingClass, parentClasses,
-                 parentMethods, parentApicls, childClasses=()):
-        # type: (str, Type, Iterable[str], Iterable[str], Optional[Type], Iterable[str]) -> None
-        """
-        Parameters
-        ----------
-        classname : str
-        existingClass : Type
-        parentClasses : Iterable[str]
-        parentMethods : Iterable[str]
-        parentApicls : Optional[Type]
-        childClasses : Iterable[str]
-        """
+                 parentMethods, parentApicls, childClasses=(), moduleName=None):
+        # type: (str, Type, Iterable[str], Iterable[str], Optional[Type], Iterable[str], Optional[str]) -> None
         super(ApiMethodsGenerator, self).__init__(classname, existingClass,
-                                                 parentClasses, parentMethods)
+                                                  parentClasses, parentMethods,
+                                                  moduleName=moduleName)
         self.parentApicls = parentApicls
         self.existingClass = existingClass
         self.childClasses = childClasses
@@ -1918,24 +1915,14 @@ class NodeTypeGenerator(ApiMethodsGenerator):
     """
 
     def __init__(self, classname, existingClass, parentClasses,
-                 parentMethods, parentApicls, childClasses=(), mayaType=None):
-        # type: (str, Type, Iterable[str], Iterable[str], Type, Iterable[str], str) -> None
-        """
-        Parameters
-        ----------
-        classname : str
-        existingClass : Type
-        parentClasses : Iterable[str]
-        parentMethods : Iterable[str]
-        parentApicls : Type
-        childClasses : Iterable[str]
-        mayaType : str
-        """
+                 parentMethods, parentApicls, childClasses=(), mayaType=None,
+                 moduleName=None):
+        # type: (str, Type, Iterable[str], Iterable[str], Type, Iterable[str], str, Optional[str]) -> None
         # mayaType must be set first
         self.mayaType = mayaType
         super(NodeTypeGenerator, self).__init__(
             classname, existingClass, parentClasses, parentMethods,
-            parentApicls, childClasses)
+            parentApicls, childClasses, moduleName=moduleName)
 
     def render(self):
         # type: () -> Tuple[str, Set[str]]
@@ -2160,7 +2147,8 @@ def getPyNodeGenerator(mayaType, existingClass, pyNodeTypeName, parentMayaTypes,
 
     return NodeTypeGenerator(pyNodeTypeName, existingClass,
                              parentPymelTypes, parentMethods, parentApicls,
-                             childPymelTypes, mayaType)
+                             childPymelTypes, mayaType,
+                             moduleName='pymel.core.nodetypes')
 
 
 def iterApiTypeText():
@@ -2244,7 +2232,8 @@ def iterModuleApiDataTypeText(module):
 
         if templateGenerator:
             template = templateGenerator(
-                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls)
+                cls.__name__, cls, parentPymelTypes, parentMethods, parentApicls,
+                moduleName=module.__name__)
             text, methods = template.render()
             yield text, template
         else:
@@ -2400,7 +2389,9 @@ def iterUIText():
             existingClass = getattr(pymel.core.uitypes, classname, None)
 
         parentMethods = heritedMethods[parentType]
-        template = UITypeGenerator(classname, existingClass, [parentType], parentMethods)
+        template = UITypeGenerator(classname, existingClass, [parentType],
+                                   parentMethods,
+                                   moduleName='pymel.core.uitypes')
         if template:
             text, methods = template.render()
             yield text, template
