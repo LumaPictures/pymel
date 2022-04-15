@@ -27,8 +27,14 @@ except:
     _logger.warning("using pickle instead of cPickle: load performance will be affected")
     import pickle
 
+TYPE_CHECKING = False
+
+if TYPE_CHECKING:
+    from typing import Dict, List, Optional, Tuple, Type
+
 
 def _moduleJoin(*args):
+    # type: (*str) -> str
     """
     Joins with the base pymel directory.
     :rtype: string
@@ -169,6 +175,10 @@ CacheFormat = namedtuple('CacheFormat', ['ext', 'reader', 'writer'])
 
 
 class PymelCache(object):
+    """
+    Base class for a cache file to be loaded by the pymel cache system
+    """
+
     # override these
     NAME = ''   # ie, 'mayaApi'
     DESC = ''   # ie, 'the API cache' - used in error messages, etc
@@ -226,7 +236,8 @@ class PymelCache(object):
                 formatPath = self.path(ext=format.ext)
 
             if not os.path.isfile(formatPath):
-                _logger.debug(self._actionMessage('Unable to open', 'from nonexistant path', formatPath))
+                _logger.debug(self._actionMessage(
+                    'Unable to open', 'from nonexistant path', formatPath))
                 continue
 
             func = format.reader
@@ -242,6 +253,7 @@ class PymelCache(object):
                 return finalData
 
     def write(self, data, path=None, ext=None, ignoreError=False):
+        # type: (T, Optional[str], Optional[str], bool) -> None
         import copy
         # when writing data, we dont' actually want to modify the passed in
         # data, as it may be in use... so we make a deepcopy
@@ -268,6 +280,7 @@ class PymelCache(object):
 
     @universalmethod
     def path(self, version=None, ext=None):
+        # type: (Optional[str], Optional[str]) -> str
         if ext is None:
             ext = self.DEFAULT_EXT
         if self.USE_VERSION:
@@ -382,8 +395,8 @@ class SubItemCache(PymelCache):
     # (ie, the types returned by contents).
     # Should be constructors which can either take no arguments, or
     # a single argument to initialize an instance.
-    ITEM_TYPES = {}
-    DEFAULT_TYPE = dict
+    ITEM_TYPES = {}  # type: Dict[str, Type]
+    DEFAULT_TYPE = dict  # type: Type
     AUTO_SAVE = True
 
     def __init__(self):
@@ -392,17 +405,21 @@ class SubItemCache(PymelCache):
 
     @classmethod
     def cacheNames(cls):
+        # type: () -> Tuple[str, ...]
         return tuple(cls._CACHE_NAMES)
 
     @classmethod
     def itemType(cls, name):
+        # type: (str) -> Type
         return cls.ITEM_TYPES.get(name, cls.DEFAULT_TYPE)
 
     @classmethod
     def itemIndex(cls, name):
+        # type: (str) -> int
         return cls._CACHE_NAMES.index(name)
 
     def initVal(self, name):
+        # type: (str) -> None
         itemType = self.itemType(name)
         if itemType is None:
             val = None
@@ -411,6 +428,7 @@ class SubItemCache(PymelCache):
         setattr(self, name, val)
 
     def build(self):
+        # type: () -> None
         """
         Used to rebuild cache, either by loading from a cache file, or
         rebuilding from scratch.
@@ -423,6 +441,7 @@ class SubItemCache(PymelCache):
 
     # override this...
     def rebuild(self):
+        # type: () -> None
         """Rebuild cache from scratch
 
         Unlike 'build', this does not attempt to load a cache file, but always
@@ -453,6 +472,7 @@ class SubItemCache(PymelCache):
                 setattr(self, cacheName, getattr(obj, cacheName))
 
     def load(self):
+        # type: () -> T
         '''Attempts to load the data from the cache on file.
 
         If it succeeds, it will update itself, and return the loaded items;
@@ -478,4 +498,5 @@ class SubItemCache(PymelCache):
 
     # was called 'caches'
     def contents(self):
+        # type: () -> T
         return tuple(getattr(self, x) for x in self.cacheNames())

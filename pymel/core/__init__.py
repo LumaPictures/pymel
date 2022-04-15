@@ -104,6 +104,16 @@ _pluginData = {}
 
 _module = sys.modules[__name__]
 
+TYPE_CHECKING = False
+
+if TYPE_CHECKING:
+    # pymel.core.plugin is a namespace used to refer to functions and types
+    # that aren't in the stubs because they are created by plugins. In reality
+    # it is just a reference to pymel.core
+    plugin = None  # type: Any
+else:
+    plugin = _module
+
 
 def _addPluginCommand(pluginName, funcName):
     global _pluginData
@@ -112,16 +122,18 @@ def _addPluginCommand(pluginName, funcName):
         _pluginData[pluginName]['commands'].append(funcName)
     _logger.debug("Adding plugin command: {} (plugin: {})".format(funcName,
                                                                   pluginName))
-    #_logger.debug("adding new command:", funcName)
+    # _logger.debug("adding new command:", funcName)
     _factories.cmdlist[funcName] = _cmdcache.getCmdInfoBasic(funcName)
     _factories.cmdlist[funcName]['plugin'] = pluginName
     _pmcmds.addWrappedCmd(funcName)
     # FIXME: I think we can call a much simpler factory function, because
-    # plugins cannnot opt into the complex mutations that functionFactory can apply
+    #  plugins cannnot opt into the complex mutations that functionFactory
+    #  can apply
     func = _factories.functionFactory(funcName)
     try:
         if func:
-            # FIXME: figure out what to do about moduleCmds. could a plugin function be in moduleCmds???
+            # FIXME: figure out what to do about moduleCmds. could a plugin
+            #  function be in moduleCmds???
             coreModule = 'pymel.core.%s' % _cmdcache.getModule(funcName, {})  # _factories.moduleCmds)
             if coreModule in sys.modules:
                 setattr(sys.modules[coreModule], funcName, func)
@@ -185,6 +197,7 @@ def _stripPluginExt(pluginName):
 
 
 def _pluginLoaded(*args):
+    import traceback
     global _pluginData
 
     if len(args) > 1:
@@ -235,7 +248,7 @@ def _pluginLoaded(*args):
     except Exception:
         _logger.error("Failed to get depend nodes list from %s", pluginName)
         mayaTypes = None
-    #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1)
+
     if mayaTypes:
         def addPluginPyNodes(*args):
             try:
@@ -270,7 +283,8 @@ def _pluginLoaded(*args):
         # there are edge cases where isOpeningFile is True but isReadingFile is
         # not
 
-        # Detect if we are currently opening/importing a file and load as a callback versus execute now
+        # Detect if we are currently opening/importing a file and load as a
+        # callback versus execute now
         if (api.MFileIO.isReadingFile() or api.MFileIO.isOpeningFile() or
                 api.MFileIO.isReferencingFile()):
             if api.MFileIO.isReferencingFile():
@@ -356,7 +370,8 @@ def _installCallbacks():
         _logger.debug("Adding pluginLoaded callback")
         #_pluginLoadedCB = pluginLoadedCallback(module)
 
-        id = api.MSceneMessage.addStringArrayCallback(api.MSceneMessage.kAfterPluginLoad, _pluginLoaded)
+        id = api.MSceneMessage.addStringArrayCallback(
+            api.MSceneMessage.kAfterPluginLoad, _pluginLoaded)
         if hasattr(id, 'disown'):
             id.disown()
     else:
@@ -366,11 +381,13 @@ def _installCallbacks():
     if _pluginUnloadedCB is None:
         _pluginUnloadedCB = True
 
-        # BUG: autodesk still has not add python callback support, and calling this as MEL is not getting the plugin name passed to it
+        # BUG: autodesk still has not add python callback support, and calling
+        # this as MEL is not getting the plugin name passed to it
         # mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
 
         _logger.debug("Adding pluginUnloaded callback")
-        id = api.MSceneMessage.addStringArrayCallback(api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded)
+        id = api.MSceneMessage.addStringArrayCallback\
+            (api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded)
         if hasattr(id, 'disown'):
             id.disown()
 
@@ -380,7 +397,8 @@ def _installCallbacks():
     # add commands and nodes for plugins loaded prior to importing pymel
     preLoadedPlugins = cmds.pluginInfo(q=1, listPlugins=1)
     if preLoadedPlugins:
-        _logger.info("Updating pymel with pre-loaded plugins: %s" % ', '.join(preLoadedPlugins))
+        _logger.info("Updating pymel with pre-loaded plugins: %s" %
+                     ', '.join(preLoadedPlugins))
         for plugin in preLoadedPlugins:
             _pluginLoaded(plugin)
 

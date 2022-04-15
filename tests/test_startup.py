@@ -7,7 +7,8 @@ import shutil
 import tempfile
 import unittest
 
-import pymel.internal.startup as startup
+import pymel.internal.cachebase as cachebase
+
 
 class TestCacheFormats(unittest.TestCase):
     def setUp(self):
@@ -25,7 +26,7 @@ class TestCacheFormats(unittest.TestCase):
 
         filebase = os.path.join(self.tmpdir, 'test_bin')
         for name, data in DATAS.items():
-            for fmt in startup.PymelCache.FORMATS:
+            for fmt in cachebase.PymelCache.FORMATS:
                 filename = '{}_{}{}'.format(filebase, name, fmt.ext)
                 #print("testing: {} - {} - {}".format(name, data, fmt[0]))
                 fmt.writer(data, filename)

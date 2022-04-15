@@ -4,7 +4,7 @@ Code shared between build and buildstubs.
 buildstubs is designed to run outside of mayapy.
 """
 from __future__ import absolute_import, print_function
-from typing import Optional
+from typing import List, Optional
 import pymel.internal.cmdcache
 
 pymel.internal.cmdcache.CmdCache.version = '2023'
@@ -28,12 +28,21 @@ CORE_CMD_MODULES = [
 ]
 
 CORE_CMD_MODULES_MAP = dict(CORE_CMD_MODULES)
+CORE_CMD_MODULES_MAP.update({
+    'pymel.core.nodetypes': 'general.PyNode',
+    'pymel.core.uitypes': '_general.PyNode',
+    'pymel.core.windows': '_general.PyNode',
+})
+
+
+def hasMode(flagInfo, mode):
+    return mode in flagInfo.get('modes', [])
 
 
 class MelFunctionHelper(object):
 
     TYPING_TYPES = [
-        'Union', 'Tuple', 'Callable', 'Any'
+        'Any', 'Callable', 'List', 'Optional', 'Tuple',  'Union', 'overload'
     ]
 
     def __init__(self, name: str, moduleName: Optional[str] = None):
@@ -51,47 +60,75 @@ class MelFunctionHelper(object):
             return None
         return MelFunctionHelper(name)
 
-    def _getType(self, typ) -> str:
+    def _getType(self, typ, asResult=False) -> str:
         if isinstance(typ, str):
             if typ == 'timerange':
-                return 'Union[str, Tuple[Union[int, float], Union[int, float]]]'
+                return 'str | Tuple[float, float] | Tuple[float]'
             elif typ == 'floatrange':
                 # Note: we don't appear to add support for Tuple input like we
                 # do for timerange
-                return 'Union[str, int, float]'
+                return 'str | int | float'
             elif typ == 'time':
-                return 'Union[int, float]'
+                return 'int | float'
             elif typ == 'PyNode':
-                typ = 'PyNode' if self.moduleName == 'pymel.core.general' else '_general.PyNode'
+                typ = CORE_CMD_MODULES_MAP.get(self.moduleName, '_general.PyNode')
+                if asResult:
+                    return typ
+                else:
+                    return '%s | str' % (typ,)
             elif typ == 'script':
-                return 'Union[str, Callable]'
+                return 'str | Callable'
             elif ' ' in typ:
                 # I've seen one case of bad type name in our cmdlist cache
-                typ = 'Any'
+                return 'Any'
+        elif typ is bool and not asResult:
+            # it's a common pattern coming from MEL to use 1/0 for True/False
+            return 'bool | int'
         else:
-            typ = typ.__name__
-        return typ
+            return typ.__name__
 
-    def getFlagType(self, flagInfo: 'pymel.internal.cmdcache.FlagInfo') -> str:
+    def getFlagType(self, flagInfo: 'pymel.internal.cmdcache.FlagInfo',
+                    asResult=False) -> str:
         if flagInfo['numArgs'] < 2:
-            return self._getType(flagInfo['args'])
+            typ = self._getType(flagInfo['args'], asResult=asResult)
         else:
             # FIXME: this may be affected by resultNeedsUnpacking
-            return 'Tuple[%s]' % ', '.join(
-                [self._getType(arg_type)
+            typ = 'Tuple[%s]' % ', '.join(
+                [self._getType(arg_type, asResult=asResult)
                  for arg_type in flagInfo['args']])
+        if not asResult and hasMode(flagInfo, 'multiuse'):
+            typ = '%s | List[%s]' % (typ, typ)
+        if not asResult and typ == 'str':
+            typ = '_util.ProxyUnicode | %s' % typ
+        return typ
 
-    def getArgs(self):
-        # FIXME: assumes single *args is first. add better handling of args
-        #  we intend to preserve
-        newArgs = ['*args']
+    def getArgs(self, skip=None) -> List[str]:
+        """
+        Get list of argument definitions (including type) that should replace
+        **kwargs
+        """
+        newArgs = []
+        usedFlags = set()
+
+        def addArg(name: str, typ: str) -> None:
+            if name not in usedFlags:
+                newArgs.append('%s: %s = ...' % (name, typ))
+                usedFlags.add(name)
+
         for flagName, flagInfo in self.info['flags'].items():
-            typ = self.getFlagType(flagInfo)
-            newArgs.append('%s: %s = ...' % (flagName, typ))
             shortName = flagInfo['shortname']
-            if shortName != flagName:
-                newArgs.append('%s: %s = ...' % (shortName, typ))
+            if skip and (flagName in skip or shortName in skip):
+                continue
+
+            typ = self.getFlagType(flagInfo, asResult=False)
+            if hasMode(flagInfo, 'query') and typ != 'bool | int':
+                typ = 'bool | int | %s' % typ
+
+            addArg(flagName, typ)
+            addArg(shortName, typ)
+
         return newArgs
 
     def getSignature(self) -> str:
-        return 'def %s(%s) -> Any: ...\n' % (self.name, ', '.join(self.getArgs()))
+        args = ['*args'] + self.getArgs()
+        return 'def %s(%s) -> Any: ...\n' % (self.name, ', '.join(args))

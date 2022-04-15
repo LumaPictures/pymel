@@ -18,6 +18,13 @@ from .path import path
 #  Pymel Internals
 #-----------------------------------------------
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import overload
+else:
+    def overload(f):
+        return f
+
 
 def inMaya():
     """

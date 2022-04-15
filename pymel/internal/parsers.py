@@ -31,9 +31,15 @@ except ImportError:
 
 from keyword import iskeyword as _iskeyword
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import *
+
+
 FLAGMODES = ('create', 'query', 'edit', 'multiuse')
 
 _logger = plogging.getLogger(__name__)
+
 
 class MethodParseError(ValueError):
     '''Signal that there was a error parsing a method
@@ -42,6 +48,7 @@ class MethodParseError(ValueError):
     other methods in the class will continue (unless in strict mode)
     '''
     pass
+
 
 class UnmatchedNameError(ValueError):
     pass
@@ -71,6 +78,7 @@ def mayaIsRunning():
 
 
 def mayaDocsLocation(version=None):
+    # type: (Optional[str]) -> str
     docLocation = os.environ.get('MAYA_DOC_DIR')
 
     if (not docLocation and (version is None or version == versions.installName())

@@ -21,8 +21,9 @@ import sys
 import warnings
 from collections import defaultdict
 
-if False:
-    from typing import Any, Iterable, Type, TypeVar
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
     T = TypeVar('T')
 
 
@@ -480,19 +481,24 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
 # ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name',
 #                           remove=['__getitem__', 'translate'])
 # 2009 Beta 2.1 has issues with passing classes with __getitem__
-if PY2:
-    _proxyStrBase = unicode
+
+if TYPE_CHECKING:
+    from pymel.util.proxyunicode import ProxyUnicode as ProxyUnicode
+
 else:
-    _proxyStrBase = str
-ProxyUnicode = proxyClass(
-    _proxyStrBase, 'ProxyUnicode',
-    module=__name__, dataFuncName='name',
-    remove=['__doc__', '__getslice__', '__contains__', '__len__',
-            '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__',  # reserved for higher levels
-            'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
-            'capitalize', 'swapcase', 'title',
-            'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
-            'zfill'])
+    if PY2:
+        _proxyStrBase = unicode
+    else:
+        _proxyStrBase = str
+    ProxyUnicode = proxyClass(
+        _proxyStrBase, 'ProxyUnicode',
+        module=__name__, dataFuncName='name',
+        remove=['__doc__', '__getslice__', '__contains__', '__len__',
+                '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__',  # reserved for higher levels
+                'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
+                'capitalize', 'swapcase', 'title',
+                'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
+                'zfill'])
 
 
 class universalmethod(object):

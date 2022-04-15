@@ -32,9 +32,11 @@ _logger = _plogging.getLogger(__name__)
 class ApiEnum(tuple):
 
     def __str__(self):
+        # type: () -> str
         return '.'.join([str(x) for x in self])
 
     def __repr__(self):
+        # type: () -> str
         return '%s( %s )' % (self.__class__.__name__, super(ApiEnum, self).__repr__())
 
     def pymelName(self):
@@ -131,7 +133,6 @@ class ManipNodeTypeError(InvalidNodeTypeError):
 
 
 class _GhostObjMaker(object):
-
     '''Context used to get an mobject which we can query within this context.
 
     Automatically does any steps need to create and destroy the mobj within
@@ -301,7 +302,7 @@ else:
 
 def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=True,
                   noManips=True, noPlugins=False, returnRealAbstract=False):
-    # type: (bool, bool, bool, bool, Union[bool, str], bool, bool) -> None
+    # type: (bool, bool, bool, bool, Union[bool, str], bool, bool) -> Set[str]
     '''Returns a list of maya types
 
     Parameters
@@ -333,6 +334,10 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
         is defined as the set of directly createdable nodes matching the
         criteria, and abstract are all non-createable nodes matching the
         criteria)
+
+    Returns
+    -------
+    Set[str]
     '''
     import maya.cmds as cmds
 
@@ -425,12 +430,14 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
 
 
 def _getAbstractMayaTypes(**kwargs):
+    # type: (**Any) -> Set[str]
     kwargs.setdefault('real', False)
     kwargs['abstract'] = True
     return _getMayaTypes(**kwargs)
 
 
 def _getRealMayaTypes(**kwargs):
+    # type: (**Any) -> Set[str]
     kwargs['real'] = True
     kwargs.setdefault('abstract', False)
     kwargs.setdefault('basePluginTypes', False)
@@ -439,6 +446,7 @@ def _getRealMayaTypes(**kwargs):
 
 
 def _getAllMayaTypes(**kwargs):
+    # type: (**Any) -> Set[str]
     kwargs['real'] = True
     kwargs['abstract'] = True
     return _getMayaTypes(**kwargs)
@@ -449,10 +457,22 @@ _cachedInheritances = {}
 
 def getInheritance(mayaType, checkManip3D=True, checkCache=True,
                    updateCache=True):
+    # type: (str, bool, bool, bool) -> List[str]
     """Get parents as a list, starting from the node after dependNode, and
     ending with the mayaType itself.
 
     Raises a ManipNodeTypeError if the node type fed in was a manipulator
+
+    Parameters
+    ----------
+    mayaType : str
+    checkManip3D : bool
+    checkCache : bool
+    updateCache : bool
+
+    Returns
+    -------
+    List[str]
     """
 
     # To get the inheritance post maya2012, we use nodeType(isTypeName=True),
@@ -579,6 +599,7 @@ def nodeToApiName(nodeName):
 
 
 def getLowerCaseMapping(names):
+    # type: (Iterable[str]) -> Tuple[Dict[str, str], Dict[str, Tuple[str, str]]]
     uniqueLowerNames = {}
     multiLowerNames = {}
     for name in names:
@@ -973,6 +994,7 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
 
     # override write to preserve comments
     def write(self, data, ext=None):
+        # type: (T, Optional[str]) -> None
         if ext is None:
             ext = self.DEFAULT_EXT
 
@@ -1576,18 +1598,9 @@ class ApiCache(BaseApiClassInfoCache):
         self.mayaTypesToApiTypes.pop(mayaType, None)
 
     def mayaTypeToApiType(self, mayaType, useCache=True, ghostObjs=True):
-        # type: (str, bool) -> str
+        # type: (str, bool, bool) -> str
         """
         Get the Maya API type from the name of a Maya type
-
-        Parameters
-        ----------
-        mayaType : str
-        useCache : bool
-
-        Returns
-        -------
-        str
         """
         if useCache:
             apiType = self.mayaTypesToApiTypes.get(mayaType)

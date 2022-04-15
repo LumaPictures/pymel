@@ -44,6 +44,24 @@ if TYPE_CHECKING:
         'removedFlags': Optional[Dict[str, str]],
     })
 
+    # hierarchy as a list of 3-value tuples: ( nodeType, parents, children )
+    NodeHierarchy = List[Tuple[str, Tuple[str, ...], Tuple[str, ...]]]
+
+    CmdInfoCacheType = Tuple[
+        CommandInfo,  # cmdlist
+        NodeHierarchy,  # nodeHierarchy
+        List[str],  # uiClassList
+        List[str],  # nodeCommandList
+        Dict[str, List[str]],  # moduleCmds
+    ]
+
+    SparseFlagInfo = TypedDict('SparseFlagInfo', {
+        'docstring': str,
+    })
+    SparseCommandInfo = TypedDict('SparseCommandInfo', {
+        'flags': Dict[str, SparseFlagInfo],
+        'description': str,
+    })
 
 _logger = plogging.getLogger(__name__)
 
@@ -261,6 +279,7 @@ def getInternalCmds(errorIfMissing=True):
 
 
 def getCmdInfoBasic(command):
+    # type: (str) -> CommandInfo
     import maya.cmds as cmds
 
     typemap = {
@@ -357,6 +376,7 @@ def getCmdInfoBasic(command):
 
 
 def getCmdInfo(command, version, python=True):
+    # type: (str, str, bool) -> CommandInfo
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
@@ -1189,7 +1209,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
 
 
 def _getNodeHierarchy(version=None):
-    # type: (...) -> List[Tuple[str, Tuple[str, ...], Tuple[str, ...]]]
+    # type: (...) -> NodeHierarchy
     """
     get node hierarchy as a list of 3-value tuples:
         ( nodeType, parents, children )
@@ -1238,6 +1258,7 @@ def _getNodeHierarchy(version=None):
         for x in nodeHierarchyTree.preorder()]
 
 
+# data type:: Dict[str, str]
 class CmdExamplesCache(cachebase.PymelCache):
     NAME = 'mayaCmdsExamples'
     DESC = 'the list of Maya command examples'
@@ -1248,11 +1269,13 @@ class CmdProcessedExamplesCache(CmdExamplesCache):
     USE_VERSION = False
 
 
+# data type:: SparseCommandInfo
 class CmdDocsCache(cachebase.PymelCache):
     NAME = 'mayaCmdsDocs'
     DESC = 'the Maya command documentation'
 
 
+# data type: CmdInfoCacheType
 class CmdCache(cachebase.SubItemCache):
     NAME = 'mayaCmdsList'
     DESC = 'the list of Maya commands'
@@ -1389,8 +1412,8 @@ class CmdCache(cachebase.SubItemCache):
             addCommand(funcName)
 
         # split the cached data for lazy loading
-        cmdDocList = {}
-        examples = {}
+        cmdDocList = {}  # type: SparseCommandInfo
+        examples = {}  # type: Dict[str, str]
         for cmdName, cmdInfo in self.cmdlist.items():
             try:
                 examples[cmdName] = cmdInfo.pop('example')
@@ -1413,6 +1436,7 @@ class CmdCache(cachebase.SubItemCache):
         CmdExamplesCache().write(examples)
 
     def build(self):
+        # type: () -> CmdInfoCacheType
         super(CmdCache, self).build()
 
         # corrections that are always made, to both loaded and freshly built caches

@@ -7,14 +7,18 @@ import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.core.general as _general
 import pymel.core.language as _language
-if False:
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
     from maya import cmds
+    import pymel.core.nodetypes as nt
 else:
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 
 @_factories.addCmdDocs
 def shadingNode(*args, **kwargs):
+    # type: (*Any, **Any) -> nt.DependNode
     res = cmds.shadingNode(*args, **kwargs)
     if res is not None:
         return _general.PyNode(res)

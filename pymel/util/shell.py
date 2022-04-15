@@ -5,6 +5,14 @@ import os
 import subprocess
 from pymel.util.arguments import isIterable as _isIterable
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import *
+    from typing import overload
+else:
+    def overload(f):
+        return f
+
 __all__ = ['appendEnv', 'prependEnv', 'getEnv', 'getEnvs', 'putEnv',
            'refreshEnviron', 'executableOutput', 'shellOutput']
 
@@ -62,7 +70,7 @@ def prependEnv(env, value):
 
 
 def getEnv(env, default=None):
-    # type: (str, Any) -> None
+    # type: (str, Optional[str]) -> str
     """get the value of an environment variable.
 
     returns default (None) if the variable has not been previously set.
@@ -70,6 +78,11 @@ def getEnv(env, default=None):
     Parameters
     ----------
     env : str
+    default : Optional[str]
+
+    Returns
+    -------
+    str
     """
     return os.environ.get(env, default)
 
@@ -132,12 +145,26 @@ def refreshEnviron():
     # use splitlines rather than split('\n') for better handling of different
     # newline characters on various os's
     for line in cmdOutput.splitlines():
-        # need the check for '=' in line b/c on windows (and perhaps on other systems? orenouard?), an extra empty line may be appended
+        # need the check for '=' in line b/c on windows (and perhaps on other
+        # systems? orenouard?), an extra empty line may be appended
         if '=' in line:
-            var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
+            # split at most once, so that lines such as 'smiley==)' will work
+            var, val = line.split('=', 1)
             if not var.startswith('_') and var not in exclude:
                 os.environ[var] = val
 
+
+@overload
+def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True,
+                     returnCode=False, input=None, **kwargs):
+    # type: (Iterable[str], bool, bool, Literal[True], str, **Any) -> True[str, int]
+    pass
+
+@overload
+def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True,
+                     input=None, **kwargs):
+    # type: (Iterable[str], bool, bool, str, **Any) -> str
+    pass
 
 def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True,
                      returnCode=False, input=None, **kwargs):
@@ -193,6 +220,18 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
         return cmdOutput, cmdProcess.returncode
     return cmdOutput
 
+
+@overload
+def shellOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True,
+                returnCode=False, input=None, **kwargs):
+    # type: (str, bool, bool, Literal[True], str, **Any) -> True[str, int]
+    pass
+
+@overload
+def shellOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True,
+                input=None, **kwargs):
+    # type: (str, bool, bool, str, **Any) -> str
+    pass
 
 def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True,
                 returnCode=False, input=None, **kwargs):

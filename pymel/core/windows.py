@@ -26,6 +26,7 @@ from pymel.core.system import Path as _Path
 if False:
     from typing import *
     from maya import cmds
+    import pymel.core.datatypes as datatypes
 else:
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
@@ -374,6 +375,7 @@ def promptForPath(**kwargs):
             return folder
 
 
+@_factories.addCmdDocs
 def fileDialog(*args, **kwargs):
     ret = cmds.fileDialog(*args, **kwargs)
     if ret:
@@ -419,6 +421,7 @@ def vectorFieldGrp(*args, **kwargs):
     return uitypes.VectorFieldGrp(*args, **kwargs)
 
 
+@_factories.addCmdDocs
 def uiTemplate(name=None, force=False, exists=None):
     from . import uitypes
     if exists:
@@ -427,6 +430,7 @@ def uiTemplate(name=None, force=False, exists=None):
         return uitypes.UITemplate(name=name, force=force)
 
 
+@_factories.addCmdDocs
 def setParent(*args, **kwargs):
     """
 Modifications
@@ -569,7 +573,7 @@ def subMenuItem(*args, **kwargs):
 #        return self.getter(self)
 
 def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=None, numberOfControls=1, **kwargs):
-    # type: (Any, Any, Union[str, type], bool, Union[int, bool, float, str, Path, Vector, List[Union[int, bool, float]]], int, **Any) -> None
+    # type: (Any, Any, Union[str, Type], bool, Union[int, bool, float, str, Path, datatypes.Vector, List[Union[int, bool, float]]], int, **Any) -> None
     """
     This function allows for a simplified interface for automatically creating UI's to control numeric values.
 
@@ -579,7 +583,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 
     Parameters
     ----------
-    dataType : Union[str, type]
+    dataType : Union[str, Type]
         The dataType that the UI should control.  It can be a type object or the string name of the type.
         For example for a boolean, you can specify 'bool' or pass in the bool class. Also, if the UI is meant to
         control an array, you can pass the type name as a stirng with a integer suffix representing the array length. ex. 'bool3'
@@ -589,7 +593,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
     slider : bool
         Specify whether or not sliders should be used for int and float controls. Ignored for other
         types, as well as for int and float arrays
-    value : Union[int, bool, float, str, Path, Vector, List[Union[int, bool, float]]]
+    value : Union[int, bool, float, str, Path, datatypes.Vector, List[Union[int, bool, float]]]
         The value for the control. If the value is for an array type, it should be a list or tuple of the appropriate
         number of elements.
 
