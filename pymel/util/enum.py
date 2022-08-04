@@ -75,6 +75,9 @@ __version__ = "0.4.3"
 import operator
 from collections import OrderedDict
 
+if False:
+    from typing import *
+
 
 class EnumException(Exception):
 
@@ -147,9 +150,11 @@ class EnumValue(object):
     key = property(__get_key)
 
     def __str__(self):
+        # type: () -> str
         return "%s" % (self.key)
 
     def __int__(self):
+        # type: () -> int
         return self.index
 
     def __get_index(self):
@@ -157,6 +162,7 @@ class EnumValue(object):
     index = property(__get_index)
 
     def __repr__(self):
+        # type: () -> str
         if self.__doc:
             return "EnumValue(%r, %r, %r, %r, %r)" % (
                 self.__enumtype._name,
@@ -172,9 +178,11 @@ class EnumValue(object):
             )
 
     def _asTuple(self):
+        # type: () -> Tuple[int, str, str]
         return (self.__index, self.__key, self.__doc)
 
     def __hash__(self):
+        # type: () -> int
         return hash(self.__index)
 
     def _get_comparers(self, other):
@@ -360,6 +368,7 @@ class Enum(object):
 
     @property
     def name(self):
+        # type: () -> str
         return self._name
 
     def _valTuples(self):
@@ -378,6 +387,7 @@ class Enum(object):
         return self._valTuples() == other._valTuples()
 
     def __hash__(self):
+        # type: () -> int
         keyTuples = tuple((k, self._keys[k]) for k in sorted(self._keys))
         return hash((keyTuples, self._valTuples()))
 
@@ -385,6 +395,7 @@ class Enum(object):
         return not self == other
 
     def __repr__(self):
+        # type: () -> str
         if len(self._keys) != len(self._values):
             # multiKeys
             indexDict = {}
@@ -418,6 +429,7 @@ class Enum(object):
             self.__class__.__name__, self.name, keysRepr)
 
     def __str__(self):
+        # type: () -> str
         return '%s%s' % (self.__class__.__name__, list(self.keys()))
 
     def __setattr__(self, name, value):
@@ -427,9 +439,11 @@ class Enum(object):
         raise EnumImmutableError(name)
 
     def __len__(self):
+        # type: () -> int
         return len(self._values)
 
     def __getitem__(self, index):
+        # type: (str) -> int
         return self._values[index]
 
     def __setitem__(self, index, value):
@@ -439,9 +453,11 @@ class Enum(object):
         raise EnumImmutableError(index)
 
     def __iter__(self):
+        # type: () -> Iterable[int]
         return iter(self._values)
 
     def __contains__(self, value):
+        # type: (Union[str, int]) -> bool
         is_member = False
         if isinstance(value, basestring):
             is_member = (value in self._keys)
@@ -455,6 +471,7 @@ class Enum(object):
         return is_member
 
     def getIndex(self, key):
+        # type: (str) -> int
         """Get an index value from a key
         This method always returns an index. If a valid index is passed instead
         of a key, the index will be returned unchanged.  This is useful when you
@@ -489,6 +506,7 @@ class Enum(object):
                 raise ValueError("invalid enumerator key: %r" % (key,))
 
     def getKey(self, index):
+        # type: (int) -> str
         """
         Get a key value from an index
         This method always returns a key. If a valid key is passed instead of an
@@ -525,14 +543,17 @@ class Enum(object):
                 raise ValueError("invalid enumerator key: %r" % index)
 
     def values(self):
+        # type: () -> Tuple[int, ...]
         "return a list of `EnumValue`s"
         return tuple(self._values.values())
 
     def itervalues(self):
+        # type: () -> Iterator[int]
         "iterator over EnumValue objects"
         return iter(self._values.values())
 
     def keys(self):
+        # type: () -> Tuple[str, ...]
         "return a list of keys as strings"
         if not hasattr(self, '_keyStrings'):
             keyStrings = tuple(v.key for v in self._values.values())
@@ -623,6 +644,7 @@ class EnumDict(utilitytypes.EquivalencePairs):
 #        raise EnumImmutableError(index)
 
     def __repr__(self):
+        # type: () -> str
         return "%s(%s)" % (self.__class__.__name__, super(EnumDict, self).__repr__())
 
     def value(self, key):
@@ -693,9 +715,11 @@ class EnumDict(utilitytypes.EquivalencePairs):
                 raise ValueError("invalid enumerator key: %r" % index)
 
     def values(self):
+        # type: () -> List[int]
         "return a list of ordered integer values"
         return sorted(dict.values(self))
 
     def keys(self):
+        # type: () -> List[str]
         "return a list of keys as strings ordered by their enumerator value"
         return [self._reverse[v] for v in self.values()]

@@ -5,6 +5,7 @@
 *.diff
 *.sublime-project
 *.sublime-workspace
+.dmypy.json
 /.venv*
 /.idea
 /.cache

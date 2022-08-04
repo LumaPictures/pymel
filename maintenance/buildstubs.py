@@ -1,3 +1,6 @@
+"""
+Wraps mypy.stubgen to improve signature generation with info from pymel caches.
+"""
 from __future__ import absolute_import, print_function
 
 import textwrap

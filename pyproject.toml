@@ -9,7 +9,7 @@ readme = "README.md"
 repository = "https://github.com/Lumapictures/pymel"
 homepage = "https://github.com/Lumapictures/pymel"
 
-keywords=["maya", "mel", "3d", "graphics", "games", "VFX", "CG", "animation"]
+keywords = ["maya", "mel", "3d", "graphics", "games", "VFX", "CG", "animation"]
 
 packages = [
     { include = "pymel" },

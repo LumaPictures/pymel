@@ -71,6 +71,9 @@ v2019_2: int
 v2019_3: int
 v2020: int
 v2020_1: int
+v2020_2: int
+v2020_3: int
+v2020_4: int
 v2021: int
 v2022: int
 v2023: int

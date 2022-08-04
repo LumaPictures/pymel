@@ -88,7 +88,7 @@ def getEnv(env, default=None):
 
 
 def getEnvs(env, default=None):
-    # type: (str, Any) -> List[str]
+    # type: (str, Optional[List[str]]) -> List[str]
     """
     get the value of an environment variable split into a list.
 
@@ -130,6 +130,7 @@ def putEnv(env, value):
 
 
 def refreshEnviron():
+    # type: () -> None
     """
     copy the shell environment into python's environment, as stored in os.environ
     """

@@ -1,7 +1,8 @@
 """
 Code shared between build and buildstubs.
 
-buildstubs is designed to run outside of mayapy.
+buildstubs is designed to run outside of mayapy, so do not import maya modules
+here.
 """
 from __future__ import absolute_import, print_function
 from typing import List, Optional

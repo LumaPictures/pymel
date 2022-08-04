@@ -483,7 +483,7 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
 # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 if TYPE_CHECKING:
-    from pymel.util.proxyunicode import ProxyUnicode as ProxyUnicode
+    from pymel.stubs.proxyunicode import ProxyUnicode as ProxyUnicode
 
 else:
     if PY2:

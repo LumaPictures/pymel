@@ -357,6 +357,13 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
                          levels=levels, long=long,
                          stripUnderWorld=stripUnderWorld)
 
+    @overload
+    @_factories.addMelDocs('rename')
+    def rename(self, name, preserveNamespace=Ellipsis, **kwargs):
+        # type: (Any, bool, **Any) -> DependNode
+        pass
+    
+    @_factories.addMelDocs('rename')
     def rename(self, name, **kwargs):
         # type: (Any, **Any) -> DependNode
         """
@@ -403,6 +410,7 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
             return u"%s" % self.name()
 
     def __hash__(self):
+        # type: () -> int
         return self.__apihandle__().hashCode()
 
     def node(self):

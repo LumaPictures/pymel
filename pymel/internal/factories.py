@@ -2939,7 +2939,21 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
 
 
 def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
-    """decorator for adding API docs"""
+    # type: (Type, str, Optional[int], bool) -> Decorator
+    """
+    decorator for adding API docs
+
+    Parameters
+    ----------
+    apiClass : Type
+    methodName : str
+    overloadIndex : Optional[int]
+    undoable : bool
+
+    Returns
+    -------
+    Decorator
+    """
 
     def doc_decorator(func):
         return _addApiDocs(func, apiClass, methodName, overloadIndex, undoable)
@@ -2949,6 +2963,7 @@ def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
 
 def _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex=None,
                 undoable=True):
+    # type: (CallableT, Type, str, Optional[int], bool) -> CallableT
     # apiClass may be None if we try to wrap a class that doesn't exist in this
     # version of maya
     if apiClass is not None:
@@ -2960,6 +2975,7 @@ def _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex=None,
 
 def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True,
                        origDocstring=''):
+    # type: (Type, str, Optional[int], bool, str) -> str
     apiClassName = apiClass.__name__
 
     try:
@@ -3187,6 +3203,7 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
             raise AttributeError("class constant cannot be deleted")
 
     def __new__(cls, classname, bases, classdict):
+        # type: (str, Tuple[Type, ...], Mapping[str, Any]) -> MetaMayaTypeWrapper
         """ Create a new class of metaClassConstants type """
 
         #_logger.debug( 'MetaMayaTypeWrapper: %s' % classname )
@@ -3322,6 +3339,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
     _classDictKeyForMelCmd = None
 
     def __new__(cls, classname, bases, classdict):
+        # type: (str, Tuple[Type, ...], Mapping[str, Any]) -> _MetaMayaCommandWrapper
         #_logger.debug( '_MetaMayaCommandWrapper: %s' % classname )
 
         newcls = super(_MetaMayaCommandWrapper, cls).__new__(cls, classname, bases, classdict)
@@ -3372,6 +3390,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 
     @classmethod
     def docstring(cls, melCmdName):
+        # type: (str) -> str
         try:
             cmdInfo = cmdlist[melCmdName]
         except KeyError:
@@ -3390,6 +3409,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
     based on info parsed from the docs on their command counterparts.
     """
     def __new__(cls, classname, bases, classdict):
+        # type: (str, Tuple[Type, ...], Mapping[str, Any]) -> MetaMayaNodeWrapper
         # If the class explicitly gives it's mel node name, use that -
         # otherwise, assume it's the name of the PyNode, uncapitalized
         #_logger.debug( 'MetaMayaNodeWrapper: %s' % classname )
@@ -3494,7 +3514,7 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
 
 def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName,
                   extraAttrs=None):
-    # type: (types.ModuleType, str, str, str, Any) -> Optional[Type[pymel.core.general.PyNode]]
+    # type: (types.ModuleType, str, str, str, Optional[Mapping[str, Any]]) -> Optional[Type[pymel.core.general.PyNode]]
     """
     Parameters
     ----------
@@ -3502,7 +3522,7 @@ def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName,
     mayaType : str
     pyNodeTypeName : str
     parentPyNodeTypeName : str
-    extraAttrs
+    extraAttrs : Optional[Mapping[str, Any]]
 
     Returns
     -------
@@ -3539,18 +3559,21 @@ def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName,
 
 
 def addCustomPyNode(module, mayaType, extraAttrs=None):
-    # type: (types.ModuleType, str, Any) -> Optional[str]
+    # type: (types.ModuleType, str, Optional[Mapping[str, Any]]) -> Optional[str]
     """
-    create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
+    create a PyNode, also adding each member in the given maya node's
+    inheritance if it does not exist.
 
-    This function is used for creating PyNodes via plugins, where the nodes parent's might be abstract
-    types not yet created by pymel.  also, this function ensures that the newly created node types are
-    added to pymel.all, if that module has been imported.
+    This function is used for creating PyNodes via plugins, where the nodes
+    parent's might be abstract types not yet created by pymel.  also, this
+    function ensures that the newly created node types are added to pymel.all,
+    if that module has been imported.
 
     Parameters
     ----------
     module : types.ModuleType
     mayaType : str
+    extraAttrs : Optional[Mapping[str, Any]]
 
     Returns
     -------
@@ -3600,7 +3623,7 @@ def getPymelTypeName(mayaTypeName, create=True):
 
 
 def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
-    # type: (types.ModuleType, str, str, Any) -> Tuple[str, Type[pymel.core.general.PyNode]]
+    # type: (types.ModuleType, str, str, Optional[Mapping[str, Any]]) -> Tuple[str, Type[pymel.core.general.PyNode]]
     """
     create a PyNode type for a maya node.
 
@@ -3609,6 +3632,7 @@ def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
     module : types.ModuleType
     mayaType : str
     parentMayaType : str
+    extraAttrs : Optional[Mapping[str, Any]]
 
     Returns
     -------

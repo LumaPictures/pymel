@@ -57,23 +57,19 @@ def round(value, ndigits=0):
 
 
 def gamma(c, g):
-    # type: (Any, Any) -> float
+    # type: (float, float) -> float
     """
     Gamma color correction of c with a single scalar gamma value g
-
-    :rtype: float
     """
     return c ** g
 
 
 def blend(a, b, weight=0.5):
-    # type: (Any, Any, Any) -> float
+    # type: (float, float, float) -> float
     """
     blend(a, b[, weight=0.5]) :
     Blends values a and b according to normalized weight w,
     returns a for weight == 0.0 and b for weight = 1.0, a*(1.0-weight)+b*weight in between
-
-    :rtype: float
     """
     return a * (1.0 - weight) + b * weight
 
@@ -81,13 +77,11 @@ def blend(a, b, weight=0.5):
 
 
 def smoothmap(min, max, x):
-    # type: (Any, Any, Any) -> float
+    # type: (float, float, SupportsFloat) -> float
     """Returns the value of a smooth remapping function.
 
     performs a smooth Hermite interpolation between 0 and 1 in the interval min to max,
     but does not clamp the range
-
-    :rtype: float
     """
     x = float(x)
     x = float(x - min) / float(max - min)
@@ -95,13 +89,11 @@ def smoothmap(min, max, x):
 
 
 def smoothstep(min, max, x):
-    # type: (Any, Any, Any) -> float
+    # type: (float, float, float) -> float
     """Returns the value of a smooth step function.
 
     Returns 0 if x < min, 1 if x > max, and performs a smooth Hermite
     interpolation between 0 and 1 in the interval min to max.
-
-    :rtype: float
     """
     if x < min:
         return 0.0
@@ -111,25 +103,21 @@ def smoothstep(min, max, x):
 
 
 def linmap(min, max, x):
-    # type: (Any, Any, Any) -> float
+    # type: (float, float, SupportsFloat) -> float
     """Returns the value of a linear remapping function.
 
     performs a linear interpolation between 0 and 1 in the interval min to max,
     but does not clamp the range
-
-    :rtype: float
     """
     return (float(x) - min) / (max - min)
 
 
 def linstep(min, max, x):
-    # type: (Any, Any, Any) -> float
+    # type: (float, float, float) -> float
     """Returns the value of a linear step function.
 
     Returns 0 if x < min, 1 if x > max, and performs a linear
     interpolation between 0 and 1 in the interval min to max.
-
-    :rtype: float
     """
     if x < min:
         return 0.0
@@ -141,10 +129,8 @@ def linstep(min, max, x):
 
 
 def clamp(x=0.0, min=0.0, max=1.0):
-    # type: (Any, Any, Any) -> float
+    # type: (float, float, float) -> float
     """ Clamps the value x between min and max
-
-    :rtype: float
     """
     # NOTE : in 2.5 can use 'caseTrue if condition else caseFalse'
     #realmin = min if min<max else max
@@ -169,10 +155,8 @@ def clamp(x=0.0, min=0.0, max=1.0):
 
 
 def setRange(x=0.0, oldmin=0.0, oldmax=1.0, newmin=0.0, newmax=1.0):
-    # type: (Any, Any, Any, Any, Any) -> float
+    # type: (float, float, float, float, float) -> float
     """ Resets x range from x linear interpolation of oldmin to oldmax to x linear interpolation from newmin to newmax
-
-    :rtype: float
     """
     if oldmin < oldmax:
         realoldmin = oldmin
@@ -196,10 +180,8 @@ def setRange(x=0.0, oldmin=0.0, oldmax=1.0, newmin=0.0, newmax=1.0):
 
 
 def hermiteInterp(x=0.0, y0=0.0, y1=1.0, s0=0.0, s1=0.0):
-    # type: (Any, Any, Any, Any, Any) -> float
-    """ Hermite interpolation of x between points y0 and y1 of tangent slope s0 and s1
-
-    :rtype: float
+    # type: (float, float, float, float, float) -> float
+    """Hermite interpolation of x between points y0 and y1 of tangent slope s0 and s1
     """
     c = s0
     v = y0 - y1
@@ -210,7 +192,7 @@ def hermiteInterp(x=0.0, y0=0.0, y1=1.0, s0=0.0, s1=0.0):
 
 
 def hermite(x=0.0, v0=0.0, v1=0.0, s0=0.0, s1=0.0):
-    # type: (Any, Any, Any, Any, Any) -> float
+    # type: (float, float, float, float, float) -> float
     """
     As the MEL command : This command returns x point along on x hermite curve from the five given control arguments.
     The first two arguments are the start and end points of the curve, respectively.
@@ -218,9 +200,6 @@ def hermite(x=0.0, v0=0.0, v1=0.0, s0=0.0, s1=0.0):
     The fifth argument, parameter, specifies the point on the hermite curve that is returned by this function.
     This parameter is the unitized distance along the curve from the start point to the end point.
     A parameter value of 0.0 corresponds to the start point and x parameter value of 1.0 corresponds to the end point of the curve.
-
-    :rtype: float
-
     """
 
     if x < 0.0:

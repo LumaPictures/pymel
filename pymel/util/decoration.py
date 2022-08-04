@@ -2,6 +2,12 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import types
+
+if False:
+    from typing import *
+    CallableT = TypeVar('CallableT', bound=Callable)
+
 
 def decorated(origFunc, newFunc, decoration=None):
     """
@@ -42,6 +48,7 @@ def decorator(func):
 
 
 def format_signature(args=(), varargs=None, varkw=None, defaults=None):
+    # type: (Tuple[Any, ...], Optional[str], Optional[str], Optional[Sequence[Any]]) -> str
     kwargs = []
     if defaults is None:
         ndefaults = 0
@@ -70,6 +77,7 @@ def format_signature(args=(), varargs=None, varkw=None, defaults=None):
 
 
 def interface_wrapper(doer, args=(), varargs=None, varkw=None, defaults=None):
+    # type: (types.FunctionType, Tuple[Any, ...], Optional[str], Optional[str], Optional[Sequence[Any]]) -> Callable
     """
     A wrapper which allows factories to programatically create functions with
     precise input arguments, instead of using the argument catch-all:
