@@ -5,6 +5,25 @@ What's New
 **********
 
 ==================================
+Version 1.3.0
+==================================
+
+----------------------------------
+Additions
+----------------------------------
+- all: Add maya-2023 support
+- all: Major update to pyi type stubs. Functions & methods now include type
+  info for all arguments, including both short and long variants for mel-based
+  functions. The stubs are distributed as part of the pymel package in a 
+  PEP 561-compatible way, so that they will be automatically picked up by IDEs 
+  and static type analyzers like mypy.
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- dropped support for maya-2018
+
+==================================
 Version 1.2.0
 ==================================
 
