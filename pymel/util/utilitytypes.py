@@ -483,7 +483,139 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
 # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 if TYPE_CHECKING:
-    from pymel.stubs.proxyunicode import ProxyUnicode as ProxyUnicode
+
+    class ProxyUnicode:
+        def center(self, width, fillchar=None):
+            # type: (int, str) -> str
+            pass
+
+        def endswith(self, suffix, start=None, end=None):
+            # type: (Union[str, Tuple[str, ...]], int, int) -> bool
+            pass
+
+        def find(self, sub, start=None, end=None):
+            # type: (str, int, int) -> int
+            pass
+
+        def format(self, *args, **kwargs):
+            # type: (object, object) -> str
+            pass
+
+        def isdecimal(self):
+            # type: () -> bool
+            pass
+
+        def isidentifier(self):
+            # type: () -> bool
+            pass
+
+        def islower(self):
+            # type: () -> bool
+            pass
+
+        def isnumeric(self):
+            # type: () -> bool
+            pass
+
+        def isprintable(self):
+            # type: () -> bool
+            pass
+
+        def isupper(self):
+            # type: () -> bool
+            pass
+
+        def join(self, iterable):
+            # type: (Iterable[str]) -> str
+            pass
+
+        def ljust(self, width, fillchar=None):
+            # type: (int, str) -> str
+            pass
+
+        def lower(self):
+            # type: () -> str
+            pass
+
+        def lstrip(self, chars=None):
+            # type: (str) -> str
+            pass
+
+        def partition(self, sep):
+            # type: (str) -> Tuple[str, str, str]
+            pass
+
+        def replace(self, old, new, count=None):
+            # type: (str, str, int) -> str
+            pass
+
+        def rfind(self, sub, start=None, end=None):
+            # type: (str, int, int) -> int
+            pass
+
+        def rindex(self, sub, start=None, end=None):
+            # type: (str, int, int) -> int
+            pass
+
+        def rjust(self, width, fillchar=None):
+            # type: (int, str) -> str
+            pass
+
+        def rpartition(self, sep):
+            # type: (str) -> Tuple[str, str, str]
+            pass
+
+        def rsplit(self, sep=None, maxsplit=None):
+            # type: (Optional[str], int) -> List[str]
+            pass
+
+        def rstrip(self, chars=None):
+            # type: (str) -> str
+            pass
+
+        def split(self, sep=None, maxsplit=None):
+            # type: (Optional[str], int) -> List[str]
+            pass
+
+        def startswith(self, prefix, start=None, end=None):
+            # type: (Union[str, Tuple[str, ...]], int, int) -> bool
+            pass
+
+        def strip(self, chars=None):
+            # type: (str) -> str
+            pass
+
+        def upper(self):
+            # type: () -> str
+            pass
+
+        def __add__(self, s):
+            # type: (str) -> str
+            pass
+
+        def __eq__(self, x):
+            # type: (object) -> bool
+            pass
+
+        def __ne__(self, x):
+            # type: (object) -> bool
+            pass
+
+        def __lt__(self, x):
+            # type: (object) -> bool
+            pass
+
+        def __le__(self, x):
+            # type: (object) -> bool
+            pass
+
+        def __gt__(self, x):
+            # type: (object) -> bool
+            pass
+
+        def __ge__(self, x):
+            # type: (object) -> bool
+            pass
 
 else:
     if PY2:
