@@ -868,6 +868,10 @@ if hasattr(mpx, 'MPxMotionPathNode'):
     class MotionPathNode(DependNode, mpx.MPxMotionPathNode):
         pass
 
+# new in 2022
+if hasattr(mpx, 'MPxTransformPreRotation'):
+    class MotionPathNode(DependNode, mpx.MPxTransformPreRotation):
+        pass
 
 class ObjectSet(DependNode, mpx.MPxObjectSet):
     pass
