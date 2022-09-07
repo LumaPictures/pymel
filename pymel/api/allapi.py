@@ -93,9 +93,9 @@ class SafeApiPtr(object):
 
     >>> aperMin = SafeApiPtr('double')
     >>> aperMax = SafeApiPtr('double')
-    >>> cam.getFilmApertureLimits(aperMin(), aperMax())
+    >>> cam.getFocalLengthLimits(aperMin(), aperMax())
     >>> print('%.5f, %.5f' % (aperMin.get(), aperMax.get()))
-    0.01378, 20.28991
+    2.44487, 3599.97000
     """
 
     def __init__(self, valueType, scriptUtil=None, size=1, asTypeNPtr=False):
