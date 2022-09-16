@@ -260,7 +260,8 @@ Indicated by this error:
 
   - Run `_suggestNewMPxValues()` which will print out dictionary names and new
     values to add to them.  You should verify these (Need input from Paul on how
-    this should be done)
+    this should be done). These entries must be added manually to the 3 dicts 
+    before continuing.
 
 
 ## 6) Build Stubs (new)
