@@ -317,16 +317,13 @@ def toPyType(moduleName, objectName):
     -------
     Callable[[Any], Any]
     """
+    import pydoc
+
     def toGivenClass(res):
-        # Use the 'from moduleName import objectName' form of
-        # __import__, because that guarantees it returns the
-        # 'bottom' module (ie, myPackage.myModule, NOT myPackage),
-        # note that __import__ doesn't actually insert objectName into
-        # the locals... which we don't really want anyway
-        module = __import__(moduleName, globals(), locals(), [objectName], -1)
-        cls = getattr(module, objectName)
         if res is not None:
+            cls = pydoc.locate(moduleName + '.' + objectName)
             return cls(res)
+
     toGivenClass.__name__ = 'to%s' % util.capitalize(objectName)
     toGivenClass.__doc__ = "returns a %s object" % objectName
     return toGivenClass
