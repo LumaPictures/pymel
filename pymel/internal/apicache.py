@@ -1579,7 +1579,7 @@ class ApiCache(BaseApiClassInfoCache):
             # value of None
             raise ValueError("apiType must be given!")
 
-        if apiType is not 'kInvalid':
+        if apiType != 'kInvalid':
             apiEnum = getattr(api.MFn, apiType)
             self.mayaTypesToApiTypes[mayaType] = apiType
             self.mayaTypesToApiEnums[mayaType] = apiEnum

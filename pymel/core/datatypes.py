@@ -1286,11 +1286,11 @@ class Color(Vector):
             else:
                 mode = 'rgb'
         # can't specify a mode and use keywords of other modes
-        if mode is not 'hsv' and hsvflag:
+        if mode != 'hsv' and hsvflag:
             raise ValueError("Can not use h,s,v keyword arguments while "
                              "specifying %s mode in %s" %
                              (mode, util.clsname(self)))
-        elif mode is not 'rgb' and rgbflag:
+        elif mode != 'rgb' and rgbflag:
             raise ValueError("Can not use r,g,b keyword arguments while "
                              "specifying %s mode in %s" %
                              (mode, util.clsname(self)))
