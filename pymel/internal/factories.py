@@ -42,6 +42,7 @@ if False:
     import pymel.core.general
     import pymel.core.uitypes
     T = TypeVar('T')
+    U = TypeVar('U')
     CallableT = TypeVar('CallableT', bound=Callable)
     Decorator = Callable[[CallableT], CallableT]
 
@@ -1011,13 +1012,13 @@ def convertTimeValues(rawVal):
 
 
 def maybeConvert(val, castFunc):
-    # type: (Any, Callable) -> Any
+    # type: (U, Callable[..., T]) -> Union[T, U]
     if isinstance(val, list):
         try:
             return [castFunc(x) for x in val]
         except:
             return val
-    elif val:
+    else:
         try:
             return castFunc(val)
         except Exception:
