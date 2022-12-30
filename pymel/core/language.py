@@ -772,7 +772,8 @@ class Env(object):
         return _getuser()
 
     def host(self):
-        return _gethostname()
+        import socket
+        return socket.getfqdn()
 
     def getTime(self):
         return cmds.currentTime(q=1)
