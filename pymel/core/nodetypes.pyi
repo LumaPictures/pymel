@@ -8,9 +8,9 @@ from pymel.core import animation as animation, effects as effects, modeling as m
 from pymel.core.system import FileReference as _FileReference
 from pymel.util.enum import Enum as Enum
 from typing import Any, Callable, Iterable, List, Optional, Sequence, Set, Tuple, Type, TypeVar, Union, overload
-from typing_extensions import Literal as Literal
+from typing_extensions import Literal
 
-TYPE_CHECKING = False
+TYPE_CHECKING: bool
 DependNodeT = TypeVar('DependNodeT', bound=DependNode)
 DagNodeT = TypeVar('DagNodeT', bound=DagNode)
 ShapeT = TypeVar('ShapeT', bound=Shape)
@@ -43,7 +43,7 @@ class DependNode(general.PyNode):
     def loadPreset(self, presetName): ...
     def deletePreset(self, presetName): ...
     def listPresets(self): ...
-    type: Incomplete
+    type = general.nodeType
     @classmethod
     def typeName(cls) -> str: ...
     @overload
@@ -83,7 +83,7 @@ class DependNode(general.PyNode):
     def attrSpec(obj: Any, attr: Any) -> general.AttributeSpec: ...
     attrDefaults = attrSpec
     def attr(self, attr: str) -> general.Attribute: ...
-    hasAttr: Incomplete
+    hasAttr = general.hasAttr
     def setAttr(self, attr: str, *args: Any, alteredValue: bool | int = ..., av: bool | int = ..., caching: bool | int = ..., ca: bool | int = ..., capacityHint: int = ..., ch: int = ..., channelBox: bool | int = ..., cb: bool | int = ..., clamp: bool | int = ..., c: bool | int = ..., edit: bool | int = ..., e: bool | int = ..., keyable: bool | int = ..., k: bool | int = ..., lock: bool | int = ..., l: bool | int = ..., query: bool | int = ..., q: bool | int = ..., size: int = ..., s: int = ..., type: _util.ProxyUnicode | str = ..., typ: _util.ProxyUnicode | str = ...) -> Any: ...
     def setDynamicAttr(self, attr: str, *args: Any, alteredValue: bool | int = ..., av: bool | int = ..., caching: bool | int = ..., ca: bool | int = ..., capacityHint: int = ..., ch: int = ..., channelBox: bool | int = ..., cb: bool | int = ..., clamp: bool | int = ..., c: bool | int = ..., edit: bool | int = ..., e: bool | int = ..., keyable: bool | int = ..., k: bool | int = ..., lock: bool | int = ..., l: bool | int = ..., query: bool | int = ..., q: bool | int = ..., size: int = ..., s: int = ..., type: _util.ProxyUnicode | str = ..., typ: _util.ProxyUnicode | str = ...) -> Any: ...
     def getAttr(self, attr: str, *args: Any, asString: bool | int = ..., caching: bool | int = ..., ca: bool | int = ..., channelBox: bool | int = ..., cb: bool | int = ..., expandEnvironmentVariables: bool | int = ..., x: bool | int = ..., keyable: bool | int = ..., k: bool | int = ..., lock: bool | int = ..., l: bool | int = ..., multiIndices: bool | int = ..., mi: bool | int = ..., settable: bool | int = ..., se: bool | int = ..., silent: bool | int = ..., sl: bool | int = ..., size: bool | int = ..., s: bool | int = ..., time: int | float = ..., t: int | float = ..., type: bool | int = ..., typ: bool | int = ...) -> Any: ...
@@ -281,7 +281,7 @@ class Camera(Shape):
     setNearFarClipPlanes = setNearFarClippingPlanes
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     FilmFit: Incomplete
@@ -486,7 +486,7 @@ class Transform(DagNode):
     def getBoundingBoxMax(self, invisible: Any = ..., space: Any = ...) -> datatypes.Vector: ...
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = True
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     LimitType: Incomplete
@@ -530,7 +530,7 @@ class Joint(Transform):
     insert: Incomplete
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     Axis: Incomplete
@@ -630,7 +630,7 @@ class FluidEmitter(PointEmitter):
     setFluidAttr: Incomplete
     getFluidAttr: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCycleEmission(self, **kwargs) -> str: ...
@@ -676,7 +676,7 @@ class RenderLayer(DependNode):
     def setCurrent(self) -> None: ...
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melnode__: str
     def adjustmentPlug(self, scenePlug: Union[str, general.Attribute]) -> general.Attribute: ...
     @classmethod
@@ -703,7 +703,7 @@ class DisplayLayer(DependNode):
     def removeMembers(self, members, noRecurse: bool = ...) -> None: ...
     def setCurrent(self) -> None: ...
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
     def getAffectedAttributes(self, attr: Union[str, DependNode]) -> List[DependNode]: ...
@@ -726,7 +726,7 @@ class GeometryShape(Shape):
 
 class DeformableShape(GeometryShape):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
@@ -746,7 +746,7 @@ class NurbsCurve(CurveShape):
     knots: general.NurbsCurveKnot
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     Form: Incomplete
@@ -806,7 +806,7 @@ class NurbsSurface(SurfaceShape):
     faces: general.NurbsSurfaceFace
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     BoundaryType: Incomplete
@@ -1061,7 +1061,7 @@ class Subdiv(SurfaceShape):
     def cleanTopology(self) -> None: ...
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def collapse(self, level: int, makeNewNodeInvisible: bool) -> DependNode: ...
@@ -1102,7 +1102,7 @@ class Lattice(ControlPoint):
     points: general.LatticePoint
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -1133,11 +1133,11 @@ class Particle(DeformableShape):
     __apicls__: Incomplete
     pt: general.ParticleComponent
     points: general.ParticleComponent
-    Point: Incomplete
+    Point = general.ParticleComponent
     def pointCount(self): ...
     num = pointCount
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     RenderType: Incomplete
@@ -1305,7 +1305,7 @@ class AnimLayer(ObjectSet):
     def getAttribute(self): ...
     getAttributes = getAttribute
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def copy(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -1530,7 +1530,7 @@ class SkinCluster(GeometryFilter):
     def numInfluenceObjects(self): ...
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def addInfluence(self, val: Union[str, List[str]] = ..., **kwargs: Any) -> None: ...
@@ -1606,7 +1606,7 @@ class JointFfd(DependNode):
 class AngleBetween(DependNode):
     @staticmethod
     def __melcmd__(*args, **kwargs): ...
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -1655,7 +1655,7 @@ class AbstractBaseNurbsConversion(AbstractBaseCreate):
 
 class NurbsToSubdiv(AbstractBaseNurbsConversion):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAddUnderTransform(self, **kwargs) -> bool: ...
@@ -1687,7 +1687,7 @@ class ShellTessellate(ParentTessellate):
 
 class RebuildSurface(AbstractBaseNurbsConversion):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -1721,7 +1721,7 @@ class RebuildSurface(AbstractBaseNurbsConversion):
 
 class AlignCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -1755,7 +1755,7 @@ class AlignCurve(AbstractBaseCreate):
 
 class AlignSurface(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -1800,7 +1800,7 @@ class ArubaTessellate(AbstractBaseCreate):
 
 class AttachCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getBlendBias(self, **kwargs) -> float: ...
@@ -1824,7 +1824,7 @@ class AttachCurve(AbstractBaseCreate):
 
 class AttachSurface(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getBlendBias(self, **kwargs) -> float: ...
@@ -1865,7 +1865,7 @@ class AvgSurfacePoints(AbstractBaseCreate):
 
 class Bevel(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getBevelShapeType(self, **kwargs) -> int: ...
@@ -1891,7 +1891,7 @@ class Bevel(AbstractBaseCreate):
 
 class BevelPlus(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getBevelInside(self, **kwargs) -> bool: ...
@@ -1910,7 +1910,7 @@ class BevelPlus(AbstractBaseCreate):
 
 class BezierCurveToNurbs(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
@@ -1934,7 +1934,7 @@ class BoundaryBase(AbstractBaseCreate):
 
 class Boundary(BoundaryBase):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -1953,7 +1953,7 @@ class SquareSrf(BoundaryBase):
 
 class CloseCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getBlendBias(self, **kwargs) -> float: ...
@@ -1971,7 +1971,7 @@ class CloseCurve(AbstractBaseCreate):
 
 class CloseSurface(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getBlendBias(self, **kwargs) -> float: ...
@@ -1997,7 +1997,7 @@ class CurveInfo(AbstractBaseCreate):
 
 class CurveIntersect(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2046,7 +2046,7 @@ class SubCurve(CurveRange):
 
 class DetachCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2060,7 +2060,7 @@ class DetachCurve(AbstractBaseCreate):
 
 class DetachSurface(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2079,7 +2079,7 @@ class ExplodeNurbsShell(AbstractBaseCreate):
 
 class ExtendCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2111,7 +2111,7 @@ class ExtendCurve(AbstractBaseCreate):
 
 class ExtendSurface(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2133,7 +2133,7 @@ class ExtendSurface(AbstractBaseCreate):
 
 class Extrude(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2182,7 +2182,7 @@ class FfFilletSrf(AbstractBaseCreate):
 
 class FilletCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getBias(self, **kwargs) -> float: ...
@@ -2208,7 +2208,7 @@ class FilletCurve(AbstractBaseCreate):
 
 class FitBspline(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2220,7 +2220,7 @@ class FitBspline(AbstractBaseCreate):
 
 class GlobalStitch(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2249,7 +2249,7 @@ class HardenPoint(AbstractBaseCreate):
 
 class InsertKnotCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAddKnots(self, **kwargs) -> bool: ...
@@ -2267,7 +2267,7 @@ class InsertKnotCurve(AbstractBaseCreate):
 
 class InsertKnotSurface(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAddKnots(self, **kwargs) -> bool: ...
@@ -2293,7 +2293,7 @@ class LeastSquaresModifier(AbstractBaseCreate):
 
 class Loft(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAutoReverse(self, **kwargs) -> bool: ...
@@ -2331,7 +2331,7 @@ class MakeIllustratorCurves(AbstractBaseCreate):
 
 class MakeNurbCircle(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2381,7 +2381,7 @@ class MakeNurbCircle(AbstractBaseCreate):
 
 class MakeNurbsSquare(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2423,7 +2423,7 @@ class NearestPointOnCurve(AbstractBaseCreate):
 
 class NurbsCurveToBezier(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
@@ -2432,7 +2432,7 @@ class OffsetCos(AbstractBaseCreate):
 
 class OffsetCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2462,7 +2462,7 @@ class OffsetCurve(AbstractBaseCreate):
 
 class OffsetSurface(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2488,7 +2488,7 @@ class PolyEdgeToCurve(AbstractBaseCreate):
 
 class PolyProjectCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2511,7 +2511,7 @@ class Primitive(AbstractBaseCreate):
 
 class MakeNurbCube(Primitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -2539,7 +2539,7 @@ class MakeNurbCube(Primitive):
 
 class MakeNurbPlane(Primitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -2568,7 +2568,7 @@ class RevolvedPrimitive(Primitive):
 
 class MakeNurbCone(RevolvedPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -2604,7 +2604,7 @@ class MakeNurbCone(RevolvedPrimitive):
 
 class MakeNurbCylinder(RevolvedPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -2638,7 +2638,7 @@ class MakeNurbCylinder(RevolvedPrimitive):
 
 class MakeNurbSphere(RevolvedPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -2672,7 +2672,7 @@ class MakeNurbSphere(RevolvedPrimitive):
 
 class MakeNurbTorus(RevolvedPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -2708,7 +2708,7 @@ class MakeNurbTorus(RevolvedPrimitive):
 
 class ProjectCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2730,7 +2730,7 @@ class ProjectCurve(AbstractBaseCreate):
 
 class ProjectTangent(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2757,7 +2757,7 @@ class RbfSrf(AbstractBaseCreate):
 
 class RebuildCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2789,7 +2789,7 @@ class RebuildCurve(AbstractBaseCreate):
 
 class ReverseCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2799,7 +2799,7 @@ class ReverseCurve(AbstractBaseCreate):
 
 class ReverseSurface(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2811,7 +2811,7 @@ class ReverseSurface(AbstractBaseCreate):
 
 class Revolve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAutoCorrectNormal(self, **kwargs) -> bool: ...
@@ -2863,13 +2863,13 @@ class Revolve(AbstractBaseCreate):
 
 class RoundConstantRadius(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
 class SmoothCurve(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2905,7 +2905,7 @@ class TransformGeometry(AbstractBaseCreate):
 
 class Trim(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -2928,7 +2928,7 @@ class TrimWithBoundaries(AbstractBaseCreate):
 
 class Untrim(AbstractBaseCreate):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -3053,7 +3053,7 @@ class AnimClip(DependNode):
 
 class ArrayMapper(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -3089,7 +3089,7 @@ class Audio(DependNode):
 
 class Blend(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -3105,7 +3105,7 @@ class BlendDevice(Blend):
 
 class BlendTwoAttr(Blend):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAttribute0(self, **kwargs) -> general.PyNode: ...
@@ -3184,7 +3184,7 @@ class CacheBlend(CacheBase):
 
 class CacheFile(CacheBase):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCacheFormat(self, **kwargs) -> Any: ...
@@ -3210,7 +3210,7 @@ class CacheFile(CacheBase):
 class CameraSet(DependNode):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def appendLayer(self, camera: DagNode, set: Union[str, DependNode]) -> None: ...
@@ -3249,7 +3249,7 @@ class THcameraSet(CameraSet):
 
 class CameraView(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def addBookmark(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -3268,7 +3268,7 @@ class CameraView(DependNode):
 
 class CharacterMap(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -3297,7 +3297,7 @@ class CharacterOffset(DependNode):
 
 class Choice(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -3378,7 +3378,7 @@ class ColorProfile(DependNode):
 
 class CombinationShape(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAllDrivers(self, **kwargs) -> Any: ...
@@ -3411,7 +3411,7 @@ class Condition(DependNode):
 class Container(ContainerBase):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     MPublishNodeType: Incomplete
@@ -3509,7 +3509,7 @@ class AngleDimension(DimensionShape):
 
 class AnnotationShape(DimensionShape):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
@@ -3521,13 +3521,13 @@ class NurbsDimShape(DimensionShape):
 
 class ArcLengthDimension(NurbsDimShape):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
 class ParamDimension(NurbsDimShape):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
@@ -3621,7 +3621,7 @@ class GreasePlaneRenderShape(Mesh):
 
 class NBase(Particle):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def clearCachedTextureMap(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -3634,7 +3634,7 @@ class NCloth(NBase):
 
 class NParticle(NBase):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def floatValue(self, val: float = ..., **kwargs: Any) -> None: ...
@@ -3692,7 +3692,7 @@ class RenderSphere(ImplicitSphere):
 
 class Locator(GeometryShape):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def absolute(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -3705,7 +3705,7 @@ class THlocatorShape(Locator):
 
 class DropoffLocator(Locator):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
@@ -3720,7 +3720,7 @@ class OrientationMarker(PositionMarker):
 
 class Plane(GeometryShape):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
@@ -3744,7 +3744,7 @@ class HairSystem(Shape):
 
 class ImagePlane(Shape):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def detach(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -3812,7 +3812,7 @@ class RenderLight(Light):
 class AmbientLight(RenderLight):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAmbientShade(self) -> float: ...
@@ -3869,7 +3869,7 @@ class AreaLight(NonExtendedLightShapeNode):
 class DirectionalLight(NonExtendedLightShapeNode):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getDiscRadius(self, **kwargs) -> Any: ...
@@ -3886,7 +3886,7 @@ class DirectionalLight(NonExtendedLightShapeNode):
 class PointLight(NonExtendedLightShapeNode):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getDiscRadius(self, **kwargs) -> float: ...
@@ -3923,7 +3923,7 @@ class VolumeLight(PointLight):
 class SpotLight(NonExtendedLightShapeNode):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     MBarnDoor: Incomplete
@@ -3975,13 +3975,13 @@ class PfxToon(PfxGeometry):
 
 class Stroke(PfxGeometry):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
 class RigidBody(Shape):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def deleteCache(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -4045,7 +4045,7 @@ class SoftModHandle(Shape):
 
 class Spring(Shape):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def allPoints(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -4110,7 +4110,7 @@ class THconstraint(Constraint):
 
 class AimConstraint(Constraint):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAimVector(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -4136,7 +4136,7 @@ class LookAt(AimConstraint):
 
 class GeometryConstraint(Constraint):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getTargetList(self, **kwargs) -> Any: ...
@@ -4146,7 +4146,7 @@ class GeometryConstraint(Constraint):
 
 class NormalConstraint(Constraint):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAimVector(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -4172,7 +4172,7 @@ class OldTangentConstraint(Constraint):
 
 class OrientConstraint(Constraint):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def createCache(self, val: Tuple[float, float] = ..., **kwargs: Any) -> None: ...
@@ -4187,7 +4187,7 @@ class OrientConstraint(Constraint):
 
 class ParentConstraint(Constraint):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def createCache(self, val: Tuple[float, float] = ..., **kwargs: Any) -> None: ...
@@ -4199,7 +4199,7 @@ class ParentConstraint(Constraint):
 
 class PointConstraint(Constraint):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getOffset(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -4212,7 +4212,7 @@ class PointConstraint(Constraint):
 
 class PoleVectorConstraint(PointConstraint):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getTargetList(self, **kwargs) -> Any: ...
@@ -4222,7 +4222,7 @@ class PoleVectorConstraint(PointConstraint):
 
 class PointOnPolyConstraint(Constraint):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getOffset(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -4235,7 +4235,7 @@ class PointOnPolyConstraint(Constraint):
 
 class ScaleConstraint(Constraint):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getOffset(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -4252,7 +4252,7 @@ class SymmetryConstraint(Constraint):
 
 class TangentConstraint(Constraint):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAimVector(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -4278,7 +4278,7 @@ class DagContainer(Transform):
 class Assembly(DagContainer):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def activate(self, representation: str) -> None: ...
@@ -4373,7 +4373,7 @@ class THdynField(Field):
 class AirField(Field):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def fanSetup(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -4417,7 +4417,7 @@ class AirField(Field):
 class DragField(Field):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getDirection(self) -> datatypes.Vector: ...
@@ -4444,7 +4444,7 @@ class DragField(Field):
 class GravityField(Field):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getDirection(self) -> datatypes.Vector: ...
@@ -4481,7 +4481,7 @@ class RadialField(Field):
 class TurbulenceField(Field):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getFrequency(self) -> float: ...
@@ -4512,7 +4512,7 @@ class TurbulenceField(Field):
 class UniformField(Field):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getDirection(self) -> datatypes.Vector: ...
@@ -4537,7 +4537,7 @@ class UniformField(Field):
 class VolumeAxisField(Field):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def detailTurbulence(self) -> float: ...
@@ -4597,7 +4597,7 @@ class VolumeAxisField(Field):
 class VortexField(Field):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self) -> datatypes.Vector: ...
@@ -4654,7 +4654,7 @@ class IkEffector(Transform):
 class IkHandle(Transform):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     Stickiness: Incomplete
@@ -4703,7 +4703,7 @@ class IkHandle(Transform):
 class Instancer(Transform):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def addObject(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -4785,7 +4785,7 @@ class VertexBakeSet(BakeSet):
 class Character(ObjectSet):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def addElement(self, val: Union[general.PyNode, str] = ..., **kwargs: Any) -> None: ...
@@ -4824,7 +4824,7 @@ class CreaseSet(ObjectSet):
 
 class KeyingGroup(ObjectSet):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def addElement(self, val: Union[general.PyNode, str] = ..., **kwargs: Any) -> None: ...
@@ -4856,7 +4856,7 @@ class KeyingGroup(ObjectSet):
 class Partition(Entity):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     Restriction: Incomplete
@@ -4877,7 +4877,7 @@ class Contrast(DependNode):
 
 class Controller(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAllControllers(self, **kwargs) -> Any: ...
@@ -4968,7 +4968,7 @@ class CurveNormalizerLinear(CurveNormalizer):
 
 class DagPose(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -5078,7 +5078,7 @@ class DeleteUVSet(DependNode):
 
 class DiskCache(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -5156,7 +5156,7 @@ class DynController(DependNode):
 
 class DynGlobals(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -5173,7 +5173,7 @@ class DynGlobals(DependNode):
 
 class EditMetadata(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getChannelName(self, **kwargs) -> Any: ...
@@ -5189,7 +5189,7 @@ class EditsManager(DependNode):
 class Expression(DependNode):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     UnitConversion: Incomplete
@@ -5240,7 +5240,7 @@ class FalloffEval(DependNode):
 
 class Flow(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -5297,7 +5297,7 @@ class GeoConnector(DependNode):
 
 class GeomBind(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getFalloff(self, **kwargs) -> float: ...
@@ -5313,7 +5313,7 @@ class THgeometryFilter(GeometryFilter):
 class BlendShape(GeometryFilter):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     HistoryLocation: Incomplete
@@ -5383,7 +5383,7 @@ class THblendShape(BlendShape):
 
 class BoneLattice(GeometryFilter):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -5419,7 +5419,7 @@ class HistorySwitch(GeometryFilter):
 
 class JointLattice(GeometryFilter):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -5450,7 +5450,7 @@ class JointLattice(GeometryFilter):
 
 class Sculpt(GeometryFilter):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -5496,7 +5496,7 @@ class THdeformer(WeightGeometryFilter):
 
 class Cluster(WeightGeometryFilter):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -5518,7 +5518,7 @@ class Cluster(WeightGeometryFilter):
 
 class JointCluster(Cluster):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAboveBound(self, **kwargs) -> float: ...
@@ -5539,7 +5539,7 @@ class JointCluster(Cluster):
 
 class DeltaMush(WeightGeometryFilter):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -5586,7 +5586,7 @@ class Morph(WeightGeometryFilter):
 
 class NonLinear(WeightGeometryFilter):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -5611,7 +5611,7 @@ class ShrinkWrap(WeightGeometryFilter):
 
 class SoftMod(WeightGeometryFilter):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -5636,7 +5636,7 @@ class Solidify(WeightGeometryFilter):
 
 class Tension(WeightGeometryFilter):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -5665,7 +5665,7 @@ class Tension(WeightGeometryFilter):
 
 class TextureDeformer(WeightGeometryFilter):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -5684,7 +5684,7 @@ class TextureDeformer(WeightGeometryFilter):
 
 class TransferAttributes(WeightGeometryFilter):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def after(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -5716,7 +5716,7 @@ class TransferAttributes(WeightGeometryFilter):
 class Wire(WeightGeometryFilter):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def addGeometry(self, object: Union[str, DependNode]) -> None: ...
@@ -5792,7 +5792,7 @@ class GroupId(DependNode):
 
 class GroupParts(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -5871,7 +5871,7 @@ class HsvToRgb(DependNode):
 
 class HwReflectionMap(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -5935,7 +5935,7 @@ class HyperView(DependNode):
 class IkSolver(DependNode):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getEpsilon(self, **kwargs) -> float: ...
@@ -5970,7 +5970,7 @@ class IkSplineSolver(IkSolver):
 
 class IkSystem(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def autoPriority(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -6035,7 +6035,7 @@ class LightLinker(DependNode):
 
 class LightList(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -6171,7 +6171,7 @@ class MultilisterLight(DependNode):
 
 class Mute(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -6274,7 +6274,7 @@ class OpticalFX(DependNode):
 
 class PairBlend(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -6378,7 +6378,7 @@ class PolyCreateFace(PolyCreator):
 
 class PolyPrimitive(PolyCreator):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6403,7 +6403,7 @@ class PolyPrimitive(PolyCreator):
 
 class PolyCone(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6442,7 +6442,7 @@ class PolyCone(PolyPrimitive):
 
 class PolyCube(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6481,7 +6481,7 @@ class PolyCube(PolyPrimitive):
 
 class PolyCylinder(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6520,7 +6520,7 @@ class PolyCylinder(PolyPrimitive):
 
 class PolyHelix(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6561,7 +6561,7 @@ class PolyHelix(PolyPrimitive):
 
 class PolyPipe(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6596,7 +6596,7 @@ class PolyPipe(PolyPrimitive):
 
 class PolyPlane(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6629,7 +6629,7 @@ class PolyPlane(PolyPrimitive):
 
 class PolyPlatonicSolid(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6650,13 +6650,13 @@ class PolyPlatonicSolid(PolyPrimitive):
 
 class PolyPrimitiveMisc(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
 class PolyPrism(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6685,7 +6685,7 @@ class PolyPrism(PolyPrimitive):
 
 class PolyPyramid(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6716,7 +6716,7 @@ class PolyPyramid(PolyPrimitive):
 
 class PolySphere(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6743,7 +6743,7 @@ class PolySphere(PolyPrimitive):
 
 class PolyTorus(PolyPrimitive):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxis(self, **kwargs) -> Tuple[float, float, float]: ...
@@ -6778,7 +6778,7 @@ class PolyTorus(PolyPrimitive):
 
 class PolyUnite(PolyCreator):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -6788,7 +6788,7 @@ class PolyUnite(PolyCreator):
 
 class PolyBoolOp(PolyUnite):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -6810,7 +6810,7 @@ class PolyBoolOp(PolyUnite):
 
 class PolyCBoolOp(PolyBoolOp):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -6844,7 +6844,7 @@ class BlendColorSets(PolyModifier):
 
 class PolyAppend(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getConstructionHistory(self, **kwargs) -> Any: ...
@@ -6855,7 +6855,7 @@ class PolyAppend(PolyModifier):
 
 class PolyAppendVertex(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getConstructionHistory(self, **kwargs) -> Any: ...
@@ -6864,7 +6864,7 @@ class PolyAppendVertex(PolyModifier):
 
 class PolyClean(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -6885,7 +6885,7 @@ class PolyClean(PolyModifier):
 
 class PolyCloseBorder(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -6896,7 +6896,7 @@ class PolyCloseBorder(PolyModifier):
 
 class PolyCollapseEdge(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -6910,7 +6910,7 @@ class PolyCollapseF(PolyModifier):
 
 class PolyColorDel(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -6923,7 +6923,7 @@ class PolyColorDel(PolyModifier):
 
 class PolyColorMod(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAlphaScale_FloatValue(self, **kwargs) -> float: ...
@@ -6970,7 +6970,7 @@ class PolyColorMod(PolyModifier):
 
 class PolyColorPerVertex(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAlpha(self, **kwargs) -> float: ...
@@ -6998,7 +6998,7 @@ class PolyColorPerVertex(PolyModifier):
 
 class PolyConnectComponents(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAdjustEdgeFlow(self, **kwargs) -> float: ...
@@ -7013,7 +7013,7 @@ class PolyConnectComponents(PolyModifier):
 
 class PolyDelEdge(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7026,7 +7026,7 @@ class PolyDelEdge(PolyModifier):
 
 class PolyDelFacet(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7037,7 +7037,7 @@ class PolyDelFacet(PolyModifier):
 
 class PolyDelVertex(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7048,7 +7048,7 @@ class PolyDelVertex(PolyModifier):
 
 class PolyDuplicateEdge(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAdjustEdgeFlow(self, **kwargs) -> float: ...
@@ -7073,7 +7073,7 @@ class PolyDuplicateEdge(PolyModifier):
 
 class PolyEditEdgeFlow(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7084,13 +7084,13 @@ class PolyEditEdgeFlow(PolyModifier):
 
 class PolyFlipEdge(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
 class PolyMapCut(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7103,7 +7103,7 @@ class PolyMapCut(PolyModifier):
 
 class PolyMapDel(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7114,7 +7114,7 @@ class PolyMapDel(PolyModifier):
 
 class PolyMapSew(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7125,7 +7125,7 @@ class PolyMapSew(PolyModifier):
 
 class PolyMergeEdge(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7150,7 +7150,7 @@ class PolyModifierWorld(PolyModifier):
 
 class PolyAverageVertex(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7165,7 +7165,7 @@ class PolyAverageVertex(PolyModifierWorld):
 
 class PolyBevel(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAngleTolerance(self, **kwargs) -> float: ...
@@ -7207,7 +7207,7 @@ class PolyBevel2(PolyBevel):
 
 class PolyBevel3(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAngleTolerance(self, **kwargs) -> float: ...
@@ -7252,7 +7252,7 @@ class PolyBevel3(PolyModifierWorld):
 
 class PolyBridgeEdge(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getBridgeOffset(self, **kwargs) -> int: ...
@@ -7287,7 +7287,7 @@ class PolyBridgeEdge(PolyModifierWorld):
 
 class PolyCircularize(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAlignment(self, **kwargs) -> int: ...
@@ -7310,7 +7310,7 @@ class PolyCircularize(PolyModifierWorld):
 
 class PolyCrease(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCreateHistory(self, **kwargs) -> bool: ...
@@ -7329,7 +7329,7 @@ class PolyCreaseEdge(PolyCrease):
 
 class PolyCut(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7381,7 +7381,7 @@ class PolyCylProj(PolyModifierWorld):
 
 class PolyExtrudeVertex(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7418,7 +7418,7 @@ class PolyContourProj(PolyModifierUV):
 
 class PolyCopyUV(PolyModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7433,7 +7433,7 @@ class PolyCopyUV(PolyModifierUV):
 
 class PolyFlipUV(PolyModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7458,7 +7458,7 @@ class PolyFlipUV(PolyModifierUV):
 
 class PolyLayoutUV(PolyModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7485,7 +7485,7 @@ class PolyLayoutUV(PolyModifierUV):
 
 class PolyMapSewMove(PolyModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7502,7 +7502,7 @@ class PolyMapSewMove(PolyModifierUV):
 
 class PolyMergeUV(PolyModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7517,7 +7517,7 @@ class PolyMergeUV(PolyModifierUV):
 
 class PolyNormalizeUV(PolyModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7538,7 +7538,7 @@ class PolyNormalizeUV(PolyModifierUV):
 
 class PolyOptUvs(PolyModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7551,7 +7551,7 @@ class PolyOptUvs(PolyModifierUV):
 
 class PolyPinUV(PolyModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCreateHistory(self, **kwargs) -> bool: ...
@@ -7567,7 +7567,7 @@ class PolyPinUV(PolyModifierUV):
 
 class PolyStraightenUVBorder(PolyModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getBlendOriginal(self, **kwargs) -> Any: ...
@@ -7584,7 +7584,7 @@ class PolyStraightenUVBorder(PolyModifierUV):
 
 class PolyMoveVertex(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7649,7 +7649,7 @@ class PolyMoveVertex(PolyModifierWorld):
 
 class PolyMoveEdge(PolyMoveVertex):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7732,7 +7732,7 @@ class PolyMoveEdge(PolyMoveVertex):
 
 class PolyExtrudeEdge(PolyMoveEdge):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7838,7 +7838,7 @@ class PolyMoveFace(PolyMoveEdge):
 
 class PolyChipOff(PolyMoveFace):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAttraction(self, **kwargs) -> float: ...
@@ -7950,7 +7950,7 @@ class PolyPlanarProj(PolyModifierWorld):
 
 class PolyPoke(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -7966,7 +7966,7 @@ class PolyProj(PolyModifierWorld):
 
 class PolyQuad(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAngle(self, **kwargs) -> float: ...
@@ -7987,7 +7987,7 @@ class PolyQuad(PolyModifierWorld):
 
 class PolyRemesh(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -8010,7 +8010,7 @@ class PolyRemesh(PolyModifierWorld):
 
 class PolySewEdge(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -8027,7 +8027,7 @@ class PolySewEdge(PolyModifierWorld):
 
 class PolySoftEdge(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAngle(self, **kwargs) -> float: ...
@@ -8045,7 +8045,7 @@ class PolySphProj(PolyModifierWorld):
 
 class PolySplitRing(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAdjustEdgeFlow(self, **kwargs) -> float: ...
@@ -8098,7 +8098,7 @@ class PolySubdEdge(PolyModifierWorld):
 
 class PolyWedgeFace(PolyModifierWorld):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -8111,7 +8111,7 @@ class PolyWedgeFace(PolyModifierWorld):
 
 class PolyMoveUV(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxisLen(self, **kwargs) -> Tuple[float, float]: ...
@@ -8150,7 +8150,7 @@ class PolyMoveUV(PolyModifier):
 
 class PolyMoveFacetUV(PolyMoveUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAxisLen(self, **kwargs) -> Tuple[float, float]: ...
@@ -8189,7 +8189,7 @@ class PolyMoveFacetUV(PolyMoveUV):
 
 class PolyNormal(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -8204,7 +8204,7 @@ class PolyNormal(PolyModifier):
 
 class PolyNormalPerVertex(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAllLocked(self, **kwargs) -> bool: ...
@@ -8228,7 +8228,7 @@ class PolyNormalPerVertex(PolyModifier):
 
 class PolyReduce(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -8312,13 +8312,13 @@ class PolyReduce(PolyModifier):
 
 class PolyRetopo(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
 class PolySmooth(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -8359,13 +8359,13 @@ class PolySmoothProxy(PolyModifier):
 
 class PolySpinEdge(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
 class PolySplit(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAdjustEdgeFlow(self, **kwargs) -> float: ...
@@ -8378,7 +8378,7 @@ class PolySplit(PolyModifier):
 
 class PolySplitEdge(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -8394,7 +8394,7 @@ class PolySubdFace(PolyModifier):
 
 class PolyTransfer(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getAlternateObject(self, **kwargs) -> str: ...
@@ -8413,7 +8413,7 @@ class PolyTransfer(PolyModifier):
 
 class PolyTriangulate(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -8430,7 +8430,7 @@ class PolyTweakUV(PolyModifier):
 
 class PolyUVRectangle(PolyModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -8441,7 +8441,7 @@ class PolyUVRectangle(PolyModifier):
 
 class PolyBlindData(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def associationType(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -8471,7 +8471,7 @@ class SubdBlindData(PolyBlindData):
 
 class PolySeparate(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -8488,7 +8488,7 @@ class PolySeparate(DependNode):
 
 class PolyToSubdiv(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -8575,7 +8575,7 @@ class Record(DependNode):
 class Reference(DependNode):
     __apicls__: Incomplete
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def associatedNamespace(self, baseName: bool) -> str: ...
@@ -8710,7 +8710,7 @@ class RgbToHsv(DependNode):
 
 class RigidSolver(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -8798,7 +8798,7 @@ class SelectionListOperator(DependNode):
 
 class SequenceManager(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -9129,7 +9129,7 @@ class Fractal(Texture2d):
 
 class Grid(Texture2d):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getDefault(self, **kwargs) -> Any: ...
@@ -9262,7 +9262,7 @@ class ShapeEditorManager(DependNode):
 
 class Shot(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def createCustomAnim(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -9402,7 +9402,7 @@ class SkinBinding(DependNode):
 
 class Snapshot(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def findAlias(self, alias: str) -> Tuple[bool, DependNode]: ...
@@ -9453,13 +9453,13 @@ class SubdAddTopology(SubdModifier):
 
 class SubdCleanTopology(SubdModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
 
 class SubdMapCut(SubdModifier):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -9478,7 +9478,7 @@ class SubdAutoProj(SubdModifierUV):
 
 class SubdLayoutUV(SubdModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -9504,7 +9504,7 @@ class SubdLayoutUV(SubdModifierUV):
 
 class SubdMapSewMove(SubdModifierUV):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getCaching(self, **kwargs) -> bool: ...
@@ -9628,14 +9628,14 @@ class Time(DependNode):
 
 class TimeEditor(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def getMute(self, **kwargs) -> Any: ...
 
 class TimeEditorAnimSource(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def addSource(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -9671,7 +9671,7 @@ class TimeEditorClipBase(DependNode):
 
 class TimeEditorClip(TimeEditorClipBase):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def addClipAttribute(self, val: Union[str, List[str]] = ..., **kwargs: Any) -> None: ...
@@ -9799,7 +9799,7 @@ class TimeEditorInterpolator(DependNode):
 
 class TimeEditorTracks(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def addTrack(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -9851,7 +9851,7 @@ class TimeToUnitConversion(DependNode):
 
 class TimeWarp(DependNode):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melnode__: str
     def deleteFrame(self, val: int = ..., **kwargs: Any) -> None: ...

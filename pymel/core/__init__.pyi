@@ -24,5 +24,5 @@ toQtLayout: Incomplete
 toQtControl: Incomplete
 toQtMenuItem: Incomplete
 toQtWindow: Incomplete
-TYPE_CHECKING = False
+TYPE_CHECKING: bool
 plugin: Any

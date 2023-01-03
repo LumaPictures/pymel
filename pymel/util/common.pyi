@@ -3,7 +3,7 @@ from _typeshed import Incomplete
 from collections.abc import Generator
 from re import escape as escape
 
-TYPE_CHECKING = False
+TYPE_CHECKING: bool
 
 def inMaya() -> bool: ...
 def capitalize(s: str) -> str: ...

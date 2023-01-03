@@ -21,8 +21,8 @@ def toPySideLayout(mayaName): ...
 def toPySideWindow(mayaName): ...
 def toPySideMenuItem(mayaName): ...
 
-pyQtAvailable = True
-pySideAvailable = True
+pyQtAvailable: bool
+pySideAvailable: bool
 qtBinding: str
 toQtObject = toPyQtObject
 toQtControl = toPyQtControl
@@ -54,7 +54,7 @@ class PyUI(str):
 
 class Panel(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def copy(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -96,7 +96,7 @@ class Layout(PyUIContainer):
     def clear(self) -> None: ...
     asQtObject = toQtLayout
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -148,7 +148,7 @@ class Window(PyUIContainer):
     getParent = parent
     asQtObject = toQtWindow
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def backgroundColor(self, val: Tuple[float, float, float] = ..., **kwargs: Any) -> None: ...
@@ -227,7 +227,7 @@ class FormLayout(Layout):
     def vDistribute(self, *ratios) -> None: ...
     def hDistribute(self, *ratios) -> None: ...
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def attachOppositeControl(self, val: Union[Tuple[str, str, int, str], List[Tuple[str, str, int, str]]] = ..., **kwargs: Any) -> None: ...
@@ -276,7 +276,7 @@ class AutoLayout(FormLayout):
 
 class RowLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -328,7 +328,7 @@ class TextScrollList(PyUI):
     def removeIndexedItems(self, removeList) -> None: ...
     def selectAll(self) -> None: ...
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def append(self, val: Union[str, List[str]] = ..., **kwargs: Any) -> None: ...
@@ -403,7 +403,7 @@ class Menu(PyUI):
     def getItemArray(self): ...
     def makeDefault(self) -> None: ...
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def deleteAllItems(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -435,7 +435,7 @@ class Menu(PyUI):
 
 class PopupMenu(Menu):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def deleteAllItems(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -460,7 +460,7 @@ class OptionMenu(PopupMenu):
     def clear(self) -> None: ...
     addItems = addMenuItems
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def beforeShowPopup(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -521,7 +521,7 @@ class OptionMenuGrp(RowLayout):
     def __enter__(self): ...
     def __exit__(self, type, value, traceback): ...
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -616,7 +616,7 @@ class CommandMenuItem(PyUI):
     def __enter__(self): ...
     def __exit__(self, type, value, traceback): ...
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     def getAllowOptionBoxes(self, **kwargs) -> Any: ...
     def getAnnotation(self, **kwargs) -> str: ...
@@ -731,7 +731,7 @@ class AETemplate:
 
 class FloatFieldGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -830,7 +830,7 @@ class FloatFieldGrp(Layout):
 
 class TextFieldButtonGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -922,7 +922,7 @@ class TextFieldButtonGrp(Layout):
 
 class ProgressBar(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def beginProgress(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -997,7 +997,7 @@ class FolderButtonGrp(PathButtonGrp):
 
 class AnimCurveEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def denormalizeCurvesCommand(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -1098,7 +1098,7 @@ class AnimCurveEditor(PyUI):
 
 class AnimDisplay(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getModelUpdate(self, **kwargs) -> str: ...
@@ -1112,7 +1112,7 @@ class AnimDisplay(PyUI):
 
 class AttrEnumOptionMenu(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def attribute(self, val: Union[_general.PyNode, str] = ..., **kwargs: Any) -> None: ...
@@ -1156,13 +1156,13 @@ class AttrEnumOptionMenu(PyUI):
 
 class AttributeMenu(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
 
 class BlendShapeEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getControl(self, **kwargs) -> Any: ...
@@ -1192,7 +1192,7 @@ class BlendShapeEditor(PyUI):
 
 class Button(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -1244,7 +1244,7 @@ class Button(PyUI):
 
 class Canvas(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -1289,7 +1289,7 @@ class Canvas(PyUI):
 
 class ChannelBox(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -1388,7 +1388,7 @@ class ChannelBox(PyUI):
 
 class CheckBox(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -1444,7 +1444,7 @@ class CheckBox(PyUI):
 
 class ClipEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def clipDropCmd(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -1505,7 +1505,7 @@ class ClipEditor(PyUI):
 
 class ClipSchedulerOutliner(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def clipScheduler(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -1546,7 +1546,7 @@ class ClipSchedulerOutliner(PyUI):
 
 class CmdScrollFieldExecuter(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def appendText(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -1648,7 +1648,7 @@ class CmdScrollFieldExecuter(PyUI):
 
 class CmdScrollFieldReporter(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def clear(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -1719,7 +1719,7 @@ class CmdScrollFieldReporter(PyUI):
 
 class CmdShell(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -1767,7 +1767,7 @@ class CmdShell(PyUI):
 
 class ColorEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getAlpha(self, **kwargs) -> Any: ...
@@ -1777,7 +1777,7 @@ class ColorEditor(PyUI):
 
 class CommandLine(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def command(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -1829,13 +1829,13 @@ class CommandLine(PyUI):
 
 class ConfirmDialog(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
 
 class DefaultLightListCheckBox(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -1877,7 +1877,7 @@ class DefaultLightListCheckBox(PyUI):
 
 class DeviceEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getControl(self, **kwargs) -> Any: ...
@@ -1905,7 +1905,7 @@ class DeviceEditor(PyUI):
 
 class DynPaintEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def canvasUndo(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -2000,7 +2000,7 @@ class DynRelEditor(PyUI):
 
 class ExclusiveLightCheckBox(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -2041,7 +2041,7 @@ class ExclusiveLightCheckBox(PyUI):
 
 class FloatField(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -2099,7 +2099,7 @@ class FloatField(PyUI):
 
 class FloatScrollBar(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -2152,7 +2152,7 @@ class FloatScrollBar(PyUI):
 
 class FloatSlider(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -2203,7 +2203,7 @@ class FloatSlider(PyUI):
 
 class FloatSlider2(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand1(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -2258,13 +2258,13 @@ class FloatSlider2(PyUI):
 
 class FontDialog(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
 
 class GlRenderEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getControl(self, **kwargs) -> Any: ...
@@ -2293,7 +2293,7 @@ class GlRenderEditor(PyUI):
 
 class GradientControl(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -2349,7 +2349,7 @@ class GradientControl(PyUI):
 
 class GradientControlNoAttr(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -2407,7 +2407,7 @@ class GradientControlNoAttr(PyUI):
 
 class HelpLine(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -2447,7 +2447,7 @@ class HelpLine(PyUI):
 
 class HyperGraph(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def addBookmark(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -2617,13 +2617,13 @@ class HyperGraph(PyUI):
 
 class HyperShade(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
 
 class IconTextButton(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -2722,7 +2722,7 @@ class IconTextButton(PyUI):
 
 class IconTextCheckBox(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -2820,7 +2820,7 @@ class IconTextCheckBox(PyUI):
 
 class IconTextRadioButton(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -2918,7 +2918,7 @@ class IconTextRadioButton(PyUI):
 
 class IconTextRadioCollection(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def disableCommands(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -2930,7 +2930,7 @@ class IconTextRadioCollection(PyUI):
 
 class IconTextScrollList(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def append(self, val: Union[str, List[str]] = ..., **kwargs: Any) -> None: ...
@@ -2991,7 +2991,7 @@ class IconTextScrollList(PyUI):
 
 class IconTextStaticLabel(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -3073,7 +3073,7 @@ class IconTextStaticLabel(PyUI):
 
 class Image(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -3115,7 +3115,7 @@ class Image(PyUI):
 
 class IntField(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -3169,7 +3169,7 @@ class IntField(PyUI):
 
 class IntScrollBar(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -3222,7 +3222,7 @@ class IntScrollBar(PyUI):
 
 class IntSlider(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -3273,7 +3273,7 @@ class IntSlider(PyUI):
 
 class KeyframeOutliner(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def animCurve(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -3316,7 +3316,7 @@ class KeyframeOutliner(PyUI):
 
 class KeyframeStats(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -3397,7 +3397,7 @@ class KeyframeStats(PyUI):
 
 class LayerButton(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -3461,7 +3461,7 @@ class LayerButton(PyUI):
 
 class AttrColorSliderGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -3544,7 +3544,7 @@ class AttrColorSliderGrp(Layout):
 
 class AttrControlGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getAnnotation(self, **kwargs) -> str: ...
@@ -3568,7 +3568,7 @@ class AttrControlGrp(Layout):
 
 class AttrEnumOptionMenuGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -3642,7 +3642,7 @@ class AttrEnumOptionMenuGrp(Layout):
 
 class AttrFieldGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -3730,7 +3730,7 @@ class AttrFieldGrp(Layout):
 
 class AttrFieldSliderGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -3829,7 +3829,7 @@ class AttrFieldSliderGrp(Layout):
 
 class AttrNavigationControlGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -3931,7 +3931,7 @@ class AttrNavigationControlGrp(Layout):
 
 class CheckBoxGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -4058,7 +4058,7 @@ class CheckBoxGrp(Layout):
 
 class ColorIndexSliderGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -4145,7 +4145,7 @@ class ColorIndexSliderGrp(Layout):
 
 class ColorSliderButtonGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -4234,7 +4234,7 @@ class ColorSliderButtonGrp(Layout):
 
 class ColorSliderGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -4315,7 +4315,7 @@ class ColorSliderGrp(Layout):
 
 class ColumnLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -4365,7 +4365,7 @@ class ColumnLayout(Layout):
 
 class FloatSliderButtonGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -4467,7 +4467,7 @@ class FloatSliderButtonGrp(Layout):
 
 class FloatSliderGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -4561,7 +4561,7 @@ class FloatSliderGrp(Layout):
 
 class FrameLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def collapseCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -4633,7 +4633,7 @@ class FrameLayout(Layout):
 
 class GridLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def cellWidthHeight(self, val: Tuple[int, int] = ..., **kwargs: Any) -> None: ...
@@ -4690,7 +4690,7 @@ class GridLayout(Layout):
 
 class IntFieldGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -4785,7 +4785,7 @@ class IntFieldGrp(Layout):
 
 class IntSliderGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -4878,7 +4878,7 @@ class IntSliderGrp(Layout):
 
 class MenuBarLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -4925,7 +4925,7 @@ class MenuBarLayout(Layout):
 
 class PaneLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -4989,7 +4989,7 @@ class PaneLayout(Layout):
 
 class RadioButtonGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -5122,7 +5122,7 @@ class RadioButtonGrp(Layout):
 
 class RowColumnLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -5177,7 +5177,7 @@ class RowColumnLayout(Layout):
 
 class ScrollLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -5233,7 +5233,7 @@ class ScrollLayout(Layout):
 
 class ShelfLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -5294,7 +5294,7 @@ class ShelfLayout(Layout):
 
 class ShelfTabLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -5384,7 +5384,7 @@ class ShelfTabLayout(Layout):
 
 class TabLayout(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -5474,7 +5474,7 @@ class TabLayout(Layout):
 
 class TextFieldGrp(Layout):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def adjustableColumn(self, val: int = ..., **kwargs: Any) -> None: ...
@@ -5561,13 +5561,13 @@ class TextFieldGrp(Layout):
 
 class LayoutDialog(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
 
 class MenuEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def cellWidthHeight(self, val: Tuple[int, int] = ..., **kwargs: Any) -> None: ...
@@ -5641,7 +5641,7 @@ class MenuEditor(PyUI):
 
 class MenuSet(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getAllMenuSets(self, **kwargs) -> Any: ...
@@ -5658,7 +5658,7 @@ class MenuSet(PyUI):
 
 class MessageLine(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -5698,7 +5698,7 @@ class MessageLine(PyUI):
 
 class ModelEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def activeCustomEnvironment(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -5979,7 +5979,7 @@ class ModelEditor(PyUI):
 
 class NameField(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -6029,7 +6029,7 @@ class NameField(PyUI):
 
 class NodeIconButton(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -6113,7 +6113,7 @@ class NodeIconButton(PyUI):
 
 class OutlinerEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def allowMultiSelection(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -6286,7 +6286,7 @@ class OutlinerEditor(PyUI):
 
 class PalettePort(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -6343,7 +6343,7 @@ class PalettePort(PyUI):
 
 class BlendShapePanel(Panel):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def copy(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -6373,7 +6373,7 @@ class BlendShapePanel(Panel):
 
 class DevicePanel(Panel):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def copy(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -6405,7 +6405,7 @@ class DynRelEdPanel(Panel):
 
 class HardwareRenderPanel(Panel):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def copy(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -6437,7 +6437,7 @@ class HardwareRenderPanel(Panel):
 
 class HyperPanel(Panel):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def copy(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -6467,7 +6467,7 @@ class HyperPanel(Panel):
 
 class ModelPanel(Panel):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def copy(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -6500,7 +6500,7 @@ class ModelPanel(Panel):
 
 class OutlinerPanel(Panel):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def copy(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -6532,7 +6532,7 @@ class OutlinerPanel(Panel):
 
 class ScriptedPanel(Panel):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def copy(self, val: Union[_util.ProxyUnicode, str] = ..., **kwargs: Any) -> None: ...
@@ -6562,14 +6562,14 @@ class ScriptedPanel(Panel):
 
 class PromptDialog(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getText(self, **kwargs) -> Any: ...
 
 class RadioButton(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -6624,7 +6624,7 @@ class RadioButton(PyUI):
 
 class RadioCollection(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getCollectionItemArray(self, **kwargs) -> Any: ...
@@ -6635,7 +6635,7 @@ class RadioCollection(PyUI):
 
 class RadioMenuItemCollection(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getGl(self, **kwargs) -> Any: ...
@@ -6645,7 +6645,7 @@ class RenderLayerButton(PyUI):
 
 class RenderWindowEditor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def colorManage(self, val: Union[bool, int] = ..., **kwargs: Any) -> None: ...
@@ -6754,7 +6754,7 @@ class RenderWindowEditor(PyUI):
 
 class ScriptTable(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def afterCellChangedCmd(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -6841,7 +6841,7 @@ class ScriptTable(PyUI):
 
 class ScriptedPanelType(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getAddCallback(self, **kwargs) -> str: ...
@@ -6873,7 +6873,7 @@ class ScriptedPanelType(PyUI):
 
 class ScrollField(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -6931,7 +6931,7 @@ class ScrollField(PyUI):
 
 class Separator(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -6974,7 +6974,7 @@ class Separator(PyUI):
 
 class ShelfButton(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -7084,7 +7084,7 @@ class ShellField(PyUI):
 
 class SymbolButton(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -7128,7 +7128,7 @@ class SymbolButton(PyUI):
 
 class SymbolCheckBox(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -7189,7 +7189,7 @@ class SymbolCheckBox(PyUI):
 
 class Text(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def dragCallback(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -7241,13 +7241,13 @@ class Text(PyUI):
 
 class TextCurves(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
 
 class TextField(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -7314,7 +7314,7 @@ class TextField(PyUI):
 
 class ToolButton(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def changeCommand(self, val: Union[str, Callable] = ..., **kwargs: Any) -> None: ...
@@ -7386,7 +7386,7 @@ class ToolButton(PyUI):
 
 class ToolCollection(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getCollectionItemArray(self, **kwargs) -> Any: ...
@@ -7397,7 +7397,7 @@ class ToolCollection(PyUI):
 
 class Visor(PyUI):
     __melcmd__: Incomplete
-    __melcmd_isinfo__ = False
+    __melcmd_isinfo__: bool
     __melcmdname__: str
     __melui__: str
     def getAddFolder(self, **kwargs) -> Any: ...

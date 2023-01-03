@@ -1,4 +1,5 @@
 import os
+import shutil
 from _typeshed import Incomplete
 from collections.abc import Generator
 
@@ -17,7 +18,7 @@ class multimethod:
     def __get__(self, instance, owner): ...
 
 class path(str):
-    module: Incomplete
+    module = os.path
     def __init__(self, other: str = ...) -> None: ...
     @classmethod
     def using_module(cls, module): ...
@@ -128,13 +129,13 @@ class path(str):
     def symlink(self, newlink): ...
     def readlink(self): ...
     def readlinkabs(self): ...
-    copyfile: Incomplete
-    copymode: Incomplete
-    copystat: Incomplete
+    copyfile = shutil.copyfile
+    copymode = shutil.copymode
+    copystat = shutil.copystat
     copy: Incomplete
     copy2: Incomplete
-    copytree: Incomplete
-    move: Incomplete
+    copytree = shutil.copytree
+    move = shutil.move
     rmtree: Incomplete
     def rmtree_p(self): ...
     def chdir(self) -> None: ...

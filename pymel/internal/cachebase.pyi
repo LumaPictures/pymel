@@ -4,7 +4,7 @@ from _typeshed import Incomplete
 from pymel.util import picklezip as picklezip, universalmethod as universalmethod
 from typing import Dict, List, NamedTuple, Optional, Tuple, Type
 
-TYPE_CHECKING = False
+TYPE_CHECKING: bool
 PY_CACHE_FORMAT_VERSION: Incomplete
 
 class NoStringWrappingPrettyPrinter(pprint.PrettyPrinter): ...
@@ -22,7 +22,7 @@ class PymelCache:
     FORMATS: Incomplete
     EXTENSIONS: Incomplete
     DEFAULT_EXT: str
-    USE_VERSION = True
+    USE_VERSION: bool
     def fromRawData(self, rawData): ...
     def toRawData(self, data): ...
     def read(self, path: Incomplete | None = ..., ext: Incomplete | None = ..., ignoreError: bool = ...): ...
@@ -34,7 +34,7 @@ class PymelCache:
 class SubItemCache(PymelCache):
     ITEM_TYPES: Dict[str, Type]
     DEFAULT_TYPE: Type
-    AUTO_SAVE = True
+    AUTO_SAVE: bool
     def __init__(self) -> None: ...
     @classmethod
     def cacheNames(cls) -> Tuple[str, ...]: ...

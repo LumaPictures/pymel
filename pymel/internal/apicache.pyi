@@ -39,14 +39,14 @@ API_NAME_MODIFIERS: Incomplete
 apiSuffixes: Incomplete
 
 class BaseApiClassInfoCache(cachebase.SubItemCache):
-    CLASSINFO_SUBCACHE_NAME = None
+    CLASSINFO_SUBCACHE_NAME: Incomplete
     def fromRawData(self, data): ...
     def toRawData(self, data): ...
 
 class ApiMelBridgeCache(BaseApiClassInfoCache):
     NAME: str
     DESC: str
-    USE_VERSION = False
+    USE_VERSION: bool
     CLASSINFO_SUBCACHE_NAME: str
     def rebuild(self) -> None: ...
     @classmethod
@@ -58,7 +58,7 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
 class ApiCache(BaseApiClassInfoCache):
     NAME: str
     DESC: str
-    USE_VERSION = True
+    USE_VERSION: bool
     CLASSINFO_SUBCACHE_NAME: str
     EXTRA_GLOBAL_NAMES: Incomplete
     CRASH_TYPES: Incomplete

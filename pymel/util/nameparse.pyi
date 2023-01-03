@@ -4,7 +4,7 @@ from _typeshed import Incomplete
 class NameBaseParser(Parser):
     t_Alpha: str
     t_Num: str
-    start = None
+    start: Incomplete
 
 class NameAlphaPartParser(NameBaseParser):
     start: str

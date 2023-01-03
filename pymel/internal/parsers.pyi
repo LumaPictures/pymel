@@ -7,7 +7,7 @@ from collections.abc import Generator
 from html.parser import HTMLParser
 from pymel.mayautils import getMayaLocation as getMayaLocation
 
-TYPE_CHECKING = False
+TYPE_CHECKING: bool
 FLAGMODES: Incomplete
 
 class MethodParseError(ValueError): ...

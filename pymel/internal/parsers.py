@@ -100,7 +100,10 @@ def mayaDocsLocation(version=None):
             docBaseDir = getMayaLocation(version)  # use original version
             if docBaseDir is None and version is not None:
                 docBaseDir = getMayaLocation(None)
-                _logger.warning("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docBaseDir))
+                _logger.warning(
+                    "Could not find an installed Maya for exact version %s, "
+                    "using first installed Maya location found in %s" %
+                    (version, docBaseDir))
 
             if platform.system() == 'Darwin':
                 docBaseDir = os.path.dirname(os.path.dirname(docBaseDir))

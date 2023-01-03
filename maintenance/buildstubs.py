@@ -78,13 +78,13 @@ class PyMelStubGenerator(BaseStubGenerator):
             result.append(METACLASS_BASE_FIXES[cdef.fullname])
         return result
 
-    def get_func_args(self, o: mypy.nodes.FuncDef, is_abstract: bool = False,
-                      is_overload: bool = False) -> List[str]:
+    def get_func_args(self, o: mypy.nodes.FuncDef) -> List[str]:
         deco_args = self._decorator_sigs.pop(o.fullname, None)
         if deco_args is not None:
             return deco_args
 
         module, name = o.fullname.rsplit('.', 1)
+        is_overload = any([d for d in self._decorators if 'overload' in d])
         return self._get_args(o, name, module, is_overload=is_overload)
 
     def _get_args(self, o: mypy.nodes.FuncDef, name: str, module=None,
@@ -145,8 +145,7 @@ class PyMelStubGenerator(BaseStubGenerator):
             return args[:len(specifiedArgNames)] + otherArgs
 
     def get_init(self, lvalue: str, rvalue: mypy.nodes.Expression,
-                 annotation: Optional[mypy.types.Type] = None,
-                 is_inside_func=False) -> Optional[str]:
+                 annotation: Optional[mypy.types.Type] = None) -> Optional[str]:
         if lvalue == 'pathClass':
             return textwrap.dedent("""
                 if LUMA:
@@ -159,8 +158,18 @@ class PyMelStubGenerator(BaseStubGenerator):
             # e.g. foo = _factories.getCmdFunc('foo')
             return self._indent + MelFunctionHelper(lvalue).getSignature()
         else:
-            return super(PyMelStubGenerator, self).get_init(lvalue, rvalue, annotation,
-                                                            is_inside_func=is_inside_func)
+            return super(PyMelStubGenerator, self).get_init(lvalue, rvalue, annotation)
+            # typename = super(PyMelStubGenerator, self).get_init(lvalue, rvalue, annotation)
+            # if typename == 'Incomplete' and isinstance(rvalue, mypy.nodes.NameExpr) and not self.is_private_name(rvalue.name):
+            #     is_non_arg_var = (isinstance(rvalue.node, mypy.nodes.Var) and
+            #                       rvalue.name != rvalue.fullname and rvalue.fullname != "builtins.None")
+            #     if (is_non_arg_var or
+            #             isinstance(rvalue.node, (mypy.nodes.FuncDef,
+            #                                      mypy.nodesDecorator,
+            #                                      mypy.nodesOverloadedFuncDef))):
+            #         return f'{self._indent}{lvalue} = {rvalue.name}\n'
+            #     print(lvalue, rvalue.name, rvalue.fullname, type(rvalue.node), rvalue.is_new_def, rvalue.node.type if isinstance(rvalue.node, mypy.nodes.Var) else '')
+            # return typename
 
     def process_decorator(self, o: mypy.nodes.Decorator) -> Tuple[bool, bool]:
         is_abstract, is_overload = super(PyMelStubGenerator, self).process_decorator(o)

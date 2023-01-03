@@ -4,7 +4,7 @@ import pymel.core.nodetypes as nt
 from _typeshed import Incomplete
 from typing import Any, Callable, List, Optional, Tuple, Union, overload
 
-TYPE_CHECKING = False
+TYPE_CHECKING: bool
 
 def shadingNode(*args: Any, asLight: bool | int = ..., al: bool | int = ..., asPostProcess: bool | int = ..., app: bool | int = ..., asRendering: bool | int = ..., ar: bool | int = ..., asShader: bool | int = ..., asTexture: bool | int = ..., at: bool | int = ..., asUtility: bool | int = ..., au: bool | int = ..., isColorManaged: bool | int = ..., icm: bool | int = ..., name: _util.ProxyUnicode | str = ..., n: _util.ProxyUnicode | str = ..., parent: _util.ProxyUnicode | str = ..., p: _util.ProxyUnicode | str = ..., shared: bool | int = ..., s: bool | int = ..., skipSelect: bool | int = ..., ss: bool | int = ...) -> nt.DependNode: ...
 def createSurfaceShader(shadertype, name: Incomplete | None = ...): ...

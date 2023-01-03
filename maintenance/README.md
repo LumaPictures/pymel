@@ -266,7 +266,10 @@ Indicated by this error:
 
 ## 6) Build Stubs (new)
 
-  - TEMP: install custom version of mypy with stubgen changes: `pip install -U ../mypy`
+  - TEMP: install custom version of mypy with stubgen changes:
+    ```
+    pip install -U mypy @ git+https://github.com/chadrik/mypy@stubgen-for-pymel
+    ```
   - run `genstubs.sh`:
     ```
     maintenance/genstubs.sh

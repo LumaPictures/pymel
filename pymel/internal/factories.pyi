@@ -9,6 +9,7 @@ from pymel.util.conditions import Always as Always, Condition as Condition
 from typing import Any, NamedTuple, TypeVar
 
 T = TypeVar('T')
+U = TypeVar('U')
 CallableT = TypeVar('CallableT', bound=Callable)
 Decorator = Callable[[CallableT], CallableT]
 Annotations: Incomplete
@@ -16,16 +17,16 @@ apiTypesToApiEnums: Dict[str, int]
 apiEnumsToApiTypes: Dict[int, str]
 mayaTypesToApiTypes: Dict[str, str]
 apiTypesToApiClasses: Dict[str, Type]
-apiClassInfo = None
+apiClassInfo: Incomplete
 mayaTypesToApiEnums: Dict[str, int]
-apiToMelData = None
-apiClassOverrides = None
+apiToMelData: Incomplete
+apiClassOverrides: Incomplete
 cmdlist: Dict[str, cmdcache.CommandInfo]
-nodeHierarchy = None
-uiClassList = None
-nodeCommandList = None
-moduleCmds = None
-building = False
+nodeHierarchy: Incomplete
+uiClassList: Incomplete
+nodeCommandList: Incomplete
+moduleCmds: Incomplete
+building: bool
 
 class MissingInCacheError(Exception): ...
 
@@ -79,7 +80,7 @@ examples: Incomplete
 
 def getUncachedCmds(): ...
 
-docCacheLoaded = False
+docCacheLoaded: bool
 
 def loadCmdDocCache(ignoreError: bool = ...) -> None: ...
 def getCmdFunc(cmdName: str) -> Decorator: ...
@@ -119,7 +120,7 @@ class CallbackWithArgs(Callback):
 def makeUICallback(origCallback: Callable, args: Tuple[Any, ...], doPassSelf: bool) -> Callable: ...
 def fixCallbacks(inFunc, commandFlags, funcName: Incomplete | None = ...): ...
 def convertTimeValues(rawVal): ...
-def maybeConvert(val: Any, castFunc: Callable) -> Any: ...
+def maybeConvert(val: U, castFunc: Callable[..., T]) -> Union[T, U]: ...
 def functionFactory(funcNameOrObject, returnFunc: Incomplete | None = ..., module: Incomplete | None = ..., rename: Incomplete | None = ..., uiWidget: bool = ...): ...
 def makeCreateFlagMethod(inFunc: CallableT, flag: str, newMethodName: Optional[str] = ..., docstring: str = ..., cmdName: Optional[str] = ..., returnFunc: Optional[Callable] = ...) -> CallableT: ...
 def createflag(cmdName: str, flag: str) -> Decorator: ...

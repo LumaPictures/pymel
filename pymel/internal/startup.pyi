@@ -3,8 +3,8 @@ from _typeshed import Incomplete
 from pymel.mayautils import getUserPrefsDir as getUserPrefsDir
 from pymel.util import subpackages as subpackages
 
-isInitializing = False
-finalizeEnabled = True
+isInitializing: bool
+finalizeEnabled: bool
 
 def mayaStartupHasRun(): ...
 def mayaStartupHasStarted(): ...

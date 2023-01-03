@@ -3154,17 +3154,17 @@ class PyNode(_util.ProxyUnicode):
         '''
         return listSets(o=self, *args, **kwargs)
 
-    listConnections = listConnections
-
     connections = listConnections
 
-    listHistory = listHistory
+    listConnections = listConnections
 
     history = listHistory
 
-    listFuture = listFuture
+    listHistory = listHistory
 
     future = listFuture
+
+    listFuture = listFuture
 
 # This was supposed to be removed in the 1.0 update, but somehow got left out...
 deprecated_str_methods = ['__getitem__']

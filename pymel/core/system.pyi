@@ -10,7 +10,7 @@ from pymel.util.decoration import decorator as decorator
 from pymel.util.scanf import fscanf as fscanf
 from typing import Any, Callable, List, Optional, Tuple, Union, overload
 
-TYPE_CHECKING = False
+TYPE_CHECKING: bool
 
 if LUMA:
     import luma.filepath
@@ -138,7 +138,7 @@ class FileInfo(MutableMapping):
     def items(self) -> List[Tuple[str, str]]: ...
     def keys(self) -> List[str]: ...
     def __iter__(self) -> Iterator[str]: ...
-    def __len__(self): ...
+    def __len__(self) -> int: ...
     has_key: Incomplete
 
 fileInfo: FileInfo

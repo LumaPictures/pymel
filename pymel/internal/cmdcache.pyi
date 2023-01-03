@@ -2,7 +2,7 @@ from typing import *
 from . import cachebase as cachebase, plogging as plogging
 from _typeshed import Incomplete
 
-TYPE_CHECKING = False
+TYPE_CHECKING: bool
 FlagInfo: Incomplete
 CommandInfo: Incomplete
 NodeHierarchy = List[Tuple[str, Tuple[str, ...], Tuple[str, ...]]]
@@ -30,10 +30,10 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd: bool = ..., verbose: bool = ...): ..
 class CmdExamplesCache(cachebase.PymelCache):
     NAME: str
     DESC: str
-    USE_VERSION = True
+    USE_VERSION: bool
 
 class CmdProcessedExamplesCache(CmdExamplesCache):
-    USE_VERSION = False
+    USE_VERSION: bool
 
 class CmdDocsCache(cachebase.PymelCache):
     NAME: str
