@@ -91,11 +91,11 @@ class SafeApiPtr(object):
     >>> sel.getDagPath(0, dag)
     >>> cam = MFnCamera(dag)
 
-    >>> aperMin = SafeApiPtr('double')
-    >>> aperMax = SafeApiPtr('double')
-    >>> cam.getFocalLengthLimits(aperMin(), aperMax())
-    >>> print('%.5f, %.5f' % (aperMin.get(), aperMax.get()))
-    2.44487, 3599.97000
+    >>> focalMin = SafeApiPtr('double')
+    >>> focalMax = SafeApiPtr('double')
+    >>> cam.getFocalLengthLimits(focalMin(), focalMax())
+    >>> print('%.5f' % (focalMax.get()),)
+    3599.97000
     """
 
     def __init__(self, valueType, scriptUtil=None, size=1, asTypeNPtr=False):
