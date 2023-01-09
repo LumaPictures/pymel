@@ -462,7 +462,7 @@ A few notes on rebuilding:
 ## 9) Make Release and Publish
 
   > TODO: figure out if maintenance/makerelease.py still needed, and
-  strip out excess, or port it's necessary bits to poetry. At
+  strip out excess, or port its necessary bits to poetry. At
   minimum, we want the portions that convert the caches to .pyc.zip
 
   - update the version in `pymel/__init__.py`, commit + push
@@ -473,7 +473,8 @@ A few notes on rebuilding:
         git tag -a 1.0.5rc1 -m "pymel release 1.0.5rc1"
 
     This MUST be done to get a proper release, as poetry will read
-    the tag to set it's own version!
+    the tag to set its own version!
+
   - then make sure you push the tag!
   
         git push origin --tags
@@ -497,7 +498,7 @@ A few notes on rebuilding:
 
     - then:
 
-          poetry build
+          poetry build -n -f wheel
 
     - check the dist/ directory.  you should have a single .whl which should not
       have a `dev` suffix.  if it does, you need to make sure you're building

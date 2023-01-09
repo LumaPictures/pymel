@@ -29,10 +29,10 @@ from future import standard_library
 standard_library.install_aliases()
 
 __versiontuple__ = (1, 3, 0)
-__version_suffix__ = 'a2'
+__version_suffix__ = ''
 __version__ = '.'.join(str(x) for x in __versiontuple__) + __version_suffix__
 __authors__ = ['Chad Dombrova', 'Paul Molodowitch', 'Olivier Renouard', 'Ofer Koren']
 
 import sys
-assert sys.version_info > (2, 7), ("pymel version %s is compatible with Maya2016/python2.7 or later" % __version__)
+assert sys.version_info > (2, 7), ("pymel version %s is compatible with Maya2019/python2.7 or later" % __version__)
 

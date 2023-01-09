@@ -11,7 +11,7 @@ Version 1.3.0
 ----------------------------------
 Additions
 ----------------------------------
-- all: Add maya-2023 support
+- all: Add maya-2023 and python 3.9 support
 - all: Major update to pyi type stubs. Functions & methods now include type
   info for all arguments, including both short and long variants for mel-based
   functions. The stubs are distributed as part of the pymel package in a 
@@ -22,6 +22,13 @@ Additions
 Non-Backward Compatible Changes
 ----------------------------------
 - dropped support for maya-2018
+
+----------------------------------
+Fixes
+----------------------------------
+- Fix language.Env.host() (issue #460)
+- Do not use 'is' when comparing to string literals (issue #449)
+- Fix bug where maybeConvert returned None for 0 (issue #448)
 
 ==================================
 Version 1.2.0
