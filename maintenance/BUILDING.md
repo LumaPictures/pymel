@@ -506,6 +506,7 @@ A few notes on rebuilding:
     - if you've never set test.pypi.org as a poetry repo:
 
           poetry config repositories.testpypi https://test.pypi.org/legacy/
+          poetry config http-basic.testpypi <username> <password>
 
     - then publish to testpypi:
 
@@ -529,5 +530,6 @@ A few notes on rebuilding:
 
     - publish to "real" pypi!
 
+          poetry config http-basic.pypi <username> <password>
           poetry publish
 
