@@ -462,8 +462,7 @@ A few notes on rebuilding:
 ## 9) Make Release and Publish
 
   > TODO: figure out if maintenance/makerelease.py still needed, and
-  strip out excess, or port its necessary bits to poetry. At
-  minimum, we want the portions that convert the caches to .pyc.zip
+  strip out excess, or port its necessary bits to poetry.
 
   - update the version in `pymel/__init__.py`, commit + push
 

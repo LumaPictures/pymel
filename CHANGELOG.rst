@@ -12,11 +12,11 @@ Version 1.3.0
 Additions
 ----------------------------------
 - all: Add maya-2023 and python 3.9 support
-- all: Major update to pyi type stubs. Functions & methods now include type
-  info for all arguments, including both short and long variants for mel-based
-  functions. The stubs are distributed as part of the pymel package in a 
-  PEP 561-compatible way, so that they will be automatically picked up by IDEs 
-  and static type analyzers like mypy.
+- all: Major update to pyi type stubs.
+  Most auto-generated functions & methods now include type info for all arguments,
+  including both short and long variants for functions generated from MEL/`maya.cmds`.
+  The stubs are distributed as part of the pymel package in a PEP 561-compatible way,
+  so that they will be automatically discovered by IDEs and static type analyzers like mypy.
 
 ----------------------------------
 Non-Backward Compatible Changes
@@ -29,6 +29,7 @@ Fixes
 - Fix language.Env.host() (issue #460)
 - Do not use 'is' when comparing to string literals (issue #449)
 - Fix bug where maybeConvert returned None for 0 (issue #448)
+- Fix incompatible use of __import__ on python3 (issues #447 and #445)
 
 ==================================
 Version 1.2.0
