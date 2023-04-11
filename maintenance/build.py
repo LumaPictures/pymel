@@ -952,7 +952,7 @@ class ModuleGenerator(object):
 
         nonClassFuncs = set(factories.moduleCmds[moduleShortName]).difference(
             factories.uiClassList)
-        for funcName in nonClassFuncs:
+        for funcName in sorted(nonClassFuncs):
             new += functionTemplateFactory(funcName, module, returnFunc=None)
 
         new += '\nautoLayout.__doc__ = formLayout.__doc__\n'

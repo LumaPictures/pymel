@@ -23,9 +23,9 @@ apiToMelData: Incomplete
 apiClassOverrides: Incomplete
 cmdlist: Dict[str, cmdcache.CommandInfo]
 nodeHierarchy: Incomplete
-uiClassList: Incomplete
-nodeCommandList: Incomplete
-moduleCmds: Incomplete
+uiClassList: List[str]
+nodeCommandList: List[str]
+moduleCmds: Dict[str, List[str]]
 building: bool
 
 class MissingInCacheError(Exception): ...

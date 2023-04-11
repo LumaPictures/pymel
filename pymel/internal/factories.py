@@ -79,9 +79,9 @@ apiClassOverrides = None
 # CmdCache
 cmdlist = {}  # type: Dict[str, cmdcache.CommandInfo]
 nodeHierarchy = None
-uiClassList = None
-nodeCommandList = None
-moduleCmds = None
+uiClassList = None  # type: List[str]
+nodeCommandList = None  # type: List[str]
+moduleCmds = None  # type: Dict[str, List[str]]
 
 # global variable that indicates if we're building templates
 building = False

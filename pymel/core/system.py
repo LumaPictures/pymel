@@ -2483,6 +2483,8 @@ def exportEdits(*args, **kwargs):
     res = cmds.exportEdits(*args, **kwargs)
     return res
 
+fcheck = _factories.getCmdFunc('fcheck')
+
 @_factories.addCmdDocs
 def fileBrowserDialog(*args, **kwargs):
     if len(args):
@@ -2772,3 +2774,5 @@ warning = _factories.getCmdFunc('warning')
 whatsNewHighlight = _factories.getCmdFunc('whatsNewHighlight')
 
 workspace = _factories.addCmdDocs(workspace, cmdName='workspace')
+
+xpmPicker = _factories.getCmdFunc('xpmPicker')
