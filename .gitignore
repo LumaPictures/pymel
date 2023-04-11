@@ -6,12 +6,7 @@
 *.sublime-project
 *.sublime-workspace
 .dmypy.json
-/.venv*
-/.idea
-/.cache
-/.settings
-/.project
-/.pydevproject
+/.*
 /git-svn_authors.txt
 /mayaCmdsList*.bin
 *.egg-info

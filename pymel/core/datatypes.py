@@ -822,8 +822,6 @@ class Vector(with_metaclass(MetaMayaArrayTypeWrapper, VectorN)):
             cotangent of the a, b angle, a and b should be MVectors"""
         return VectorN.cotan(self, other)
 # ------ Do not edit below this line --------
-    if os.name == 'nt' and versions.current() < versions.v2020:
-        __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     Axis = Enum('Axis', [('xaxis', 0), ('kXaxis', 0), ('yaxis', 1), ('kYaxis', 1), ('zaxis', 2), ('kZaxis', 2), ('waxis', 3), ('kWaxis', 3)], multiKeys=True)
     one = _f.ClassConstant([1.0, 1.0, 1.0])
     xAxis = _f.ClassConstant([1.0, 0.0, 0.0])
@@ -835,9 +833,6 @@ class Vector(with_metaclass(MetaMayaArrayTypeWrapper, VectorN)):
     zero = _f.ClassConstant([0.0, 0.0, 0.0])
 # ------ Do not edit above this line --------
 
-    # rest derived from VectorN class
-
-
 class FloatVector(Vector):
 
     """ A 3 dimensional vector class that wraps Maya's api FloatVector class,
@@ -847,8 +842,6 @@ class FloatVector(Vector):
     __slots__ = ()
     apicls = _api.MFloatVector
 # ------ Do not edit below this line --------
-    if os.name == 'nt' and versions.current() < versions.v2020:
-        __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     one = _f.ClassConstant([1.0, 1.0, 1.0])
     xAxis = _f.ClassConstant([1.0, 0.0, 0.0])
     xNegAxis = _f.ClassConstant([-1.0, 0.0, 0.0])
@@ -1124,8 +1117,6 @@ class Point(Vector):
         else:
             return ()
 # ------ Do not edit below this line --------
-    if os.name == 'nt' and versions.current() < versions.v2020:
-        __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     origin = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
 # ------ Do not edit above this line --------
 
@@ -1139,8 +1130,6 @@ class FloatPoint(Point):
     __slots__ = ()
     apicls = _api.MFloatPoint
 # ------ Do not edit below this line --------
-    if os.name == 'nt' and versions.current() < versions.v2020:
-        __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     origin = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
 
     @_f.addApiDocs(_api.MFloatPoint, 'setCast')
@@ -1539,8 +1528,6 @@ class Color(Vector):
             c[0] += 1.0
         return self.__class__(c, mode='hsv')
 # ------ Do not edit below this line --------
-    if os.name == 'nt' and versions.current() < versions.v2020:
-        __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     MColorType = Enum('MColorType', [('RGB', 0), ('kRGB', 0), ('HSV', 1), ('kHSV', 1), ('CMY', 2), ('kCMY', 2), ('CMYK', 3), ('kCMYK', 3)], multiKeys=True)
     black = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
     blue = _f.ClassConstant([0.0, 0.0, 1.0, 1.0])
@@ -2143,8 +2130,6 @@ class Matrix(with_metaclass(MetaMayaArrayTypeWrapper, MatrixN)):
             self = TransformationMatrix(self)
         return self.__class__._convert(self.asMatrix(weight))
 # ------ Do not edit below this line --------
-    if os.name == 'nt' and versions.current() < versions.v2020:
-        __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     identity = _f.ClassConstant([Array([1.0, 0.0, 0.0, 0.0]), Array([0.0, 1.0, 0.0, 0.0]), Array([0.0, 0.0, 1.0, 0.0]), Array([0.0, 0.0, 0.0, 1.0])])
 # ------ Do not edit above this line --------
 
@@ -2158,10 +2143,6 @@ class FloatMatrix(Matrix):
     """
     __slots__ = ()
     apicls = _api.MFloatMatrix
-# ------ Do not edit below this line --------
-    if os.name == 'nt' and versions.current() < versions.v2020:
-        __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
-# ------ Do not edit above this line --------
 
 
 class Quaternion(Matrix):
@@ -2358,8 +2339,6 @@ class Quaternion(Matrix):
         """ True if at least one of the vector components is equal to the argument """
         return value in self.__iter__()
 # ------ Do not edit below this line --------
-    if os.name == 'nt' and versions.current() < versions.v2020:
-        __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     identity = _f.ClassConstant([0.0, 0.0, 0.0, 1.0])
 
     @_f.addApiDocs(_api.MQuaternion, 'asEulerRotation')
@@ -3090,8 +3069,6 @@ class EulerRotation(with_metaclass(MetaMayaArrayTypeWrapper, Array)):
         except:
             return NotImplemented
 # ------ Do not edit below this line --------
-    if os.name == 'nt' and versions.current() < versions.v2020:
-        __setattr__ = _f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug
     RotationOrder = Enum('RotationOrder', [('XYZ', 0), ('kXYZ', 0), ('YZX', 1), ('kYZX', 1), ('ZXY', 2), ('kZXY', 2), ('XZY', 3), ('kXZY', 3), ('YXZ', 4), ('kYXZ', 4), ('ZYX', 5), ('kZYX', 5)], multiKeys=True)
     identity = _f.ClassConstant([0.0, 0.0, 0.0])
 
@@ -3234,8 +3211,6 @@ class EulerRotation(with_metaclass(MetaMayaArrayTypeWrapper, Array)):
         res = _f.ApiArgUtil._castResult(self, res, 'MEulerRotation', None)
         return res
 # ------ Do not edit above this line --------
-    # special operators
-#    def __xor__(self, other):
 #        """ u.__xor__(v) <==> u^v
 #            Defines the cross product operator between two 3D vectors,
 #            if v is a MatrixN, u^v is equivalent to u.transformAsNormal(v) """
@@ -3362,12 +3337,12 @@ class Time(Unit):
     def _inCast(cls, x):
         return cls(x)._data
 # ------ Do not edit below this line --------
-    if versions.current() >= versions.v2022:
+    if versions.current() >= 20240000:
+        Unit = Enum('Unit', [('invalid', 0), ('kInvalid', 0), ('hours', 1), ('kHours', 1), ('minutes', 2), ('kMinutes', 2), ('seconds', 3), ('kSeconds', 3), ('milliseconds', 4), ('kMilliseconds', 4), ('games', 5), ('k15FPS', 5), ('kGames', 5), ('film', 6), ('k24FPS', 6), ('kFilm', 6), ('PALFrame', 7), ('k25FPS', 7), ('kPALFrame', 7), ('NTSCFrame', 8), ('k30FPS', 8), ('kNTSCFrame', 8), ('showScan', 9), ('k48FPS', 9), ('kShowScan', 9), ('PALField', 10), ('k50FPS', 10), ('kPALField', 10), ('NTSCField', 11), ('k60FPS', 11), ('kNTSCField', 11), ('k2FPS', 12), ('k3FPS', 13), ('k4FPS', 14), ('k5FPS', 15), ('k6FPS', 16), ('k8FPS', 17), ('k10FPS', 18), ('k12FPS', 19), ('k16FPS', 20), ('k20FPS', 21), ('k40FPS', 22), ('k75FPS', 23), ('k80FPS', 24), ('k100FPS', 25), ('k120FPS', 26), ('k125FPS', 27), ('k150FPS', 28), ('k200FPS', 29), ('k240FPS', 30), ('k250FPS', 31), ('k300FPS', 32), ('k375FPS', 33), ('k400FPS', 34), ('k500FPS', 35), ('k600FPS', 36), ('k750FPS', 37), ('k1200FPS', 38), ('k1500FPS', 39), ('k2000FPS', 40), ('k3000FPS', 41), ('k6000FPS', 42), ('k23_976FPS', 43), ('k29_97FPS', 44), ('k29_97DF', 45), ('k47_952FPS', 46), ('k59_94FPS', 47), ('k44100FPS', 48), ('k48000FPS', 49), ('k90FPS', 50), ('k119_88FPS', 51), ('userDef', 52), ('kUserDef', 52), ('last', 53), ('kLast', 53)], multiKeys=True)
+    elif versions.current() >= versions.v2022:
         Unit = Enum('Unit', [('invalid', 0), ('kInvalid', 0), ('hours', 1), ('kHours', 1), ('minutes', 2), ('kMinutes', 2), ('seconds', 3), ('kSeconds', 3), ('milliseconds', 4), ('kMilliseconds', 4), ('games', 5), ('k15FPS', 5), ('kGames', 5), ('film', 6), ('k24FPS', 6), ('kFilm', 6), ('PALFrame', 7), ('k25FPS', 7), ('kPALFrame', 7), ('NTSCFrame', 8), ('k30FPS', 8), ('kNTSCFrame', 8), ('showScan', 9), ('k48FPS', 9), ('kShowScan', 9), ('PALField', 10), ('k50FPS', 10), ('kPALField', 10), ('NTSCField', 11), ('k60FPS', 11), ('kNTSCField', 11), ('k2FPS', 12), ('k3FPS', 13), ('k4FPS', 14), ('k5FPS', 15), ('k6FPS', 16), ('k8FPS', 17), ('k10FPS', 18), ('k12FPS', 19), ('k16FPS', 20), ('k20FPS', 21), ('k40FPS', 22), ('k75FPS', 23), ('k80FPS', 24), ('k100FPS', 25), ('k120FPS', 26), ('k125FPS', 27), ('k150FPS', 28), ('k200FPS', 29), ('k240FPS', 30), ('k250FPS', 31), ('k300FPS', 32), ('k375FPS', 33), ('k400FPS', 34), ('k500FPS', 35), ('k600FPS', 36), ('k750FPS', 37), ('k1200FPS', 38), ('k1500FPS', 39), ('k2000FPS', 40), ('k3000FPS', 41), ('k6000FPS', 42), ('k23_976FPS', 43), ('k29_97FPS', 44), ('k29_97DF', 45), ('k47_952FPS', 46), ('k59_94FPS', 47), ('k44100FPS', 48), ('k48000FPS', 49), ('k90FPS', 50), ('userDef', 51), ('kUserDef', 51), ('last', 52), ('kLast', 52)], multiKeys=True)
-    elif versions.current() >= versions.v2019:
-        Unit = Enum('Unit', [('invalid', 0), ('kInvalid', 0), ('hours', 1), ('kHours', 1), ('minutes', 2), ('kMinutes', 2), ('seconds', 3), ('kSeconds', 3), ('milliseconds', 4), ('kMilliseconds', 4), ('k15FPS', 5), ('games', 5), ('kGames', 5), ('film', 6), ('k24FPS', 6), ('kFilm', 6), ('k25FPS', 7), ('PALFrame', 7), ('kPALFrame', 7), ('NTSCFrame', 8), ('k30FPS', 8), ('kNTSCFrame', 8), ('k48FPS', 9), ('kShowScan', 9), ('showScan', 9), ('k50FPS', 10), ('PALField', 10), ('kPALField', 10), ('NTSCField', 11), ('k60FPS', 11), ('kNTSCField', 11), ('k2FPS', 12), ('k3FPS', 13), ('k4FPS', 14), ('k5FPS', 15), ('k6FPS', 16), ('k8FPS', 17), ('k10FPS', 18), ('k12FPS', 19), ('k16FPS', 20), ('k20FPS', 21), ('k40FPS', 22), ('k75FPS', 23), ('k80FPS', 24), ('k100FPS', 25), ('k120FPS', 26), ('k125FPS', 27), ('k150FPS', 28), ('k200FPS', 29), ('k240FPS', 30), ('k250FPS', 31), ('k300FPS', 32), ('k375FPS', 33), ('k400FPS', 34), ('k500FPS', 35), ('k600FPS', 36), ('k750FPS', 37), ('k1200FPS', 38), ('k1500FPS', 39), ('k2000FPS', 40), ('k3000FPS', 41), ('k6000FPS', 42), ('k23_976FPS', 43), ('k29_97FPS', 44), ('k29_97DF', 45), ('k47_952FPS', 46), ('k59_94FPS', 47), ('k44100FPS', 48), ('k48000FPS', 49), ('k90FPS', 50), ('userDef', 51), ('kUserDef', 51), ('last', 52), ('kLast', 52)], multiKeys=True)
     else:
-        Unit = Enum('Unit', [('invalid', 0), ('kInvalid', 0), ('hours', 1), ('kHours', 1), ('minutes', 2), ('kMinutes', 2), ('seconds', 3), ('kSeconds', 3), ('milliseconds', 4), ('kMilliseconds', 4), ('k15FPS', 5), ('games', 5), ('kGames', 5), ('film', 6), ('k24FPS', 6), ('kFilm', 6), ('k25FPS', 7), ('PALFrame', 7), ('kPALFrame', 7), ('NTSCFrame', 8), ('k30FPS', 8), ('kNTSCFrame', 8), ('k48FPS', 9), ('kShowScan', 9), ('showScan', 9), ('k50FPS', 10), ('PALField', 10), ('kPALField', 10), ('NTSCField', 11), ('k60FPS', 11), ('kNTSCField', 11), ('k2FPS', 12), ('k3FPS', 13), ('k4FPS', 14), ('k5FPS', 15), ('k6FPS', 16), ('k8FPS', 17), ('k10FPS', 18), ('k12FPS', 19), ('k16FPS', 20), ('k20FPS', 21), ('k40FPS', 22), ('k75FPS', 23), ('k80FPS', 24), ('k100FPS', 25), ('k120FPS', 26), ('k125FPS', 27), ('k150FPS', 28), ('k200FPS', 29), ('k240FPS', 30), ('k250FPS', 31), ('k300FPS', 32), ('k375FPS', 33), ('k400FPS', 34), ('k500FPS', 35), ('k600FPS', 36), ('k750FPS', 37), ('k1200FPS', 38), ('k1500FPS', 39), ('k2000FPS', 40), ('k3000FPS', 41), ('k6000FPS', 42), ('k23_976FPS', 43), ('k29_97FPS', 44), ('k29_97DF', 45), ('k47_952FPS', 46), ('k59_94FPS', 47), ('k44100FPS', 48), ('k48000FPS', 49), ('userDef', 50), ('kUserDef', 50), ('last', 51), ('kLast', 51)], multiKeys=True)
+        Unit = Enum('Unit', [('invalid', 0), ('kInvalid', 0), ('hours', 1), ('kHours', 1), ('minutes', 2), ('kMinutes', 2), ('seconds', 3), ('kSeconds', 3), ('milliseconds', 4), ('kMilliseconds', 4), ('k15FPS', 5), ('games', 5), ('kGames', 5), ('film', 6), ('k24FPS', 6), ('kFilm', 6), ('k25FPS', 7), ('PALFrame', 7), ('kPALFrame', 7), ('NTSCFrame', 8), ('k30FPS', 8), ('kNTSCFrame', 8), ('k48FPS', 9), ('kShowScan', 9), ('showScan', 9), ('k50FPS', 10), ('PALField', 10), ('kPALField', 10), ('NTSCField', 11), ('k60FPS', 11), ('kNTSCField', 11), ('k2FPS', 12), ('k3FPS', 13), ('k4FPS', 14), ('k5FPS', 15), ('k6FPS', 16), ('k8FPS', 17), ('k10FPS', 18), ('k12FPS', 19), ('k16FPS', 20), ('k20FPS', 21), ('k40FPS', 22), ('k75FPS', 23), ('k80FPS', 24), ('k100FPS', 25), ('k120FPS', 26), ('k125FPS', 27), ('k150FPS', 28), ('k200FPS', 29), ('k240FPS', 30), ('k250FPS', 31), ('k300FPS', 32), ('k375FPS', 33), ('k400FPS', 34), ('k500FPS', 35), ('k600FPS', 36), ('k750FPS', 37), ('k1200FPS', 38), ('k1500FPS', 39), ('k2000FPS', 40), ('k3000FPS', 41), ('k6000FPS', 42), ('k23_976FPS', 43), ('k29_97FPS', 44), ('k29_97DF', 45), ('k47_952FPS', 46), ('k59_94FPS', 47), ('k44100FPS', 48), ('k48000FPS', 49), ('k90FPS', 50), ('userDef', 51), ('kUserDef', 51), ('last', 52), ('kLast', 52)], multiKeys=True)
 # ------ Do not edit above this line --------
 
 
@@ -3474,10 +3449,7 @@ class Distance(Unit):
     def _outCast(cls, instance, result):
         return cls(result, 'centimeters').asUIUnit()
 # ------ Do not edit below this line --------
-    if versions.current() >= versions.v2019:
-        Unit = Enum('Unit', [('invalid', 0), ('kInvalid', 0), ('inches', 1), ('kInches', 1), ('feet', 2), ('kFeet', 2), ('yards', 3), ('kYards', 3), ('miles', 4), ('kMiles', 4), ('millimeters', 5), ('kMillimeters', 5), ('centimeters', 6), ('kCentimeters', 6), ('kilometers', 7), ('kKilometers', 7), ('meters', 8), ('kMeters', 8), ('last', 9), ('kLast', 9)], multiKeys=True)
-    else:
-        Unit = Enum('Unit', [('inches', 1), ('kInches', 1), ('feet', 2), ('kFeet', 2), ('yards', 3), ('kYards', 3), ('miles', 4), ('kMiles', 4), ('millimeters', 5), ('kMillimeters', 5), ('centimeters', 6), ('kCentimeters', 6), ('kilometers', 7), ('kKilometers', 7), ('meters', 8), ('kMeters', 8)], multiKeys=True)
+    Unit = Enum('Unit', [('invalid', 0), ('kInvalid', 0), ('inches', 1), ('kInches', 1), ('feet', 2), ('kFeet', 2), ('yards', 3), ('kYards', 3), ('miles', 4), ('kMiles', 4), ('millimeters', 5), ('kMillimeters', 5), ('centimeters', 6), ('kCentimeters', 6), ('kilometers', 7), ('kKilometers', 7), ('meters', 8), ('kMeters', 8), ('last', 9), ('kLast', 9)], multiKeys=True)
 # ------ Do not edit above this line --------
 
 

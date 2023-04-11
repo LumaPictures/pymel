@@ -3184,8 +3184,8 @@ class Camera(Shape):
 
     @_f.addApiDocs(_api.MFnCamera, 'getFilmFrustum')
     def getFilmFrustum(self, distance, applyPanZoom=False):
-        # type: (float, bool) -> Tuple[float, float, float, float]
-        do, final_do, outTypes = _f.getDoArgs([distance, applyPanZoom], [('distance', 'double', 'in', 'linear'), ('hSize', 'double', 'out', None), ('vSize', 'double', 'out', None), ('hOffset', 'double', 'out', None), ('vOffset', 'double', 'out', None), ('applyPanZoom', 'bool', 'in', None)])
+        # type: (float, bool) -> List[datatypes.Point]
+        do, final_do, outTypes = _f.getDoArgs([distance, applyPanZoom], [('distance', 'double', 'in', 'linear'), ('clipPlanes', 'MPointArray', 'out', None), ('applyPanZoom', 'bool', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnCamera, 'getFilmFrustum', final_do)
         return _f.processApiResult(res, outTypes, do)
 
@@ -4794,6 +4794,14 @@ class Transform(DagNode):
         res = _f.getProxyResult(self, _api.MFnTransform, 'translateBy', final_do)
         return res
 
+    @classmethod
+    @_f.addApiDocs(_api.MFnTransform, 'balanceTransformation')
+    def balanceTransformation(self, mtx, rotateAxis='MQuaternion::identity', jointOrient='MQuaternion::identity', segmentScaleCompensate=True, inverseScale='MVector::one', rotateOrder='XYZ'):
+        # type: (datatypes.TransformationMatrix, datatypes.Quaternion, datatypes.Quaternion, bool, datatypes.Vector, datatypes.EulerRotation.RotationOrder) -> Tuple[datatypes.Vector, datatypes.EulerRotation, datatypes.Vector]
+        do, final_do, outTypes = _f.getDoArgs([mtx, rotateAxis, jointOrient, segmentScaleCompensate, inverseScale, rotateOrder], [('localTranslate', 'MVector', 'out', None), ('localRotate', 'MEulerRotation', 'out', None), ('localScale', 'MVector', 'out', None), ('mtx', 'MTransformationMatrix', 'in', None), ('rotateAxis', 'MQuaternion', 'in', None), ('jointOrient', 'MQuaternion', 'in', None), ('segmentScaleCompensate', 'bool', 'in', None), ('inverseScale', 'MVector', 'in', None), ('rotateOrder', ('MEulerRotation', 'RotationOrder'), 'in', None)])
+        res = _api.MFnTransform.balanceTransformation(*final_do)
+        return _f.processApiResult(res, outTypes, do)
+
     @_f.addMelDocs('xform', 'centerPivots')
     def centerPivots(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -4919,6 +4927,13 @@ class Transform(DagNode):
         res = _f.getProxyResult(self, _api.MFnTransform, 'resetFromRestPosition')
         return res
 
+    @_f.addApiDocs(_api.MFnTransform, 'resetTransformation')
+    def resetTransformation(self, transform):
+        # type: (datatypes.Matrix) -> None
+        do, final_do, outTypes = _f.getDoArgs([transform], [('transform', 'MMatrix', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnTransform, 'resetTransformation', final_do)
+        return res
+
     @_f.addApiDocs(_api.MFnTransform, 'set')
     def set(self, transform):
         # type: (datatypes.TransformationMatrix) -> None
@@ -4974,8 +4989,6 @@ class Transform(DagNode):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, general.xform, kwargs, 'zeroTransformPivots', val)
 # ------ Do not edit above this line --------
-        # return self.getBoundingBox(invisible).max()
-
 #    def centerPivots(self, **kwargs):
 #        """xform -centerPivots"""
 #        kwargs['centerPivots'] = True
@@ -4999,8 +5012,7 @@ class Joint(Transform):
     __melcmdname__ = 'joint'
     __melnode__ = 'joint'
     __slots__ = ()
-    if versions.current() >= versions.v2019:
-        Axis = Enum('Axis', [('XAxis', 0), ('kXAxis', 0), ('YAxis', 1), ('kYAxis', 1), ('ZAxis', 2), ('kZAxis', 2), ('none', 3), ('kNone', 3)], multiKeys=True)
+    Axis = Enum('Axis', [('XAxis', 0), ('kXAxis', 0), ('YAxis', 1), ('kYAxis', 1), ('ZAxis', 2), ('kZAxis', 2), ('none', 3), ('kNone', 3)], multiKeys=True)
 
     @_f.addMelDocs('joint', 'assumePreferredAngles')
     def assumePreferredAngles(self, val=True, **kwargs):
@@ -6087,7 +6099,6 @@ class NurbsCurve(CurveShape):
         editPoints = None  # type: general.NurbsCurveEP
         knot = None  # type: general.NurbsCurveKnot
         knots = None  # type: general.NurbsCurveKnot
-
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnNurbsCurve
     __melcmd__ = staticmethod(modeling.curve)
@@ -6370,6 +6381,7 @@ class NurbsCurve(CurveShape):
 # ------ Do not edit above this line --------
 
 
+
 if not _factories.building:
     # keep this safe to load if the templates have not been built yet
 
@@ -6492,7 +6504,6 @@ class NurbsSurface(SurfaceShape):
         knots = None  # type: general.NurbsSurfaceKnot
         sf = None  # type: general.NurbsSurfaceFace
         faces = None  # type: general.NurbsSurfaceFace
-
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnNurbsSurface
     __melcmd__ = staticmethod(modeling.surface)
@@ -7025,6 +7036,7 @@ class NurbsSurface(SurfaceShape):
 # ------ Do not edit above this line --------
 
 
+
 if not _factories.building:
     # keep this safe to load if the templates have not been built yet
 
@@ -7394,6 +7406,8 @@ class Mesh(SurfaceShape):
     __apicls__ = _api.MFnMesh
     __melnode__ = 'mesh'
     __slots__ = ()
+    if versions.current() >= 20240000:
+        BoolClassification = Enum('BoolClassification', [('edgeClassification', 1), ('kEdgeClassification', 1), ('normalClassification', 2), ('kNormalClassification', 2)], multiKeys=True)
     BoolOperation = Enum('BoolOperation', [('union', 1), ('kUnion', 1), ('difference', 2), ('kDifference', 2), ('intersection', 3), ('kIntersection', 3)], multiKeys=True)
     if versions.current() >= versions.v2023:
         BorderInfo = Enum('BorderInfo', [('geomBorder', -2), ('kGeomBorder', -2), ('UVBorder', -1), ('kUVBorder', -1), ('sharedUV', 0), ('kSharedUV', 0), ('unsharedUV', 1), ('kUnsharedUV', 1)], multiKeys=True)
@@ -7500,9 +7514,9 @@ class Mesh(SurfaceShape):
         return res
 
     @_f.addApiDocs(_api.MFnMesh, 'booleanOps')
-    def booleanOps(self, op, meshes):
-        # type: (Mesh.BoolOperation, List[str | DependNode]) -> bool
-        do, final_do, outTypes = _f.getDoArgs([op, meshes], [('op', ('MFnMesh', 'BoolOperation'), 'in', None), ('meshes', 'MObjectArray', 'in', None), ('useLegacy', 'bool', 'out', None)])
+    def booleanOps(self, op, meshes, classification='normalClassification'):
+        # type: (Mesh.BoolOperation, List[str | DependNode], Mesh.BoolClassification) -> bool
+        do, final_do, outTypes = _f.getDoArgs([op, meshes, classification], [('op', ('MFnMesh', 'BoolOperation'), 'in', None), ('meshes', 'MObjectArray', 'in', None), ('useLegacy', 'bool', 'out', None), ('classification', ('MFnMesh', 'BoolClassification'), 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'booleanOps', final_do)
         return _f.processApiResult(res, outTypes, do)
 
@@ -7855,7 +7869,7 @@ class Mesh(SurfaceShape):
         return _f.processApiResult(res, outTypes, do)
 
     @_f.addApiDocs(_api.MFnMesh, 'getPointsAtUV')
-    def getPointsAtUV(self, uvPoint, space='preTransform', uvSet=None, tolerance=0.0):
+    def getPointsAtUV(self, uvPoint, space='preTransform', uvSet=None, tolerance=0.001):
         # type: (Tuple[float, float], datatypes.Space.Space, str, float) -> Tuple[List[int], List[datatypes.Point]]
         do, final_do, outTypes = _f.getDoArgs([uvPoint, space, uvSet, tolerance], [('polygonIds', 'MIntArray', 'out', None), ('points', 'MPointArray', 'out', None), ('uvPoint', 'float2', 'in', None), ('space', ('MSpace', 'Space'), 'in', None), ('uvSet', 'MString', 'in', None), ('tolerance', 'float', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPointsAtUV', final_do)
@@ -7895,6 +7909,14 @@ class Mesh(SurfaceShape):
         do, final_do, outTypes = _f.getDoArgs([polygonId], [('polygonId', 'int', 'in', None), ('vertexList', 'MIntArray', 'out', None)])
         res = _f.getProxyResult(self, _api.MFnMesh, 'getPolygonVertices', final_do)
         return _f.processApiResult(res, outTypes, do)
+
+    @_f.addApiDocs(_api.MFnMesh, 'getRawUVs')
+    def getRawUVs(self, uvSet=None):
+        # type: (str) -> float
+        do, final_do, outTypes = _f.getDoArgs([uvSet], [('uvSet', 'MString', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnMesh, 'getRawUVs', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'float', None)
+        return res
 
     @_f.addApiDocs(_api.MFnMesh, 'getTangentId')
     def getTangentId(self, faceIndex, vertexIndex):
@@ -8672,7 +8694,6 @@ class Lattice(ControlPoint):
         # FIXME: move to build
         pt = None  # type: general.LatticePoint
         points = None  # type: general.LatticePoint
-
 # ------ Do not edit below this line --------
     __apicls__ = _api.MFnLattice
     __melcmd__ = staticmethod(animation.lattice)
@@ -8813,6 +8834,7 @@ class Lattice(ControlPoint):
         # type: (Tuple[int, int, int], **Any) -> None
         return _f.asEdit(self, animation.lattice, kwargs, 'ldivisions', val)
 # ------ Do not edit above this line --------
+
 
 
 class Particle(DeformableShape):
@@ -10081,6 +10103,13 @@ class ObjectSet(Entity):
         res = _f.getProxyResult(self, _api.MFnSet, 'annotation')
         return _f.ApiArgUtil._castResult(self, res, 'MString', None)
 
+    @_f.addApiDocs(_api.MFnSet, 'getMemberPaths')
+    def getMemberPaths(self, shading=False):
+        # type: (bool) -> List[DagNode]
+        do, final_do, outTypes = _f.getDoArgs([shading], [('members', 'MDagPathArray', 'out', None), ('shading', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnSet, 'getMemberPaths', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
     @_f.addApiDocs(_api.MFnSet, 'hasRestrictions')
     def hasRestrictions(self):
         # type: () -> bool
@@ -10682,10 +10711,8 @@ class AnimCurve(DependNode):
     InfinityType = Enum('InfinityType', [('constant', 0), ('kConstant', 0), ('linear', 1), ('kLinear', 1), ('cycle', 3), ('kCycle', 3), ('cycleRelative', 4), ('kCycleRelative', 4), ('oscillate', 5), ('kOscillate', 5)], multiKeys=True)
     if versions.current() >= versions.v2022:
         TangentType = Enum('TangentType', [('global_', 0), ('kTangentGlobal', 0), ('fixed', 1), ('kTangentFixed', 1), ('linear', 2), ('kTangentLinear', 2), ('flat', 3), ('kTangentFlat', 3), ('smooth', 4), ('kTangentSmooth', 4), ('step', 5), ('kTangentStep', 5), ('slow', 6), ('kTangentSlow', 6), ('fast', 7), ('kTangentFast', 7), ('clamped', 8), ('kTangentClamped', 8), ('plateau', 9), ('kTangentPlateau', 9), ('stepNext', 10), ('kTangentStepNext', 10), ('auto', 11), ('kTangentAuto', 11), ('shared1', 19), ('kTangentShared1', 19), ('shared2', 20), ('kTangentShared2', 20), ('shared3', 21), ('kTangentShared3', 21), ('shared4', 22), ('kTangentShared4', 22), ('shared5', 23), ('kTangentShared5', 23), ('shared6', 24), ('kTangentShared6', 24), ('shared7', 25), ('kTangentShared7', 25), ('shared8', 26), ('kTangentShared8', 26), ('autoMix', 27), ('kTangentAutoMix', 27), ('autoEase', 28), ('kTangentAutoEase', 28), ('autoCustom', 29), ('kTangentAutoCustom', 29), ('customStart', 64), ('kTangentCustomStart', 64), ('customEnd', 32767), ('kTangentCustomEnd', 32767), ('typeCount', 32768), ('kTangentTypeCount', 32768)], multiKeys=True)
-    elif versions.current() >= versions.v2019:
-        TangentType = Enum('TangentType', [('global_', 0), ('kTangentGlobal', 0), ('fixed', 1), ('kTangentFixed', 1), ('linear', 2), ('kTangentLinear', 2), ('flat', 3), ('kTangentFlat', 3), ('smooth', 4), ('kTangentSmooth', 4), ('step', 5), ('kTangentStep', 5), ('slow', 6), ('kTangentSlow', 6), ('fast', 7), ('kTangentFast', 7), ('clamped', 8), ('kTangentClamped', 8), ('plateau', 9), ('kTangentPlateau', 9), ('stepNext', 10), ('kTangentStepNext', 10), ('auto', 11), ('kTangentAuto', 11), ('shared1', 19), ('kTangentShared1', 19), ('shared2', 20), ('kTangentShared2', 20), ('shared3', 21), ('kTangentShared3', 21), ('shared4', 22), ('kTangentShared4', 22), ('shared5', 23), ('kTangentShared5', 23), ('shared6', 24), ('kTangentShared6', 24), ('shared7', 25), ('kTangentShared7', 25), ('shared8', 26), ('kTangentShared8', 26), ('customStart', 64), ('kTangentCustomStart', 64), ('customEnd', 32767), ('kTangentCustomEnd', 32767), ('typeCount', 32768), ('kTangentTypeCount', 32768)], multiKeys=True)
     else:
-        TangentType = Enum('TangentType', [('global_', 0), ('kTangentGlobal', 0), ('fixed', 1), ('kTangentFixed', 1), ('linear', 2), ('kTangentLinear', 2), ('flat', 3), ('kTangentFlat', 3), ('smooth', 4), ('kTangentSmooth', 4), ('step', 5), ('kTangentStep', 5), ('slow', 6), ('kTangentSlow', 6), ('fast', 7), ('kTangentFast', 7), ('clamped', 8), ('kTangentClamped', 8), ('plateau', 9), ('kTangentPlateau', 9), ('stepNext', 10), ('kTangentStepNext', 10), ('auto', 11), ('kTangentAuto', 11)], multiKeys=True)
+        TangentType = Enum('TangentType', [('global_', 0), ('kTangentGlobal', 0), ('fixed', 1), ('kTangentFixed', 1), ('linear', 2), ('kTangentLinear', 2), ('flat', 3), ('kTangentFlat', 3), ('smooth', 4), ('kTangentSmooth', 4), ('step', 5), ('kTangentStep', 5), ('slow', 6), ('kTangentSlow', 6), ('fast', 7), ('kTangentFast', 7), ('clamped', 8), ('kTangentClamped', 8), ('plateau', 9), ('kTangentPlateau', 9), ('stepNext', 10), ('kTangentStepNext', 10), ('auto', 11), ('kTangentAuto', 11), ('shared1', 19), ('kTangentShared1', 19), ('shared2', 20), ('kTangentShared2', 20), ('shared3', 21), ('kTangentShared3', 21), ('shared4', 22), ('kTangentShared4', 22), ('shared5', 23), ('kTangentShared5', 23), ('shared6', 24), ('kTangentShared6', 24), ('shared7', 25), ('kTangentShared7', 25), ('shared8', 26), ('kTangentShared8', 26), ('customStart', 64), ('kTangentCustomStart', 64), ('customEnd', 32767), ('kTangentCustomEnd', 32767), ('typeCount', 32768), ('kTangentTypeCount', 32768)], multiKeys=True)
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'addKeysWithTangents')
     def addKeysWithTangents(self, timeArray, valueArray, tangentInType='global_', tangentOutType='global_', tangentInTypeArray=None, tangentOutTypeArray=None, tangentInXArray=None, tangentInYArray=None, tangentOutXArray=None, tangentOutYArray=None, tangentsLockedArray=None, weightsLockedArray=None, convertUnits=True, keepExistingKeys=False):
@@ -10728,6 +10755,14 @@ class AnimCurve(DependNode):
         # type: () -> AnimCurve.InfinityType
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'preInfinityType')
         return _f.ApiArgUtil._castResult(self, res, ('MFnAnimCurve', 'InfinityType'), None)
+
+    @_f.addApiDocs(_api.MFnAnimCurve, 'quaternionW')
+    def getQuaternionW(self, index):
+        # type: (int) -> float
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'quaternionW', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'double', None)
+        return res
 
     @_f.addApiDocs(_api.MFnAnimCurve, 'tangentsLocked')
     def getTangentsLocked(self, index):
@@ -10869,6 +10904,14 @@ class AnimCurve(DependNode):
         # type: (AnimCurve.InfinityType) -> None
         do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([infinityType], [('infinityType', ('MFnAnimCurve', 'InfinityType'), 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
         res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setPreInfinityType', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnAnimCurve, 'setQuaternionW')
+    def setQuaternionW(self, index, quaternionW):
+        # type: (int, float) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsAnimCurveUndo([index, quaternionW], [('index', 'uint', 'in', None), ('quaternionW', 'double', 'in', None), ('change', 'MAnimCurveChange', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAnimCurve, 'setQuaternionW', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
@@ -22730,10 +22773,13 @@ class Assembly(DagContainer):
         res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
         return res
 
-    @_f.addMelDocs('assembly', 'createRepresentation')
-    def createRepresentation(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, general.assembly, kwargs, 'createRepresentation', val)
+    @_f.addApiDocs(_api.MFnAssembly, 'createRepresentation')
+    def createRepresentation(self, input, type, undoRedo=None):
+        # type: (str, str, datatypes.DagModifier) -> str
+        do, final_do, outTypes = _f.getDoArgs([input, type, undoRedo], [('input', 'MString', 'in', None), ('type', 'MString', 'in', None), ('undoRedo', 'MDagModifier', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAssembly, 'createRepresentation', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
+        return res
 
     @_f.addApiDocs(_api.MFnAssembly, 'deleteAllRepresentations')
     def deleteAllRepresentations(self):
@@ -25391,8 +25437,7 @@ class Partition(Entity):
     __melcmdname__ = 'partition'
     __melnode__ = 'partition'
     __slots__ = ()
-    if versions.current() >= versions.v2019:
-        Restriction = Enum('Restriction', [('none', 0), ('kNone', 0), ('verticesOnly', 1), ('kVerticesOnly', 1), ('edgesOnly', 2), ('kEdgesOnly', 2), ('facetsOnly', 3), ('kFacetsOnly', 3), ('editPointsOnly', 4), ('kEditPointsOnly', 4), ('renderableOnly', 5), ('kRenderableOnly', 5)], multiKeys=True)
+    Restriction = Enum('Restriction', [('none', 0), ('kNone', 0), ('verticesOnly', 1), ('kVerticesOnly', 1), ('edgesOnly', 2), ('kEdgesOnly', 2), ('facetsOnly', 3), ('kFacetsOnly', 3), ('editPointsOnly', 4), ('kEditPointsOnly', 4), ('renderableOnly', 5), ('kRenderableOnly', 5)], multiKeys=True)
 
     @_f.addApiDocs(_api.MFnPartition, 'addMember')
     def addMember(self, set):

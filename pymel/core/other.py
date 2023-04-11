@@ -657,12 +657,6 @@ flushIdleQueue = _factories.getCmdFunc('flushIdleQueue')
 
 flushThumbnailCache = _factories.getCmdFunc('flushThumbnailCache')
 
-greasePencil = _factories.getCmdFunc('greasePencil')
-
-greasePencilHelper = _factories.getCmdFunc('greasePencilHelper')
-
-greaseRenderPlane = _factories.getCmdFunc('greaseRenderPlane')
-
 groupParts = _factories.getCmdFunc('groupParts')
 
 hotkeyEditor = _factories.getCmdFunc('hotkeyEditor')

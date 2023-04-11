@@ -194,8 +194,6 @@ graphSelectContext = _factories.getCmdFunc('graphSelectContext')
 
 graphTrackCtx = _factories.getCmdFunc('graphTrackCtx')
 
-greasePencilCtx = _factories.getCmdFunc('greasePencilCtx')
-
 hotkeyCtx = _factories.getCmdFunc('hotkeyCtx')
 
 ikHandleCtx = _factories.getCmdFunc('ikHandleCtx')

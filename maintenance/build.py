@@ -1834,40 +1834,6 @@ class ApiDataTypesGenerator(ApiMethodsGenerator):
             origSetAttr = internal_vars['origSetAttr']
             self.apicls.__setattr__ = origSetAttr
 
-        ########################################################################
-        # REMOVE once 2019 no longer supported
-        ########################################################################
-        # Hardcoded fix for api setattr bug - used to dynamically test, with
-        #   factories.MetaMayaTypeWrapper._hasApiSetAttrBug
-        # ...but now that it's been fixed in 2020, we just use a fixed list
-        # of classes to apply it to.
-        # Note that this should be inherited by some of these classes, but
-        # we were applying it to all these (I think due to a bug in our
-        # inheritance detection?), so we continue to do that just to be "safe".
-        # This will all go away once we hit maya-2022 anyway...
-        setAttrBugClasses = {
-            'Vector',
-            'FloatVector',
-            'Point',
-            'FloatPoint',
-            'Color',
-            'Matrix',
-            'FloatMatrix',
-            'Quaternion',
-            'EulerRotation',
-        }
-        if versions.current() >= 20240000:
-            raise RuntimeError('last version of maya with setattr bug no longer'
-                               ' supported - remove this code!')
-        elif self.classname in setAttrBugClasses:
-            self.attrs['__setattr__'] = Conditional(
-                [("os.name == 'nt' and versions.current() < versions.v2020",
-                  Assignment('__setattr__',
-                             Literal('_f.MetaMayaTypeWrapper.setattr_fixed_forDataDescriptorBug')))])
-        ########################################################################
-        # END REMOVE once 2019 no longer supported
-        ########################################################################
-
         # shortcut for ensuring that our class constants are the same type as
         # the class we are creating
         def makeClassConstant(attr):

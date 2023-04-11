@@ -35,7 +35,9 @@ Building an Official PyMEL Release
   - delete existing caches for the version you wish to rebuild
 
   - ensure that the CommandsPython, API, and Nodes doc subdirectories are
-    installed. these go in `docs/Maya20XX/en_US/`
+    installed. 
+    - download the devkit.
+    - extract `docs/docs.zip` to `.mayaDocs` in your pymel repo directory.
 
 ### To build the caches
 
@@ -56,6 +58,8 @@ Building an Official PyMEL Release
     import sys
     import os
     pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
+    os.environ['MAYA_DOC_DIR'] = os.path.join(pymelPath, '.mayaDocs')
+    os.environ['PYMEL_ERRORLEVEL'] = 'WARNING'
     pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
     if not os.path.isfile(pymelInit):
         raise RuntimeError('invalid pymel path: %s' % pymelPath)
@@ -97,7 +101,7 @@ Building an Official PyMEL Release
     ```
     These seem to not affect the building of the caches, and I have thus far ignored them...
     
-  - importing pymel.internal.factories will automatically build the api cache,
+  - importing `pymel.internal.factories` will automatically build the api cache,
     but not the command caches - which is good, because we need to make sure
     some plugins are NOT loaded before building the cmd caches (they can crash
     when unloaded, or are unable to be unloaded - unfortunately, we want these
@@ -110,13 +114,22 @@ Building an Official PyMEL Release
   - Find the following plugins, and make sure they all have "Auto load"
     *UN*-checked:
 
-    - bifrostGraph.mll (not strictly necessary, but maya will load much faster)
-    - lookdevKit.mll
-    - modelingToolkit.mll
-    - mtoa.mll
-    - renderSetup.mll
-    - Type.mll
-    - VectorRender.mll (will cause crash later when querying cmds.allNodeTypes)
+    ```python
+    plugins = [
+      'bifrostGraph', # not strictly necessary, but maya will load much faster
+      'lookdevKit',
+      'modelingToolkit',
+      'mtoa',
+      'renderSetup',
+      'Type',
+      'VectorRender', # will cause crash later when querying cmds.allNodeTypes
+    ]
+    import maya.cmds as cmds
+    for plugin in plugins:
+        plugPath = cmds.pluginInfo(plugin, query=True, path=False)
+        print(plugPath)
+        cmds.pluginInfo(plugPath, edit=True, autoload=False)
+    ```
 
   - Quit out of maya (which will save the plugin auto-load prefs)
   - set the environment variable `MAYA_NO_INITIAL_AUTOLOAD_MT=true` to prevent
@@ -129,6 +142,7 @@ Building an Official PyMEL Release
     import sys
     import os
     pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
+    os.environ['MAYA_DOC_DIR'] = os.path.join(pymelPath, '.mayaDocs')
     pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
     if not os.path.isfile(pymelInit):
         raise RuntimeError('invalid pymel path: %s' % pymelPath)
@@ -171,24 +185,24 @@ Building an Official PyMEL Release
     version of pymel:
 
     ```python
-import sys
-import os
-pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
-pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
-if not os.path.isfile(pymelInit):
-    raise RuntimeError('invalid pymel path: %s' % pymelPath)
-if sys.path[0] != pymelPath:
-    sys.path.insert(0, pymelPath)
-import pymel
-if not pymel.__file__.startswith(pymelInit):  # don't check equality, it may be a .pyc
-    for mod in list(sys.modules):
-        if mod.split('.')[0] == 'pymel':
-            del sys.modules[mod]
-import pymel
-assert pymel.__file__.startswith(pymelInit)
-import maintenance.build
-assert maintenance.build.__file__.startswith(pymelPath)
-maintenance.build.generateAll()
+    import sys
+    import os
+    pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
+    pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
+    if not os.path.isfile(pymelInit):
+        raise RuntimeError('invalid pymel path: %s' % pymelPath)
+    if sys.path[0] != pymelPath:
+        sys.path.insert(0, pymelPath)
+    import pymel
+    if not pymel.__file__.startswith(pymelInit):  # don't check equality, it may be a .pyc
+        for mod in list(sys.modules):
+            if mod.split('.')[0] == 'pymel':
+                del sys.modules[mod]
+    import pymel
+    assert pymel.__file__.startswith(pymelInit)
+    import maintenance.build
+    assert maintenance.build.__file__.startswith(pymelPath)
+    maintenance.build.generateAll()
     ```
 
 ## 4) Run Tests

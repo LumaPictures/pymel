@@ -1930,8 +1930,6 @@ Gravity = getattr(cmds, 'Gravity', None)
 
 GravityOptions = getattr(cmds, 'GravityOptions', None)
 
-GreasePencilTool = getattr(cmds, 'GreasePencilTool', None)
-
 GridOptions = getattr(cmds, 'GridOptions', None)
 
 GridUV = getattr(cmds, 'GridUV', None)
@@ -2872,8 +2870,6 @@ NewtonOptions = getattr(cmds, 'NewtonOptions', None)
 
 NextFrame = getattr(cmds, 'NextFrame', None)
 
-NextGreasePencilFrame = getattr(cmds, 'NextGreasePencilFrame', None)
-
 NextKey = getattr(cmds, 'NextKey', None)
 
 NextManipulatorHandle = getattr(cmds, 'NextManipulatorHandle', None)
@@ -2884,15 +2880,11 @@ NextTimeSliderBookmark = getattr(cmds, 'NextTimeSliderBookmark', None)
 
 NextViewArrangement = getattr(cmds, 'NextViewArrangement', None)
 
-NodeEditorAddIterationStatePorts = getattr(cmds, 'NodeEditorAddIterationStatePorts', None)
-
 NodeEditorAddOnNodeCreate = getattr(cmds, 'NodeEditorAddOnNodeCreate', None)
 
 NodeEditorAdditiveGraphingMode = getattr(cmds, 'NodeEditorAdditiveGraphingMode', None)
 
 NodeEditorAutoSizeNodes = getattr(cmds, 'NodeEditorAutoSizeNodes', None)
-
-NodeEditorBackToParent = getattr(cmds, 'NodeEditorBackToParent', None)
 
 NodeEditorCloseActiveTab = getattr(cmds, 'NodeEditorCloseActiveTab', None)
 
@@ -2916,14 +2908,6 @@ NodeEditorCopy = getattr(cmds, 'NodeEditorCopy', None)
 
 NodeEditorCopyConnectionsOnPaste = getattr(cmds, 'NodeEditorCopyConnectionsOnPaste', None)
 
-NodeEditorCreateCompound = getattr(cmds, 'NodeEditorCreateCompound', None)
-
-NodeEditorCreateDoWhileCompound = getattr(cmds, 'NodeEditorCreateDoWhileCompound', None)
-
-NodeEditorCreateForEachCompound = getattr(cmds, 'NodeEditorCreateForEachCompound', None)
-
-NodeEditorCreateIterateCompound = getattr(cmds, 'NodeEditorCreateIterateCompound', None)
-
 NodeEditorCreateNodePopup = getattr(cmds, 'NodeEditorCreateNodePopup', None)
 
 NodeEditorCreateTab = getattr(cmds, 'NodeEditorCreateTab', None)
@@ -2931,10 +2915,6 @@ NodeEditorCreateTab = getattr(cmds, 'NodeEditorCreateTab', None)
 NodeEditorCut = getattr(cmds, 'NodeEditorCut', None)
 
 NodeEditorDeleteNodes = getattr(cmds, 'NodeEditorDeleteNodes', None)
-
-NodeEditorDiveIntoCompound = getattr(cmds, 'NodeEditorDiveIntoCompound', None)
-
-NodeEditorExplodeCompound = getattr(cmds, 'NodeEditorExplodeCompound', None)
 
 NodeEditorExtendToShapes = getattr(cmds, 'NodeEditorExtendToShapes', None)
 
@@ -2991,8 +2971,6 @@ NodeEditorPickWalkUp = getattr(cmds, 'NodeEditorPickWalkUp', None)
 NodeEditorPinByDefault = getattr(cmds, 'NodeEditorPinByDefault', None)
 
 NodeEditorPinSelected = getattr(cmds, 'NodeEditorPinSelected', None)
-
-NodeEditorPublishCompound = getattr(cmds, 'NodeEditorPublishCompound', None)
 
 NodeEditorRedockTornOffTab = getattr(cmds, 'NodeEditorRedockTornOffTab', None)
 
@@ -3805,8 +3783,6 @@ PresetBlendingWindow = getattr(cmds, 'PresetBlendingWindow', None)
 PrevSkinPaintMode = getattr(cmds, 'PrevSkinPaintMode', None)
 
 PreviousFrame = getattr(cmds, 'PreviousFrame', None)
-
-PreviousGreasePencilFrame = getattr(cmds, 'PreviousGreasePencilFrame', None)
 
 PreviousKey = getattr(cmds, 'PreviousKey', None)
 

@@ -5029,6 +5029,14 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         res = _f.getProxyResult(self, _api.MPlug, 'isElement')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.addApiDocs(_api.MPlug, 'isExactlyEqual')
+    def isExactlyEqual(self, other):
+        # type: (str | Attribute) -> bool
+        do, final_do, outTypes = _f.getDoArgs([other], [('other', 'MPlug', 'in', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'isExactlyEqual', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
     @_f.addApiDocs(_api.MPlug, 'isFreeToChange')
     def isFreeToChange(self, checkParents=True, checkChildren=True):
         # type: (bool, bool) -> datatypes.Plug.FreeToChangeState
@@ -5085,6 +5093,12 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         res = _f.getProxyResult(self, _api.MPlug, 'isProcedural')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.addApiDocs(_api.MPlug, 'isProxy')
+    def isProxy(self):
+        # type: () -> bool
+        res = _f.getProxyResult(self, _api.MPlug, 'isProxy')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
     @_f.addApiDocs(_api.MPlug, 'isSource')
     def isSource(self):
         # type: () -> bool
@@ -5116,6 +5130,12 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MPlug, 'numConnectedElements')
         return _f.ApiArgUtil._castResult(self, res, 'uint', None)
+
+    @_f.addApiDocs(_api.MPlug, 'proxied')
+    def proxied(self):
+        # type: () -> Attribute
+        res = _f.getProxyResult(self, _api.MPlug, 'proxied')
+        return _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
 
     @_f.addApiDocs(_api.MPlug, 'setCaching')
     def setCaching(self, isCaching):
