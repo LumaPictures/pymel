@@ -76,7 +76,14 @@ v2020_3: int
 v2020_4: int
 v2021: int
 v2022: int
+v20022_1: int
+v20022_2: int
+v20022_3: int
+v20022_4: int
 v2023: int
+v20023_1: int
+v20023_2: int
+v20023_3: int
 
 def current() -> int: ...
 def fullName() -> str: ...

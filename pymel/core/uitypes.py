@@ -485,16 +485,17 @@ class PyUI(str):
         return u"ui.%s('%s')" % (self.__class__.__name__, self)
 
     def parent(self):
-        # type: () -> PyUI
+        # type: () -> Optional[PyUI]
         """
         Returns
         -------
-        PyUI
+        Optional[PyUI]
         """
         buf = str(self).split('|')[:-1]
         if not buf:
             return None
         return PyUI('|'.join(buf))
+
     getParent = parent
 
     def shortName(self):

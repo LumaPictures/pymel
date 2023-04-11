@@ -11,8 +11,6 @@ from past.builtins import basestring
 from builtins import object
 from future.utils import PY2
 
-import collections
-
 # 2to3: remove switch when python-3 only
 try:
     from collections.abc import Mapping, MutableMapping
@@ -363,10 +361,12 @@ class MelGlobals(MutableMapping, _Parent):
     VALID_TYPES = MELTYPES
 
     def __iter__(self):
+        # type: () -> Iterable[str]
         for varName in mel.env():
             yield varName
 
     def __len__(self):
+        # type: () -> int
         return len(mel.env())
 
     def __getitem__(self, variable):
@@ -736,7 +736,7 @@ class OptionVarDict(MutableMapping):
         self.pop(key)
 
     def iterkeys(self):
-        # type: () -> Iterable[str]
+        # type: () -> Iterator[str]
         for key in self.keys():
             yield key
     __iter__ = iterkeys

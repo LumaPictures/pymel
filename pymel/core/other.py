@@ -16,11 +16,9 @@ if False:
     from typing import *
     from maya import cmds
 
-    NameParserT = TypeVar('NameParserT', bound=NameParser)
-    DependNodeNameT = TypeVar('DependNodeNameT', bound=DependNodeName)
+    from typing_extensions import Self
 else:
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
-
 
 
 # -------------------------
@@ -65,7 +63,7 @@ class NameParser(str):
         #raise AttributeNameError, 'AttributeName does not exist %s' % attr
 
     def stripNamespace(self, levels=0):
-        # type: (NameParserT, int) -> NameParserT
+        # type: (int) -> Self
         """
         Returns a new instance of the object with its namespace removed.  The calling instance is unaffected.
         The optional levels keyword specifies how many levels of cascading namespaces to strip, starting with the topmost (leftmost).
@@ -87,7 +85,7 @@ class NameParser(str):
         return self.__class__('|'.join(nodes))
 
     def stripGivenNamespace(self, namespace, partial=True):
-        # type: (NameParserT, str, bool) -> NameParserT
+        # type: (str, bool) -> Self
         """
         Returns a new instance of the object with any occurrences of the given namespace removed.  The calling instance is unaffected.
         The given namespace may end with a ':', or not.
@@ -122,7 +120,7 @@ class NameParser(str):
         return self.__class__('|'.join(nodes))
 
     def swapNamespace(self, prefix):
-        # type: (NameParserT, str) -> NameParserT
+        # type: (str) -> Self
         """
         Returns a new instance of the object with its current namespace
         replaced with the provided one.
@@ -153,7 +151,7 @@ class NameParser(str):
         return ''
 
     def addPrefix(self, prefix):
-        # type: (NameParserT, str) -> NameParserT
+        # type: (str) -> Self
         'addPrefixToName'
         name = self
         leadingSlash = False
@@ -342,14 +340,14 @@ class DependNodeName(NameParser):
     # ------------------------------
 
     def node(self):
-        # type: (DependNodeNameT) -> DependNodeNameT
+        # type: () -> Self
         """
         for compatibility with AttributeName class
         """
         return self
 
     def nodeName(self):
-        # type: (DependNodeNameT) -> DependNodeNameT
+        # type: () -> Self
         """
         for compatibility with DagNodeName class
         """
@@ -387,7 +385,7 @@ class DependNodeName(NameParser):
                              "object %s" % self)
 
     def nextUniqueName(self):
-        # type: (DependNodeNameT) -> DependNodeNameT
+        # type: () -> Self
         """
         Increment the trailing number of the object until a unique name is found
 
@@ -404,7 +402,7 @@ class DependNodeName(NameParser):
         return name
 
     def nextName(self):
-        # type: (DependNodeNameT) -> DependNodeNameT
+        # type: () -> Self
         """Increment the trailing number of the object by 1"""
 
         groups = DependNodeName._numPartReg.split(self)
@@ -417,7 +415,7 @@ class DependNodeName(NameParser):
                              "object %s" % self)
 
     def prevName(self):
-        # type: (DependNodeNameT) -> DependNodeNameT
+        # type: () -> Self
         """Decrement the trailing number of the object by 1"""
         groups = DependNodeName._numPartReg.split(self)
         if len(groups) > 1:
@@ -505,7 +503,6 @@ class DagNodeName(DependNodeName):
                 return DagNodeName('|'.join(split[:-generations]))
             except:
                 pass
-
 
 #    def shortName( self ):
 #        'shortNameOf'
