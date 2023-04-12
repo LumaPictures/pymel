@@ -42,11 +42,12 @@ class CmdDocsCache(cachebase.PymelCache):
 class CmdCache(cachebase.SubItemCache):
     NAME: str
     DESC: str
-    ITEM_TYPES: Incomplete
+    cmdlist: Dict[str, CommandInfo]
     nodeHierarchy: Incomplete
-    uiClassList: Incomplete
-    nodeCommandList: Incomplete
-    moduleCmds: Incomplete
+    uiClassList: List[str]
+    nodeCommandList: List[str]
+    moduleCmds: Dict[str, List[str]]
+    ITEM_TYPES: Incomplete
     def rebuild(self) -> None: ...
     def build(self) -> CmdInfoCacheType: ...
     def fromRawData(self, data): ...

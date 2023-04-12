@@ -19,7 +19,8 @@ from . import startup
 from . import plogging as _plogging
 from pymel.api.plugins import mpxNamesToApiEnumNames
 
-if False:
+TYPE_CHECKING = False
+if TYPE_CHECKING:
     from typing import *
 
 _logger = _plogging.getLogger(__name__)
@@ -1028,14 +1029,18 @@ class ApiCache(BaseApiClassInfoCache):
 
     EXTRA_GLOBAL_NAMES = tuple(['mayaTypesToApiEnums'])
 
+    if TYPE_CHECKING:
+        apiTypesToApiEnums = None  # type: Dict[str, int]
+        apiEnumsToApiTypes = None  # type: Dict[int, str]
+        mayaTypesToApiTypes = None  # type: Dict[str, str]
+        apiTypesToApiClasses = None  # type: Dict[str, Type]
+        apiClassInfo = None  # type: Dict[str, Any]
+        mayaTypesToApiEnums = None  # type: Dict[str, int]
+
     # Descriptions of various elements:
 
     # Maya static info :
     # Initializes various static look-ups to speed up Maya types conversions
-    # self.apiClassInfo
-    # self.apiTypesToApiEnums
-    # self.apiEnumsToApiTypes
-    # self.apiTypesToApiClasses
 
     # Lookup of currently existing Maya types as keys with their corresponding
     # API type as values. Not a read only (static) dict as these can change
@@ -1250,6 +1255,7 @@ class ApiCache(BaseApiClassInfoCache):
             self.apiEnumsToApiTypes[num] = defaultName
 
     def _buildMayaReservedTypes(self):
+        # type: () -> Dict[str, str]
         """
         Build a list of Maya reserved types.
 

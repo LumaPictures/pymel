@@ -432,6 +432,9 @@ class VersionedCaches(object):
 
     def _getAllApiSubCaches(self, subcacheName):
         # type: (str) -> OrderedDict[int, Any]
+        """
+        Get the subcache keyed by maya version.
+        """
         result = OrderedDict()
         for version in self.allApiVersions:
             # skip versions greater than our current - trying to load them
@@ -444,10 +447,16 @@ class VersionedCaches(object):
 
     def getAllApiClassInfos(self):
         # type: () -> OrderedDict[int, Dict[str, Any]]
+        """
+        Get the apiClassInfo keyed by maya version.
+        """
         return self._getAllApiSubCaches('apiClassInfo')
 
     def getAllApiTypesToApiEnums(self):
         # type: () -> OrderedDict[int, Dict[str, int]]
+        """
+        Get the apiTypesToApiEnums keyed by maya version.
+        """
         return self._getAllApiSubCaches('apiTypesToApiEnums')
 
     def getVersionedClassInfo(self, apiClsName):

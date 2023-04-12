@@ -1281,6 +1281,14 @@ class CmdCache(cachebase.SubItemCache):
     DESC = 'the list of Maya commands'
     _CACHE_NAMES = '''cmdlist nodeHierarchy uiClassList
                         nodeCommandList moduleCmds'''.split()
+
+    if TYPE_CHECKING:
+        cmdlist = None  # type: Dict[str, CommandInfo]
+        nodeHierarchy = None
+        uiClassList = None  # type: List[str]
+        nodeCommandList = None  # type: List[str]
+        moduleCmds = None  # type: Dict[str, List[str]]
+
     ITEM_TYPES = {
         'nodeHierarchy': list,
         'uiClassList': list,

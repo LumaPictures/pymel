@@ -2,6 +2,9 @@ from typing import *
 from . import cachebase as cachebase, startup as startup
 from _typeshed import Incomplete
 from pymel.api.plugins import mpxNamesToApiEnumNames as mpxNamesToApiEnumNames
+from typing import Any
+
+TYPE_CHECKING: bool
 
 class ApiEnum(tuple):
     def pymelName(self) -> str: ...
@@ -61,6 +64,12 @@ class ApiCache(BaseApiClassInfoCache):
     USE_VERSION: bool
     CLASSINFO_SUBCACHE_NAME: str
     EXTRA_GLOBAL_NAMES: Incomplete
+    apiTypesToApiEnums: Dict[str, int]
+    apiEnumsToApiTypes: Dict[int, str]
+    mayaTypesToApiTypes: Dict[str, str]
+    apiTypesToApiClasses: Dict[str, Type]
+    apiClassInfo: Dict[str, Any]
+    mayaTypesToApiEnums: Dict[str, int]
     CRASH_TYPES: Incomplete
     MAYA_TO_API_OVERRIDES: Incomplete
     MFN_TO_API_OVERRIDES: Incomplete
