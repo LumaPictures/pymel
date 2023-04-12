@@ -16,6 +16,18 @@ Project Goals
 - Provide documentation accessible via html and the builtin `help() function
 - Make it "just work"
 
+Supported Maya Versions
+-----------------------
+
+PyMEL supports four major versions of Maya:
+
+- 2019
+- 2020
+- 2022
+- 2023
+
+See the full [changelog](https://github.com/LumaPictures/pymel/blob/master/CHANGELOG.rst).
+
 Production Proven
 -----------------
 

@@ -464,7 +464,13 @@ A few notes on rebuilding:
   > TODO: figure out if maintenance/makerelease.py still needed, and
   strip out excess, or port its necessary bits to poetry.
 
-  - update the version in `pymel/__init__.py`, commit + push
+  - update the version in `pymel/__init__.py`
+
+  - update the supported Maya versions in `README.md`
+
+  - update the minimum supported python versions in `pyproject.toml`
+
+  - commit + push
 
   - before releasing, make sure to tag the release (TODO: make this part of
     makerelease?):
