@@ -3907,7 +3907,7 @@ class AELoader(type):
 
     @staticmethod
     def load(modname, classname, nodename):
-        mod = __import__(modname, globals(), locals(), [classname], -1)
+        mod = __import__(modname, globals(), locals(), [classname])
         try:
             cls = getattr(mod, classname)
             cls(nodename)
