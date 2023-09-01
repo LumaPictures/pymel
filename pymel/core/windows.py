@@ -1853,6 +1853,8 @@ def menu(*args, **kwargs):
         except KeyError:
             pass
     res = _menu(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.Menu)
     return res
