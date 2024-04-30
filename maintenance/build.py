@@ -866,15 +866,17 @@ class ModuleGenerator(object):
         def trim(begin):
             # type: (int) -> Optional[int]
             start = None
+            e = None
             for i, line in enumerate(lines[begin:]):
                 i = begin + i
-                if start is None and line == START_MARKER:
+                e = i
+                if start is None and  START_MARKER in line:
                     _logger.debug("Found start marked (original line: {} /"
                                   " new file line: {})".format(
                         i + self.totalTrimmed + 1, i + 1))
                     start = i
 
-                elif line == END_MARKER:
+                elif END_MARKER in line:
                     _logger.debug("Found end marked (original line: {} /"
                                   " new file line: {})".format(
                         i + self.totalTrimmed + 1, i + 1))
@@ -884,7 +886,7 @@ class ModuleGenerator(object):
 
             # end of lines
             if start is not None:
-                doTrim(start, i)
+                doTrim(start, e)
             return None
 
         begin = 0

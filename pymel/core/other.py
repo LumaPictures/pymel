@@ -549,6 +549,7 @@ def _getParserClass(strObj):
             newcls = DependNodeName
     return newcls
 
+
 # ------ Do not edit below this line --------
 
 TanimLayer = _factories.getCmdFunc('TanimLayer')
@@ -690,8 +691,6 @@ licenseCheck = _factories.getCmdFunc('licenseCheck')
 manipComponentPivot = _factories.getCmdFunc('manipComponentPivot')
 
 manipComponentUpdate = _factories.getCmdFunc('manipComponentUpdate')
-
-matrix = _factories.getCmdFunc('matrix')
 
 mayaDpiSettingAction = _factories.getCmdFunc('mayaDpiSettingAction')
 

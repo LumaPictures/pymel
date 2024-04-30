@@ -8362,6 +8362,12 @@ Modifications:
         res = _f.getProxyResult(self, _api.MFnAttribute, 'isDynamic')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.addApiDocs(_api.MFnAttribute, 'isEnforcingUniqueName')
+    def isEnforcingUniqueName(self):
+        # type: () -> bool
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'isEnforcingUniqueName')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
     @_f.addApiDocs(_api.MFnAttribute, 'isExtension')
     def isExtension(self):
         # type: () -> bool
@@ -8434,6 +8440,14 @@ Modifications:
         res = _f.getProxyResult(self, _api.MFnAttribute, 'isWritable')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.addApiDocs(_api.MFnAttribute, 'pathName')
+    def pathName(self, useLongName=True, useCompression=True):
+        # type: (bool, bool) -> str
+        do, final_do, outTypes = _f.getDoArgs([useLongName, useCompression], [('useLongName', 'bool', 'in', None), ('useCompression', 'bool', 'in', None)])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'pathName', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'MString', None)
+        return res
+
     @_f.addApiDocs(_api.MFnAttribute, 'removeFromCategory')
     def removeFromCategory(self, category):
         # type: (str) -> None
@@ -8493,6 +8507,14 @@ Modifications:
         # type: (nt.Attribute.DisconnectBehavior) -> None
         do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([behavior], [('behavior', ('MFnAttribute', 'DisconnectBehavior'), 'in', None)], self.getDisconnectBehavior, self.setDisconnectBehavior, [])
         res = _f.getProxyResult(self, _api.MFnAttribute, 'setDisconnectBehavior', final_do)
+        if undoItem is not None: _f.apiUndo.append(undoItem)
+        return res
+
+    @_f.addApiDocs(_api.MFnAttribute, 'setEnforcingUniqueName')
+    def setEnforcingUniqueName(self, state):
+        # type: (bool) -> None
+        do, final_do, outTypes, undoItem = _f.getDoArgsGetterUndo([state], [('state', 'bool', 'in', None)], self.isEnforcingUniqueName, self.setEnforcingUniqueName, [])
+        res = _f.getProxyResult(self, _api.MFnAttribute, 'setEnforcingUniqueName', final_do)
         if undoItem is not None: _f.apiUndo.append(undoItem)
         return res
 
@@ -8662,6 +8684,7 @@ class Scene(with_metaclass(_util.Singleton, object)):
         return PyNode(obj)
 
 SCENE = Scene()
+
 
 # ------ Do not edit below this line --------
 

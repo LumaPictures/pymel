@@ -902,6 +902,10 @@ class DependNode(with_metaclass(_factories.MetaMayaTypeRegistry, general.PyNode)
                 # Option 2: nameparse.
                 # this avoids calling self.name(), which can be slow
                 import pymel.util.nameparse as nameparse
+
+                # Li - Maya 2025: blendShape has a .weight in listAttr result. Maybe a bug. Needs a fix here.
+                if attr[0] == '.':
+                    attr = attr[1:]
                 nameTokens = nameparse.getBasicPartList('dummy.' + attr)
                 result = self.__apiobject__()
                 for token in nameTokens[1:]:  # skip the first, bc it's the node, which we already have
@@ -7406,7 +7410,7 @@ class Mesh(SurfaceShape):
     __apicls__ = _api.MFnMesh
     __melnode__ = 'mesh'
     __slots__ = ()
-    if versions.current() >= 20240000:
+    if versions.current() >= versions.v20024:
         BoolClassification = Enum('BoolClassification', [('edgeClassification', 1), ('kEdgeClassification', 1), ('normalClassification', 2), ('kNormalClassification', 2)], multiKeys=True)
     BoolOperation = Enum('BoolOperation', [('union', 1), ('kUnion', 1), ('difference', 2), ('kDifference', 2), ('intersection', 3), ('kIntersection', 3)], multiKeys=True)
     if versions.current() >= versions.v2023:
@@ -28550,6 +28554,13 @@ class WeightGeometryFilter(GeometryFilter):
     __melnode__ = 'weightGeometryFilter'
     __slots__ = ()
 
+    @_f.addApiDocs(_api.MFnWeightGeometryFilter, 'getEnvelopeWeights')
+    def getEnvelopeWeights(self, index):
+        # type: (int) -> List[float]
+        do, final_do, outTypes = _f.getDoArgs([index], [('index', 'uint', 'in', None), ('weights', 'MFloatArray', 'out', None)])
+        res = _f.getProxyResult(self, _api.MFnWeightGeometryFilter, 'getEnvelopeWeights', final_do)
+        return _f.processApiResult(res, outTypes, do)
+
     @_f.addApiDocs(_api.MFnWeightGeometryFilter, 'getWeightPlugStrings')
     def getWeightPlugStrings(self, list):
         # type: (SelectionSet) -> List[str]
@@ -44997,10 +45008,6 @@ class SamplerInfo(ShadingDependNode):
 class ShadingMap(ShadingDependNode):
     __melnode__ = 'shadingMap'
     __slots__ = ()
-
-
-if versions.current() < versions.v2020:
-    _api.MFnStandardSurfaceShader = None
 
 
 class StandardSurface(ShadingDependNode):
