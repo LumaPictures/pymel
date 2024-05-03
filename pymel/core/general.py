@@ -690,7 +690,7 @@ def setAttr(attr, *args, **kwargs):
 
 @overload
 def addAttr(args, type=Ellipsis, childSuffixes=Ellipsis, enumName=Ellipsis, **kwargs):
-    # type: (*Any, Union[str, Type], Sequence[str],EnumArgTypes, **Any) -> Any
+    # type: (Any, Union[str, Type], Sequence[str],EnumArgTypes, **Any) -> Any
     pass
 
 
@@ -1210,12 +1210,12 @@ def listConnections(*args, **kwargs):
 
 @overload
 def listHistory(args, type=None, exactType=Ellipsis, **kwargs):
-    # type: (Any, Type[DependNodeT], Optional[str], *Any) -> List[DependNodeT]
+    # type: (Any, Type[DependNodeT], Optional[str], **Any) -> List[DependNodeT]
     pass
 
 @overload
 def listHistory(args, type=Ellipsis, exactType=Ellipsis, **kwargs):
-    # type: (*Any, Optional[str], Optional[str], **Any) -> List[nodetypes.DependNode]
+    # type: (Any, Optional[str], Optional[str], **Any) -> List[nodetypes.DependNode]
     pass
 
 @_factories.addCmdDocs
@@ -1256,13 +1256,13 @@ def listHistory(*args, **kwargs):
 @overload
 @_factories.addMelDocs('listHistory', excludeFlags=['future'])
 def listFuture(args, type=None, exactType=Ellipsis, **kwargs):
-    # type: (Any, Type[DependNodeT], Optional[str], *Any) -> List[DependNodeT]
+    # type: (Any, Type[DependNodeT], Optional[str], **Any) -> List[DependNodeT]
     pass
 
 @overload
 @_factories.addMelDocs('listHistory', excludeFlags=['future'])
 def listFuture(args, type=Ellipsis, exactType=Ellipsis, **kwargs):
-    # type: (*Any, Optional[str], Optional[str], **Any) -> List[nodetypes.DependNode]
+    # type: (Any, Optional[str], Optional[str], **Any) -> List[nodetypes.DependNode]
     pass
 
 # This could be created using functools.partial to preserve type annotations
@@ -1286,17 +1286,17 @@ def listFuture(*args, **kwargs):
 
 @overload
 def listRelatives(args, type=None, **kwargs):
-    # type: (*Any, Type[DagNodeT], **Any) -> List[DagNodeT]
+    # type: (Any, Type[DagNodeT], **Any) -> List[DagNodeT]
     pass
 
 @overload
 def listRelatives(args, shapes=True, **kwargs):
-    # type: (*Any, Literal[True], **Any) -> List[nodetypes.Shape]
+    # type: (Any, Literal[True], **Any) -> List[nodetypes.Shape]
     pass
 
 @overload
 def listRelatives(args, type=Ellipsis, **kwargs):
-    # type: (*Any, Union[str, Iterable[Union[str, Type[nodetypes.DagNode]]]], **Any) -> List[nodetypes.DagNode]
+    # type: (Any, Union[str, Iterable[Union[str, Type[nodetypes.DagNode]]]], **Any) -> List[nodetypes.DagNode]
     pass
 
 @_factories.addCmdDocs

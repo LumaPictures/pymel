@@ -1914,7 +1914,6 @@ ProportionalModificationTool: Incomplete
 ProximityPin: Incomplete
 ProximityPinOptions: Incomplete
 ProximityWrap: Incomplete
-ProximityWrapEdit: Incomplete
 ProximityWrapOptions: Incomplete
 PruneCluster: Incomplete
 PruneLattice: Incomplete

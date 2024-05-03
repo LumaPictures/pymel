@@ -85,6 +85,9 @@ v20023_1: int
 v20023_2: int
 v20023_3: int
 v20024: int
+v20024_1: int
+v20024_2: int
+v2025: int
 
 def current() -> int: ...
 def fullName() -> str: ...
