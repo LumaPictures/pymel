@@ -28,7 +28,7 @@ from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
 
-__versiontuple__ = (1, 4, 0)
-__version_suffix__ = 'b1'
+__versiontuple__ = (1, 5, 0)
+__version_suffix__ = ''
 __version__ = '.'.join(str(x) for x in __versiontuple__) + __version_suffix__
 __authors__ = ['Chad Dombrova', 'Paul Molodowitch', 'Olivier Renouard', 'Ofer Koren']
