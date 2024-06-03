@@ -349,15 +349,6 @@ To see where `pymel` was installed you can run:
 mayapy -c "import pymel;print(pymel.__file__)"
 ```
 
-### Caveats
-
-Older versions of Maya (2021 and earlier) may require installing `pip` before running `pip install`:
-
-On Linux and Mac:
-```
-curl https://bootstrap.pypa.io/get-pip.py | /usr/autodesk/maya2021/bin/mayapy
-```
-
 ---
 
 PyMEL is developed and maintained by [Luma Pictures](http://www.lumapictures.com).

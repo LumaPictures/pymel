@@ -5,6 +5,25 @@ What's New
 **********
 
 ==================================
+Version 1.5.0
+==================================
+
+----------------------------------
+Fixes
+----------------------------------
+- Fix version constants
+
+Additions
+----------------------------------
+- Added maya-2025 support
+- Added a workaround for additional . in the result of using listAttr with blendshape in Maya 2025.
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- Dropped support for maya-2020
+
+==================================
 Version 1.4.0
 ==================================
 
