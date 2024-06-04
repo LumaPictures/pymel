@@ -7410,7 +7410,7 @@ class Mesh(SurfaceShape):
     __apicls__ = _api.MFnMesh
     __melnode__ = 'mesh'
     __slots__ = ()
-    if versions.current() >= versions.v20024:
+    if versions.current() >= versions.v2024:
         BoolClassification = Enum('BoolClassification', [('edgeClassification', 1), ('kEdgeClassification', 1), ('normalClassification', 2), ('kNormalClassification', 2)], multiKeys=True)
     BoolOperation = Enum('BoolOperation', [('union', 1), ('kUnion', 1), ('difference', 2), ('kDifference', 2), ('intersection', 3), ('kIntersection', 3)], multiKeys=True)
     if versions.current() >= versions.v2023:
