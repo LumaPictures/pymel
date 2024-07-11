@@ -533,7 +533,8 @@ def parsePymelConfig():
     defaults = {
         'skip_mel_init': 'off',
         'check_attr_before_lock': 'off',
-        'preferred_python_qt_binding': 'pyqt',
+        # PyQt4 wasn't available for a long time, so it should be default to PySide
+        'preferred_python_qt_binding': 'pyside',
         # want to use the "better" fix_mayapy_segfault now that uninitialize is
         # available
         'fix_mayapy_segfault': 'on',

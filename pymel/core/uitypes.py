@@ -82,9 +82,14 @@ def toPyQtObject(mayaName):
     .. note:: Requires PyQt
     """
     import maya.OpenMayaUI as mui
-    import sip
-    import PyQt4.QtCore as qtcore
-    import PyQt4.QtGui as qtgui
+    try:
+        import PyQt6.QtCore as qtcore
+        import PyQt6.QtGui as qtgui
+        import PyQt6.sip as sip
+    except ImportError:
+        import PyQt5.QtCore as qtcore
+        import PyQt5.QtGui as qtgui
+        import PyQt5.sip as sip
     ptr = mui.MQtUtil.findControl(mayaName)
     if ptr is None:
         ptr = mui.MQtUtil.findLayout(mayaName)
@@ -102,9 +107,14 @@ def toPyQtControl(mayaName):
     .. note:: Requires PyQt
     """
     import maya.OpenMayaUI as mui
-    import sip
-    import PyQt4.QtCore as qtcore
-    import PyQt4.QtGui as qtgui
+    try:
+        import PyQt6.QtCore as qtcore
+        import PyQt6.QtGui as qtgui
+        import PyQt6.sip as sip
+    except ImportError:
+        import PyQt5.QtCore as qtcore
+        import PyQt5.QtGui as qtgui
+        import PyQt5.sip as sip
     ptr = mui.MQtUtil.findControl(mayaName)
     if ptr is not None:
         return sip.wrapinstance(int(ptr), qtgui.QWidget)
@@ -118,9 +128,14 @@ def toPyQtLayout(mayaName):
     .. note:: Requires PyQt
     """
     import maya.OpenMayaUI as mui
-    import sip
-    import PyQt4.QtCore as qtcore
-    import PyQt4.QtGui as qtgui
+    try:
+        import PyQt6.QtCore as qtcore
+        import PyQt6.QtGui as qtgui
+        import PyQt6.sip as sip
+    except ImportError:
+        import PyQt5.QtCore as qtcore
+        import PyQt5.QtGui as qtgui
+        import PyQt5.sip as sip
     ptr = mui.MQtUtil.findLayout(mayaName)
     if ptr is not None:
         return sip.wrapinstance(int(ptr), qtgui.QWidget)
@@ -134,9 +149,14 @@ def toPyQtWindow(mayaName):
     .. note:: Requires PyQt
     """
     import maya.OpenMayaUI as mui
-    import sip
-    import PyQt4.QtCore as qtcore
-    import PyQt4.QtGui as qtgui
+    try:
+        import PyQt6.QtCore as qtcore
+        import PyQt6.QtGui as qtgui
+        import PyQt6.sip as sip
+    except ImportError:
+        import PyQt5.QtCore as qtcore
+        import PyQt5.QtGui as qtgui
+        import PyQt5.sip as sip
     ptr = mui.MQtUtil.findWindow(mayaName)
     if ptr is not None:
         return sip.wrapinstance(int(ptr), qtgui.QWidget)
@@ -152,9 +172,14 @@ def toPyQtMenuItem(mayaName):
     .. note:: Requires PyQt
     """
     import maya.OpenMayaUI as mui
-    import sip
-    import PyQt4.QtCore as qtcore
-    import PyQt4.QtGui as qtgui
+    try:
+        import PyQt6.QtCore as qtcore
+        import PyQt6.QtGui as qtgui
+        import PyQt6.sip as sip
+    except ImportError:
+        import PyQt5.QtCore as qtcore
+        import PyQt5.QtGui as qtgui
+        import PyQt5.sip as sip
     ptr = mui.MQtUtil.findMenuItem(mayaName)
     if ptr is not None:
         return sip.wrapinstance(int(ptr), qtgui.QAction)
@@ -174,18 +199,16 @@ def pysideWrapInstance(ptr, base=None):
     '''
     if ptr is None:
         return
-
     try:
+        import PySide6.QtCore as qtcore
+        import PySide6.QtGui as qtgui
+        import PySide6.QtWidgets as qtwidgets
+        from shiboken6 import wrapInstance
+    except ImportError:
         import PySide2.QtCore as qtcore
         import PySide2.QtGui as qtgui
         import PySide2.QtWidgets as qtwidgets
         from shiboken2 import wrapInstance
-    except ImportError:
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtgui
-        import PySide.QtGui as qtwidgets
-        from shiboken import wrapInstance
 
     qObj = wrapInstance(int(ptr), qtcore.QObject)
 
@@ -220,9 +243,9 @@ def toPySideObject(mayaName):
     import maya.OpenMayaUI as mui
 
     try:
+        import PySide6.QtCore as qtcore
+    except:
         import PySide2.QtCore as qtcore
-    except ImportError:
-        import PySide.QtCore as qtcore
 
     ptr = mui.MQtUtil.findControl(mayaName)
     if ptr is None:
@@ -243,13 +266,13 @@ def toPySideControl(mayaName):
     import maya.OpenMayaUI as mui
 
     try:
+        import shiboken6
+        import PySide6.QtCore as qtcore
+        import PySide6.QtWidgets as qtwidgets
+    except ImportError:
         import shiboken2
         import PySide2.QtCore as qtcore
         import PySide2.QtWidgets as qtwidgets
-    except ImportError:
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtwidgets
 
     ptr = mui.MQtUtil.findControl(mayaName)
     if ptr is not None:
@@ -266,13 +289,13 @@ def toPySideLayout(mayaName):
     import maya.OpenMayaUI as mui
 
     try:
+        import shiboken6
+        import PySide6.QtCore as qtcore
+        import PySide6.QtWidgets as qtwidgets
+    except ImportError:
         import shiboken2
         import PySide2.QtCore as qtcore
         import PySide2.QtWidgets as qtwidgets
-    except ImportError:
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtwidgets
 
     ptr = mui.MQtUtil.findLayout(mayaName)
     if ptr is not None:
@@ -289,13 +312,13 @@ def toPySideWindow(mayaName):
     import maya.OpenMayaUI as mui
 
     try:
+        import shiboken6
+        import PySide6.QtCore as qtcore
+        import PySide6.QtWidgets as qtwidgets
+    except ImportError:
         import shiboken2
         import PySide2.QtCore as qtcore
         import PySide2.QtWidgets as qtwidgets
-    except ImportError:
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtwidgets
     ptr = mui.MQtUtil.findWindow(mayaName)
     if ptr is not None:
         return pysideWrapInstance(int(ptr), qtwidgets.QWidget)
@@ -312,13 +335,13 @@ def toPySideMenuItem(mayaName):
     """
     import maya.OpenMayaUI as mui
     try:
+        import shiboken6
+        import PySide6.QtCore as qtcore
+        import PySide6.QtWidgets as qtwidgets
+    except ImportError:
         import shiboken2
         import PySide2.QtCore as qtcore
         import PySide2.QtWidgets as qtwidgets
-    except ImportError:
-        import shiboken
-        import PySide.QtCore as qtcore
-        import PySide.QtGui as qtwidgets
 
     ptr = mui.MQtUtil.findMenuItem(mayaName)
     if ptr is not None:
@@ -326,15 +349,22 @@ def toPySideMenuItem(mayaName):
 
 # Assign functions to PyQt versions if PyQt is available, otherwise set to PySide versions
 try:
-    import sip
-    import PyQt4
+    import PyQt6
+    import PyQt6.sip
     pyQtAvailable = True
 except ImportError:
     pyQtAvailable = False
+    try:
+        import PyQt5
+        import PyQt5.sip
+        pyQtAvailable = True
+    except ImportError:
+        pyQtAvailable = False
+
 
 try:
-    import shiboken
-    import PySide
+    import shiboken6
+    import PySide6
     pySideAvailable = True
 except ImportError:
     pySideAvailable = False
