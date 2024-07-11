@@ -4629,16 +4629,6 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
         self._setRange('hard', *args)
 
-    @overload
-    def setRange(self, range):
-        # type: (Tuple[Optional[float], Optional[float]]) -> None
-        pass
-
-    @overload
-    def setRange(self, newMin, newMax):
-        # type: (Optional[float], Optional[float]) -> None
-        pass
-
     def setSoftRange(self, *args):
         self._setRange('soft', *args)
 
