@@ -81,12 +81,12 @@ v20022_2: int
 v20022_3: int
 v20022_4: int
 v2023: int
-v20023_1: int
-v20023_2: int
-v20023_3: int
-v20024: int
-v20024_1: int
-v20024_2: int
+v2023_1: int
+v2023_2: int
+v2023_3: int
+v2024: int
+v2024_1: int
+v2024_2: int
 v2025: int
 
 def current() -> int: ...
