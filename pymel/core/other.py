@@ -13,10 +13,12 @@ import inspect
 
 import pymel.internal.factories as _factories
 if False:
+    from typing import *
     from maya import cmds
+
+    from typing_extensions import Self
 else:
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
-
 
 
 # -------------------------
@@ -61,6 +63,7 @@ class NameParser(str):
         #raise AttributeNameError, 'AttributeName does not exist %s' % attr
 
     def stripNamespace(self, levels=0):
+        # type: (int) -> Self
         """
         Returns a new instance of the object with its namespace removed.  The calling instance is unaffected.
         The optional levels keyword specifies how many levels of cascading namespaces to strip, starting with the topmost (leftmost).
@@ -68,7 +71,6 @@ class NameParser(str):
 
             >>> NameParser('foo:bar.spangle').stripNamespace()
             AttributeName('bar.spangle')
-
         """
 
         nodes = []
@@ -83,6 +85,7 @@ class NameParser(str):
         return self.__class__('|'.join(nodes))
 
     def stripGivenNamespace(self, namespace, partial=True):
+        # type: (str, bool) -> Self
         """
         Returns a new instance of the object with any occurrences of the given namespace removed.  The calling instance is unaffected.
         The given namespace may end with a ':', or not.
@@ -117,6 +120,7 @@ class NameParser(str):
         return self.__class__('|'.join(nodes))
 
     def swapNamespace(self, prefix):
+        # type: (str) -> Self
         """
         Returns a new instance of the object with its current namespace
         replaced with the provided one.
@@ -128,6 +132,7 @@ class NameParser(str):
         return self.__class__.addPrefix(self.stripNamespace(), prefix)
 
     def namespaceList(self):
+        # type: () -> List[str]
         """
         Useful for cascading references.
 
@@ -136,6 +141,7 @@ class NameParser(str):
         return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
 
     def namespace(self):
+        # type: () -> str
         """
         Returns the namespace of the object with trailing colon included
         """
@@ -145,6 +151,7 @@ class NameParser(str):
         return ''
 
     def addPrefix(self, prefix):
+        # type: (str) -> Self
         'addPrefixToName'
         name = self
         leadingSlash = False
@@ -157,6 +164,7 @@ class NameParser(str):
         return self.__class__(name)
 
     def attr(self, attr):
+        # type: (str) -> AttributeName
         """access to AttributeName of a node. returns an instance of the
         AttributeName class for the given AttributeName.
 
@@ -194,6 +202,7 @@ class AttributeName(NameParser):
                         (repr(self.node()), self.plugAttr()))
 
     def array(self):
+        # type: () -> AttributeName
         """
         Returns the array (multi) AttributeName of the current element
             >>> n = AttributeName('lambert1.groupNodes[0]')
@@ -206,6 +215,7 @@ class AttributeName(NameParser):
             raise TypeError("%s is not a multi AttributeName" % self)
 
     def plugNode(self):
+        # type: () -> NameParser
         """plugNode
 
         >>> NameParser('foo:bar.spangle.banner').plugNode()
@@ -217,6 +227,7 @@ class AttributeName(NameParser):
     node = plugNode
 
     def plugAttr(self):
+        # type: () -> str
         """plugAttr
 
         >>> NameParser('foo:bar.spangle.banner').plugAttr()
@@ -230,6 +241,7 @@ class AttributeName(NameParser):
         return '.'.join(str(self).split('.')[1:])
 
     def lastPlugAttr(self):
+        # type: () -> str
         """
         >>> NameParser('foo:bar.spangle.banner').lastPlugAttr()
         'banner'
@@ -238,6 +250,7 @@ class AttributeName(NameParser):
         return self.split('.')[-1]
 
     def nodeName(self):
+        # type: () -> str
         'basename'
         return self.split('|')[-1]
 
@@ -255,6 +268,7 @@ class AttributeName(NameParser):
             return None
 
     def getParent(self, generations=1):
+        # type: (int) -> AttributeName
         """
         Returns the parent attribute
 
@@ -326,12 +340,14 @@ class DependNodeName(NameParser):
     # ------------------------------
 
     def node(self):
+        # type: () -> Self
         """
         for compatibility with AttributeName class
         """
         return self
 
     def nodeName(self):
+        # type: () -> Self
         """
         for compatibility with DagNodeName class
         """
@@ -344,6 +360,7 @@ class DependNodeName(NameParser):
     _numPartReg = re.compile('([0-9]+)$')
 
     def stripNum(self):
+        # type: () -> str
         """
         Return the name of the node with trailing numbers stripped off.
 
@@ -354,6 +371,7 @@ class DependNodeName(NameParser):
             return str(self)
 
     def extractNum(self):
+        # type: () -> str
         """
         Return the trailing numbers of the node name.
 
@@ -367,6 +385,7 @@ class DependNodeName(NameParser):
                              "object %s" % self)
 
     def nextUniqueName(self):
+        # type: () -> Self
         """
         Increment the trailing number of the object until a unique name is found
 
@@ -383,6 +402,7 @@ class DependNodeName(NameParser):
         return name
 
     def nextName(self):
+        # type: () -> Self
         """Increment the trailing number of the object by 1"""
 
         groups = DependNodeName._numPartReg.split(self)
@@ -395,6 +415,7 @@ class DependNodeName(NameParser):
                              "object %s" % self)
 
     def prevName(self):
+        # type: () -> Self
         """Decrement the trailing number of the object by 1"""
         groups = DependNodeName._numPartReg.split(self)
         if len(groups) > 1:
@@ -426,10 +447,12 @@ class DagNodeName(DependNodeName):
     #    DagNodeName Path Info
     # -------------------------
     def root(self):
+        # type: () -> DagNodeName
         """rootOf"""
         return DagNodeName('|' + self.longName()[1:].split('|')[0])
 
     def getRoot(self):
+        # type: () -> DagNodeName
         """unlike the root command which determines the parent via string formatting, this
         command uses the listRelatives command"""
 
@@ -443,11 +466,13 @@ class DagNodeName(DependNodeName):
         return cur
 
     def firstParent(self):
+        # type: () -> DagNodeName
         """firstParentOf"""
 
         return DagNodeName('|'.join(self.split('|')[:-1]))
 
     def getParent(self, generations=1):
+        # type: (int) -> DagNodeName
         """
         Returns the parent node
 
@@ -479,7 +504,6 @@ class DagNodeName(DependNodeName):
             except:
                 pass
 
-
 #    def shortName( self ):
 #        'shortNameOf'
 #        try:
@@ -488,6 +512,7 @@ class DagNodeName(DependNodeName):
 #            return self
 
     def nodeName(self):
+        # type: () -> str
         """basename"""
         return self.split('|')[-1]
 
@@ -544,7 +569,7 @@ def adskAssetListUI(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cms', 'commandSuffix', 'uiC', 'uiCommand']:
+    for key in ('cms', 'commandSuffix', 'uiC', 'uiCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -618,7 +643,7 @@ extendFluid = _factories.getCmdFunc('extendFluid')
 
 @_factories.addCmdDocs
 def flagTest(*args, **kwargs):
-    for flag in ['timeRange', 'tr']:
+    for flag in ('timeRange', 'tr'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -632,12 +657,6 @@ flushIdleQueue = _factories.getCmdFunc('flushIdleQueue')
 
 flushThumbnailCache = _factories.getCmdFunc('flushThumbnailCache')
 
-greasePencil = _factories.getCmdFunc('greasePencil')
-
-greasePencilHelper = _factories.getCmdFunc('greasePencilHelper')
-
-greaseRenderPlane = _factories.getCmdFunc('greaseRenderPlane')
-
 groupParts = _factories.getCmdFunc('groupParts')
 
 hotkeyEditor = _factories.getCmdFunc('hotkeyEditor')
@@ -650,7 +669,7 @@ def imageWindowEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand']:
+    for key in ('cc', 'changeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -736,7 +755,7 @@ def repeatLast(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ac', 'acl', 'addCommand', 'addCommandLabel', 'cl', 'cnl', 'commandList', 'commandNameList']:
+    for key in ('ac', 'acl', 'addCommand', 'addCommandLabel', 'cl', 'cnl', 'commandList', 'commandNameList'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -752,7 +771,7 @@ safemodecheckhash = _factories.getCmdFunc('safemodecheckhash')
 
 @_factories.addCmdDocs
 def selectKeyframe(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -778,7 +797,7 @@ texSculptCacheSync = _factories.getCmdFunc('texSculptCacheSync')
 
 @_factories.addCmdDocs
 def timeRangeInfo(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:

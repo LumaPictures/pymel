@@ -213,6 +213,7 @@ class Parsed(ProxyUni):
 
     @property
     def sub(self):
+        # type: () -> Sequence[Parsed]
         """ Internally stored parsing data for this Parsed object sub parts """
         return self._sub
 

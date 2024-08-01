@@ -21,8 +21,9 @@ import sys
 import warnings
 from collections import defaultdict
 
-if False:
-    from typing import Any, Iterable, Type, TypeVar
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
     T = TypeVar('T')
 
 
@@ -480,19 +481,156 @@ def proxyClass(cls, classname, dataAttrName=None, dataFuncName=None,
 # ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name',
 #                           remove=['__getitem__', 'translate'])
 # 2009 Beta 2.1 has issues with passing classes with __getitem__
-if PY2:
-    _proxyStrBase = unicode
+
+if TYPE_CHECKING:
+
+    class ProxyUnicode:
+        def center(self, width, fillchar=None):
+            # type: (int, str) -> str
+            pass
+
+        def endswith(self, suffix, start=None, end=None):
+            # type: (Union[str, Tuple[str, ...]], int, int) -> bool
+            pass
+
+        def find(self, sub, start=None, end=None):
+            # type: (str, int, int) -> int
+            pass
+
+        def format(self, *args, **kwargs):
+            # type: (object, object) -> str
+            pass
+
+        def isdecimal(self):
+            # type: () -> bool
+            pass
+
+        def isidentifier(self):
+            # type: () -> bool
+            pass
+
+        def islower(self):
+            # type: () -> bool
+            pass
+
+        def isnumeric(self):
+            # type: () -> bool
+            pass
+
+        def isprintable(self):
+            # type: () -> bool
+            pass
+
+        def isupper(self):
+            # type: () -> bool
+            pass
+
+        def join(self, iterable):
+            # type: (Iterable[str]) -> str
+            pass
+
+        def ljust(self, width, fillchar=None):
+            # type: (int, str) -> str
+            pass
+
+        def lower(self):
+            # type: () -> str
+            pass
+
+        def lstrip(self, chars=None):
+            # type: (str) -> str
+            pass
+
+        def partition(self, sep):
+            # type: (str) -> Tuple[str, str, str]
+            pass
+
+        def replace(self, old, new, count=None):
+            # type: (str, str, int) -> str
+            pass
+
+        def rfind(self, sub, start=None, end=None):
+            # type: (str, int, int) -> int
+            pass
+
+        def rindex(self, sub, start=None, end=None):
+            # type: (str, int, int) -> int
+            pass
+
+        def rjust(self, width, fillchar=None):
+            # type: (int, str) -> str
+            pass
+
+        def rpartition(self, sep):
+            # type: (str) -> Tuple[str, str, str]
+            pass
+
+        def rsplit(self, sep=None, maxsplit=None):
+            # type: (Optional[str], int) -> List[str]
+            pass
+
+        def rstrip(self, chars=None):
+            # type: (str) -> str
+            pass
+
+        def split(self, sep=None, maxsplit=None):
+            # type: (Optional[str], int) -> List[str]
+            pass
+
+        def startswith(self, prefix, start=None, end=None):
+            # type: (Union[str, Tuple[str, ...]], int, int) -> bool
+            pass
+
+        def strip(self, chars=None):
+            # type: (str) -> str
+            pass
+
+        def upper(self):
+            # type: () -> str
+            pass
+
+        def __add__(self, s):
+            # type: (str) -> str
+            pass
+
+        def __eq__(self, x):
+            # type: (object) -> bool
+            pass
+
+        def __ne__(self, x):
+            # type: (object) -> bool
+            pass
+
+        def __lt__(self, x):
+            # type: (object) -> bool
+            pass
+
+        def __le__(self, x):
+            # type: (object) -> bool
+            pass
+
+        def __gt__(self, x):
+            # type: (object) -> bool
+            pass
+
+        def __ge__(self, x):
+            # type: (object) -> bool
+            pass
+
 else:
-    _proxyStrBase = str
-ProxyUnicode = proxyClass(
-    _proxyStrBase, 'ProxyUnicode',
-    module=__name__, dataFuncName='name',
-    remove=['__doc__', '__getslice__', '__contains__', '__len__',
-            '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__',  # reserved for higher levels
-            'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
-            'capitalize', 'swapcase', 'title',
-            'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
-            'zfill'])
+    if PY2:
+        _proxyStrBase = unicode
+    else:
+        _proxyStrBase = str
+    ProxyUnicode = proxyClass(
+        _proxyStrBase, 'ProxyUnicode',
+        module=__name__, dataFuncName='name',
+        remove=['__doc__', '__getslice__', '__contains__', '__len__',
+                '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__',  # reserved for higher levels
+                'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
+                'capitalize', 'swapcase', 'title',
+                'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
+                'zfill'])
 
 
 class universalmethod(object):

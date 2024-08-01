@@ -16,7 +16,6 @@ import types
 import os
 import inspect
 import sys
-import textwrap
 import time
 import traceback
 
@@ -42,8 +41,19 @@ if False:
     from typing import *
     import pymel.core.general
     import pymel.core.uitypes
+    T = TypeVar('T')
+    U = TypeVar('U')
     CallableT = TypeVar('CallableT', bound=Callable)
     Decorator = Callable[[CallableT], CallableT]
+
+    Annotations = TypedDict(
+        'Annotations',
+        {
+            'result': str,
+            'args': Optional[List[str]]
+        },
+        total=False,
+    )
 
 _logger = plogging.getLogger(__name__)
 
@@ -67,19 +77,19 @@ apiToMelData = None
 apiClassOverrides = None
 
 # CmdCache
-cmdlist = {}
+cmdlist = {}  # type: Dict[str, cmdcache.CommandInfo]
 nodeHierarchy = None
-uiClassList = None
-nodeCommandList = None
-moduleCmds = None
+uiClassList = None  # type: List[str]
+nodeCommandList = None  # type: List[str]
+moduleCmds = None  # type: Dict[str, List[str]]
 
 # global variable that indicates if we're building templates
 building = False
 
 
-_apiCacheInst = None
-_apiMelBridgeCacheInst = None
-_cmdCacheInst = None
+_apiCacheInst = None  # type: Optional[apicache.ApiCache]
+_apiMelBridgeCacheInst = None  # type: Optional[apicache.ApiMelBridgeCache]
+_cmdCacheInst = None  # type: Optional[cmdcache.CmdCache]
 
 
 class MissingInCacheError(Exception):
@@ -104,7 +114,6 @@ class ApiMethodMissingError(MissingInCacheError):
         return "method {} of {} cannot be found - perhaps it is not available" \
                " in this version of maya?".format(self.methodName,
                                                   self.apiClassName)
-
 
 
 # Though the global variables and the attributes on _apiCacheInst SHOULD
@@ -292,7 +301,7 @@ def toPyUI(res):
 def toPyType(moduleName, objectName):
     # type: (str, str) -> Callable[[Any], Any]
     """
-    Returns a function which casts it's single argument to
+    Returns a function which casts its single argument to
     an object with the given name in the given module (name).
 
     The module / object are given as strings, so that the module
@@ -309,16 +318,13 @@ def toPyType(moduleName, objectName):
     -------
     Callable[[Any], Any]
     """
+    import pydoc
+
     def toGivenClass(res):
-        # Use the 'from moduleName import objectName' form of
-        # __import__, because that guarantees it returns the
-        # 'bottom' module (ie, myPackage.myModule, NOT myPackage),
-        # note that __import__ doesn't actually insert objectName into
-        # the locals... which we don't really want anyway
-        module = __import__(moduleName, globals(), locals(), [objectName], -1)
-        cls = getattr(module, objectName)
         if res is not None:
+            cls = pydoc.locate(moduleName + '.' + objectName)
             return cls(res)
+
     toGivenClass.__name__ = 'to%s' % util.capitalize(objectName)
     toGivenClass.__doc__ = "returns a %s object" % objectName
     return toGivenClass
@@ -637,8 +643,8 @@ def _guessCmdName(func):
         return func.__class__.__name__
 
 
-def addCmdDocs(func, cmdName=None):
-    # type: (CallableT, Optional[str]) -> CallableT
+def addCmdDocs(func, cmdName=None, excludeFlags=None):
+    # type: (CallableT, Optional[str], Optional[Iterable[str]]) -> CallableT
     """
     Parameters
     ----------
@@ -656,13 +662,14 @@ def addCmdDocs(func, cmdName=None):
         docstring = func.__doc__
     else:
         docstring = ''
-    util.addLazyDocString(func, addCmdDocsCallback, cmdName, docstring)
+    util.addLazyDocString(func, addCmdDocsCallback, cmdName, docstring,
+                          excludeFlags=excludeFlags)
     return func
 
 
-def addCmdDocsCallback(cmdName, docstring=''):
+def addCmdDocsCallback(cmdName, docstring='', excludeFlags=None):
     try:
-        return docBuilderCls(cmdName).build(docstring)
+        return docBuilderCls(cmdName).build(docstring, excludeFlags=excludeFlags)
     except MelCommandMissingError as e:
         # % formatter deals with unicode, but keeps strings str if not unicode
         return '%s' % e
@@ -713,6 +720,7 @@ def addFlagCmdDocsCallback(cmdName, flag, docstring):
 
 
 def _getTimeRangeFlags(cmdName):
+    # type: (str) -> Set[str]
     """
     used parsed data and naming convention to determine which flags are
     callbacks
@@ -829,6 +837,7 @@ class CallbackWithArgs(Callback):
 
 
 def makeUICallback(origCallback, args, doPassSelf):
+    # type: (Callable, Tuple[Any, ...], bool) -> Callable
     """
     this function is used to make the callback, so that we can ensure the origCallback gets
     "pinned" down
@@ -910,6 +919,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None):
 
 
 def _getSourceFunction(funcNameOrObject, module=None):
+    # type: (Union[str, types.FunctionType], Optional[types.ModuleType]) -> Tuple[Optional[types.FunctionType], Optional[str], Optional[bool]]
     inFunc = None
     if isinstance(funcNameOrObject, basestring):
         funcName = funcNameOrObject
@@ -946,22 +956,33 @@ def _getSourceFunction(funcNameOrObject, module=None):
 
 
 def convertTimeValues(rawVal):
-    # in mel, you would do:
-    #   keyframe -time "1:10"
-    # in order to get the same behavior in python, you would
-    # have to do:
-    #   cmds.keyframe(time=("1:10",))
-    # ...which is lame. So, standardize everything by throwing
-    # it inside of a tuple...
+    """
+    in mel, you would do:
 
-    # we only DON'T put it in a tuple, if it already IS a tuple/
-    # list, AND it doesn't look like a simple range - ie,
-    #   cmds.keyframe(time=(1,10))
-    # will get converted to
-    #   cmds.keyframe(time=((1,10),))
-    # but
-    #   cmds.keyframe(time=('1:3', [1,5]))
-    # will be left alone...
+      keyframe -time "1:10"
+
+    in order to get the same behavior in python, you would have to do:
+
+      cmds.keyframe(time=("1:10",))
+
+    ...which is lame. So, standardize everything by throwing it inside of a
+    tuple...
+
+    we only DON'T put it in a tuple, if it already IS a tuple/list, AND it
+    doesn't look like a simple range - ie:
+
+      pm.keyframe(time=(1,10))
+
+    will get converted to:
+
+      cmds.keyframe(time=((1,10),))
+
+    but:
+
+      pm.keyframe(time=('1:3', [1,5]))
+
+    will be left alone...
+    """
     if (isinstance(rawVal, (list, tuple))
             and 1 <= len(rawVal) <= 2
             and all(isinstance(x, (basestring, int, int, float))
@@ -991,12 +1012,13 @@ def convertTimeValues(rawVal):
 
 
 def maybeConvert(val, castFunc):
+    # type: (U, Callable[..., T]) -> Union[T, U]
     if isinstance(val, list):
         try:
             return [castFunc(x) for x in val]
         except:
             return val
-    elif val:
+    else:
         try:
             return castFunc(val)
         except Exception:
@@ -1178,7 +1200,7 @@ def functionFactory(funcNameOrObject, returnFunc=None, module=None,
 
     if cmdlist[funcName]['type'] != 'runtime':
         # runtime functions have no docs
-        addCmdDocs(newFunc, funcName)
+        addCmdDocs(newFunc, cmdName=funcName)
 
     if rename:
         newFunc.__name__ = rename
@@ -1307,6 +1329,7 @@ def queryflag(cmdName, flag):
 
 
 def handleCallbacks(args, kwargs, callbackFlags):
+    # type: (Tuple[Any, ...], Dict[str, Any], Iterable[Any]) -> None
     if len(args):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
@@ -1321,6 +1344,7 @@ def handleCallbacks(args, kwargs, callbackFlags):
 
 
 def asEdit(self, func, kwargs, flag, val):
+    # type: (Any, Callable[..., T], Dict[str, Any], str, Any) -> T
     kwargs['edit'] = True
     kwargs[flag] = val
     try:
@@ -1331,6 +1355,7 @@ def asEdit(self, func, kwargs, flag, val):
 
 
 def asQuery(self, func, kwargs, flag):
+    # type: (Any, Callable[..., T], Dict[str, Any], str) -> T
     kwargs['query'] = True
     kwargs[flag] = True
     return func(self, **kwargs)
@@ -1375,14 +1400,16 @@ def editflag(cmdName, flag):
     # type: (str, str) -> Decorator
     """edit flag decorator"""
     def edit_decorator(method):
-        wrappedMelFunc = makeEditFlagMethod(method, flag, pmcmds.getCmdName(method), cmdName=cmdName)
+        wrappedMelFunc = makeEditFlagMethod(method, flag,
+                                            pmcmds.getCmdName(method),
+                                            cmdName=cmdName)
         wrappedMelFunc.__module__ = method.__module__
         return wrappedMelFunc
     return edit_decorator
 
 
-def addMelDocs(cmdName, flag=None):
-    # type: (str, str) -> Decorator
+def addMelDocs(cmdName, flag=None, excludeFlags=None):
+    # type: (str, Optional[str], Optional[Iterable[str]]) -> Decorator
     """decorator for adding docs"""
 
     if flag:
@@ -1396,10 +1423,11 @@ def addMelDocs(cmdName, flag=None):
         # A command
         def doc_decorator(func):
             try:
-                wrappedMelFunc = addCmdDocs(func, cmdName)
+                wrappedMelFunc = addCmdDocs(func, cmdName=cmdName,
+                                            excludeFlags=excludeFlags)
                 wrappedMelFunc.__module__ = func.__module__
             except KeyError:
-                _logger.info(("No documentation available %s command" % (cmdName)))
+                _logger.info(("No documentation available %s command" % (cmdName,)))
                 wrappedMelFunc = func
             return wrappedMelFunc
 
@@ -1907,7 +1935,8 @@ class ApiArgUtil(object):
                 proto += ' --> (%s)' % ', '.join([str(x) for x in results])
         return proto
 
-    def getTypeComment(self):
+    def getAnnotations(self):
+        # type: () -> Annotations
         inArgs = self.inArgs()
         outArgs = self.outArgs()
         returnType = self.getReturnType()
@@ -1920,68 +1949,92 @@ class ApiArgUtil(object):
         else:
             currentModule = pymelClass.__module__
 
-        def toPymelType(apiName):
+        def toPymelType(apiName, asResult=False):
+            # type: (str, bool) -> str
+            """
+            Parameters
+            ----------
+            apiName : str
+            asResult : bool
+                the native type used for an API type varies depending on whether
+                it is being used as an argument or a result.
+            """
+            # FIXME: Quaternion is not getting datatypes module prepended in nodetypes module
             moduleName = None
 
-            pymelType = apiClassNamesToPymelTypes.get(apiName, None)
-            if pymelType is not None:
-                moduleName = pymelType.__module__
-                pymelName = pymelType.__name__
+            # PyNode is registered for these two types, but for the sake of
+            # annotations, these overrides are usually more accurate (always
+            # more accurate in the case of MDagPath)
+            overrides = {
+                'MObject': 'pymel.core.nodetypes.DependNode',
+                'MDagPath': 'pymel.core.nodetypes.DagNode',
+            }
+            pymelName = overrides.get(apiName, None)
+            if pymelName:
+                moduleName, pymelName = pymelName.rsplit('.', 1)
             else:
-                try:
-                    pymelName = ApiTypeRegister.types[apiName]
-                except KeyError:
-                    match = re.match('^(?:(MIt)|(MFn)|(M))([A-Z]+.*)', apiName)
-                    assert match is not None, apiName
-                    isGeneral, isNode, isData, pymelName = match.groups()
-
-                    if pymelName == 'Attribute':
-                        moduleName = 'pymel.core.general'
-                    elif isGeneral:
-                        moduleName = 'pymel.core.general'
-                    elif isNode:
-                        moduleName = 'pymel.core.nodetypes'
-                    elif isData:
-                        moduleName = 'pymel.core.datatypes'
+                pymelType = apiClassNamesToPymelTypes.get(apiName, None)
+                if pymelType is not None:
+                    moduleName = pymelType.__module__
+                    pymelName = pymelType.__name__
                 else:
-                    if isinstance(pymelName, tuple):
-                        pymelName = 'Tuple[%s]' % ', '.join(pymelName)
+                    try:
+                        pymelName = ApiTypeRegister.types[apiName]
+                    except KeyError:
+                        match = re.match('^(?:(MIt)|(MFn)|(M))([A-Z]+.*)', apiName)
+                        assert match is not None, apiName
+                        isGeneral, isNode, isData, pymelName = match.groups()
+
+                        if pymelName == 'Attribute':
+                            moduleName = 'pymel.core.general'
+                        elif isGeneral:
+                            moduleName = 'pymel.core.general'
+                        elif isNode:
+                            moduleName = 'pymel.core.nodetypes'
+                        elif isData:
+                            moduleName = 'pymel.core.datatypes'
                     else:
-                        moduleName, pymelName = pymelName.rsplit('.', 1)
+                        if isinstance(pymelName, tuple):
+                            pymelName = 'Tuple[%s]' % ', '.join(pymelName)
+                        else:
+                            moduleName, pymelName = pymelName.rsplit('.', 1)
 
             if moduleName == 'pymel.core.nodetypes' and currentModule != 'pymel.core.nodetypes':
-                return 'nt.' + pymelName
-            if moduleName == 'pymel.core.datatypes' and currentModule != 'pymel.core.datatypes':
-                return 'datatypes.' + pymelName
-            if moduleName == 'pymel.core.general' and currentModule != 'pymel.core.general':
-                return 'general.' + pymelName
-            return pymelName
+                result = 'nt.' + pymelName
+            elif moduleName == 'pymel.core.datatypes' and currentModule != 'pymel.core.datatypes':
+                result = 'datatypes.' + pymelName
+            elif moduleName == 'pymel.core.general' and currentModule != 'pymel.core.general':
+                result = 'general.' + pymelName
+            else:
+                result = pymelName
 
-        def getType(apiName):
+            if not asResult and pymelName in ['Attribute', 'DependNode', 'DagPath']:
+                result = 'str | %s' % result
+            return result
 
+        def getType(apiName, asResult):
+            # type: (str, bool) -> str
             arrayType = ApiTypeRegister.arrayItemTypes.get(apiName)
             if arrayType:
                 try:
-                    pymelName = toPymelType(arrayType.__name__)
+                    pymelName = toPymelType(arrayType.__name__, asResult=asResult)
                 except AssertionError:
                     pymelName = arrayType.__name__
                 return 'List[%s]' % pymelName
             else:
-                pymelName = toPymelType(str(apiName))
+                pymelName = toPymelType(str(apiName), asResult=asResult)
             return pymelName
 
         for x in inArgs:
             if types[x] == 'MAnimCurveChange':
                 continue
-            args.append(getType(types[x]))
-
-        comment = '# type: (%s)' % ', '.join(args)
+            args.append(getType(types[x], asResult=False))
 
         results = []
         if returnType:
-            results.append(getType(returnType))
+            results.append(getType(returnType, asResult=True))
         for x in outArgs:
-            results.append(getType(types[x]))
+            results.append(getType(types[x], asResult=True))
 
         if len(results) == 1:
             result = results[0]
@@ -1989,7 +2042,11 @@ class ApiArgUtil(object):
             result = 'Tuple[%s]' % ', '.join(results)
         else:
             result = 'None'
-        return comment + ' -> ' + result
+
+        return {
+            'result': result,
+            'args': args
+        }
 
     def castInput(self, argName, input):
         # type: (str, Any) -> Any
@@ -2037,7 +2094,8 @@ class ApiArgUtil(object):
         try:
             return apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
         except ValueError:
-            raise ValueError("expected an enum of type %s.%s: got %r" % (apiClassName, enumName, input))
+            raise ValueError("expected an enum of type %s.%s: got %r" %
+                             (apiClassName, enumName, input))
 
     @staticmethod
     def fromInternalUnits(result, returnType, unit=None):
@@ -2167,7 +2225,8 @@ class ApiArgUtil(object):
                 continue
 
             if isinstance(default, apicache.ApiEnum):
-                # convert enums from apiName to pymelName. the default will be the readable string name
+                # convert enums from apiName to pymelName. the default will be
+                # the readable string name
                 apiClassName, enumName, enumValue = default
                 try:
                     enumList = apiClassInfo[apiClassName]['enums'][enumName]['values']
@@ -2878,7 +2937,21 @@ def wrapApiMethod(apiClass, methodName, newName=None, proxy=True, overloadIndex=
 
 
 def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
-    """decorator for adding API docs"""
+    # type: (Type, str, Optional[int], bool) -> Decorator
+    """
+    decorator for adding API docs
+
+    Parameters
+    ----------
+    apiClass : Type
+    methodName : str
+    overloadIndex : Optional[int]
+    undoable : bool
+
+    Returns
+    -------
+    Decorator
+    """
 
     def doc_decorator(func):
         return _addApiDocs(func, apiClass, methodName, overloadIndex, undoable)
@@ -2888,6 +2961,7 @@ def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
 
 def _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex=None,
                 undoable=True):
+    # type: (CallableT, Type, str, Optional[int], bool) -> CallableT
     # apiClass may be None if we try to wrap a class that doesn't exist in this
     # version of maya
     if apiClass is not None:
@@ -2899,6 +2973,7 @@ def _addApiDocs(wrappedApiFunc, apiClass, methodName, overloadIndex=None,
 
 def addApiDocsCallback(apiClass, methodName, overloadIndex=None, undoable=True,
                        origDocstring=''):
+    # type: (Type, str, Optional[int], bool, str) -> str
     apiClassName = apiClass.__name__
 
     try:
@@ -3126,6 +3201,7 @@ class MetaMayaTypeWrapper(MetaMayaTypeRegistry):
             raise AttributeError("class constant cannot be deleted")
 
     def __new__(cls, classname, bases, classdict):
+        # type: (str, Tuple[Type, ...], Mapping[str, Any]) -> MetaMayaTypeWrapper
         """ Create a new class of metaClassConstants type """
 
         #_logger.debug( 'MetaMayaTypeWrapper: %s' % classname )
@@ -3261,6 +3337,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
     _classDictKeyForMelCmd = None
 
     def __new__(cls, classname, bases, classdict):
+        # type: (str, Tuple[Type, ...], Mapping[str, Any]) -> _MetaMayaCommandWrapper
         #_logger.debug( '_MetaMayaCommandWrapper: %s' % classname )
 
         newcls = super(_MetaMayaCommandWrapper, cls).__new__(cls, classname, bases, classdict)
@@ -3301,6 +3378,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 
     @classmethod
     def getMelCmd(cls, classdict):
+        # type: (Mapping[str, Any]) -> Tuple[str, bool]
         """
         Retrieves the name of the mel command the generated class wraps, and whether it is an info command.
 
@@ -3310,6 +3388,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 
     @classmethod
     def docstring(cls, melCmdName):
+        # type: (str) -> str
         try:
             cmdInfo = cmdlist[melCmdName]
         except KeyError:
@@ -3328,6 +3407,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
     based on info parsed from the docs on their command counterparts.
     """
     def __new__(cls, classname, bases, classdict):
+        # type: (str, Tuple[Type, ...], Mapping[str, Any]) -> MetaMayaNodeWrapper
         # If the class explicitly gives it's mel node name, use that -
         # otherwise, assume it's the name of the PyNode, uncapitalized
         #_logger.debug( 'MetaMayaNodeWrapper: %s' % classname )
@@ -3383,6 +3463,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper):
 
     @classmethod
     def getMelCmd(cls, classdict):
+        # type: (Mapping[str, Any]) -> Tuple[str, bool]
         """
         Retrieves the name of the mel command for the node that the generated class wraps,
         and whether it is an info command.
@@ -3425,12 +3506,13 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
 
     @classmethod
     def getMelCmd(cls, classdict):
+        # type: (Mapping[str, Any]) -> Tuple[str, bool]
         return classdict['__melui__'], False
 
 
 def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName,
                   extraAttrs=None):
-    # type: (types.ModuleType, str, str, str, Any) -> Optional[Type[pymel.core.general.PyNode]]
+    # type: (types.ModuleType, str, str, str, Optional[Mapping[str, Any]]) -> Optional[Type[pymel.core.general.PyNode]]
     """
     Parameters
     ----------
@@ -3438,7 +3520,7 @@ def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName,
     mayaType : str
     pyNodeTypeName : str
     parentPyNodeTypeName : str
-    extraAttrs
+    extraAttrs : Optional[Mapping[str, Any]]
 
     Returns
     -------
@@ -3475,18 +3557,21 @@ def _createPyNode(module, mayaType, pyNodeTypeName, parentPyNodeTypeName,
 
 
 def addCustomPyNode(module, mayaType, extraAttrs=None):
-    # type: (types.ModuleType, str, Any) -> Optional[str]
+    # type: (types.ModuleType, str, Optional[Mapping[str, Any]]) -> Optional[str]
     """
-    create a PyNode, also adding each member in the given maya node's inheritance if it does not exist.
+    create a PyNode, also adding each member in the given maya node's
+    inheritance if it does not exist.
 
-    This function is used for creating PyNodes via plugins, where the nodes parent's might be abstract
-    types not yet created by pymel.  also, this function ensures that the newly created node types are
-    added to pymel.all, if that module has been imported.
+    This function is used for creating PyNodes via plugins, where the nodes
+    parent's might be abstract types not yet created by pymel.  also, this
+    function ensures that the newly created node types are added to pymel.all,
+    if that module has been imported.
 
     Parameters
     ----------
     module : types.ModuleType
     mayaType : str
+    extraAttrs : Optional[Mapping[str, Any]]
 
     Returns
     -------
@@ -3536,7 +3621,7 @@ def getPymelTypeName(mayaTypeName, create=True):
 
 
 def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
-    # type: (types.ModuleType, str, str, Any) -> Tuple[str, Type[pymel.core.general.PyNode]]
+    # type: (types.ModuleType, str, str, Optional[Mapping[str, Any]]) -> Tuple[str, Type[pymel.core.general.PyNode]]
     """
     create a PyNode type for a maya node.
 
@@ -3545,6 +3630,7 @@ def _addPyNode(module, mayaType, parentMayaType, extraAttrs=None):
     module : types.ModuleType
     mayaType : str
     parentMayaType : str
+    extraAttrs : Optional[Mapping[str, Any]]
 
     Returns
     -------
@@ -3612,6 +3698,7 @@ def clearPyNodeTypes():
 
 
 def addMayaType(mayaType, apiType=None):
+    # type: (str, Optional[str]) -> None
     """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
 
         - mayaTypesToApiTypes
@@ -3626,6 +3713,7 @@ def addMayaType(mayaType, apiType=None):
 
 
 def removeMayaType(mayaType):
+    # type: (str) -> None
     """ Remove a type from the MayaTypes lists.
 
         - mayaTypesToApiTypes
@@ -3855,10 +3943,12 @@ registerVirtualClass = virtualClasses.register
 
 
 def isValidPyNode(arg):
+    # type: (str) -> bool
     return arg in pyNodeTypesHierarchy
 
 
 def isValidPyNodeName(arg):
+    # type: (str) -> bool
     return arg in pyNodeNamesToPyNodes
 
 

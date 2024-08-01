@@ -29,6 +29,7 @@ _functionStore = {}
 
 
 def _getFunction(function):
+    # type: (Union[Callable, str]) -> Callable
     # function is a string, so we must import its module and get the function object
     if isinstance(function, basestring):
         buf = function.split()
@@ -40,7 +41,8 @@ def _getFunction(function):
     elif callable(function):
         func = function
     else:
-        raise TypeError("argument must be a callable python object or the full, dotted path to the callable object as a string.")
+        raise TypeError("argument must be a callable python object or the full, "
+                        "dotted path to the callable object as a string.")
 
     return func
 
@@ -49,7 +51,7 @@ def _getFunction(function):
 
 
 def getMelArgs(function, exactMelType=True):
-    # type: (Union[Callable, str], Any) -> Tuple[Tuple[str, str], Dict[str, Any], Dict[str, str]]
+    # type: (Union[Callable, str], Any) -> Tuple[Tuple[Tuple[str, str], ...], Dict[str, Any], Dict[str, str]]
     """Inspect the arguments of a python function and return the closest
     compatible MEL arguments.
 
@@ -61,7 +63,7 @@ def getMelArgs(function, exactMelType=True):
 
     Returns
     -------
-    melArgs : Tuple[str, str]
+    melArgs : Tuple[Tuple[str, str], ...]
         (argName, melType)
     melArgDefaults : Dict[str, Any]
         {argName : default}
@@ -139,7 +141,7 @@ def getMelArgs(function, exactMelType=True):
 
 
 def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, argTypes=None):
-    # type: (Callable, Any, str, bool, Any) -> str
+    # type: (Callable, Any, Optional[str], bool, Any) -> str
     """This is a work in progress.  It generates and sources a mel procedure which wraps the passed
     python function.  Theoretically useful for calling your python scripts in scenarios where Maya
     does not yet support python callbacks.
@@ -168,7 +170,7 @@ def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, ar
 
         If a string representing the python object is passed, it should include all packages and sub-modules, along
         with the function's name:  'path.to.myFunc'
-    procName : str
+    procName : Optional[str]
         Optional name of the mel procedure to be created.  If None, the name of the function will be used.
     evaluateInputs : bool
         If True (default), string arguments passed to the generated mel procedure will be evaluated as python code, allowing
@@ -255,12 +257,14 @@ def py2melProc(function, returnType=None, procName=None, evaluateInputs=True, ar
 
     _mm.eval(procDef)
     return procName
-#--------------------------------------------------------
-#  Scripted Command Wrapper
-#--------------------------------------------------------
 
+
+# --------------------------------------------------------
+#  Scripted Command Wrapper
+# --------------------------------------------------------
 
 def _shortnameByCaps(name):
+    # type: (str) -> str
     """
     uses hungarian notation (aka camelCaps) to generate a shortname, with a maximum of 3 letters
         ex.
@@ -282,6 +286,7 @@ def _shortnameByCaps(name):
 
 
 def _shortnameByUnderscores(name):
+    # type: (str) -> str
     """
     for python methods that use underscores instead of camelCaps, with a maximum of 3 letters
     """
@@ -296,6 +301,7 @@ def _shortnameByUnderscores(name):
 
 
 def _shortnameByConvention(name):
+    # type: (str) -> str
     """
     chooses between byUnderscores and ByCaps
     """
@@ -325,8 +331,10 @@ def _shortnameByDoc(method):
 
 
 def _nonUniqueName(longname, shortname, shortNames, operation):
+    # type: (str, str, Container[str], str) -> bool
     if operation in ['skip', 'warn', 'error'] and shortname in shortNames:
-        message = "default short name %r for flag %r is taken" % (shortname, longname)
+        message = "default short name %r for flag %r is taken" % \
+                  (shortname, longname)
         if operation == 'warn':
             print('warning: ' + message)
             return False
@@ -335,11 +343,14 @@ def _nonUniqueName(longname, shortname, shortNames, operation):
             return True
         else:
             raise TypeError(message)
+    return False
 
 
 def _invalidName(commandName, longname, operation):
+    # type: (str, str, str) -> bool
     if len(longname) < 4 and operation in ['skip', 'warn', 'error']:
-        message = 'long flag names must be at least 4 characters long: %s -%r' % (commandName, longname.lower())
+        message = 'long flag names must be at least 4 characters long: %s -%r' % \
+                  (commandName, longname.lower())
         if operation == 'warn':
             print('warning: ' + message)
             return False
@@ -348,6 +359,7 @@ def _invalidName(commandName, longname, operation):
             return True
         else:
             raise TypeError(message)
+    return False
 
 
 def _getShortNames(objects, nonUniqueName):
@@ -386,7 +398,6 @@ def _getShortNames(objects, nonUniqueName):
                         shortname = baseshort + str(count)
                         if shortname not in shortNames:
                             break
-                    # print 'could not find a unique shortname for %s: using %s'% ( methodName, shortname )
         shortNames.append((longname, shortname))
     return tuple(shortNames)
 
@@ -466,14 +477,19 @@ def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
         else:
             maxArgs = len(argNames)
 
-    return {'maxArgs': maxArgs, 'canQuery': canQuery, 'canEdit': canEdit,
-            'argNames': argNames, 'defaults': defaults}
+    return {
+        'maxArgs': maxArgs,
+        'canQuery': canQuery,
+        'canEdit': canEdit,
+        'argNames': argNames,
+        'defaults': defaults
+    }
 
 
 class WrapperCommand(plugins.Command):
-    _syntax = None
-    _flagInfo = None
-    _mainArgInfo = None
+    _syntax = None  # type: om.MSyntax
+    _flagInfo = None  # type: Dict[str, Dict]
+    _mainArgInfo = None  # type: Dict[str, Any]
 
     @classmethod
     def createSyntax(cls):
@@ -558,7 +574,7 @@ class WrapperCommand(plugins.Command):
 def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
               excludeFlags=[], includeFlagArgs=None, excludeFlagArgs={},
               nonUniqueName='warn', invalidName='warn'):
-    # type: (Any, str, bool, List[str], List[str], Dict[str, List[str]], Dict[str, List[str]], str, str) -> None
+    # type: (Any, Optional[str], bool, Optional[List[str]], List[str], Optional[Dict[str, List[str]]], Dict[str, List[str]], str, str) -> Type[WrapperCommand]
     """
     Create a MEL command from a python function or class.
 
@@ -616,17 +632,17 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
 
     Parameters
     ----------
-    commandName : str
+    commandName : Optional[str]
         name given to the generated MEL command
     register : bool
         whether or not to automatically register the generated command.  If
         False, you will have to manually call the `register` method of the
         returned `WrapperCommand` instance
-    includeFlags : List[str]
+    includeFlags : Optional[List[str]]
         list of flags to include. if given, other flags will be ignored
     excludeFlags : List[str]
         list of flags to exclude
-    includeFlagArgs : Dict[str, List[str]]
+    includeFlagArgs : Optional[Dict[str, List[str]]]
         for each flag, a list of arg names to include; if given, other args will
         be ignored
     excludeFlagArgs : Dict[str, List[str]]
@@ -638,9 +654,13 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
         {'force', 'warn', 'skip', or 'error'}
         what to do if a flag name is invalid
 
+    Returns
+    -------
+    Type[WrapperCommand]
     """
     if not commandName:
         commandName = pyObj.__name__
+        assert commandName is not None
     if includeFlagArgs is None:
         includeFlagArgs = {}
 
@@ -649,8 +669,8 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
                 and flag not in excludeFlags and not flag.startswith('_'))
 
     syntax = om.MSyntax()
-    flagInfo = {}
-    flags = []   # ordered list of flags
+    flagInfo = {}  # type: Dict[str, Dict[str, Any]]
+    flags = []   # type: List[str]
     if inspect.isfunction(pyObj):
         # args         --> command args
         # keyword args --> flags
@@ -760,21 +780,24 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
             argData = om.MArgParser(self.syntax(), argList)
 
             cmdArgs = self.parseCommandArgs(argData)
-            flagArgs = self.parseFlagArgs(argData)
+            parsedflagArgs = self.parseFlagArgs(argData)
 
             if not classWrap:
                 # doing a function wrap...
 
                 # unpack the flag arguments, there should always only be 1
-                kwargs = dict([(x[0], x[1][0]) for x in flagArgs])
+                kwargs = dict([(longname, flagArgs[0])
+                               for longname, flagArgs in parsedflagArgs])
 
                 res = pyObj(*cmdArgs, **kwargs)
             else:
                 # doing a class wrap...
 
-                if len(flagArgs) != 1:
-                    raise RuntimeError('only one flag can be used at a time for command %s' % commandName)
-                longname, flagArgs = flagArgs[0]
+                if len(parsedflagArgs) != 1:
+                    raise RuntimeError(
+                        'only one flag can be used at a time for command %s'
+                        % commandName)
+                longname, flagArgs = parsedflagArgs[0]
 
                 inst = pyObj(*cmdArgs)
                 flagInfo = self._flagInfo[longname]
@@ -804,7 +827,8 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
                         # property-defined flags can only take one arg
                         if len(flagArgs) != 1:
                             raise RuntimeError('flag %s for command %s may only have one arg' % (longname, commandName))
-                        res = setattr(inst, methodName, flagArgs[0])
+                        setattr(inst, methodName, flagArgs[0])
+                        res = None
                     else:
                         raise SyntaxError("properties must either be edited or queried")
             return self.setResult(res)
@@ -813,4 +837,3 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
     if register:
         dummyCommand.register()
     return dummyCommand
-

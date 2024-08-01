@@ -10,20 +10,58 @@ import re
 import inspect
 import keyword
 
-# Maya imports
-import maya.cmds as cmds
-import maya.mel as mm
-
 # PyMEL imports
 import pymel.util as util
-import pymel.versions as versions
 
 # Module imports
+from . import cachebase
 from . import plogging
-from . import startup
 
-if False:
+TYPE_CHECKING = False
+if TYPE_CHECKING:
     from typing import *
+
+    FlagInfo = TypedDict('FlagInfo', {
+        'longname': str,
+        'shortname': str,
+        # args is non-list if numArgs is 0 or 1:
+        'args': Union[Type, List[Type]],
+        'numArgs': int,
+        'docstring': str,
+        # edit, query, multiuse
+        'modes': List[str],
+        'secondaryFlags': List[str],
+        'resultNeedsCasting': bool,
+    })
+
+    CommandInfo = TypedDict('CommandInfo', {
+        'flags': Dict[str, FlagInfo],
+        'shortFlags': Dict[str, FlagInfo],
+        'description': str,
+        'example': str,
+        # module/category (runtime, animation, etc)
+        'type': str,
+        'removedFlags': Optional[Dict[str, str]],
+    })
+
+    # hierarchy as a list of 3-value tuples: ( nodeType, parents, children )
+    NodeHierarchy = List[Tuple[str, Tuple[str, ...], Tuple[str, ...]]]
+
+    CmdInfoCacheType = Tuple[
+        CommandInfo,  # cmdlist
+        NodeHierarchy,  # nodeHierarchy
+        List[str],  # uiClassList
+        List[str],  # nodeCommandList
+        Dict[str, List[str]],  # moduleCmds
+    ]
+
+    SparseFlagInfo = TypedDict('SparseFlagInfo', {
+        'docstring': str,
+    })
+    SparseCommandInfo = TypedDict('SparseCommandInfo', {
+        'flags': Dict[str, SparseFlagInfo],
+        'description': str,
+    })
 
 _logger = plogging.getLogger(__name__)
 
@@ -241,6 +279,9 @@ def getInternalCmds(errorIfMissing=True):
 
 
 def getCmdInfoBasic(command):
+    # type: (str) -> CommandInfo
+    import maya.cmds as cmds
+
     typemap = {
         'string': str,
         'length': float,
@@ -282,7 +323,8 @@ def getCmdInfoBasic(command):
                 #_logger.debug(tokens)
                 if len(tokens) > 1 and tokens[0].startswith('-'):
 
-                    args = [typemap.get(x.lower(), util.uncapitalize(x)) for x in tokens[2:]]
+                    args = [typemap.get(x.lower(), util.uncapitalize(x))
+                            for x in tokens[2:]]
                     numArgs = len(args)
 
                     # lags with no args in mel require a boolean val in python
@@ -307,7 +349,13 @@ def getCmdInfoBasic(command):
                     elif longname == '':
                         longname = shortname
 
-                    flags[longname] = {'longname': longname, 'shortname': shortname, 'args': args, 'numArgs': numArgs, 'docstring': ''}
+                    flags[longname] = {
+                        'longname': longname,
+                        'shortname': shortname,
+                        'args': args,
+                        'numArgs': numArgs,
+                        'docstring': ''
+                    }
                     if multiuse:
                         flags[longname].setdefault('modes', []).append('multiuse')
                     shortFlags[shortname] = longname
@@ -315,13 +363,20 @@ def getCmdInfoBasic(command):
     # except:
     #    pass
         #_logger.debug("could not retrieve command info for", command)
-    res = {'flags': flags, 'shortFlags': shortFlags, 'description': '', 'example': '', 'type': 'other'}
+    res = {
+        'flags': flags,
+        'shortFlags': shortFlags,
+        'description': '',
+        'example': '',
+        'type': 'other'
+    }
     if removedFlags:
         res['removedFlags'] = removedFlags
     return res
 
 
 def getCmdInfo(command, version, python=True):
+    # type: (str, str, bool) -> CommandInfo
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
@@ -425,6 +480,8 @@ def fixCodeExamples(style='maya', force=False):
 
     TODO: auto backup and restore of maya prefs
     """
+    import maya.cmds as cmds
+
     import shutil
 
     # some imports to get things into global / local namespaces
@@ -467,7 +524,7 @@ def fixCodeExamples(style='maya', force=False):
     failed = []
     skipped = []
 
-    crashTempDir = startup._moduleJoin('cache', 'processedExamplesTemp')
+    crashTempDir = cachebase._moduleJoin('cache', 'processedExamplesTemp')
     if os.path.isdir(crashTempDir):
         # If there are results in this dir, it's because we crashed last time
         # we ran. Read in the results here, and add them to the
@@ -719,6 +776,8 @@ def getCallbackFlags(cmdInfo):
 
 
 def getModule(funcName, knownModuleCmds):
+    import maya.mel as mm
+
     # determine to which module this function belongs
     module = None
     if funcName in ['eval', 'file', 'filter', 'help', 'quit']:
@@ -748,6 +807,8 @@ _cmdArgMakers = {}
 
 
 def cmdArgMakers(force=False):
+    import maya.cmds as cmds
+
     global _cmdArgMakers
 
     if _cmdArgMakers and not force:
@@ -813,6 +874,7 @@ def nodeCreationCmd(func, nodeType):
 
 
 def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
+    import maya.cmds as cmds
 
     _logger.info(funcName.center(50, '='))
 
@@ -964,7 +1026,8 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                             resultType[0] = argtype
 
                     # ensure symmetry between edit and query commands:
-                    # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
+                    # if this flag is queryable and editable, then its queried
+                    # value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
                         # there are certain patterns of asymmetry which we can safely correct:
                         singleItemList = (isinstance(resultType, list)
@@ -999,7 +1062,8 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                             _logger.info('\tresult: %s', val.__repr__())
                             _logger.info('\tpredicted type: %s', argtype)
                             _logger.info('\tactual type:    %s', resultType)
-                            # value is no good. reset to None, so that a default will be generated for edit
+                            # value is no good. reset to None, so that a default
+                            # will be generated for edit
                             val = None
 
                     else:
@@ -1043,7 +1107,8 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
                 try:
                     # we use the value returned from query above as defaults
                     # for putting back in as edit args
-                    # but if the return was empty we need to produce something to test on.
+                    # but if the return was empty we need to produce something
+                    # to test on.
                     # NOTE: this is just a guess
                     if val is None:
 
@@ -1144,7 +1209,7 @@ def testNodeCmd(funcName, cmdInfo, nodeCmd=False, verbose=False):
 
 
 def _getNodeHierarchy(version=None):
-    # type: (...) -> List[Tuple[str, Tuple[str, ...], Tuple[str, ...]]]
+    # type: (...) -> NodeHierarchy
     """
     get node hierarchy as a list of 3-value tuples:
         ( nodeType, parents, children )
@@ -1193,7 +1258,8 @@ def _getNodeHierarchy(version=None):
         for x in nodeHierarchyTree.preorder()]
 
 
-class CmdExamplesCache(startup.PymelCache):
+# data type:: Dict[str, str]
+class CmdExamplesCache(cachebase.PymelCache):
     NAME = 'mayaCmdsExamples'
     DESC = 'the list of Maya command examples'
     USE_VERSION = True
@@ -1203,16 +1269,26 @@ class CmdProcessedExamplesCache(CmdExamplesCache):
     USE_VERSION = False
 
 
-class CmdDocsCache(startup.PymelCache):
+# data type:: SparseCommandInfo
+class CmdDocsCache(cachebase.PymelCache):
     NAME = 'mayaCmdsDocs'
     DESC = 'the Maya command documentation'
 
 
-class CmdCache(startup.SubItemCache):
+# data type: CmdInfoCacheType
+class CmdCache(cachebase.SubItemCache):
     NAME = 'mayaCmdsList'
     DESC = 'the list of Maya commands'
     _CACHE_NAMES = '''cmdlist nodeHierarchy uiClassList
                         nodeCommandList moduleCmds'''.split()
+
+    if TYPE_CHECKING:
+        cmdlist = None  # type: Dict[str, CommandInfo]
+        nodeHierarchy = None
+        uiClassList = None  # type: List[str]
+        nodeCommandList = None  # type: List[str]
+        moduleCmds = None  # type: Dict[str, List[str]]
+
     ITEM_TYPES = {
         'nodeHierarchy': list,
         'uiClassList': list,
@@ -1228,6 +1304,9 @@ class CmdCache(startup.SubItemCache):
         loading all the plugins may crash maya, especially if done from a
         non-GUI session
         """
+        import maya.cmds as cmds
+        import pymel.versions
+
         # Put in a debug, because this can be crashy
         _logger.debug("Starting CmdCache.rebuild...")
 
@@ -1237,7 +1316,7 @@ class CmdCache(startup.SubItemCache):
         # and not
         # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
 
-        long_version = versions.installName()
+        long_version = pymel.versions.installName()
 
         from .parsers import mayaDocsLocation
         cmddocs = os.path.join(mayaDocsLocation(long_version), 'CommandsPython')
@@ -1282,7 +1361,13 @@ class CmdCache(startup.SubItemCache):
 
         #self.moduleCmds = defaultdict(list)
         self.moduleCmds = dict((k, []) for k in moduleNameShortToLong.keys())
-        self.moduleCmds.update({'other': [], 'runtime': [], 'context': [], 'uiClass': []})
+        self.moduleCmds.update(
+            {'other': [],
+             'runtime': [],
+             'context': [],
+             'uiClass': []
+             }
+        )
 
         def addCommand(funcName):
             # type: (str) -> None
@@ -1335,8 +1420,8 @@ class CmdCache(startup.SubItemCache):
             addCommand(funcName)
 
         # split the cached data for lazy loading
-        cmdDocList = {}
-        examples = {}
+        cmdDocList = {}  # type: SparseCommandInfo
+        examples = {}  # type: Dict[str, str]
         for cmdName, cmdInfo in self.cmdlist.items():
             try:
                 examples[cmdName] = cmdInfo.pop('example')
@@ -1359,6 +1444,7 @@ class CmdCache(startup.SubItemCache):
         CmdExamplesCache().write(examples)
 
     def build(self):
+        # type: () -> CmdInfoCacheType
         super(CmdCache, self).build()
 
         # corrections that are always made, to both loaded and freshly built caches
@@ -1376,7 +1462,8 @@ class CmdCache(startup.SubItemCache):
                     id = self.moduleCmds[currModule].index(funcName)
                     self.moduleCmds[currModule].pop(id)
                     self.moduleCmds[module].append(funcName)
-        return (self.cmdlist, self.nodeHierarchy, self.uiClassList, self.nodeCommandList, self.moduleCmds)
+        return (self.cmdlist, self.nodeHierarchy, self.uiClassList,
+                self.nodeCommandList, self.moduleCmds)
 
     def _modifyTypes(self, data, predicate, converter):
         '''convert between class names and class objects'''
@@ -1403,7 +1490,7 @@ class CmdCache(startup.SubItemCache):
                    and obj.endswith('>')
 
         def fromTypeStr(typeStr):
-            return startup.getImportableObject(typeStr[len('<type '):-1])
+            return util.getImportableObject(typeStr[len('<type '):-1])
 
         self._modifyTypes(data, isTypeStr, fromTypeStr)
         return data
@@ -1411,7 +1498,7 @@ class CmdCache(startup.SubItemCache):
     def toRawData(self, data):
         # convert from class objects to string class names
         def toTypeStr(typeObj):
-            return '<type {}>'.format(startup.getImportableName(typeObj))
+            return '<type {}>'.format(util.getImportableName(typeObj))
 
         self._modifyTypes(data, callable, toTypeStr)
         return super(CmdCache, self).toRawData(data)

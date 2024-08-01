@@ -243,9 +243,12 @@ def resolvePath(melobj, recurse=False, exclude=(), melPathOnly=False, basePackag
         files = [f.truepath() for f in filepath.files('[a-zA-Z]*.mel')]
         if recurse:
             for dir in filepath.dirs():
-                recursedResults.extend(resolvePath(dir, recurse=recurse,
-                                                   exclude=exclude, melPathOnly=melPathOnly,
-                                                   basePackage=basePackage + '.' + melparse.pythonizeName(dir.basename())))
+                recursedResults.extend(
+                    resolvePath(dir,
+                                recurse=recurse,
+                                exclude=exclude,
+                                melPathOnly=melPathOnly,
+                                basePackage=basePackage + '.' + melparse.pythonizeName(dir.basename())))
     # elif not filepath.exists():
     else:
         # see if it's a procedure that we can derive a path from
@@ -348,7 +351,12 @@ def _getInputFiles(input, recurse=False, exclude=(), melPathOnly=False, basePack
     if not util.isIterable(input):
         input = [input]
     for f in input:
-        results.extend(resolvePath(f, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly, basePackage=basePackage))
+        results.extend(
+            resolvePath(f,
+                        recurse=recurse,
+                        exclude=exclude,
+                        melPathOnly=melPathOnly,
+                        basePackage=basePackage))
     return results
 
 
@@ -390,7 +398,7 @@ def melInfo(input):
 
 
 def mel2pyStr(data, currentModule=None, pymelNamespace='', forceCompatibility=False, verbosity=0, basePackage=None):
-    # type: (str, str, str, bool, int, Any) -> str
+    # type: (str, Optional[str], str, bool, int, Any) -> str
     """
     convert a string representing mel code into a string representing python code
 
@@ -407,7 +415,7 @@ def mel2pyStr(data, currentModule=None, pymelNamespace='', forceCompatibility=Fa
     ----------
     data : `str`
         string representing coe to convert
-    currentModule : `str`
+    currentModule : Optional[str]
         the name of the module that the hypothetical code is executing in.
         In most cases you will leave it at its default, the __main__ namespace.
     pymelNamespace : `str`
@@ -435,7 +443,7 @@ def mel2py(input, outputDir=None,
            verbosity=0, test=False,
            recurse=False, exclude=(), melPathOnly=False,
            basePackage=None):
-    # type: (Any, str, str, bool, int, bool, bool, str, bool, str) -> None
+    # type: (Any, Optional[str], str, bool, int, bool, bool, Iterable[str], bool, Optional[str]) -> None
     """
     Batch convert an entire directory
 
@@ -447,7 +455,7 @@ def mel2py(input, outputDir=None,
         If only the name of the mel file is passed, mel2py will attempt to
         determine the location of the file using the 'whatIs' mel command,
         which relies on the script already being sourced by maya.
-    outputDir : `str`
+    outputDir : Optional[str]
         Directory where resulting python files will be written to
     pymelNamespace : `str`
         the namespace into which pymel will be imported.  the default is '',
@@ -465,11 +473,11 @@ def mel2py(input, outputDir=None,
         If the input is a directory, whether or not to recursively search subdirectories as well.
         Subdirectories will be converted into packages, and any mel files within those subdirectories
         will be submodules of that package.
-    exclude : `str`
+    exclude : Iterable[str]
         A comma-separated list of files/directories to exclude from processing, if input is a directory.
     melPathOnly : `bool`
         If true, will only translate mel files found on the mel script path.
-    basePackage : `str`
+    basePackage : Optional[str]
         Gives the package that all translated modules will be a part of; if None or an empty string, all
         translated modules are assumed to have no base package.
     """

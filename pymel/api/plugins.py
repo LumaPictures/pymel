@@ -129,6 +129,7 @@ class NotRegisteredError(PluginRegistryError):
 # Because different versions of maya may not have all these MPxNodes, we need
 # to store as strings, and retrieve from mpx
 # Constructed by manual inspection of names in MPxNode.Type
+# Can confirm like this: mpx.MPxTransform().type() == mpx.MPxNode.kTransformNode
 mpxNamesToEnumNames = {
     'MPxNode': 'kDependNode',
     'MPxPolyTrg': 'kDependNode',             # has no unique enum
@@ -147,7 +148,10 @@ mpxNamesToEnumNames = {
     # this is a temp entity - same as MPxTransform, but with fixed / added API
     # for bounding boxes; since not 100% binary / ABI compatible, added as
     # a new class in 2019.2.  Will replace the "standard" MPxTransform in 2020
-    'MPxTransform_BoundingBox': 'kTransformNode',
+    'MPxTransform_BoundingBox': 'kTransformNode',    # has no unique enum
+    # this is a temp entity - class that allows a user defined transform
+    # to supply a pre-rotation...
+    'MPxTransformPreRotation': 'kTransformNode',    # has no unique enum
     'MPxObjectSet': 'kObjectSet',
     'MPxFluidEmitterNode': 'kFluidEmitterNode',
     'MPxImagePlane': 'kImagePlaneNode',
@@ -164,7 +168,7 @@ mpxNamesToEnumNames = {
     'MPxSkinCluster': 'kSkinCluster',  # auto
 }
 
-# Gives a map from an MPx class name to it's enum name in MFn.Type
+# Gives a map from an MPx class name to it's api enum name in MFn.Type
 # Constructed by a combination of _buildMpxNamesToApiEnumNames and manual
 # inspection of names in MFn.Type
 mpxNamesToApiEnumNames = {
@@ -183,6 +187,7 @@ mpxNamesToApiEnumNames = {
     'MPxHwShaderNode': 'kPluginHwShaderNode',
     'MPxTransform': 'kPluginTransformNode',
     'MPxTransform_BoundingBox': 'kPluginTransformNode',
+    'MPxTransformPreRotation': 'kPluginTransformNode',    # has no unique enum
     'MPxObjectSet': 'kPluginObjectSet',
     'MPxFluidEmitterNode': 'kPluginEmitterNode',
     'MPxImagePlane': 'kPluginImagePlaneNode',
@@ -190,8 +195,8 @@ mpxNamesToApiEnumNames = {
     'MPxCameraSet': 'kPluginCameraSet',
     'MPxConstraint': 'kPluginConstraintNode',
     'MPxManipulatorNode': 'kPluginManipulatorNode',  # added manually
-    'MPxRepMgr': 'kPluginRepMgr',  # guessed?
-    'MPxRepresentation': 'kPluginRepresentation',  # guessed?
+    # 'MPxRepMgr': 'kPluginRepMgr',  # guessed?
+    # 'MPxRepresentation': 'kPluginRepresentation',  # guessed?
     'MPxAssembly': 'kAssembly',
     'MPxBlendShape': 'kPluginBlendShape',  # auto
     'MPxGeometryFilter': 'kPluginGeometryFilter',  # auto
@@ -218,6 +223,7 @@ mpxNamesToMayaNodes = {
     'MPxHwShaderNode': u'THhwShader',
     'MPxTransform': u'THcustomTransform',
     'MPxTransform_BoundingBox': u'THcustomTransform',
+    'MPxTransformPreRotation': u'THcustomTransform',
     'MPxObjectSet': u'THobjectSet',
     'MPxFluidEmitterNode': u'THfluidEmitter',
     'MPxImagePlane': u'THimagePlane',
@@ -225,14 +231,25 @@ mpxNamesToMayaNodes = {
     'MPxCameraSet': u'THcameraSet',
     'MPxConstraint': u'THconstraint',
     'MPxManipulatorNode': 'THmanip',  # guessed + confirmed
-    'MPxRepMgr': 'THdependNode',  # no clue...?
-    'MPxRepresentation': 'THdependNode',  # no clue...?
+    # 'MPxRepMgr': 'THdependNode',  # no clue...?
+    # 'MPxRepresentation': 'THdependNode',  # no clue...?
     'MPxAssembly': 'THassembly',
     'MPxBlendShape': u'THblendShape',  # auto
     'MPxGeometryFilter': u'THgeometryFilter',  # auto
     'MPxMotionPathNode': u'THmotionPath',  # auto
     'MPxSkinCluster': u'THskinCluster',  # auto
 }
+
+
+# It seems like each of these should be filled out with all class names, so 
+# check that they are all the same same length...
+if not (len(mpxNamesToEnumNames) == len(mpxNamesToApiEnumNames) == len(mpxNamesToMayaNodes)):
+    msg = ("MPx dictionary mismatch: "
+           "!(mpxNamesToEnumNames: %s == mpxNamesToApiEnumNames: %s == mpxNamesToMayaNodes:%s)" 
+           % (len(mpxNamesToEnumNames), len(mpxNamesToApiEnumNames), len(mpxNamesToMayaNodes)))
+    import pymel.internal.plogging as plog
+    _logger = plog.getLogger('pymel')
+    _logger.raiseLog(_logger.WARNING, msg)
 
 # make reverse mapping...
 
@@ -317,15 +334,31 @@ def _guessEnumStrFromMpxClass(className):
     enumStr = 'k' + name
     if enumStr in enums:
         return enumStr
+    print("Searched for an enum with name '%s' for mpx class '%s' but it is "
+          "not a member of mpx.MPxNode." % (enumStr, className))
 
 
 def _suggestNewMPxValues(classes=None):
     if classes is None:
         classes = [x for x in allMPx() if x not in mpxClassesToMpxEnums]
 
+    # Gather any classes that dont exist in all three dicts. This supports a
+    # workflow where you manually add an enum that can't be guessed and it 
+    # will still make suggestions below.
+    incomplete = set(mpxNamesToEnumNames).difference(
+        mpxNamesToApiEnumNames).union(
+            set(mpxNamesToEnumNames).difference(
+                mpxNamesToMayaNodes))
+
     if not classes:
         print("All classes exist in mpxClassesToMpxEnums")
-        return
+        if not incomplete:
+            print("All classes exist in mpxNamesToApiEnumNames and "
+                  "mpxNamesToMayaNodes.")
+            return
+        else:
+            print("Some classes do not exist in mpxNamesToApiEnumNames and "
+                  "mpxNamesToMayaNodes.")
 
     import pymel.core  # need maya.cmds
     import pprint
@@ -343,7 +376,17 @@ def _suggestNewMPxValues(classes=None):
             mpxNamesToEnumNames[className] = enumStr
             mpxToEnum[className] = enumStr
         else:
-            print("could not find enum for %s" % className)
+            print("Could not guess enum for %s. It may not have a unique enum "
+                  "value. Look for a likely candidate in the C++ docs for "
+                  "MPxNode.Type. Add an entry to mpxNamesToEnumNames and run "
+                  "_suggestNewMPxValues() again." % className)
+
+    for className in incomplete:
+        enumStr = mpxNamesToEnumNames[className]
+        # make sure this is set up the same way as a guessed enum class would 
+        # be in above loop...
+        mpxToEnum[className] = enumStr
+        assert mpxClassesToMpxEnums[getattr(mpx, className)] == getattr(mpx.MPxNode, enumStr)
 
     if mpxToEnum:
         _, mpxToMaya, mpxToApiEnums = _buildAll()
@@ -381,7 +424,13 @@ _new = [_mpx.__name__ for _mpx in allMPx() if _mpx not in mpxClassesToMpxEnums]
 if _new:
     import pymel.internal.plogging as plog
     _logger = plog.getLogger('pymel')
-    _logger.raiseLog(_logger.WARNING, 'found new MPx classes: %s. Run pymel.api.plugins._suggestNewMPxValues()'
+    # Note: if errored, may need to run this in order to import pymel.api.plugins:
+    _logger.raiseLog(
+        _logger.WARNING, 
+        "found new MPx classes: %s. Run: "
+        "import logging; pymel.internal.plogging; "
+        "pymel.internal.plogging.ERRORLEVEL = logging.ERROR; "
+        "pymel.api.plugins._suggestNewMPxValues()"
                      % ', '.join(_new))
 
 #===============================================================================
@@ -402,6 +451,7 @@ def _pluginName():
 
 
 def _pluginFile():
+    # FIXME: This returns None, which causes _loadPlugin to fail...
     return inspect.getsourcefile(lambda: None)
 #    module = sys.modules[__name__]
 #    print module, __name__
@@ -868,6 +918,10 @@ if hasattr(mpx, 'MPxMotionPathNode'):
     class MotionPathNode(DependNode, mpx.MPxMotionPathNode):
         pass
 
+# new in 2022
+if hasattr(mpx, 'MPxTransformPreRotation'):
+    class MotionPathNode(DependNode, mpx.MPxTransformPreRotation):
+        pass
 
 class ObjectSet(DependNode, mpx.MPxObjectSet):
     pass

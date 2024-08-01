@@ -9,7 +9,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 
-
 from builtins import filter
 from builtins import range
 from builtins import str
@@ -22,14 +21,23 @@ import os.path
 import tempfile
 import string
 from . import mellex
+
 from future.utils import with_metaclass
 
-try:
-    from pymel.util.external.ply import *
-    import pymel.util.external.ply.lex
-except ImportError:
+TYPE_CHECKING = False
+
+if TYPE_CHECKING:
     from ply import *
     import ply.lex
+
+    from typing_extensions import Self
+else:
+    try:
+        from pymel.util.external.ply import *
+        import pymel.util.external.ply.lex
+    except ImportError:
+        from ply import *
+        import ply.lex
 
 from pymel.util import unescape
 from pymel.util.utilitytypes import TwoWayDict
@@ -41,7 +49,9 @@ from . import melscan
 try:
     from pymel.core import *
 except ImportError:
-    print("maya.cmds module cannot be found. be sure to run this script through maya and not from the command line. Continuing, but without command support")
+    print("maya.cmds module cannot be found. be sure to run this script "
+          "through maya and not from the command line. Continuing, but without "
+          "command support")
 
 #mutableStr = proxyClass(str, 'mutableStr', module=__name__)
 
@@ -80,13 +90,15 @@ default_values = {
 
 tag = '# script created by pymel.tools.mel2py'
 
-# Get the list of reserved words -- any variables or procedures that conflict with these keywords will be renamed with a trailing underscore
+# Get the list of reserved words -- any variables or procedures that conflict
+# with these keywords will be renamed with a trailing underscore
 tokens = mellex.tokens
 
 #  Formating functions----------------------------------------------------------
 
 
 def format_substring(x, t):
+    # type: (...) -> str
     """convert:
             substring( var, 2, (len(var)) )
         to:
@@ -126,6 +138,7 @@ def format_substring(x, t):
 
 
 def format_tokenize(x, t):
+    # type: (...) -> Token
     if len(x) > 2:
         return Token('%s=%s.split(%s)' % (x[2], x[0], x[1]), 'string', tokenize=x[2])
     else:
@@ -148,6 +161,7 @@ def format_tokenize_size(tokenized, sizeVar):
 
 
 def format_fread(x, t):
+    # type: (...) -> str
     formatStr = {
         'string': "%s",
         'float': "%f",
@@ -158,6 +172,7 @@ def format_fread(x, t):
 
 
 def format_fopen(x, t):
+    # type: (...) -> str
     try:
         mode = x[1]
     except IndexError:
@@ -166,6 +181,7 @@ def format_fopen(x, t):
 
 
 def format_source(x, t):
+    # type: (...) -> str
     script = eval(x[0])
     name = os.path.splitext(os.path.basename(script))[0]
     # print "formatting source", name
@@ -179,6 +195,7 @@ def format_source(x, t):
 
 
 def format_command(command, args, t):
+    # type: (str, List[Token], Any) -> Token | str
     if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
         args[0] = args[0][1:-1]
 
@@ -192,8 +209,6 @@ def format_command(command, args, t):
     except KeyError:
         pass
 
-    #flags = getCommandFlags(command)
-
     # new-style from cached info
     try:
         cmdInfo = factories.cmdlist[command]
@@ -203,31 +218,30 @@ def format_command(command, args, t):
         except KeyError:
             # Mel procedures and commands without help documentation
             # if flags is None:
-            args = [repr(x) if isinstance(x, basestring) and FLAG_RE.match(x)
+            strArgs = [repr(x) if isinstance(x, basestring) and FLAG_RE.match(x)
                     else x for x in args]
-            args = ', '.join(args)
+            argsStr = ', '.join(strArgs)
 
             # function is being called locally, within same file
             if command in t.lexer.global_procs:
-                #returnType = t.lexer.global_procs[command]['returnType']
-                return '%s(%s)' % (command, args)
+                return '%s(%s)' % (command, argsStr)
             if command in t.lexer.local_procs:
-                #returnType = t.lexer.local_procs[command]['returnType']
-                return '_%s(%s)' % (command, args)
+                return '_%s(%s)' % (command, argsStr)
             if command in melCmdList:
-                return '%s(%s)' % (command, args)
+                return '%s(%s)' % (command, argsStr)
 
             module, returnType = _melProc_to_pyModule(t, command)
 
             if module:
-                # the procedure is in the currently parsed script, but has not yet been placed in global or local procs.
+                # the procedure is in the currently parsed script, but has not
+                # yet been placed in global or local procs.
                 if module == t.lexer.root_module:
-                    res = '%s(%s)' % (command, args)
+                    res = '%s(%s)' % (command, argsStr)
                 else:
                     t.lexer.imported_modules.add(module)
-                    res = '%s.%s(%s)' % (module, command, args)
+                    res = '%s.%s(%s)' % (module, command, argsStr)
             else:
-                res = '%smel.%s(%s)' % (t.lexer.pymel_namespace, command, args)
+                res = '%smel.%s(%s)' % (t.lexer.pymel_namespace, command, argsStr)
 
             return res
 
@@ -235,9 +249,9 @@ def format_command(command, args, t):
     try:
         # print 'FLAGS', t[1], flags
         # print 'ARGS', args
-        kwargs = {}
-        pargs = []
-        argTally = []
+        kwargs = {}  # type: Dict[Token, Any]
+        pargs = []  # type: List[Token]
+        argTally = []  # type: List[str]
         numArgs = 0
         commandFlag = False
         queryMode = False
@@ -248,20 +262,20 @@ def format_command(command, args, t):
             #  Flag ------------------------------------------------------------
             if flagmatch:
                 if numArgs > 0:
-                    #raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
                     if t.lexer.verbose >= 1:
-                        print('reached a new flag before receiving all necessary args for last flag')
+                        print('reached a new flag before receiving all necessary '
+                              'args for last flag')
                     kwargs[currFlag] = '1'
                     numArgs = 0
-
-                #(numArgs, commandFlag) = flags[ token ]
 
                 # remove dash (-) before flag
                 token = token[1:]
 
-                # a special dict has been creatd to return the new name of flags removed due to name conflicts
+                # a special dict has been created to return the new name of flags
+                # removed due to name conflicts
                 try:
-                    token = Token(cmdInfo['removedFlags'][token], token.type, token.lineno)
+                    token = Token(cmdInfo['removedFlags'][token], token.type,
+                                  token.lineno)
                 except KeyError:
                     pass
 
@@ -273,22 +287,20 @@ def format_command(command, args, t):
                 numArgs = flagInfo['numArgs']
                 commandFlag = 'command' in flagInfo['longname'].lower()
 
-                # print 'new flag', token, numArgs
-
                 if numArgs == 0 or queryMode:
                     kwargs[token] = '1'
                     numArgs = 0
                 else:
                     currFlag = token
 
-                # moved this after the queryMode check, bc sometimes the query flag expects a value other than a boolean
+                # moved this after the queryMode check, bc sometimes the query
+                # flag expects a value other than a boolean
                 if token in ['q', 'query']:
                     queryMode = True
 
             elif numArgs == 1:
                 # callbacks
                 if commandFlag:
-
                     cbParser = MelParser()
                     # print "root module for callback parsing", t.lexer.root_module
                     cbParser.build(rootModule=t.lexer.root_module,
@@ -298,7 +310,6 @@ def format_command(command, args, t):
                                    parentData=t.lexer.raw_parse_data)
 
                     # pre-parse cleanup
-
                     tmpToken = token.strip()
 
                     # remove enclosing parentheses
@@ -331,8 +342,6 @@ def format_command(command, args, t):
                         parts[i] = '$args[%d]' % (int(parts[i]) - 1)
                     tmpToken = ''.join(parts)
 
-                    # print tmpToken
-
                     # parse
                     try:
                         tmpToken = cbParser.parse(tmpToken)
@@ -343,7 +352,7 @@ def format_command(command, args, t):
                         #                        print "-" * 60
                         #                        traceback.print_exc()
                         # print "callback translation failed", msg
-                        token = 'lambda *args: %smel.eval(%s)' % (t.lexer.pymel_namespace, token)
+                        tokenStr = 'lambda *args: %smel.eval(%s)' % (t.lexer.pymel_namespace, token)
                     else:
                         # print tmpToken
 
@@ -360,34 +369,31 @@ def format_command(command, args, t):
                             # turn it into a list, just so we can execute all
                             # statements in a single lambda 'statement'
                             tmpToken = '[%s]' % ', '.join(statements)
-                        token = 'lambda *args: %s' % (tmpToken)
-
-                argTally.append(token)
-                # print 'last flag arg', currFlag, argTally
-                if len(argTally) == 1:
-                    argTally = argTally[0]
+                        tokenStr = 'lambda *args: %s' % (tmpToken)
                 else:
-                    argTally = '(%s)' % ', '.join(argTally)
+                    tokenStr = str(token)
+
+                argTally.append(tokenStr)
+                if len(argTally) == 1:
+                    argTallyVal = argTally[0]
+                else:
+                    argTallyVal = '(%s)' % ', '.join(argTally)
 
                 # mutliuse flag, ex.  ls -type 'mesh' -type 'camera'
                 if currFlag in kwargs:
                     if isinstance(kwargs[currFlag], list):
-                        kwargs[currFlag].append(argTally)
-                        # print "appending kwarg", currFlag, kwargs
+                        kwargs[currFlag].append(argTallyVal)
                     else:
-                        kwargs[currFlag] = [kwargs[currFlag], argTally]
-                        # print "adding kwarg", currFlag, kwargs
+                        kwargs[currFlag] = [kwargs[currFlag], argTallyVal]
                 else:
-                    # print "new kwarg", currFlag, kwargs
-                    kwargs[currFlag] = argTally
+                    kwargs[currFlag] = argTallyVal
 
                 numArgs = 0
                 argTally = []
                 currFlag = None
 
             elif numArgs > 0:
-                argTally.append(token)
-                # print 'adding arg', currFlag, argTally
+                argTally.append(str(token))
                 numArgs -= 1
             else:
                 pargs.append(token)
@@ -399,13 +405,12 @@ def format_command(command, args, t):
             pass
         """
 
-        # print 'final kw list', kwargs
-
         # functions that clash with python keywords and ui functions must use the cmds namespace
         if command in filteredCmds:  # + uiCommands:
             command = '%scmds.%s' % (t.lexer.pymel_namespace, command)
 
-        # eval command is the same as using maya.mel.eval.  special commands: error, warning, and trace
+        # eval command is the same as using maya.mel.eval.
+        # special commands: error, warning, and trace
         elif command == 'eval' or command in melCmdFlagList:
             command = '%smel.%s' % (t.lexer.pymel_namespace, command)
 
@@ -428,20 +433,15 @@ def format_command(command, args, t):
             #    mel:     ls -type "transform" -type "camera"
             #    python:    ls( type=["transform", "camera"] )
             if isinstance(value, list):
-                #sep = ', '
-                # if len(value) > t.lexer.format_options['kwargs_newline_threshhold']:
-                #    sep = ',\n\t'
-                #pargs.append( '%s=[%s]' % ( flag, sep.join(value) )  )
                 value = assemble(t, 'multiuse_flag', ', ', value, matchFormatting=True)
-                pargs.append(Token('%s=[%s]' % (flag, value), None, flag.lineno))
+                pargs.append(
+                    Token('%s=[%s]' % (flag, value), None, flag.lineno))
             else:
-                pargs.append(Token('%s=%s' % (flag, value), None, flag.lineno))
+                pargs.append(
+                    Token('%s=%s' % (flag, value), None, flag.lineno))
 
-        #sep = ', '
-        # if len(pargs) > t.lexer.format_options['args_newline_threshhold']:
-        #    sep = ',\n\t'
-        #res =  '%s(%s)' % (command, sep.join( pargs ) )
-        res = '%s(%s)' % (command, assemble(t, 'command_args', ', ', pargs, matchFormatting=True))
+        res = '%s(%s)' % (command,
+                          assemble(t, 'command_args', ', ', pargs, matchFormatting=True))
         res = t.lexer.pymel_namespace + res
         return res
 
@@ -457,7 +457,8 @@ def format_command(command, args, t):
             formattedSubCmd = format_command(subCmd, args, t)
             return '%s(%s)' % (command, formattedSubCmd)
         except (NameError, AssertionError):
-            print("Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command))
+            print("Error Parsing: Flag %s does not appear in help for command "
+                  "%s. Skipping command formatting" % (key, command))
             return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
 
 
@@ -485,10 +486,8 @@ def merge_assignment_spillover(t, curr_lineno, title=''):
 
             if token.lineno == curr_lineno:
                 result += token
-                # print "adding", title, token[:-1], "(", token.lineno, curr_lineno, t.lexer.lineno, ")"
                 # t.lexer.spillover_pre.pop(0)
             else:
-                # print "skipping", title, token[:-1], "(", token.lineno, curr_lineno, t.lexer.lineno, ")"
                 t.lexer.spillover_pre.append(token)
 
     return result
@@ -518,6 +517,7 @@ def format_assignment_value(val, typ):
 
 
 def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
+    # type: (Any, str, str, Optional[List[Token]], bool) -> str
 
     # print "STARTING", lineno
     res = ''
@@ -540,12 +540,10 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
                     else:
                         res += separator + tok
                 except AttributeError:
-                    # print tokens[i-1], type(tokens[i-1]), tok, type(tok)
                     res += separator + tok
             try:
                 if tok.type:
                     tokType = tok.type
-                    # print 'assembled', funcname, p[i], type
             except:
                 pass
 
@@ -1037,16 +1035,32 @@ proc_remap = {
                                        '-red': "os.rmdir(%(path)s)",
                                        }[x[0]] % {'path': x[-1], 'param': x[-2]})
                                      )[1])
-}
+}  # type: Dict[str, Tuple[str | None, Callable[[List[Token], Any], str]]]
 
 #: mel commands which were not ported to python, but which have flags that need to be translated
 melCmdFlagList = {
-    'error': {'flags': {'showLineNumber': {'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'}}},
-    'warning': {'flags': {'showLineNumber': {'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'}}},
-    'trace': {'flags': {'showLineNumber': {'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'}}}
+    'error': {
+        'flags': {
+            'showLineNumber': {
+                'longname': 'showLineNumber',
+                'numArgs': 1,
+                'shortname': 'sl'}}},
+    'warning': {
+        'flags': {
+            'showLineNumber': {
+                'longname': 'showLineNumber',
+                'numArgs': 1,
+                'shortname': 'sl'}}},
+    'trace': {
+        'flags': {
+            'showLineNumber': {
+                'longname': 'showLineNumber',
+                'numArgs': 1,
+                'shortname': 'sl'}}}
 }
 
-#: mel commands which were not ported to python; if we find one of these in pymel, we'll assume it's a replacement
+#: mel commands which were not ported to python; if we find one of these in
+# pymel, we'll assume it's a replacement
 melCmdList = ['abs', 'angle', 'ceil', 'chdir', 'clamp', 'clear', 'constrainValue', 'cos', 'cross', 'deg_to_rad', 'delrandstr', 'dot', 'env', 'erf', 'error', 'exec', 'exists', 'exp', 'fclose', 'feof', 'fflush', 'fgetline', 'fgetword', 'filetest', 'floor', 'fmod', 'fopen', 'fprint', 'fread', 'frewind', 'fwrite', 'gamma', 'gauss', 'getenv', 'getpid', 'gmatch', 'hermite', 'hsv_to_rgb', 'hypot', 'linstep', 'log', 'mag', 'match', 'max', 'min', 'noise', 'pclose', 'popen', 'pow', 'print', 'putenv', 'pwd', 'rad_to_deg', 'rand', 'randstate', 'rgb_to_hsv', 'rot', 'seed', 'sign', 'sin', 'size', 'sizeBytes', 'smoothstep', 'sort', 'sphrand', 'sqrt', 'strcmp', 'substitute', 'substring', 'system', 'tan', 'tokenize', 'tolower', 'toupper', 'trace', 'trunc', 'unit', 'warning', 'whatIs']
 melCmdList = [x for x in melCmdList if x not in proc_remap and (hasattr(pymel, x) or hasattr(builtin_module, x))]
 
@@ -1055,7 +1069,12 @@ melCmdList = [x for x in melCmdList if x not in proc_remap and (hasattr(pymel, x
 
 class Token(str):
 
+    if TYPE_CHECKING:
+        type = None  # type: str | None
+        lineno = None  # type: int
+
     def __new__(cls, val, type, lineno=None, **kwargs):
+        # type: (str, Optional[str], Optional[int], **Any) -> Token
         self = str.__new__(cls, val)
         self.type = type
         if lineno is None:
@@ -1072,11 +1091,21 @@ class Token(str):
                       if key not in ('val', 'type') and not key.startswith('__'))
         return kwargs
 
+    # FIXME: not python3
     def __getslice__(self, start, end):
-        return type(self)(str.__getslice__(self, start, end), self.type,
+        return type(self)(str(self)[start: end], self.type,
                           **self._getKwargs())
 
+    def __getitem__(self, item):
+        # type: (int | slice) -> Self
+        if isinstance(item, slice):
+            return self.__getslice__(item.start, item.stop)
+        else:
+            return type(self)(str.__getitem__(self, item), self.type,
+                              **self._getKwargs())
+
     def __add__(self, other):
+        # type: (str) -> Token
         newdict = self.__dict__
         try:
             newdict.update(other.__dict__)
@@ -1087,10 +1116,14 @@ class Token(str):
 
 class ArrayToken(Token):
 
+    if TYPE_CHECKING:
+        size = None  # type: int
+
     def __new__(cls, val, type, size, lineno=None, **kwargs):
+        # type: (str, str, int, int | None, **Any) -> ArrayToken
         self = Token.__new__(cls, val, type, lineno=lineno, **kwargs)
-        self.size = size
-        return self
+        self.size = size  # type: ignore[attr-defined]
+        return self  # type: ignore[return-value]
 
 #  BatchData -------------------------------------------------------------------
 
@@ -1117,7 +1150,7 @@ class Comment(object):
     def __init__(self, token):
         if token.type not in ('COMMENT', 'COMMENT_BLOCK'):
             raise TypeError("Non-comment token type: %s" % token.type)
-        self.type = token.type
+        self.type = token.type  # type: Literal['COMMENT', 'COMMENT_BLOCK']
         if token.type == 'COMMENT':
             self.value = token.value[2:]
         else:
@@ -1126,6 +1159,7 @@ class Comment(object):
         self.data = token.lexer.raw_parse_data
 
     def leadingSpace(self):
+        # type: () -> str
         chars = []
         pos = self.pos - 1
         while pos > 0:
@@ -1141,10 +1175,12 @@ class Comment(object):
         return ''.join(chars)
 
     def withLeadingSpace(self):
+        # type: () -> str
         return self.leadingSpace() + self.value
 
     @classmethod
     def join(cls, comments, stripCommonSpace=False):
+        # type: (Comment | List[Comment], bool) -> str
         if isinstance(comments, Comment):
             comments = [comments]
         if stripCommonSpace:
@@ -1155,10 +1191,13 @@ class Comment(object):
         return result
 
     def format(self):
+        # type: () -> str
         if self.type == 'COMMENT':
             return format_singleline_comments(self)
         elif self.type == 'COMMENT_BLOCK':
             return format_multiline_string_comment(self)
+        else:
+            raise TypeError(self.type)
 
 #  Parsing rules ----------------------------------------------------------------
 
@@ -1342,7 +1381,8 @@ def p_declaration_statement(t):
         except AttributeError:
             pass
 
-        # this must occur after the globalVar attribute check, bc otherwise it will convert the Token into a string
+        # this must occur after the globalVar attribute check, bc otherwise it
+        # will convert the Token into a string
         origVar = var
         var = var.strip().strip('[]')
 
@@ -1375,9 +1415,11 @@ def p_declaration_statement(t):
                 if False:
                     t[0] += 'global %s\n' % var
                     if includeGlobalVar(var):
-                        t[0] += "%s = %sgetMelGlobal(%r, %r)\n" % (var, t.lexer.pymel_namespace, iType, var)
+                        t[0] += "%s = %sgetMelGlobal(%r, %r)\n" % \
+                                (var, t.lexer.pymel_namespace, iType, var)
                 else:
-                    t[0] += "%smelGlobals.initVar(%r, %r)\n" % (t.lexer.pymel_namespace, iType, var)
+                    t[0] += "%smelGlobals.initVar(%r, %r)\n" % \
+                            (t.lexer.pymel_namespace, iType, var)
 
             else:
                 t[0] += var + ' = ' + val + '\n'
@@ -1753,7 +1795,9 @@ def p_selection_statement_3(t):
                     lines += block
                 else:
                     conditions.add(condition)
-                    i += 1  # on the next while loop, we will skip this case, because it is now subsumed under the current case
+                    # on the next while loop, we will skip this case, because
+                    # it is now subsumed under the current case
+                    i += 1
 
             else:
                 if hasNonCommentPyCode(block) or lines:
@@ -1768,12 +1812,13 @@ def p_selection_statement_3(t):
 
         i += 1
         conditions.add(mainCondition)
-        conditions = list(conditions)
+        conditionsList = list(conditions)
         block = entabLines(''.join(lines))
-        if len(conditions) > 1:
-            t[0] += '%s %s in (%s):\n%s' % (control, variable, ', '.join(conditions), block)
+        if len(conditionsList) > 1:
+            t[0] += '%s %s in (%s):\n%s' % \
+                    (control, variable, ', '.join(conditionsList), block)
         else:
-            if conditions[0] is None:
+            if conditionsList[0] is None:
                 if not hasNonCommentPyCode(t[0]):
                     standIn = 'if False:\n%s\n' % entabLines('pass')
                     if t[0].strip():
@@ -1784,9 +1829,7 @@ def p_selection_statement_3(t):
                         t[0] = Token(standIn, 'string', t.lexer.lineno)
                 t[0] += 'else:\n%s' % (block)
             else:
-                t[0] += '%s %s == %s:\n%s' % (control, variable, conditions[0], block)
-
-    # print t[0]
+                t[0] += '%s %s == %s:\n%s' % (control, variable, conditionsList[0], block)
 
     t[0] = format_held_comments(t, 'switch') + t[0]
 
@@ -1911,11 +1954,11 @@ def p_iteration_statement_2(t):
 
     """
 
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # for( init_expr; cond_expr; update_expr
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # for( iterator=start; iterator(relop)stop; iterator(+/-=)step )
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
 
     # regular expression for a variable
     var_reg = re.compile(r'[A-Za-z_][\w_]*')
@@ -1943,12 +1986,13 @@ def p_iteration_statement_2(t):
         t[0] = format_held_comments(t, 'for') + t[0]
 
     if len(cond_exprs) == 1 and len(init_exprs) >= 1 and len(update_exprs) >= 1:
-        #---------------------------------------------
+        # ---------------------------------------------
         # Conditional Expression  --> End
-        #---------------------------------------------
+        # ---------------------------------------------
         # the conditional expression becomes the end value of a range() function
-        # there can be only one variable driven by the range expression, so there can be only one coniditional expression
-        end = None
+        # there can be only one variable driven by the range expression, so
+        # there can be only one coniditional expression
+        end = None  # type: Optional[str]
         regex = re.compile(r'\s*(<=|>=|<|>)\s*')
         cond_buf = regex.split(cond_exprs[0])
         try:
@@ -1958,13 +2002,14 @@ def p_iteration_statement_2(t):
 
         cond_vars = set(filter(var_reg.match, cond_buf))
 
-        #---------------------------------------------
+        # ---------------------------------------------
         # Update Expression --> Step
-        #---------------------------------------------
-        # The initialization is optional, so the next most important expression is the update expression.
+        # ---------------------------------------------
+        # The initialization is optional, so the next most important expression
+        # is the update expression.
         iterator = None
-        step = None
-        update_op = None
+        step = None  # type: Optional[str]
+        update_op = None  # type: Optional[str]
         count = 0
         regex = re.compile(r'\s*(\+\+|--|\+=|-=)\s*')
         for expr in update_exprs:
@@ -1973,8 +2018,11 @@ def p_iteration_statement_2(t):
 
             # update_opt:  ++
             try:
-                update_op = update_buf.pop(1)  # this might raise an indexError if the update expression followed the form:  $i = $i+1
-                # find the variables in the update statement, and find which were also present in conditional statement
+                # this might raise an indexError if the update expression
+                # followed the form:  $i = $i+1
+                update_op = update_buf.pop(1)
+                # find the variables in the update statement, and find which
+                # were also present in conditional statement
                 update_vars = filter(var_reg.match, update_buf)
                 iterator = list(cond_vars.intersection(update_vars))
                 # print cond_vars, tmp, iterator
@@ -1993,7 +2041,7 @@ def p_iteration_statement_2(t):
                     step = update_buf[0]
                     end = cond_buf[0]
                     break
-                except:
+                except Exception:
                     iterator = None
 
         if iterator is None:
@@ -2004,19 +2052,22 @@ def p_iteration_statement_2(t):
 
         update_exprs.pop(count)
 
-        # print "iterator:%s, update_op:%s, update_expr:%s, step:%s" % (iterator, update_op, update_exprs, step)
+        assert update_op is not None
 
         # determine the step
         if update_op.startswith('-'):
+            assert step is not None
             step = '-' + step
             if cond_relop == '>=':
+                assert end is not None
                 end = end + '-1'
         elif cond_relop == '<=':
+            assert end is not None
             end = end + '+1'
 
-        #---------------------------------------------
+        # ---------------------------------------------
         # initialization --> start
-        #---------------------------------------------
+        # ---------------------------------------------
         start = None
         init_reg = re.compile(r'\s*=\s*')
 
@@ -2032,12 +2083,12 @@ def p_iteration_statement_2(t):
                 else:
                     start = iterator
 
-        # print "start: %s, end: %s, step: %s" % (start, end, step)
-
         if step == '1':
-            t[0] = 'for %s in range(%s,%s):\n%s' % (iterator, start, end, entabLines(statement_body))
+            t[0] = 'for %s in range(%s,%s):\n%s' % (iterator, start, end,
+                                                    entabLines(statement_body))
         else:
-            t[0] = 'for %s in range(%s,%s,%s):\n%s' % (iterator, start, end, step, entabLines(statement_body))
+            t[0] = 'for %s in range(%s,%s,%s):\n%s' % (iterator, start, end,
+                                                       step, entabLines(statement_body))
 
         if len(update_exprs):
             t[0] += '\n' + entabLines('\n'.join(update_exprs) + '\n')
@@ -3131,8 +3182,6 @@ class MelScanner(object):
         data = data.replace('\r', '\n')
 
         scanner.parse(data, lexer=self.lexer)
-        #translatedStr = simpleParser.parse(data, lexer=self.lexer)
-
         return self.lexer.proc_list, self.lexer.global_procs, self.lexer.local_procs
 
 # profile.run("yacc.yacc(method='''LALR''')")

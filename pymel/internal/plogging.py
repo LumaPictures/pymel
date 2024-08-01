@@ -21,10 +21,13 @@ if PY2:
 else:
     from configparser import ConfigParser
 
-import maya
 import pymel.util as util
-import maya.utils
-from maya.OpenMaya import MGlobal, MEventMessage, MMessage
+
+try:
+    import maya.utils as mayautils
+except ImportError:
+    print("Could not import maya.utils. Are you running outside of maya?")
+    mayautils = None
 
 from pymel.util.decoration import decorator
 
@@ -39,6 +42,7 @@ PYMEL_ERRORLEVEL_ENV_VAR = 'PYMEL_ERRORLEVEL'
 
 
 def _fixMayaOutput():
+    import maya
     if not hasattr(sys.stdout, "flush"):
         def flush(*args, **kwargs):
             pass
@@ -54,7 +58,8 @@ def _fixMayaOutput():
             maya.Output = MayaOutput()
             sys.stdout = maya.Output
 
-_fixMayaOutput()
+if mayautils:
+    _fixMayaOutput()
 
 
 def getConfigFile():
@@ -79,9 +84,10 @@ def getLogConfigFile():
         return configFile
     return getConfigFile()
 
-assert hasattr(maya.utils, 'shellLogHandler'), "If you manually installed pymel, ensure " \
-    "that pymel comes before Maya's site-packages directory on PYTHONPATH / sys.path.  " \
-    "See pymel docs for more info."
+if mayautils:
+    assert hasattr(mayautils, 'shellLogHandler'), "If you manually installed pymel, ensure " \
+        "that pymel comes before Maya's site-packages directory on PYTHONPATH / sys.path.  " \
+        "See pymel docs for more info."
 
 
 #    Like logging.config.fileConfig, but intended only for pymel's loggers,
@@ -182,7 +188,8 @@ def _addOldHandlers(logger, oldHandlers, secName, configParser):
             if handler not in logger.handlers:
                 logger.addHandler(handler)
 
-maya.utils.shellLogHandler()
+if mayautils:
+    mayautils.shellLogHandler()
 
 pymelLogFileConfig(getLogConfigFile())
 
@@ -274,13 +281,14 @@ def timed(level=DEBUG):
 def _setupLevelPreferenceHook():
     """Sets up a callback so that the last used log-level is saved to the user preferences file"""
 
+    import maya.OpenMaya as om
     LOGLEVEL_OPTVAR = 'pymel.logLevel'
 
     # retrieve the preference as a string name, for human readability.
     # we need to use MGlobal because cmds.optionVar might not exist yet
     # TODO : resolve load order for standalone.  i don't think that userPrefs is loaded yet at this point in standalone.
     levelName = os.environ.get(PYMEL_LOGLEVEL_ENV_VAR,
-                               MGlobal.optionVarStringValue(LOGLEVEL_OPTVAR))
+                               om.MGlobal.optionVarStringValue(LOGLEVEL_OPTVAR))
     if levelName:
         level = min(logging.WARNING, nameToLevel(levelName))  # no more than WARNING level
         pymelLogger.setLevel(level)
@@ -297,7 +305,7 @@ def _setupLevelPreferenceHook():
         try:
             # save the preference as a string name, for human readability
             # we need to use MGlobal because cmds.optionVar might not exist yet
-            MGlobal.setOptionVarValue(LOGLEVEL_OPTVAR, levelName)
+            om.MGlobal.setOptionVarValue(LOGLEVEL_OPTVAR, levelName)
         except Exception as e:
             pymelLogger.warning("Log Level could not be saved to the user-prefs ('%s')" % e)
         return ret

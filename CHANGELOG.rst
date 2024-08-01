@@ -5,6 +5,68 @@ What's New
 **********
 
 ==================================
+Version 1.4.0
+==================================
+
+----------------------------------
+Additions
+----------------------------------
+- Added maya-2024 and python 3.10 support
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- Dropped support for maya-2019
+
+==================================
+Version 1.3.1
+==================================
+
+----------------------------------
+Fixes
+----------------------------------
+- Fix issue with `mel2py` in python3 (issue #465)
+
+==================================
+Version 1.3.0
+==================================
+
+----------------------------------
+Additions
+----------------------------------
+- all: Add maya-2023 and python 3.9 support
+- all: Major update to pyi type stubs.
+  Most auto-generated functions & methods now include type info for all arguments,
+  including both short and long variants for functions generated from MEL/`maya.cmds`.
+  The stubs are distributed as part of the pymel package in a PEP 561-compatible way,
+  so that they will be automatically discovered by IDEs and static type analyzers like mypy.
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- dropped support for maya-2018
+
+----------------------------------
+Fixes
+----------------------------------
+- Fix language.Env.host() (issue #460)
+- Do not use 'is' when comparing to string literals (issue #449)
+- Fix bug where maybeConvert returned None for 0 (issue #448)
+- Fix incompatible use of __import__ on python3 (issues #447 and #445)
+
+==================================
+Version 1.2.0
+==================================
+
+----------------------------------
+Additions
+----------------------------------
+- all: Add maya-2022 and python3 support!
+- all: Add support for pip installing pymel, and uploading to pypi
+- api: add support for MPxTransform_BoundingBox
+- Update PLY to 3.11
+
+==================================
 Version 1.1.0
 ==================================
 

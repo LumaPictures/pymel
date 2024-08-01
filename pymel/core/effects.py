@@ -62,7 +62,7 @@ def connectDynamic(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['addScriptHandler', 'ash']:
+    for key in ('addScriptHandler', 'ash'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -105,7 +105,7 @@ def dynPaintEditor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand']:
+    for key in ('cc', 'changeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -135,7 +135,7 @@ def event(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pr', 'proc']:
+    for key in ('pr', 'proc'):
         try:
             cb = kwargs[key]
             if callable(cb):

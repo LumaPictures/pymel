@@ -8,6 +8,7 @@ import maya.OpenMaya as om
 
 import pymel.internal.factories as factories
 
+
 class TestApiEnums(unittest.TestCase):
     def test_apiTypesToApiEnums(self):
         for enumName, enumNum  in factories.apiTypesToApiEnums.items():
@@ -44,3 +45,30 @@ class TestApiEnums(unittest.TestCase):
             rebuilt_apiEnumsToApiTypes[enumNum] = chosenName
         self.assertDictEqual(factories.apiEnumsToApiTypes,
                              rebuilt_apiEnumsToApiTypes)
+
+
+class TestUtils(unittest.TestCase):
+    def test_maybeConvert(self):
+        self.assertEqual(
+            factories.maybeConvert(1, bool),
+            True)
+
+        self.assertEqual(
+            factories.maybeConvert(0, bool),
+            False)
+
+        self.assertEqual(
+            factories.maybeConvert('0', int),
+            0)
+
+        self.assertEqual(
+            factories.maybeConvert('foo', int),
+            'foo')
+
+        self.assertEqual(
+            factories.maybeConvert([0, 1, 2], bool),
+            [False, True, True])
+
+        self.assertEqual(
+            factories.maybeConvert([], bool),
+            [])

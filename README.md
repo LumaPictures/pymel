@@ -16,6 +16,18 @@ Project Goals
 - Provide documentation accessible via html and the builtin `help() function
 - Make it "just work"
 
+Supported Maya Versions
+-----------------------
+
+PyMEL supports four major versions of Maya:
+
+- 2020
+- 2022
+- 2023
+- 2024
+
+See the full [changelog](https://github.com/LumaPictures/pymel/blob/master/CHANGELOG.rst).
+
 Production Proven
 -----------------
 
@@ -75,7 +87,7 @@ MelConversionError: Error occurred during execution of MEL script: line 2: Canno
 Also, getting and setting MEL global variables is as easy as working with a dictionary:
 
 ```python
-print pm.melGlobals['gMainFileMenu']
+print(pm.melGlobals['gMainFileMenu'])
 pm.melGlobals['gGridDisplayGridLinesDefault'] = 2
 ```
 
@@ -99,7 +111,7 @@ s = pm.polySphere()[0]
 if s.visibility.isKeyable() and not s.visibility.isLocked():
     s.visibility.set(True)
     s.visibility.lock()
-    print s.visibility.type()
+    print(s.visibility.type())
 ```
 
 #### File paths
@@ -112,7 +124,7 @@ backupDir = basedir / "backup" #slash op joins paths
 if not backupDir.exists:
     backupDir.mkdir()
 for path in basedir.files('*.mb'):
-    print "backing up: ", path.name
+    print("backing up: ", path.name)
     path.copy(backupDir / (path.namebase + ".old"))
 ```
 
@@ -170,7 +182,7 @@ pm.selected()[0].getShape().inputs()[0].radius.set(3)
 
 For those looking to master python in a production environment, PyMEL is more than a module for Maya scripting, it is a repository of example python code -- a self-contained pipeline demonstrating advanced python concepts like function factories, metaclasses, and decorators, as well as essential production practices such as parsing, pickling, logging, and unit testing.
 
-For those who are already masters of python and who naturally expect more out of a python package, PyMEL is for you, too. It was written for use in production by experiened programmers with a vision for how to add object-oriented design to Maya.
+For those who are already masters of python and who naturally expect more out of a python package, PyMEL is for you, too. It was written for use in production by experienced programmers with a vision for how to add object-oriented design to Maya.
 
 Code Comparison
 ---------------
@@ -224,7 +236,7 @@ objs = cmds.ls(type='transform')
 # returns None when it finds no matches
 if objs is not None:
     for x in objs:
-        print mm.eval('longNameOf("%s")' % x)
+        print(mm.eval('longNameOf("%s")' % x))
 
         # make and break some connections
         cmds.connectAttr('%s.sx' % x,  '%s.sy' % x)
@@ -268,9 +280,9 @@ if objs is not None:
 ```python
 # safe to import into main namespace (but only recommended when scripting interactively)
 from pymel import *
-for x in ls( type='transform'):
+for x in ls(type='transform'):
     # object oriented design
-    print x.longName()
+    print(x.longName())
 
     # make and break some connections
     x.sx.connect(x.sy)
@@ -292,37 +304,60 @@ for x in ls( type='transform'):
     mel.myMelScript(x.type(), trans)
 ```
 
-there's a reason why python is rapidly becoming the industry stanadard. with pymel, python and maya finally play well together.
+With PyMEL, python and maya play well together.
 
 Installation
 ------------
 
-To install, first install `pip` using the `mayapy` interpreter.
+To install, use `pip` with the `mayapy` interpreter.
 
-On MacOS:
+### Installing into Maya's site-packages directory
 
-```
-export PATH=$PATH:/Applications/Autodesk/maya2021/Maya.app/Contents/bin
-curl https://bootstrap.pypa.io/get-pip.py | mayapy
-mayapy -m pip install --pre pymel
-```
+The following commands will install PyMEL into the site-packages of the Maya application directory:
 
-On Linux:
+#### On MacOS:
 
 ```
-export PATH=$PATH:/usr/autodesk/maya2021/bin
-curl https://bootstrap.pypa.io/get-pip.py | mayapy
-mayapy -m pip install --pre pymel
+/Applications/Autodesk/maya<Version>/Maya.app/Contents/bin/mayapy -m pip install pymel
 ```
 
-Unless your user account has write privileges to the Maya installation directory,
-`pip` should automatically install `pymel` into your user site-packages directory.
-To see where it was installed you can run:
+#### On Linux:
+```
+sudo /usr/autodesk/maya<Version>/bin/mayapy -m pip install pymel
+```
+
+#### On Windows:
+
+(from a command window running as Administrator)
+
+```
+/Applications/Autodesk/maya<Version>/Maya.app/Contents/bin/mayapy -m pip install pymel
+```
+
+### Installing into your user's site-packages directory
+
+If you do not have permissions to install into Maya's site-packages, you can
+install into your user site-packages by adding the `--user` flag, e.g.
+
+```
+/usr/autodesk/maya<Version>/bin/mayapy -m pip install pymel --user
+```
+
+To see where `pymel` was installed you can run:
 
 ```
 mayapy -c "import pymel;print(pymel.__file__)"
-``` 
+```
+
+### Caveats
+
+Older versions of Maya (2021 and earlier) may require installing `pip` before running `pip install`:
+
+On Linux and Mac:
+```
+curl https://bootstrap.pypa.io/get-pip.py | /usr/autodesk/maya2021/bin/mayapy
+```
 
 ---
 
-Pymel is developed and maintained by [Luma Pictures](http://www.lumapictures.com).
+PyMEL is developed and maintained by [Luma Pictures](http://www.lumapictures.com).

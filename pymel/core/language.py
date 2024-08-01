@@ -11,8 +11,6 @@ from past.builtins import basestring
 from builtins import object
 from future.utils import PY2
 
-import collections
-
 # 2to3: remove switch when python-3 only
 try:
     from collections.abc import Mapping, MutableMapping
@@ -363,10 +361,12 @@ class MelGlobals(MutableMapping, _Parent):
     VALID_TYPES = MELTYPES
 
     def __iter__(self):
+        # type: () -> Iterable[str]
         for varName in mel.env():
             yield varName
 
     def __len__(self):
+        # type: () -> int
         return len(mel.env())
 
     def __getitem__(self, variable):
@@ -516,7 +516,8 @@ class MelGlobals(MutableMapping, _Parent):
             array = False
             proc_name = 'pymel_get_global_' + type
         declaration = cls._get_decl_statement(type, variable)
-        cmd = "global proc %s %s() { %s; return %s; } %s();" % (type, proc_name, declaration, variable, proc_name)
+        cmd = "global proc %s %s() { %s; return %s; } %s();" % \
+              (type, proc_name, declaration, variable, proc_name)
         # print cmd
         res = _mm.eval(cmd)
         if array:
@@ -564,7 +565,7 @@ class MelGlobals(MutableMapping, _Parent):
         return mel.env()
 
 
-melGlobals = MelGlobals()
+melGlobals = MelGlobals()  # type: MelGlobals  # this annotation is here for stubgen
 
 
 # for backward compatibility
@@ -605,7 +606,7 @@ class Catch(object):
         Catch.success = None
 
 
-catch = Catch()
+catch = Catch()  # type: Catch  # this annotation is here for stubgen
 
 
 class OptionVarList(tuple):
@@ -672,13 +673,16 @@ class OptionVarDict(MutableMapping):
     # use more efficient method provided by cmds.optionVar
     # (or at least, I hope it's more efficient...)
     def __contains__(self, key):
+        # type: (str) -> bool
         return bool(cmds.optionVar(exists=key))
 
     # not provided by MutableMapping
     def has_key(self, key):
+        # type: (str) -> bool
         return self.__contains__(key)
 
     def __getitem__(self, key):
+        # type: (str) -> Any
         if key not in self:
             raise KeyError(key)
         val = cmds.optionVar(q=key)
@@ -687,6 +691,7 @@ class OptionVarDict(MutableMapping):
         return val
 
     def __setitem__(self, key, val):
+        # type: (str, Any) -> None
         if isinstance(val, basestring):
             return cmds.optionVar(stringValue=[key, val])
         if isinstance(val, (int, bool, int)):
@@ -704,43 +709,51 @@ class OptionVarDict(MutableMapping):
             elif issubclass(listType, float):
                 flag = 'floatValue'
             else:
-                raise TypeError('%r is unsupported; Only strings, ints, float, lists, and their subclasses are supported' % listType)
+                raise TypeError(
+                    '%r is unsupported; Only strings, ints, float, '
+                    'lists, and their subclasses are supported' % listType)
 
             cmds.optionVar(**{flag: [key, val[0]]})  # force to this datatype
             flag += "Append"
             for elem in val[1:]:
                 if not isinstance(elem, listType):
-                    raise TypeError('all elements in list must be of the same datatype')
+                    raise TypeError('all elements in list must be of the '
+                                    'same datatype')
                 cmds.optionVar(**{flag: [key, elem]})
 
     def keys(self):
+        # type: () -> List[str]
         return cmds.optionVar(list=True)
 
     def pop(self, key):
+        # type: (str) -> Any
         val = cmds.optionVar(q=key)
         cmds.optionVar(remove=key)
         return val
 
     def __delitem__(self, key):
+        # type: (str) -> None
         self.pop(key)
 
     def iterkeys(self):
+        # type: () -> Iterator[str]
         for key in self.keys():
             yield key
     __iter__ = iterkeys
 
     def __len__(self):
+        # type: () -> int
         return len(self.keys())
 
 
-optionVar = OptionVarDict()
+optionVar = OptionVarDict()  # type: OptionVarDict  # this annotation is here for stubgen
 
 
 class Env(object):
 
     """ A Singleton class to represent Maya current optionVars and settings """
 
-    optionVars = OptionVarDict()
+    optionVars = OptionVarDict()  # type: OptionVarDict  # this annotation is here for stubgen
     # grid = Grid()
     # playbackOptions = PlaybackOptions()
 
@@ -749,6 +762,7 @@ class Env(object):
     envVars = os.environ
 
     def setConstructionHistory(self, state):
+        # type: (bool) -> None
         cmds.constructionHistory(tgl=state)
 
     def getConstructionHistory(self):
@@ -768,12 +782,16 @@ class Env(object):
         return cmds.upAxis(q=True, axis=True)
 
     def user(self):
+        # type: () -> str
         return _getuser()
 
     def host(self):
-        return _gethostname()
+        # type: () -> str
+        import socket
+        return socket.getfqdn()
 
     def getTime(self):
+        # type: () -> float
         return cmds.currentTime(q=1)
 
     def setTime(self, val):
@@ -781,38 +799,48 @@ class Env(object):
     time = property(getTime, setTime)
 
     def getMinTime(self):
+        # type: () -> float
         return cmds.playbackOptions(q=1, minTime=1)
 
     def setMinTime(self, val):
+        # type: (SupportsFloat) -> None
         cmds.playbackOptions(minTime=val)
     minTime = property(getMinTime, setMinTime)
 
     def getMaxTime(self):
+        # type: () -> float
         return cmds.playbackOptions(q=1, maxTime=1)
 
     def setMaxTime(self, val):
+        # type: (SupportsFloat) -> None
         cmds.playbackOptions(maxTime=val)
     maxTime = property(getMaxTime, setMaxTime)
 
     def getAnimStartTime(self):
+        # type: () -> float
         return cmds.playbackOptions(q=1, animationStartTime=1)
 
     def setAnimStartTime(self, val):
+        # type: (SupportsFloat) -> None
         cmds.playbackOptions(animationStartTime=val)
     animStartTime = property(getAnimStartTime, setAnimStartTime)
 
     def getAnimEndTime(self):
+        # type: () -> float
         return cmds.playbackOptions(q=1, animationEndTime=1)
 
     def setAnimEndTime(self, val):
+        # type: (SupportsFloat) -> None
         cmds.playbackOptions(animationEndTime=val)
     animEndTime = property(getAnimEndTime, setAnimEndTime)
 
     def getPlaybackTimes(self):
+        # type: () -> Tuple[float, float, float, float]
         return (self.animStartTime, self.minTime, self.maxTime,
                 self.animEndTime)
 
     def setPlaybackTimes(self, playbackTimes):
+        # type: (Tuple[SupportsFloat, SupportsFloat, SupportsFloat, SupportsFloat]) -> None
         if len(playbackTimes) != 4:
             raise ValueError("must have 4 playback times")
         self.animStartTime = playbackTimes[0]
@@ -821,7 +849,7 @@ class Env(object):
         self.animEndTime = playbackTimes[3]
     playbackTimes = property(getPlaybackTimes, setPlaybackTimes)
 
-env = Env()
+env = Env()  # type: Env  # this annotation is here for stubgen
 
 
 # -------------------------
@@ -869,12 +897,14 @@ class MelCallable(object):
     """
 
     def __init__(self, head, name):
+        # type: (str, str) -> None
         if head:
             self.full_name = '%s.%s' % (head, name)
         else:
             self.full_name = name
 
     def __getattr__(self, command):
+        # type: (str) -> MelCallable
         if command.startswith('__') and command.endswith('__'):
             try:
                 return self.__dict__[command]
@@ -886,6 +916,7 @@ class MelCallable(object):
     def __call__(self, *args, **kwargs):
         cmd = pythonToMelCmd(self.full_name, *args, **kwargs)
         return Mel._eval(cmd, self.full_name)
+
 
 # PY2: when we convert, remove the "#doctest: +IGNORE_EXCEPTION_DETAIL" bits
 # They're needed, because in python 2, we get exceptions with no module:
@@ -1016,6 +1047,7 @@ class Mel(object):
     proc = None
 
     def __getattr__(self, command):
+        # type: (str) -> MelCallable
         if command.startswith('__') and command.endswith('__'):
             try:
                 return self.__dict__[command]
@@ -1067,6 +1099,7 @@ class Mel(object):
 
     @classmethod
     def eval(cls, cmd):
+        # type: (str) -> Any
         """
         evaluate a string as a mel command and return the result.
 
@@ -1105,8 +1138,10 @@ class Mel(object):
                     errors += [nativeMsg]
 
         # setup the callback:
-        # assigning ids to a list avoids the swig memory leak warning, which would scare a lot of people even though
-        # it is harmless.  hoping we get a real solution to this so that we don't have to needlessly accumulate this data
+        # assigning ids to a list avoids the swig memory leak warning, which
+        # would scare a lot of people even though it is harmless.  hoping we
+        # get a real solution to this so that we don't have to needlessly
+        # accumulate this data
         id = _api.MCommandMessage.addCommandOutputCallback(errorCallback, None)
 
         try:
@@ -1200,7 +1235,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        _mm.eval( """error %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval("""error %s %s""" % (flags, pythonToMel(msg)))
 
     @staticmethod
     def warning(msg, showLineNumber=False):
@@ -1208,7 +1243,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        _mm.eval( """warning %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval("""warning %s %s""" % (flags, pythonToMel(msg)))
 
     @staticmethod
     def trace(msg, showLineNumber=False):
@@ -1216,7 +1251,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        _mm.eval( """trace %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval("""trace %s %s""" % (flags, pythonToMel(msg)))
 
     @staticmethod
     def tokenize(*args):
@@ -1228,7 +1263,7 @@ class Mel(object):
     globals = melGlobals
 
 
-mel = Mel()
+mel = Mel()  # type: Mel  # this annotation is here for stubgen
 
 
 def conditionExists(conditionName):
@@ -1271,7 +1306,7 @@ def scriptJob(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['idleEvent', 'ie', 'tc', 'timeChange']:
+    for key in ('idleEvent', 'ie', 'tc', 'timeChange'):
         try:
             cb = kwargs[key]
             if callable(cb):

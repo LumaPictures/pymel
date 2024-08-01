@@ -42,12 +42,40 @@ else:
 TYPE_CHECKING = False
 
 if TYPE_CHECKING:
-    from typing import *
+    from typing import Any, Callable, Dict, Iterable, Iterator, List, Pattern, Sequence, Tuple, Type, TypeVar, Union, overload
+    from typing_extensions import Literal, TypeGuard
     import pymel.core.nodetypes as nodetypes
     import pymel.core.nodetypes as nt
     import pymel.core.other as other
     from maya import cmds
     import maya.OpenMaya as _api
+    T = TypeVar('T')
+    DependNodeT = TypeVar('DependNodeT', bound=nodetypes.DependNode)
+    DependNodeT1 = TypeVar('DependNodeT1', bound=nodetypes.DependNode)
+    DependNodeT2 = TypeVar('DependNodeT2', bound=nodetypes.DependNode)
+    DependNodeT3 = TypeVar('DependNodeT3', bound=nodetypes.DependNode)
+    DagNodeT = TypeVar('DagNodeT', bound=nodetypes.DagNode)
+    ShapeT = TypeVar('ShapeT', bound=nodetypes.Shape)
+    TransformT = TypeVar('TransformT', bound=nodetypes.Transform)
+
+    PatternTypes = Union[str, Pattern, List[Union[str, Pattern]]]
+    SelectableTypes = nodetypes.DependNode  # Union[nodetypes.DependNode, Attribute, Component]
+    EnumArgTypes = Union[
+        Dict[str, int],
+        Dict[int, str],
+        _util.EnumDict,
+        str,
+    ]
+    TypeArgTypes = Union[
+        str,
+        Type[nodetypes.DependNode],
+        Tuple[Union[str, Type[nodetypes.DependNode]], ...],
+    ]
+    LimitedTypeArgTypes = Union[
+        str,
+        Iterable[Union[str, Type[nodetypes.DependNode]]]
+    ]
+
 else:
     import pymel.api as _api
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
@@ -166,6 +194,23 @@ def _getPymelType(arg, name):
 # Docs state 'If there is only a single object specified then the selected objects are parented to that object. '
 # ...but actual behavior is to parent the named object (and any other selected objects) to the last selected object
 
+if TYPE_CHECKING:
+    @overload
+    def objectType(arg, isAType):
+        # type: (Any, Type[T]) -> TypeGuard[T]
+        pass
+
+    @overload
+    def objectType(arg, isType):
+        # type: (Any, Type[T]) -> TypeGuard[T]
+        pass
+
+    @overload
+    def objectType(*args, **kwargs):
+        pass
+else:
+    objectType = _factories.getCmdFunc('objectType')
+
 # ----------------------
 #  Object Manipulation
 # ----------------------
@@ -272,6 +317,7 @@ def connectAttr(source, destination, **kwargs):
 @_factories.addCmdDocs
 def disconnectAttr(source, destination=None, inputs=None, outputs=None,
                    **kwargs):
+    # type: (Union[str, Attribute], Union[str, Attribute, None], Optional[bool], Optional[bool], Any) -> None
     """
     Modifications:
       - If no destination is passed, then all inputs will be disconnected if inputs
@@ -580,7 +626,8 @@ def setAttr(attr, *args, **kwargs):
                 if force and not cmds.objExists(attr):  # attr.exists():
                     import pymel.util.nameparse as nameparse
                     attrName = nameparse.parse(attr)
-                    assert attrName.isAttributeName(), "passed object is not an attribute"
+                    assert attrName.isAttributeName(), \
+                        "passed object is not an attribute"
                     if isinstance(arg, basestring):
                         addAttr(attrName.nodePath, ln=attrName.attribute,
                                 dt='string')
@@ -640,6 +687,11 @@ def setAttr(attr, *args, **kwargs):
         else:
             # re-raise
             raise
+
+@overload
+def addAttr(args, type=Ellipsis, childSuffixes=Ellipsis, enumName=Ellipsis, **kwargs):
+    # type: (*Any, Union[str, Type], Sequence[str],EnumArgTypes, **Any) -> Any
+    pass
 
 
 @_factories.addCmdDocs
@@ -902,6 +954,7 @@ def hasAttr(pyObj, attr, checkShape=True):
 # ----------------------
 
 def _toEnumStr(enums):
+    # type: (EnumArgTypes) -> str
     if isinstance(enums, dict):
         firstKey = next(iter(enums.keys()))
         firstVal = next(iter(enums.values()))
@@ -983,24 +1036,80 @@ def getEnums(attr):
 #    """
 #    return _util.listForNone(cmds.listAttr(*args, **kwargs))
 
+# connections=True, plugs=True
+# `type` has no affect on result type -> List[Attribute, Attribute]
 @overload
-def listConnections(arg, connections=True, plugs=True, **kwargs):
-    # type: (Any, Literal[True], Literal[True], **Any) -> List[Tuple[Attribute, Attribute]]
+def listConnections(args, connections=True, plugs=True, sourceFirst=Ellipsis, type=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[True], bool, TypeArgTypes, **Any) -> List[Tuple[Attribute, Attribute]]
     pass
 
+# type arg is only honored if shapes=True, otherwise, shapes are returned as xforms.
+# connections=True, shapes=True, type=TypeT -> List[Attribute, TypeT]
 @overload
-def listConnections(arg, connections=True, **kwargs):
-    # type: (Any, Literal[True], **Any) -> List[Tuple[Attribute, PyNode]]
+def listConnections(args, connections=True, shapes=True, type=None, plugs=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[True], Type[DependNodeT], Literal[False],**Any) -> List[Tuple[Attribute, DependNodeT]]
     pass
 
+# connections=True, shapes=True, type=LimitedTypeArgTypes -> List[Attribute, DependNode]
 @overload
-def listConnections(arg, plugs=True, **kwargs):
-    # type: (Any, Literal[True], *Any) -> List[Attribute]
+def listConnections(args, connections=True, shapes=True, type=None, plugs=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[True], LimitedTypeArgTypes, Literal[False],**Any) -> List[Tuple[Attribute, nodetypes.DependNode]]
     pass
 
+# connections=True, type=Type[Shape] -> List[Attribute, Transform]
 @overload
-def listConnections(arg, **kwargs):
-    # type: (Any, *Any) -> List[PyNode]
+def listConnections(args, connections=True, shapes=Ellipsis, plugs=Ellipsis, type=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[False], Literal[False], Type[nodetypes.Shape], **Any) -> List[Tuple[Attribute, nodetypes.Transform]]
+    pass
+
+# connections=True, type=Type[TransformT] -> List[Attribute, TransformT]
+@overload
+def listConnections(args, connections=True, shapes=Ellipsis, plugs=Ellipsis, type=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[False], Literal[False], Type[TransformT], **Any) -> List[Tuple[Attribute, TransformT]]
+    pass
+
+# connections=True, type=LimitedTypeArgTypes -> List[Attribute, DependNode]
+@overload
+def listConnections(args, connections=True, shapes=Ellipsis, plugs=Ellipsis, type=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[False], Literal[False], LimitedTypeArgTypes, **Any) -> List[Tuple[Attribute, nodetypes.DependNode]]
+    pass
+
+# plugs=True -> List[Attribute]
+# `type` has no affect on result type
+@overload
+def listConnections(args, plugs=True, connections=Ellipsis, type=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[False], TypeArgTypes, *Any) -> List[Attribute]
+    pass
+
+# type arg is only honored if shapes=True, otherwise, shapes are returned as xforms.
+# type=TypeT, shapes=True -> List[TypeT]
+@overload
+def listConnections(args, type=None, shapes=True, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+    # type: (Any, Type[DependNodeT], Literal[True], Literal[False], Literal[False], *Any) -> List[DependNodeT]
+    pass
+
+# type=Type[Shape] -> List[Transform]
+@overload
+def listConnections(args, type=None, shapes=Ellipsis, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+    # type: (Any, Type[nodetypes.Shape], Literal[False], Literal[False], Literal[False], *Any) -> List[nodetypes.Transform]
+    pass
+
+# type=Type[TransformT] -> List[TransformT]
+@overload
+def listConnections(args, type=None, shapes=Ellipsis, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+    # type: (Any, Type[TransformT], Literal[False], Literal[False], Literal[False], *Any) -> List[TransformT]
+    pass
+
+# type=Type[DependNode] -> List[DependNode]
+@overload
+def listConnections(args, type=None, shapes=Ellipsis, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+    # type: (Any, Type[nodetypes.DependNode], Literal[False], Literal[False], Literal[False], *Any) -> List[nodetypes.DependNode]
+    pass
+
+# uninspectable type
+@overload
+def listConnections(args, type=Ellipsis, **kwargs):
+    # type: (Any, LimitedTypeArgTypes, **Any) -> List[nodetypes.DependNode]
     pass
 
 @_factories.addCmdDocs
@@ -1047,7 +1156,8 @@ def listConnections(*args, **kwargs):
             return []
         return [(CastObj(a), CastObj(b)) for (a, b) in _util.pairIter(l)]
 
-    # group the core functionality into a funcion, so we can call in a loop when passed a list of types
+    # group the core functionality into a function, so we can call in a loop when
+    # passed a list of types
     def doIt(**kwargs):
         if kwargs.get('connections', kwargs.get('c', False)):
 
@@ -1055,12 +1165,13 @@ def listConnections(*args, **kwargs):
                 source = kwargs.get('source', kwargs.get('s', True))
                 dest = kwargs.get('destination', kwargs.get('d', True))
 
+                # any call where source=True (default) we should flip the order
                 if source:
                     if not dest:
                         return [(s, d) for d, s in makePairs(
                             cmds.listConnections(*args, **kwargs))]
                     else:
-                        res = []
+                        # first get the sources, flipping source and dest
                         kwargs.pop('destination', None)
                         kwargs['d'] = False
                         res = [(s, d) for d, s in makePairs(
@@ -1097,6 +1208,16 @@ def listConnections(*args, **kwargs):
         return doIt(**kwargs)
 
 
+@overload
+def listHistory(args, type=None, exactType=Ellipsis, **kwargs):
+    # type: (Any, Type[DependNodeT], Optional[str], *Any) -> List[DependNodeT]
+    pass
+
+@overload
+def listHistory(args, type=Ellipsis, exactType=Ellipsis, **kwargs):
+    # type: (*Any, Optional[str], Optional[str], **Any) -> List[nodetypes.DependNode]
+    pass
+
 @_factories.addCmdDocs
 def listHistory(*args, **kwargs):
     # type: (*Any, **Any) -> List[nodetypes.DependNode]
@@ -1113,13 +1234,14 @@ def listHistory(*args, **kwargs):
     -------
     List[nodetypes.DependNode]
     """
-    args = tuple(None if isinstance(x, (list, tuple, set, frozenset)) and not x
-                 else x for x in args)
     type = exactType = None
     if 'type' in kwargs:
         type = kwargs.pop('type')
     if 'exactType' in kwargs:
         exactType = kwargs.pop('exactType')
+
+    args = tuple(None if isinstance(x, (list, tuple, set, frozenset)) and not x
+                 else x for x in args)
 
     results = [PyNode(x) for x in _util.listForNone(cmds.listHistory(*args, **kwargs))]
 
@@ -1131,6 +1253,20 @@ def listHistory(*args, **kwargs):
     return results
 
 
+@overload
+@_factories.addMelDocs('listHistory', excludeFlags=['future'])
+def listFuture(args, type=None, exactType=Ellipsis, **kwargs):
+    # type: (Any, Type[DependNodeT], Optional[str], *Any) -> List[DependNodeT]
+    pass
+
+@overload
+@_factories.addMelDocs('listHistory', excludeFlags=['future'])
+def listFuture(args, type=Ellipsis, exactType=Ellipsis, **kwargs):
+    # type: (*Any, Optional[str], Optional[str], **Any) -> List[nodetypes.DependNode]
+    pass
+
+# This could be created using functools.partial to preserve type annotations
+@_factories.addMelDocs('listHistory', excludeFlags=['future'])
 def listFuture(*args, **kwargs):
     # type: (*Any, **Any) -> List[nodetypes.DependNode]
     """
@@ -1148,9 +1284,24 @@ def listFuture(*args, **kwargs):
     return listHistory(*args, **kwargs)
 
 
+@overload
+def listRelatives(args, type=None, **kwargs):
+    # type: (*Any, Type[DagNodeT], **Any) -> List[DagNodeT]
+    pass
+
+@overload
+def listRelatives(args, shapes=True, **kwargs):
+    # type: (*Any, Literal[True], **Any) -> List[nodetypes.Shape]
+    pass
+
+@overload
+def listRelatives(args, type=Ellipsis, **kwargs):
+    # type: (*Any, Union[str, Iterable[Union[str, Type[nodetypes.DagNode]]]], **Any) -> List[nodetypes.DagNode]
+    pass
+
 @_factories.addCmdDocs
 def listRelatives(*args, **kwargs):
-    # type: (*Any, **Any) -> List[nodetypes.DependNode]
+    # type: (*Any, **Any) -> List[nodetypes.DagNode]
     """
     Maya Bug Fix:
       - allDescendents and shapes flags did not work in combination
@@ -1192,6 +1343,82 @@ def listRelatives(*args, **kwargs):
         return [result for result in results if not result.intermediateObject.get()]
     return results
 
+# type=Type
+@overload
+def ls(args, type=None, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Type[DependNodeT], bool, PatternTypes, **Any) -> List[DependNodeT]
+    pass
+
+# type=(Type1, Type2)
+@overload
+def ls(args, type=None, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Tuple[Type[DependNodeT1], Type[DependNodeT2]], bool, PatternTypes, **Any) -> List[Union[DependNodeT1, DependNodeT2]]
+    pass
+
+# exactType=Type
+@overload
+def ls(args, exactType=None, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Type[DependNodeT], bool, PatternTypes, **Any) -> List[DependNodeT]
+    pass
+
+@overload
+def ls(args, textures=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.DependNode]
+    pass
+
+@overload
+def ls(args, references=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.Reference]
+    pass
+
+@overload
+def ls(args, cameras=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.Camera]
+    pass
+
+@overload
+def ls(args, assemblies=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.Transform]
+    pass
+
+@overload
+def ls(args, transforms=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.Transform]
+    pass
+
+@overload
+def ls(args, shapes=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.Shape]
+    pass
+
+@overload
+def ls(args, dag=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.DagNode]
+    pass
+
+# when specifying types arg, the result will never be a Component
+@overload
+def ls(args, type=None, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, LimitedTypeArgTypes, bool, PatternTypes, **Any) -> List[nodetypes.DependNode]
+    pass
+
+# selected=True, objectOnly=True: result will not be a Component
+@overload
+def ls(args, selection=True, objectsOnly=True, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[True], bool, PatternTypes, **Any) -> List[nodetypes.DependNode]
+    pass
+
+# selected=True: result may be a Component
+@overload
+def ls(args, selection=True, objectsOnly=Ellipsis, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[True], Literal[False], bool, PatternTypes, **Any) -> List[SelectableTypes]
+    pass
+
+# selected omitted or False: result will not be a Component
+@overload
+def ls(args, selection=Ellipsis, editable=Ellipsis, regex=Ellipsis, **kwargs):
+    # type: (Any, Literal[False], bool, PatternTypes, **Any) -> List[nodetypes.DependNode]
+    pass
 
 @_factories.addCmdDocs
 def ls(*args, **kwargs):
@@ -1383,7 +1610,7 @@ def listTransforms(*args, **kwargs):
 
 @_factories.addCmdDocs
 def listSets(*args, **kwargs):
-    # type: (*Any, **Any) -> List[PyNode]
+    # type: (*Any, **Any) -> List[nodetypes.ObjectSet]
     """
     Modifications:
       - returns wrapped classes
@@ -1458,6 +1685,7 @@ def nodeType(node, **kwargs):
 
 @_factories.addCmdDocs
 def group(*args, **kwargs):
+    # type: (*Any, **Any) -> nodetypes.Transform
     """
     Modifications
       - if no objects are passed or selected, the empty flag is automatically set
@@ -1733,6 +1961,20 @@ class NodeTracker(object):
     def __exit__(self, exctype, excval, exctb):
         self.endTrack()
 
+@overload
+def duplicate(arg, **kwargs):
+    # type: (DependNodeT, **Any) -> List[DependNodeT]
+    pass
+
+@overload
+def duplicate(arg, **kwargs):
+    # type: (Iterable[DependNodeT], **Any) -> List[DependNodeT]
+    pass
+
+@overload
+def duplicate(*args, **kwargs):
+    # type: (*Any, **Any) -> List[nodetypes.DependNode]
+    pass
 
 @_factories.addCmdDocs
 def duplicate(*args, **kwargs):
@@ -1973,6 +2215,7 @@ Modifications:
 
 @_factories.addCmdDocs
 def rename(obj, newname, **kwargs):
+    # type: (Union[str, nodetypes.DependNode], str, **Any) -> nodetypes.DependNode
     """
 Modifications:
     - if the full path to an object is passed as the new name, the shortname of the object will automatically be used
@@ -1988,8 +2231,19 @@ Modifications:
     return PyNode(cmds.rename(obj, newname, **kwargs))
 
 
+@overload
+def createNode(arg, **kwargs):
+    # type: (Type[DependNodeT], **Any) -> DependNodeT
+    pass
+
+@overload
+def createNode(*args, **kwargs):
+    # type: (*Any, **Any) -> nodetypes.DependNode
+    pass
+
 @_factories.addCmdDocs
 def createNode(*args, **kwargs):
+    # type: (*Any, **Any) -> nodetypes.DependNode
     res = cmds.createNode(*args, **kwargs)
     # createNode can sometimes return None, if the shared=True and name= an object that already exists
     if res:
@@ -2144,6 +2398,7 @@ Modifications:
 
 @_factories.addCmdDocs
 def getClassification(*args, **kwargs):
+    # type: (*Any, **Any) -> List[str]
     """
 Modifications:
   - previously returned a list with a single colon-separated string of classifications. now returns a list of classifications
@@ -2168,6 +2423,7 @@ Modifications:
 # -------------------------
 
 def uniqueObjExists(name):
+    # type: (Union[str, PyNode]) -> bool
     '''
     Returns True if name uniquely describes an object in the scene.
     '''
@@ -2225,7 +2481,8 @@ def instancer(*args, **kwargs):
     else:
         instancers = cmds.ls(type='instancer')
         cmds.instancer(*args, **kwargs)
-        return PyNode(list(set(cmds.ls(type='instancer')).difference(instancers))[0], 'instancer')
+        return PyNode(list(set(
+            cmds.ls(type='instancer')).difference(instancers))[0], 'instancer')
 
 
 # -------------------------
@@ -2856,7 +3113,7 @@ class PyNode(_util.ProxyUnicode):
         return other.NameParser(self).addPrefix(prefix)
 
     def exists(self, **kwargs):
-        "objExists"
+        """objExists"""
         try:
             # use __apimobject__, not __apiobject__, because that's the one
             # that calls _api.isValidMObjectHandle (ie, we don't want to get
@@ -2897,17 +3154,17 @@ class PyNode(_util.ProxyUnicode):
         '''
         return listSets(o=self, *args, **kwargs)
 
-    listConnections = listConnections
-
     connections = listConnections
 
-    listHistory = listHistory
+    listConnections = listConnections
 
     history = listHistory
 
-    listFuture = listFuture
+    listHistory = listHistory
 
     future = listFuture
+
+    listFuture = listFuture
 
 # This was supposed to be removed in the 1.0 update, but somehow got left out...
 deprecated_str_methods = ['__getitem__']
@@ -3206,15 +3463,11 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
                 indices = index
             for i in indices:
                 cmds.removeMultiInstance(self[i], b=break_)
+
     __delitem__ = removeMultiInstance
 
     def attr(self, attr):
-        # type: (Any) -> Attribute
-        """
-        Returns
-        -------
-        Attribute
-        """
+        # type: (str) -> Attribute
         node = self.node()
         try:
             plug = self.__apimplug__()
@@ -3230,15 +3483,18 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             raise MayaAttributeError('%s.%s' % (self, attr))
 
     def __getattr__(self, attr):
+        # type: (str) -> Attribute
         try:
             return self.attr(attr)
         except MayaAttributeError:
             raise AttributeError("%r has no attribute or method named '%s'" %
                                  (self, attr))
+
     # Added the __call__ so to generate a more appropriate exception when a
     # class method is not found
     def __call__(self, *args, **kwargs):
-        raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
+        raise TypeError("The object <%s> does not support the '%s' method" %
+                        (repr(self.node()), self.plugAttr()))
 
     # Need an iterator which is NOT self, so that we can have independent
     # iterators - ie, so if we do:
@@ -3248,6 +3504,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     # and not
     #     ( (self[0], self[1]), (self[2], self[3]), (self[4], self[5]) ... )
     def __iter__(self):
+        # type: () -> Iterator[Attribute]
         """
         iterator for multi-attributes
 
@@ -3369,7 +3626,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
     def name(self, includeNode=True, longName=True, fullAttrPath=False,
              fullDagPath=False, placeHolderIndices=True):
-        # type: (Any, Any, Any, Any, Any) -> str
+        # type: (bool, bool, bool, bool, bool) -> str
         """
         Returns the name of the attribute (plug)
 
@@ -3394,10 +3651,6 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             'persp.instObjGroups[-1].objectGroups'
             >>> og.name(placeHolderIndices=False)
             'persp.instObjGroups.objectGroups'
-
-        Returns
-        -------
-        str
         """
 
         obj = self.__apimplug__()
@@ -3441,7 +3694,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     node = plugNode
 
     def plugAttr(self, longName=False, fullPath=False):
-        # type: (Any, Any) -> str
+        # type: (bool, bool) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3451,17 +3704,13 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             't.tx'
             >>> at.plugAttr(longName=True, fullPath=True)
             'translate.translateX'
-
-        Returns
-        -------
-        str
         """
         return self.name(includeNode=False,
                          longName=longName,
                          fullAttrPath=fullPath)
 
     def lastPlugAttr(self, longName=False):
-        # type: (Any) -> str
+        # type: (bool) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3469,17 +3718,13 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             'tx'
             >>> at.lastPlugAttr(longName=True)
             'translateX'
-
-        Returns
-        -------
-        str
         """
         return self.name(includeNode=False,
                          longName=longName,
                          fullAttrPath=False)
 
     def longName(self, fullPath=False):
-        # type: (Any) -> str
+        # type: (bool) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3487,17 +3732,13 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             'translateX'
             >>> at.longName(fullPath=True)
             'translate.translateX'
-
-        Returns
-        -------
-        str
         """
         return self.name(includeNode=False,
                          longName=True,
                          fullAttrPath=fullPath)
 
     def shortName(self, fullPath=False):
-        # type: (Any) -> str
+        # type: (bool) -> str
         """
             >>> from pymel.core import *
             >>> at = SCENE.persp.t.tx
@@ -3505,10 +3746,6 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             'tx'
             >>> at.shortName(fullPath=True)
             't.tx'
-
-        Returns
-        -------
-        str
         """
         return self.name(includeNode=False,
                          longName=False,
@@ -3525,6 +3762,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         return self.plugNode().name()
 
     def attrName(self, longName=False, includeNode=False):
+        # type: (bool, bool) -> str
         """Just the name of the attribute for this plug
 
         This will have no indices, no parent attributes, etc...
@@ -3549,8 +3787,9 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             name = self.nodeName() + '.' + name
         return name
 
-    def namespace(self, *args, **kwargs):
-        return self.node().namespace(*args, **kwargs)
+    def namespace(self, root=False):
+        # type: (bool) -> str
+        return self.node().namespace(root=root)
 
     def array(self):
         # type: () -> Attribute
@@ -3681,7 +3920,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
     def isConnectedTo(self, other, ignoreUnitConversion=False,
                       checkLocalArray=False, checkOtherArray=False):
-        # type: (Any, Any, Any, Any) -> bool
+        # type: (Any, bool, bool, bool) -> bool
         """
         Determine if the attribute is connected to the passed attribute.
 
@@ -3690,10 +3929,6 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         If checkOtherArray is True and the passed attribute is a multi/array, the passed attribute's elements will also be tested.
 
         If checkLocalArray and checkOtherArray are used together then all element combinations will be tested.
-
-        Returns
-        -------
-        bool
         """
 
         if cmds.isConnected(self, other,
@@ -3752,6 +3987,49 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         # no return
         cmds.disconnectAttr(self, other)
 
+    # connections=True, plugs=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, connections=True, plugs=True, sourceFirst=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[True], bool, TypeArgTypes, **Any) -> List[Tuple[Attribute, Attribute]]
+        pass
+
+    # connections=True, type=Type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, connections=True, type=None, plugs=Ellipsis, **kwargs):
+        # type: (Literal[True], Type[DependNodeT], Literal[False], **Any) -> List[Tuple[Attribute, DependNodeT]]
+        pass
+
+    # connections=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, connections=True, plugs=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[False], LimitedTypeArgTypes, **Any) -> List[Tuple[Attribute, nodetypes.DependNode]]
+        pass
+
+    # plugs=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, plugs=True, connections=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[False], TypeArgTypes, *Any) -> List[Attribute]
+        pass
+
+    # type=Type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, type=None, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+        # type: (Type[DependNodeT], Literal[False], Literal[False], *Any) -> List[DependNodeT]
+        pass
+
+    # uninspectable type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def inputs(self, type=Ellipsis, **kwargs):
+        # type: (LimitedTypeArgTypes, **Any) -> List[nodetypes.DependNode]
+        pass
+
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
     def inputs(self, **kwargs):
         # type: (**Any) -> List[PyNode]
         """
@@ -3771,6 +4049,49 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 
         return listConnections(self, **kwargs)
 
+    # connections=True, plugs=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, connections=True, plugs=True, sourceFirst=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[True], bool, TypeArgTypes, **Any) -> List[Tuple[Attribute, Attribute]]
+        pass
+
+    # connections=True, type=Type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, connections=True, type=None, plugs=Ellipsis, **kwargs):
+        # type: (Literal[True], Type[DependNodeT], Literal[False], **Any) -> List[Tuple[Attribute, DependNodeT]]
+        pass
+
+    # connections=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, connections=True, plugs=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[False], LimitedTypeArgTypes, **Any) -> List[Tuple[Attribute, nodetypes.DependNode]]
+        pass
+
+    # plugs=True
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, plugs=True, connections=Ellipsis, type=Ellipsis, **kwargs):
+        # type: (Literal[True], Literal[False], TypeArgTypes, *Any) -> List[Attribute]
+        pass
+
+    # type=Type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, type=None, plugs=Ellipsis, connections=Ellipsis, **kwargs):
+        # type: (Type[DependNodeT], Literal[False], Literal[False], *Any) -> List[DependNodeT]
+        pass
+
+    # uninspectable type
+    @overload
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
+    def outputs(self, type=Ellipsis, **kwargs):
+        # type: (LimitedTypeArgTypes, **Any) -> List[nodetypes.DependNode]
+        pass
+
+    @_factories.addMelDocs('listConnections', excludeFlags=['source', 'destination'])
     def outputs(self, **kwargs):
         # type: (**Any) -> List[PyNode]
         """
@@ -3823,7 +4144,8 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 # xxx{ Info and Modification
 # ---------------------
 
-    def getAlias(self, **kwargs):
+    def getAlias(self):
+        # type: () -> Optional[str]
         """
         Returns the alias for this attribute, or None.
 
@@ -3837,6 +4159,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             return None
 
     def setAlias(self, alias):
+        # type: (str) -> None
         """
         Sets the alias for this attribute (similar to aliasAttr).
         """
@@ -3848,11 +4171,13 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
 #        return addAttr( self.node(), **kwargs )
 
     def delete(self):
+        # type: () -> None
         """deleteAttr"""
         return cmds.deleteAttr(self)
 
+    @_factories.addMelDocs('removeMultiInstance')
     def remove(self, **kwargs):
-        'removeMultiInstance'
+        """removeMultiInstance"""
         #kwargs['break'] = True
         return cmds.removeMultiInstance(self, **kwargs)
 
@@ -3867,6 +4192,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
     # Info Methods
     # ---------------------
 
+    @_factories.addMelDocs('isDirty')
     def isDirty(self, **kwargs):
         # type: (**Any) -> bool
         """
@@ -3876,9 +4202,11 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         """
         return cmds.isDirty(self, **kwargs)
 
+    @_factories.addMelDocs('dgdirty')
     def setDirty(self, **kwargs):
         cmds.dgdirty(self, **kwargs)
 
+    @_factories.addMelDocs('dgeval')
     def evaluate(self, **kwargs):
         cmds.dgeval(self, **kwargs)
 
@@ -4027,11 +4355,13 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             self._setLocked(locked)
 
     def lock(self, checkReference=CHECK_ATTR_BEFORE_LOCK):
-        "setAttr -locked 1"
+        # type: (bool) -> None
+        """setAttr -locked 1"""
         return self.setLocked(True, checkReference=checkReference)
 
     def unlock(self, checkReference=CHECK_ATTR_BEFORE_LOCK):
-        "setAttr -locked 0"
+        # type: (bool) -> None
+        """setAttr -locked 0"""
         return self.setLocked(False, checkReference=checkReference)
 
     def isMuted(self):
@@ -4045,6 +4375,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         """
         return cmds.mute(self.name(), q=1)
 
+    @_factories.addMelDocs('mute')
     def mute(self, **kwargs):
         """
         mute
@@ -4052,6 +4383,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         """
         cmds.mute(self.name(), **kwargs)
 
+    @_factories.addMelDocs('mute', excludeFlags=['disable', 'force'])
     def unmute(self, **kwargs):
         """
         mute -disable -force
@@ -4110,6 +4442,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         return cmds.attributeQuery(self.attrName(), node=self.node(), uac=True)
 
     def indexMatters(self):
+        # type: () -> bool
         return self.__apimattr__().indexMatters()
 
     def exists(self):
@@ -4148,6 +4481,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
                 return False
 
     def getDefault(self):
+        # type: () -> Any
         result = cmds.attributeQuery(self.attrName(), node=self.node(),
                                      listDefault=True)
         if isinstance(result, list) and len(result) == 1 and not self.isCompound():
@@ -4253,18 +4587,33 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         return range
 
     def setMin(self, newMin):
+        # type: (float) -> None
         self.setRange(newMin, 'default')
 
     def setMax(self, newMax):
+        # type: (float) -> None
         self.setRange('default', newMax)
 
     def setSoftMin(self, newMin):
+        # type: (float) -> None
         self.setSoftRange(newMin, 'default')
 
     def setSoftMax(self, newMax):
+        # type: (float) -> None
         self.setSoftRange('default', newMax)
 
+    @overload
+    def setRange(self, range):
+        # type: (Tuple[Optional[float], Optional[float]]) -> None
+        pass
+
+    @overload
+    def setRange(self, newMin, newMax):
+        # type: (Optional[float], Optional[float]) -> None
+        pass
+
     def setRange(self, *args):
+        # type: (*Union[Optional[float], Tuple[Optional[float], Optional[float]]]) -> None
         """provide a min and max value as a two-element tuple or list, or as two arguments to the
         method. To remove a limit, provide a None value.  for example:
 
@@ -4279,6 +4628,16 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         """
 
         self._setRange('hard', *args)
+
+    @overload
+    def setRange(self, range):
+        # type: (Tuple[Optional[float], Optional[float]]) -> None
+        pass
+
+    @overload
+    def setRange(self, newMin, newMax):
+        # type: (Optional[float], Optional[float]) -> None
+        pass
 
     def setSoftRange(self, *args):
         self._setRange('soft', *args)
@@ -4472,8 +4831,18 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         else:
             return None
 
+    @overload
+    def getParent(self, generations=None, arrays=False):
+        # type: (None, bool) -> List[Attribute]
+        pass
+
+    @overload
     def getParent(self, generations=1, arrays=False):
-        # type: (Any, Any) -> Attribute
+        # type: (int, bool) -> Attribute
+        pass
+
+    def getParent(self, generations=1, arrays=False):
+        # type: (Optional[int], bool) -> Attribute
         """
         Modifications:
             - added optional generations keyword arg, which gives the number of
@@ -4512,7 +4881,7 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
             return Attribute(self.node(), res)
 
     def getAllParents(self, arrays=False):
-        # type: (Any) -> List[Attribute]
+        # type: (bool) -> List[Attribute]
         """
         Return a list of all parents above this.
 
@@ -4660,6 +5029,14 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         res = _f.getProxyResult(self, _api.MPlug, 'isElement')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.addApiDocs(_api.MPlug, 'isExactlyEqual')
+    def isExactlyEqual(self, other):
+        # type: (str | Attribute) -> bool
+        do, final_do, outTypes = _f.getDoArgs([other], [('other', 'MPlug', 'in', None)])
+        res = _f.getProxyResult(self, _api.MPlug, 'isExactlyEqual', final_do)
+        res = _f.ApiArgUtil._castResult(self, res, 'bool', None)
+        return res
+
     @_f.addApiDocs(_api.MPlug, 'isFreeToChange')
     def isFreeToChange(self, checkParents=True, checkChildren=True):
         # type: (bool, bool) -> datatypes.Plug.FreeToChangeState
@@ -4716,6 +5093,12 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         res = _f.getProxyResult(self, _api.MPlug, 'isProcedural')
         return _f.ApiArgUtil._castResult(self, res, 'bool', None)
 
+    @_f.addApiDocs(_api.MPlug, 'isProxy')
+    def isProxy(self):
+        # type: () -> bool
+        res = _f.getProxyResult(self, _api.MPlug, 'isProxy')
+        return _f.ApiArgUtil._castResult(self, res, 'bool', None)
+
     @_f.addApiDocs(_api.MPlug, 'isSource')
     def isSource(self):
         # type: () -> bool
@@ -4747,6 +5130,12 @@ class Attribute(with_metaclass(_factories.MetaMayaTypeRegistry, PyNode)):
         # type: () -> int
         res = _f.getProxyResult(self, _api.MPlug, 'numConnectedElements')
         return _f.ApiArgUtil._castResult(self, res, 'uint', None)
+
+    @_f.addApiDocs(_api.MPlug, 'proxied')
+    def proxied(self):
+        # type: () -> Attribute
+        res = _f.getProxyResult(self, _api.MPlug, 'proxied')
+        return _f.ApiArgUtil._castResult(self, res, 'MPlug', None)
 
     @_f.addApiDocs(_api.MPlug, 'setCaching')
     def setCaching(self, isCaching):
@@ -4880,9 +5269,11 @@ class HashableSlice(ProxySlice):
         return self._hash
 
     def _toNormalSlice(self):
+        # type: () -> slice
         return slice(self.start, self.stop, self.step)
 
     def __eq__(self, other):
+        # type: (object) -> bool
         if isinstance(other, HashableSlice):
             other = other._toNormalSlice()
         elif not isinstance(other, slice):
@@ -4890,9 +5281,11 @@ class HashableSlice(ProxySlice):
         return other == self._toNormalSlice()
 
     def __ne__(self, other):
+        # type: (object) -> bool
         return not self == other
 
     def __le__(self, other):
+        # type: (object) -> bool
         if isinstance(other, HashableSlice):
             other = other._toNormalSlice()
         elif not isinstance(other, slice):
@@ -4900,6 +5293,7 @@ class HashableSlice(ProxySlice):
         return other <= self._toNormalSlice()
 
     def __lt__(self, other):
+        # type: (object) -> bool
         if isinstance(other, HashableSlice):
             other = other._toNormalSlice()
         elif not isinstance(other, slice):
@@ -4907,6 +5301,7 @@ class HashableSlice(ProxySlice):
         return other < self._toNormalSlice()
 
     def __ge__(self, other):
+        # type: (object) -> bool
         if isinstance(other, HashableSlice):
             other = other._toNormalSlice()
         elif not isinstance(other, slice):
@@ -4914,6 +5309,7 @@ class HashableSlice(ProxySlice):
         return other >= self._toNormalSlice()
 
     def __gt__(self, other):
+        # type: (object) -> bool
         if isinstance(other, HashableSlice):
             other = other._toNormalSlice()
         elif not isinstance(other, slice):
@@ -4922,14 +5318,17 @@ class HashableSlice(ProxySlice):
 
     @property
     def start(self):
+        # type: () -> int
         return self._slice.start
 
     @property
     def stop(self):
+        # type: () -> int
         return self._slice.stop
 
     @property
     def step(self):
+        # type: () -> int
         return self._slice.step
 
 
@@ -8288,7 +8687,7 @@ def assembly(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['aoc', 'cob', 'createOptionBoxProc', 'listRepTypesProc', 'lrp', 'postCreateUIProc', 'prc', 'proc', 'repTypeLabelProc', 'rtp']:
+    for key in ('aoc', 'cob', 'createOptionBoxProc', 'listRepTypesProc', 'lrp', 'postCreateUIProc', 'prc', 'proc', 'repTypeLabelProc', 'rtp'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -8330,7 +8729,7 @@ def commandLogging(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['lc', 'logCommands', 'rc', 'recordCommands']:
+    for key in ('lc', 'logCommands', 'rc', 'recordCommands'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -8346,7 +8745,7 @@ def commandPort(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['returnNumCommands', 'rnc']:
+    for key in ('returnNumCommands', 'rnc'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -8563,7 +8962,7 @@ sculptMeshCacheChangeCloneSource = _factories.getCmdFunc('sculptMeshCacheChangeC
 
 @_factories.addCmdDocs
 def selectKey(*args, **kwargs):
-    for flag in ['t', 'time']:
+    for flag in ('t', 'time'):
         try:
             rawVal = kwargs[flag]
         except KeyError:
@@ -8629,7 +9028,7 @@ def toolPropertyWindow(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['sel', 'selectCommand', 'showCommand', 'shw']:
+    for key in ('sel', 'selectCommand', 'showCommand', 'shw'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -8663,7 +9062,7 @@ def assignCommand(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['c', 'cmd', 'command', 'commandModifier', 'ecr', 'enableCommandRepeat', 'sourceUserCommands', 'suc']:
+    for key in ('c', 'cmd', 'command', 'commandModifier', 'ecr', 'enableCommandRepeat', 'sourceUserCommands', 'suc'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -8706,7 +9105,7 @@ def selectionConnection(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['addScript', 'addScript', 'removeScript', 'rs']:
+    for key in ('addScript', 'addScript', 'removeScript', 'rs'):
         try:
             cb = kwargs[key]
             if callable(cb):

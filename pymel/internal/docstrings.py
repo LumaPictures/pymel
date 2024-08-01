@@ -82,19 +82,10 @@ class DocstringBuilder(object):
                 pass
         return typ
 
-    def build(self, docstring):
-        # type: (str) -> str
+    def build(self, docstring, excludeFlags=None):
+        # type: (str, Optional[Iterable[str]]) -> str
         """
         Add the generated docstrings to the existing docstring
-
-        Parameters
-        ----------
-        docstring : str
-            original docstring
-
-        Returns
-        -------
-        str
         """
         if docstring:
             docstring = inspect.cleandoc(docstring)
@@ -108,12 +99,14 @@ class DocstringBuilder(object):
 
         flagsInfo = self.cmdInfo['flags']
 
+        excludeFlags = set(excludeFlags) if excludeFlags else set()
+        excludeFlags.update(['edit', 'query'])
         if flagsInfo and not set(flagsInfo.keys()).issubset(['edit', 'query']):
 
             docstring += self.indent(self.startFlagSection())
 
             for flag in sorted(flagsInfo.keys()):
-                if flag in ['edit', 'query']:
+                if flag in excludeFlags:
                     continue
 
                 docstring += self.indent(self._addFlag(flag, flagsInfo[flag]))

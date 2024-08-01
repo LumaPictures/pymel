@@ -58,7 +58,7 @@ def artUserPaintCtx(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'chunkCommand', 'gac', 'getArrayAttrCommand', 'getSurfaceCommand', 'getValueCommand', 'gsc', 'gvc', 'sac', 'setArrayValueCommand', 'setValueCommand', 'svc']:
+    for key in ('cc', 'chunkCommand', 'gac', 'getArrayAttrCommand', 'getSurfaceCommand', 'getValueCommand', 'gsc', 'gvc', 'sac', 'setArrayValueCommand', 'setValueCommand', 'svc'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -160,7 +160,7 @@ def draggerContext(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['dc', 'dragCommand', 'finalize', 'fnz', 'hc', 'holdCommand', 'initialize', 'inz', 'pc', 'ppc', 'prePressCommand', 'pressCommand', 'rc', 'releaseCommand']:
+    for key in ('dc', 'dragCommand', 'finalize', 'fnz', 'hc', 'holdCommand', 'initialize', 'inz', 'pc', 'ppc', 'prePressCommand', 'pressCommand', 'rc', 'releaseCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -193,8 +193,6 @@ graphDollyCtx = _factories.getCmdFunc('graphDollyCtx')
 graphSelectContext = _factories.getCmdFunc('graphSelectContext')
 
 graphTrackCtx = _factories.getCmdFunc('graphTrackCtx')
-
-greasePencilCtx = _factories.getCmdFunc('greasePencilCtx')
 
 hotkeyCtx = _factories.getCmdFunc('hotkeyCtx')
 
@@ -236,7 +234,7 @@ def manipMoveContext(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pod', 'postCommand', 'postDragCommand', 'prc', 'prd', 'preCommand', 'preDragCommand', 'psc']:
+    for key in ('pod', 'postCommand', 'postDragCommand', 'prc', 'prd', 'preCommand', 'preDragCommand', 'psc'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -254,7 +252,7 @@ def manipRotateContext(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pod', 'postCommand', 'postDragCommand', 'prc', 'prd', 'preCommand', 'preDragCommand', 'psc']:
+    for key in ('pod', 'postCommand', 'postDragCommand', 'prc', 'prd', 'preCommand', 'preDragCommand', 'psc'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -272,7 +270,7 @@ def manipScaleContext(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['pod', 'postCommand', 'postDragCommand', 'prc', 'prd', 'preCommand', 'preDragCommand', 'psc']:
+    for key in ('pod', 'postCommand', 'postDragCommand', 'prc', 'prd', 'preCommand', 'preDragCommand', 'psc'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -352,7 +350,7 @@ def scriptCtx(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['fcs', 'finalCommandScript', 'tf', 'toolFinish', 'toolStart', 'ts']:
+    for key in ('fcs', 'finalCommandScript', 'tf', 'toolFinish', 'toolStart', 'ts'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -380,7 +378,7 @@ def shadingGeometryRelCtx(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ofc', 'offCommand', 'onCommand', 'onc']:
+    for key in ('ofc', 'offCommand', 'onCommand', 'onc'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -396,7 +394,7 @@ def shadingLightRelCtx(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ofc', 'offCommand', 'onCommand', 'onc']:
+    for key in ('ofc', 'offCommand', 'onCommand', 'onc'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -412,7 +410,7 @@ def showManipCtx(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['tf', 'toolFinish', 'toolStart', 'ts']:
+    for key in ('tf', 'toolFinish', 'toolStart', 'ts'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -496,7 +494,7 @@ def userCtx(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['ec', 'editCommand', 'fc', 'finalCommand']:
+    for key in ('ec', 'editCommand', 'fc', 'finalCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):

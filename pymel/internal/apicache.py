@@ -13,11 +13,15 @@ import re
 import itertools
 
 import pymel.api as api
-import pymel.versions as versions
 import pymel.util as _util
+from . import cachebase
 from . import startup
 from . import plogging as _plogging
 from pymel.api.plugins import mpxNamesToApiEnumNames
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import *
 
 _logger = _plogging.getLogger(__name__)
 
@@ -29,9 +33,11 @@ _logger = _plogging.getLogger(__name__)
 class ApiEnum(tuple):
 
     def __str__(self):
+        # type: () -> str
         return '.'.join([str(x) for x in self])
 
     def __repr__(self):
+        # type: () -> str
         return '%s( %s )' % (self.__class__.__name__, super(ApiEnum, self).__repr__())
 
     def pymelName(self):
@@ -128,7 +134,6 @@ class ManipNodeTypeError(InvalidNodeTypeError):
 
 
 class _GhostObjMaker(object):
-
     '''Context used to get an mobject which we can query within this context.
 
     Automatically does any steps need to create and destroy the mobj within
@@ -298,7 +303,7 @@ else:
 
 def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=True,
                   noManips=True, noPlugins=False, returnRealAbstract=False):
-    # type: (bool, bool, bool, bool, Union[bool, str], bool, bool) -> None
+    # type: (bool, bool, bool, bool, Union[bool, str], bool, bool) -> Set[str]
     '''Returns a list of maya types
 
     Parameters
@@ -330,6 +335,10 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
         is defined as the set of directly createdable nodes matching the
         criteria, and abstract are all non-createable nodes matching the
         criteria)
+
+    Returns
+    -------
+    Set[str]
     '''
     import maya.cmds as cmds
 
@@ -422,12 +431,14 @@ def _getMayaTypes(real=True, abstract=True, basePluginTypes=True, addAncestors=T
 
 
 def _getAbstractMayaTypes(**kwargs):
+    # type: (**Any) -> Set[str]
     kwargs.setdefault('real', False)
     kwargs['abstract'] = True
     return _getMayaTypes(**kwargs)
 
 
 def _getRealMayaTypes(**kwargs):
+    # type: (**Any) -> Set[str]
     kwargs['real'] = True
     kwargs.setdefault('abstract', False)
     kwargs.setdefault('basePluginTypes', False)
@@ -436,6 +447,7 @@ def _getRealMayaTypes(**kwargs):
 
 
 def _getAllMayaTypes(**kwargs):
+    # type: (**Any) -> Set[str]
     kwargs['real'] = True
     kwargs['abstract'] = True
     return _getMayaTypes(**kwargs)
@@ -446,10 +458,22 @@ _cachedInheritances = {}
 
 def getInheritance(mayaType, checkManip3D=True, checkCache=True,
                    updateCache=True):
+    # type: (str, bool, bool, bool) -> List[str]
     """Get parents as a list, starting from the node after dependNode, and
     ending with the mayaType itself.
 
     Raises a ManipNodeTypeError if the node type fed in was a manipulator
+
+    Parameters
+    ----------
+    mayaType : str
+    checkManip3D : bool
+    checkCache : bool
+    updateCache : bool
+
+    Returns
+    -------
+    List[str]
     """
 
     # To get the inheritance post maya2012, we use nodeType(isTypeName=True),
@@ -576,6 +600,7 @@ def nodeToApiName(nodeName):
 
 
 def getLowerCaseMapping(names):
+    # type: (Iterable[str]) -> Tuple[Dict[str, str], Dict[str, Tuple[str, str]]]
     uniqueLowerNames = {}
     multiLowerNames = {}
     for name in names:
@@ -621,7 +646,7 @@ apiSuffixes = ['', 'node', 'shape', 'shapenode']
 # ==============================================================================
 
 
-class BaseApiClassInfoCache(startup.SubItemCache):
+class BaseApiClassInfoCache(cachebase.SubItemCache):
     CLASSINFO_SUBCACHE_NAME = None
 
     def _modifyEnums(self, data, predicate, converter):
@@ -970,6 +995,7 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
 
     # override write to preserve comments
     def write(self, data, ext=None):
+        # type: (T, Optional[str]) -> None
         if ext is None:
             ext = self.DEFAULT_EXT
 
@@ -1003,14 +1029,18 @@ class ApiCache(BaseApiClassInfoCache):
 
     EXTRA_GLOBAL_NAMES = tuple(['mayaTypesToApiEnums'])
 
+    if TYPE_CHECKING:
+        apiTypesToApiEnums = None  # type: Dict[str, int]
+        apiEnumsToApiTypes = None  # type: Dict[int, str]
+        mayaTypesToApiTypes = None  # type: Dict[str, str]
+        apiTypesToApiClasses = None  # type: Dict[str, Type]
+        apiClassInfo = None  # type: Dict[str, Any]
+        mayaTypesToApiEnums = None  # type: Dict[str, int]
+
     # Descriptions of various elements:
 
     # Maya static info :
     # Initializes various static look-ups to speed up Maya types conversions
-    # self.apiClassInfo
-    # self.apiTypesToApiEnums
-    # self.apiEnumsToApiTypes
-    # self.apiTypesToApiClasses
 
     # Lookup of currently existing Maya types as keys with their corresponding
     # API type as values. Not a read only (static) dict as these can change
@@ -1081,6 +1111,7 @@ class ApiCache(BaseApiClassInfoCache):
 
     @classmethod
     def allVersions(cls, allowEmpty=False):
+        # type: (bool) -> List[str]
         return [x for x in super(ApiCache, cls).allVersions(allowEmpty=allowEmpty)
                 if x != 'MelBridge']
 
@@ -1103,7 +1134,7 @@ class ApiCache(BaseApiClassInfoCache):
     def fromRawData(self, data):
         # convert from string class names to class objects
         self._modifyApiTypes(data, lambda x: isinstance(x, basestring),
-                             startup.getImportableObject)
+                             _util.getImportableObject)
 
         # json automatically converts integer dict keys to strings...
         # we only need to undo this on read
@@ -1119,7 +1150,7 @@ class ApiCache(BaseApiClassInfoCache):
 
     def toRawData(self, data):
         # convert from class objects to string class names
-        self._modifyApiTypes(data, inspect.isclass, startup.getImportableName)
+        self._modifyApiTypes(data, inspect.isclass, _util.getImportableName)
         return super(ApiCache, self).toRawData(data)
 
     def _buildMayaToApiInfo(self, reservedOnly=False):
@@ -1201,9 +1232,9 @@ class ApiCache(BaseApiClassInfoCache):
         """
 
         self.apiTypesToApiEnums = dict(
-            inspect.getmembers(api.MFn, lambda x: type(x) is int))
+            inspect.getmembers(api.MFn, lambda x: type(x) is int))  # type: Dict[str, int]
         self.apiEnumsToApiTypes = dict(
-            (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())
+            (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys())  # type: Dict[int, str]
 
     def _fixApiEnumsToApiTypes(self):
         # For the MFn.Type mappings, we can have multiple string names mapping
@@ -1224,6 +1255,7 @@ class ApiCache(BaseApiClassInfoCache):
             self.apiEnumsToApiTypes[num] = defaultName
 
     def _buildMayaReservedTypes(self):
+        # type: () -> Dict[str, str]
         """
         Build a list of Maya reserved types.
 
@@ -1404,6 +1436,7 @@ class ApiCache(BaseApiClassInfoCache):
             return enumInt
 
     def getApiEnumToApiType(self, enumInt):
+        # type: (int) -> str
         return self.apiEnumsToApiTypes.get(enumInt,
                                            # 'kInvalid'
                                            self.apiEnumsToApiTypes[0])
@@ -1552,7 +1585,7 @@ class ApiCache(BaseApiClassInfoCache):
             # value of None
             raise ValueError("apiType must be given!")
 
-        if apiType is not 'kInvalid':
+        if apiType != 'kInvalid':
             apiEnum = getattr(api.MFn, apiType)
             self.mayaTypesToApiTypes[mayaType] = apiType
             self.mayaTypesToApiEnums[mayaType] = apiEnum
@@ -1571,18 +1604,9 @@ class ApiCache(BaseApiClassInfoCache):
         self.mayaTypesToApiTypes.pop(mayaType, None)
 
     def mayaTypeToApiType(self, mayaType, useCache=True, ghostObjs=True):
-        # type: (str, bool) -> str
+        # type: (str, bool, bool) -> str
         """
         Get the Maya API type from the name of a Maya type
-
-        Parameters
-        ----------
-        mayaType : str
-        useCache : bool
-
-        Returns
-        -------
-        str
         """
         if useCache:
             apiType = self.mayaTypesToApiTypes.get(mayaType)

@@ -71,9 +71,6 @@ def source(file, searchPath=None, recurse=False):
                         pass
         except:
             raise ValueError("File '" + filename + "' not found in path")
-            # In case the raise exception is replaced by a warning don't
-            # forget to return here
-            return
     # _logger.debug("Executing: "+filepath)
     return execfile(filepath)
 
@@ -103,7 +100,7 @@ def getMayaLocation(version=None):
     """
     try:
         loc = os.path.realpath(os.environ['MAYA_LOCATION'])
-    except:
+    except Exception:
         loc = os.path.dirname(os.path.dirname(sys.executable))
     # get the path of a different maya version than current
     if version:
@@ -193,6 +190,7 @@ def getUserScriptsDir():
 
 
 def executeDeferred(func, *args, **kwargs):
+    # type: (Callable, *Any, **Any) -> None
     """
     This is a wrap for maya.utils.executeDeferred.  Maya's version does not
     execute at all when in batch mode, so this function does a simple check to

@@ -28,6 +28,7 @@ from .utilitytypes import ProxyUnicode
 
 if False:
     from typing import *
+    T = TypeVar('T')
 
 # some functions used to need to make the difference between strings and non-string iterables when PyNode where unicode derived
 # doing a hasattr(obj, '__iter__') test will fail for objects that implement __getitem__, but not __iter__, so try iter(obj)
@@ -411,6 +412,7 @@ def breadth(iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
 
 
 def listForNone(res):
+    # type: (Optional[List[T]]) -> List[T]
     "returns an empty list when the result is None"
     if res is None:
         return []
@@ -421,12 +423,14 @@ def listForNone(res):
 
 
 def pairIter(sequence):
+    # type: (Iterable[Any]) -> Iterator[Tuple[Any, Any]]
     '''
     Returns an iterator over every 2 items of sequence.
 
     ie, [x for x in pairIter([1,2,3,4])] == [(1,2), (3,4)]
 
-    If sequence has an odd number of items, the last item will not be returned in a pair.
+    If sequence has an odd number of items, the last item will not be returned
+    in a pair.
     '''
     theIter = iter(sequence)
     return zip(theIter, theIter)
@@ -434,7 +438,8 @@ def pairIter(sequence):
 
 def reorder(x, indexList=[], indexDict={}):
     """
-    Reorder a list based upon a list of positional indices and/or a dictionary of fromIndex:toIndex.
+    Reorder a list based upon a list of positional indices and/or a dictionary
+    of fromIndex:toIndex.
 
         >>> l = ['zero', 'one', 'two', 'three', 'four', 'five', 'six']
         >>> reorder( l, [1, 4] ) # based on positional indices: 0-->1, 1-->4
@@ -905,3 +910,28 @@ def izip_longest(*args, **kwds):
             yield tup
     except IndexError:
         pass
+
+
+def getImportableObject(importableName):
+    import importlib
+    if '.' in importableName:
+        modulename, objName = importableName.rsplit('.', 1)
+    else:
+        # if no module, it's in builtins
+        modulename = 'builtins'
+        if PY2:
+            modulename = '__builtin__'
+        objName = importableName
+    moduleobj = importlib.import_module(modulename)
+    return getattr(moduleobj, objName)
+
+
+def getImportableName(obj):
+    import inspect
+    module = inspect.getmodule(obj)
+    import builtins
+    if PY2:
+        import __builtin__ as builtins
+    if module == builtins:
+        return obj.__name__
+    return '{}.{}'.format(module.__name__, obj.__name__)

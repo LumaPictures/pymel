@@ -50,5 +50,10 @@ class TestStrings(unittest.TestCase):
         for melStr in melStrs:
             self.assertMelAndPyStringsEqual(melStr)
 
+    def test_basics(self):
+        self.assertEqual(
+            mel2pyStr('polyCube -w 1 -h 1 -d 1 -sx 1 -sy 1 -sz 1 -ax 0 1 0 -cuv 4 -ch 1;'),
+            'from pymel.all import *\npolyCube(w=1, h=1, d=1, sx=1, sy=1, sz=1, ax=(0, 1, 0), cuv=4, ch=1)\n')
+
 #testingutils.setupUnittestModule(__name__)
 

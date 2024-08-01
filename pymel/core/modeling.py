@@ -13,6 +13,7 @@ else:
 
 @_factories.addCmdDocs
 def pointPosition(*args, **kwargs):
+    # type: (...) -> _general.datatypes.Point
     return _general.datatypes.Point(cmds.pointPosition(*args, **kwargs))
 
 
@@ -709,7 +710,7 @@ def polyInstallAction(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cn', 'commandName']:
+    for key in ('cn', 'commandName'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -947,7 +948,7 @@ def polySelectConstraintMonitor(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ['cc', 'changeCommand']:
+    for key in ('cc', 'changeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):

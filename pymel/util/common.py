@@ -18,8 +18,16 @@ from .path import path
 #  Pymel Internals
 #-----------------------------------------------
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import overload
+else:
+    def overload(f):
+        return f
+
 
 def inMaya():
+    # type: () -> bool
     """
     Returns True if called from a fully initialized Maya session.
     """
@@ -42,7 +50,7 @@ def inMaya():
 #===============================================================================
 
 def capitalize(s):
-    # type: (Any) -> str
+    # type: (str) -> str
     """
     Python's string 'capitalize' method is NOT equiv. to mel's capitalize, which preserves
     capital letters.
@@ -51,21 +59,13 @@ def capitalize(s):
         'FooBAR'
         >>> 'fooBAR'.capitalize()
         'Foobar'
-
-    Returns
-    -------
-    str
     """
     return s[0].upper() + s[1:]
 
 
 def uncapitalize(s, preserveAcronymns=False):
-    # type: (Any, Any) -> str
+    # type: (str, bol) -> str
     """preserveAcronymns enabled ensures that 'NTSC' does not become 'nTSC'
-
-    Returns
-    -------
-    str
     """
     try:
         if preserveAcronymns and s[0:2].isupper():
@@ -77,12 +77,8 @@ def uncapitalize(s, preserveAcronymns=False):
 
 
 def unescape(s):
-    # type: (Any) -> str
-    """
-    Returns
-    -------
-    str
-    """
+    # type: (str) -> str
+    """Remove escape characters"""
     chars = [r'"', r"'"]
     for char in chars:
         tokens = re.split(r'(\\*)' + char, s)
@@ -127,6 +123,7 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
 
 
 def timer(command='pass', number=10, setup='import pymel'):
+    # type: (str, int, str) -> float
     import timeit
     t = timeit.Timer(command, setup)
     time = t.timeit(number=number)
