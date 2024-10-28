@@ -28,7 +28,7 @@ def copyDir(src, dest):
 
 
 def pymelstubs(extensions=('py', 'pypredef', 'pi', 'pyi'),
-               modules=('pymel', 'maya', 'PySide2', 'shiboken2'),
+               modules=('pymel', 'maya', 'PySide6', 'shiboken6'),
                skip_module_regex=DEFAULT_SKIP_REGEX,
                pyRealUtil=False):
     """ Builds pymel stub files for autocompletion.
@@ -51,7 +51,7 @@ def pymelstubs(extensions=('py', 'pypredef', 'pi', 'pyi'),
     }
 
     def fixOutput(module, text):
-        if module.__name__ == 'PySide2.QtQuick':
+        if module.__name__ == 'PySide2.QtQuick' or module.__name__ == 'PySide6.QtQuick':
             text = text.replace('<QQuickItemGrabResult >', '')
         return text
 

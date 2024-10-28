@@ -396,7 +396,7 @@ def getCmdInfo(command, version, python=True):
         docloc = os.path.join(docloc, 'Commands/%s.html' % (command))
 
     try:
-        with open(docloc) as f:
+        with open(docloc, encoding='utf-8') as f:
             parser = CommandDocParser(command)
             parser.feed(f.read())
     except IOError:

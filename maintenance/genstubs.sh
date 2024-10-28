@@ -1,9 +1,12 @@
 #!/bin/bash
 
-CURRENT_DIR="$(cd "$(dirname "$BASH_SOURCE")"; pwd)"
+CURRENT_DIR="$(
+	cd "$(dirname "$BASH_SOURCE")"
+	pwd
+)"
 
 cd $CURRENT_DIR/..
-echo `pwd`
+echo $(pwd)
 # remove existing stubs
 # stubgen causes problems when writing over top of existing .pyi files that live
 # in the source (it produces pyi files for packages, e.g. pymel/core.pyi)

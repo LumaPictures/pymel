@@ -180,10 +180,17 @@ v20022_2 = 20220200
 v20022_3 = 20220300
 v20022_4 = 20220400
 v2023 = 20230000
-v20023_1 = 20230100
-v20023_2 = 20230200
-v20023_3 = 20230300
-v20024 = 20240000
+v20023_1 = 20230100  # bad name.  keeping for backwards compatibility
+v20023_2 = 20230200  # bad name.  keeping for backwards compatibility
+v20023_3 = 20230300  # bad name.  keeping for backwards compatibility
+v2023_1 = 20230100
+v2023_2 = 20230200
+v2023_3 = 20230300
+v20024 = 20240000  # bad name.  keeping for backwards compatibility
+v2024 = 20240000
+v2024_1 = 20240100
+v2024_2 = 20240200
+v2025 = 20250000
 
 
 def current():

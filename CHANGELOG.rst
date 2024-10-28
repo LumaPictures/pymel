@@ -4,6 +4,43 @@
 What's New
 **********
 
+
+==================================
+Version 1.5.0
+==================================
+
+----------------------------------
+Fixes
+----------------------------------
+- Fix version constants
+
+Additions
+----------------------------------
+- Added maya-2025 support
+- Added a workaround for additional . in the result of using listAttr with blendshape in Maya 2025.
+- Added support for PySide6 and shiboken6
+- Bumped PyQt from PyQt4 to PyQt6 and PyQt5
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- Dropped support for maya-2020
+- Dropped support for PySide and shiboken
+
+==================================
+Version 1.5.0
+==================================
+
+----------------------------------
+Additions
+----------------------------------
+- Added support for maya 2025 and python 3.11
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- Dropped support for maya-2020
+
 ==================================
 Version 1.4.0
 ==================================
@@ -11,7 +48,7 @@ Version 1.4.0
 ----------------------------------
 Additions
 ----------------------------------
-- Added maya-2024 and python 3.10 support
+- Added support for maya 2024 and python 3.10
 
 ----------------------------------
 Non-Backward Compatible Changes
@@ -34,7 +71,7 @@ Version 1.3.0
 ----------------------------------
 Additions
 ----------------------------------
-- all: Add maya-2023 and python 3.9 support
+- all: Add support for maya-2023 and python 3.9
 - all: Major update to pyi type stubs.
   Most auto-generated functions & methods now include type info for all arguments,
   including both short and long variants for functions generated from MEL/`maya.cmds`.

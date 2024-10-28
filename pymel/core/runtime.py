@@ -12,6 +12,7 @@ else:
     import pymel.internal.pmcmds as cmds  # type: ignore[no-redef]
 
 
+
 # ------ Do not edit below this line --------
 
 ATOMTemplate = getattr(cmds, 'ATOMTemplate', None)
@@ -3837,8 +3838,6 @@ ProximityPin = getattr(cmds, 'ProximityPin', None)
 ProximityPinOptions = getattr(cmds, 'ProximityPinOptions', None)
 
 ProximityWrap = getattr(cmds, 'ProximityWrap', None)
-
-ProximityWrapEdit = getattr(cmds, 'ProximityWrapEdit', None)
 
 ProximityWrapOptions = getattr(cmds, 'ProximityWrapOptions', None)
 
