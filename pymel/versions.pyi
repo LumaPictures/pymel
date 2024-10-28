@@ -88,6 +88,7 @@ v2024: int
 v2024_1: int
 v2024_2: int
 v2025: int
+v2025_3: int
 
 def current() -> int: ...
 def fullName() -> str: ...
