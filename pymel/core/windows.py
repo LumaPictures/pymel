@@ -852,6 +852,8 @@ def attrColorSliderGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.attrColorSliderGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.AttrColorSliderGrp)
     return res
@@ -871,6 +873,8 @@ def attrControlGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.attrControlGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.AttrControlGrp)
     return res
@@ -890,6 +894,8 @@ def attrEnumOptionMenu(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.attrEnumOptionMenu(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.AttrEnumOptionMenu)
     return res
@@ -909,6 +915,8 @@ def attrEnumOptionMenuGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.attrEnumOptionMenuGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.AttrEnumOptionMenuGrp)
     return res
@@ -928,6 +936,8 @@ def attrFieldGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.attrFieldGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.AttrFieldGrp)
     return res
@@ -947,6 +957,8 @@ def attrFieldSliderGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.attrFieldSliderGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.AttrFieldSliderGrp)
     return res
@@ -966,6 +978,8 @@ def attrNavigationControlGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.attrNavigationControlGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.AttrNavigationControlGrp)
     return res
@@ -1004,6 +1018,8 @@ def colorIndexSliderGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.colorIndexSliderGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ColorIndexSliderGrp)
     return res
@@ -1023,6 +1039,8 @@ def colorSliderButtonGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.colorSliderButtonGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ColorSliderButtonGrp)
     return res
@@ -1042,6 +1060,8 @@ def colorSliderGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.colorSliderGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ColorSliderGrp)
     return res
@@ -1061,6 +1081,8 @@ def columnLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.columnLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ColumnLayout)
     return res
@@ -1088,6 +1110,8 @@ def floatField(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.floatField(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.FloatField)
     return res
@@ -1107,6 +1131,8 @@ def floatFieldGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.floatFieldGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.FloatFieldGrp)
     return res
@@ -1126,6 +1152,8 @@ def floatScrollBar(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.floatScrollBar(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.FloatScrollBar)
     return res
@@ -1145,6 +1173,8 @@ def floatSlider(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.floatSlider(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.FloatSlider)
     return res
@@ -1164,6 +1194,8 @@ def floatSlider2(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.floatSlider2(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.FloatSlider2)
     return res
@@ -1183,6 +1215,8 @@ def floatSliderButtonGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.floatSliderButtonGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.FloatSliderButtonGrp)
     return res
@@ -1202,6 +1236,8 @@ def floatSliderGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.floatSliderGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.FloatSliderGrp)
     return res
@@ -1221,6 +1257,8 @@ def frameLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.frameLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.FrameLayout)
     return res
@@ -1240,6 +1278,8 @@ def iconTextButton(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.iconTextButton(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IconTextButton)
     return res
@@ -1259,6 +1299,8 @@ def iconTextCheckBox(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.iconTextCheckBox(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IconTextCheckBox)
     return res
@@ -1278,6 +1320,8 @@ def iconTextRadioButton(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.iconTextRadioButton(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IconTextRadioButton)
     return res
@@ -1297,6 +1341,8 @@ def iconTextRadioCollection(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.iconTextRadioCollection(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IconTextRadioCollection)
     return res
@@ -1316,6 +1362,8 @@ def iconTextScrollList(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.iconTextScrollList(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IconTextScrollList)
     return res
@@ -1335,6 +1383,8 @@ def iconTextStaticLabel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.iconTextStaticLabel(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IconTextStaticLabel)
     return res
@@ -1354,6 +1404,8 @@ def intField(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.intField(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IntField)
     return res
@@ -1373,6 +1425,8 @@ def intFieldGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.intFieldGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IntFieldGrp)
     return res
@@ -1392,6 +1446,8 @@ def intScrollBar(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.intScrollBar(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IntScrollBar)
     return res
@@ -1411,6 +1467,8 @@ def intSlider(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.intSlider(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IntSlider)
     return res
@@ -1430,6 +1488,8 @@ def intSliderGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.intSliderGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.IntSliderGrp)
     return res
@@ -1449,6 +1509,8 @@ def paneLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.paneLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.PaneLayout)
     return res
@@ -1468,6 +1530,8 @@ def panel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.panel(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.Panel)
     return res
@@ -1487,6 +1551,8 @@ def radioButton(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.radioButton(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.RadioButton)
     return res
@@ -1506,6 +1572,8 @@ def radioButtonGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.radioButtonGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.RadioButtonGrp)
     return res
@@ -1514,6 +1582,8 @@ def radioButtonGrp(*args, **kwargs):
 def radioCollection(*args, **kwargs):
     from . import uitypes
     res = cmds.radioCollection(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.RadioCollection)
     return res
@@ -1522,6 +1592,8 @@ def radioCollection(*args, **kwargs):
 def radioMenuItemCollection(*args, **kwargs):
     from . import uitypes
     res = cmds.radioMenuItemCollection(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.RadioMenuItemCollection)
     return res
@@ -1541,6 +1613,8 @@ def symbolButton(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.symbolButton(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.SymbolButton)
     return res
@@ -1560,6 +1634,8 @@ def symbolCheckBox(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.symbolCheckBox(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.SymbolCheckBox)
     return res
@@ -1587,6 +1663,8 @@ def textField(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.textField(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.TextField)
     return res
@@ -1606,6 +1684,8 @@ def textFieldButtonGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.textFieldButtonGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.TextFieldButtonGrp)
     return res
@@ -1625,6 +1705,8 @@ def textFieldGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.textFieldGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.TextFieldGrp)
     return res
@@ -1644,6 +1726,8 @@ def text(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.text(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.Text)
     return res
@@ -1663,6 +1747,8 @@ def textScrollList(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.textScrollList(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.TextScrollList)
     wraps = _factories.simpleCommandWraps['textScrollList']
@@ -1687,6 +1773,8 @@ def toolButton(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.toolButton(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ToolButton)
     return res
@@ -1695,6 +1783,8 @@ def toolButton(*args, **kwargs):
 def toolCollection(*args, **kwargs):
     from . import uitypes
     res = cmds.toolCollection(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ToolCollection)
     return res
@@ -1714,6 +1804,8 @@ def window(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.window(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.Window)
     return res
@@ -1722,6 +1814,8 @@ def window(*args, **kwargs):
 def blendShapeEditor(*args, **kwargs):
     from . import uitypes
     res = cmds.blendShapeEditor(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.BlendShapeEditor)
     return res
@@ -1741,6 +1835,8 @@ def blendShapePanel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.blendShapePanel(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.BlendShapePanel)
     return res
@@ -1760,6 +1856,8 @@ def button(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.button(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.Button)
     return res
@@ -1779,6 +1877,8 @@ def checkBox(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.checkBox(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.CheckBox)
     return res
@@ -1798,6 +1898,8 @@ def checkBoxGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.checkBoxGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.CheckBoxGrp)
     return res
@@ -1833,6 +1935,8 @@ def formLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.formLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.FormLayout)
     return res
@@ -1854,6 +1958,8 @@ def menu(*args, **kwargs):
         except KeyError:
             pass
     res = _menu(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.Menu)
     return res
@@ -1873,6 +1979,8 @@ def menuBarLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.menuBarLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.MenuBarLayout)
     return res
@@ -1892,6 +2000,8 @@ def menuEditor(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.menuEditor(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.MenuEditor)
     return res
@@ -1911,6 +2021,8 @@ def menuItem(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.menuItem(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.MenuItem)
     return res
@@ -1946,6 +2058,8 @@ def scrollField(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.scrollField(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ScrollField)
     return res
@@ -1965,6 +2079,8 @@ def scrollLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.scrollLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ScrollLayout)
     return res
@@ -1984,6 +2100,8 @@ def scriptedPanel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.scriptedPanel(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ScriptedPanel)
     return res
@@ -1992,6 +2110,8 @@ def scriptedPanel(*args, **kwargs):
 def scriptedPanelType(*args, **kwargs):
     from . import uitypes
     res = cmds.scriptedPanelType(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ScriptedPanelType)
     return res
@@ -2011,6 +2131,8 @@ def shelfButton(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.shelfButton(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ShelfButton)
     return res
@@ -2030,6 +2152,8 @@ def shelfLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.shelfLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ShelfLayout)
     return res
@@ -2049,6 +2173,8 @@ def shelfTabLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.shelfTabLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ShelfTabLayout)
     return res
@@ -2068,6 +2194,8 @@ def tabLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.tabLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.TabLayout)
     return res
@@ -2087,6 +2215,8 @@ def outlinerEditor(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.outlinerEditor(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.OutlinerEditor)
     return res
@@ -2106,6 +2236,8 @@ def optionMenu(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.optionMenu(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.OptionMenu)
     wraps = _factories.simpleCommandWraps['optionMenu']
@@ -2130,6 +2262,8 @@ def outlinerPanel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.outlinerPanel(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.OutlinerPanel)
     return res
@@ -2149,6 +2283,8 @@ def optionMenuGrp(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.optionMenuGrp(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.OptionMenuGrp)
     wraps = _factories.simpleCommandWraps['optionMenuGrp']
@@ -2173,6 +2309,8 @@ def animCurveEditor(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.animCurveEditor(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.AnimCurveEditor)
     return res
@@ -2200,6 +2338,8 @@ def separator(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.separator(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.Separator)
     return res
@@ -2238,6 +2378,8 @@ def layout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.layout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.Layout)
     return res
@@ -2276,6 +2418,8 @@ def layerButton(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.layerButton(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.LayerButton)
     return res
@@ -2295,6 +2439,8 @@ def hyperGraph(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.hyperGraph(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.HyperGraph)
     return res
@@ -2314,6 +2460,8 @@ def hyperPanel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.hyperPanel(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.HyperPanel)
     return res
@@ -2341,6 +2489,8 @@ def rowColumnLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.rowColumnLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.RowColumnLayout)
     return res
@@ -2360,6 +2510,8 @@ def rowLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.rowLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.RowLayout)
     return res
@@ -2379,6 +2531,8 @@ def renderWindowEditor(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.renderWindowEditor(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.RenderWindowEditor)
     return res
@@ -2387,6 +2541,8 @@ def renderWindowEditor(*args, **kwargs):
 def glRenderEditor(*args, **kwargs):
     from . import uitypes
     res = cmds.glRenderEditor(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.GlRenderEditor)
     return res
@@ -2408,6 +2564,8 @@ def scriptTable(*args, **kwargs):
         except KeyError:
             pass
     res = _scriptTable(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ScriptTable)
     return res
@@ -2427,6 +2585,8 @@ def keyframeStats(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.keyframeStats(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.KeyframeStats)
     return res
@@ -2446,6 +2606,8 @@ def keyframeOutliner(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.keyframeOutliner(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.KeyframeOutliner)
     return res
@@ -2465,6 +2627,8 @@ def canvas(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.canvas(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.Canvas)
     return res
@@ -2484,6 +2648,8 @@ def channelBox(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.channelBox(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ChannelBox)
     return res
@@ -2503,6 +2669,8 @@ def gradientControl(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.gradientControl(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.GradientControl)
     return res
@@ -2522,6 +2690,8 @@ def gradientControlNoAttr(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.gradientControlNoAttr(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.GradientControlNoAttr)
     return res
@@ -2541,6 +2711,8 @@ def gridLayout(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.gridLayout(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.GridLayout)
     return res
@@ -2560,6 +2732,8 @@ def messageLine(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.messageLine(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.MessageLine)
     return res
@@ -2579,6 +2753,8 @@ def popupMenu(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.popupMenu(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.PopupMenu)
     return res
@@ -2598,6 +2774,8 @@ def modelEditor(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.modelEditor(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ModelEditor)
     wraps = _factories.simpleCommandWraps['modelEditor']
@@ -2622,6 +2800,8 @@ def modelPanel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.modelPanel(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ModelPanel)
     return res
@@ -2641,6 +2821,8 @@ def helpLine(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.helpLine(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.HelpLine)
     return res
@@ -2660,6 +2842,8 @@ def hardwareRenderPanel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.hardwareRenderPanel(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.HardwareRenderPanel)
     return res
@@ -2679,6 +2863,8 @@ def image(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.image(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.Image)
     return res
@@ -2698,6 +2884,8 @@ def nodeIconButton(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.nodeIconButton(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.NodeIconButton)
     return res
@@ -2717,6 +2905,8 @@ def commandLine(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.commandLine(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.CommandLine)
     return res
@@ -2736,6 +2926,8 @@ def progressBar(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.progressBar(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ProgressBar)
     return res
@@ -2755,6 +2947,8 @@ def defaultLightListCheckBox(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.defaultLightListCheckBox(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.DefaultLightListCheckBox)
     return res
@@ -2774,6 +2968,8 @@ def exclusiveLightCheckBox(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.exclusiveLightCheckBox(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ExclusiveLightCheckBox)
     return res
@@ -2793,6 +2989,8 @@ def clipSchedulerOutliner(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.clipSchedulerOutliner(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ClipSchedulerOutliner)
     return res
@@ -2801,6 +2999,8 @@ def clipSchedulerOutliner(*args, **kwargs):
 def clipEditor(*args, **kwargs):
     from . import uitypes
     res = cmds.clipEditor(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.ClipEditor)
     return res
@@ -2809,6 +3009,8 @@ def clipEditor(*args, **kwargs):
 def deviceEditor(*args, **kwargs):
     from . import uitypes
     res = cmds.deviceEditor(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.DeviceEditor)
     return res
@@ -2828,6 +3030,8 @@ def devicePanel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.devicePanel(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.DevicePanel)
     return res
@@ -2847,6 +3051,8 @@ def dynPaintEditor(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.dynPaintEditor(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.DynPaintEditor)
     return res
@@ -2866,6 +3072,8 @@ def nameField(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.nameField(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.NameField)
     return res
@@ -2885,6 +3093,8 @@ def cmdScrollFieldExecuter(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.cmdScrollFieldExecuter(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.CmdScrollFieldExecuter)
     return res
@@ -2904,6 +3114,8 @@ def cmdScrollFieldReporter(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.cmdScrollFieldReporter(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.CmdScrollFieldReporter)
     return res
@@ -2923,6 +3135,8 @@ def cmdShell(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.cmdShell(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.CmdShell)
     return res
@@ -2942,6 +3156,8 @@ def nameField(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.nameField(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.NameField)
     return res
@@ -2961,6 +3177,8 @@ def palettePort(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.palettePort(*args, **kwargs)
+    if kwargs.get('exists', kwargs.get('ex', False)):
+        return res
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, uitypes.PalettePort)
     return res
