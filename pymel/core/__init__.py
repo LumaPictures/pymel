@@ -201,8 +201,13 @@ def _pluginLoaded(*args):
     global _pluginData
 
     if len(args) > 1:
-        # 2009 API callback, the args are ( [ pathToPlugin, pluginName ], clientData )
-        pluginName = args[0][1]
+        if len(args[0]) > 2:
+            # 2022 API callback, the args are ( [ pathToPlugin, pluginName1, pluginName2 ], clientData )
+            # pluginName2 is the old pluginName and is "" if the plugin was already loaded.
+            pluginName = args[0][2]
+        else:
+            # 2009 API callback, the args are ( [ pathToPlugin, pluginName ], clientData )
+            pluginName = args[0][1]
     else:
         pluginName = args[0]
     pluginName = _stripPluginExt(pluginName)
@@ -260,6 +265,7 @@ def _pluginLoaded(*args):
                     api.MEventMessage.removeCallback(id)
                     if hasattr(id, 'disown'):
                         id.disown()
+                    _pluginData[pluginName]['callbackId'] = None
 
             _pluginData[pluginName]['dependNodes'] = []
             allTypes = set(cmds.ls(nodeTypes=1))
