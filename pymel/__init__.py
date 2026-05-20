@@ -21,14 +21,10 @@ Special thanks to those studios with the foresight to support an open-source pro
 Attitude Studio, and ImageMovers Digital.
 
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
+#from future import standard_library
+#standard_library.install_aliases()
 
-from future import standard_library
-standard_library.install_aliases()
-
-__versiontuple__ = (1, 5, 0)
-__version_suffix__ = ''
+__versiontuple__ = (1, 7, 1)
+__version_suffix__ = 'rc1'
 __version__ = '.'.join(str(x) for x in __versiontuple__) + __version_suffix__
 __authors__ = ['Chad Dombrova', 'Paul Molodowitch', 'Olivier Renouard', 'Ofer Koren']

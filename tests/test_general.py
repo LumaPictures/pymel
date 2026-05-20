@@ -1,7 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 from builtins import range
 from builtins import object
 
@@ -1214,7 +1210,12 @@ class test_PyNodeWraps(unittest.TestCase):
             select('pCube1', 'pCube2')
             from maya.mel import eval as mel
             mel("Art3dPaintTool")
-            mel("art3dPaintAssignFileTextures color")
+            # cxli: there is no color attribute in openPBRSurface shader node in Maya 2026, use baseColor instead
+            version = cmds.about(api=1)
+            if version >= 20260000:
+                mel("art3dPaintAssignFileTextures baseColor")
+            else:
+                mel("art3dPaintAssignFileTextures color")
             self.assertPyNodes(art3dPaintCtx('art3dPaintContext', q=1, shn=1))
             self.assertPyNodes(art3dPaintCtx('art3dPaintContext', q=1, hnm=1))
 

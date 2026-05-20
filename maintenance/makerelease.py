@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
 '''Package up a pymel release.'''
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 # Ideally this should use the python interpreter used by mayapy, but without LD_LIBRARY_PATH or PYTHONHOME set
 
 import argparse

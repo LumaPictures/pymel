@@ -1,12 +1,8 @@
 #!/usr/bin/env mayapy
 '''Print out a contents of the core pymel modules in a text format that can be diffed
 '''
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 from builtins import range
-from past.builtins import basestring
+
 import sys
 import pydoc
 import types
@@ -41,7 +37,7 @@ DEFAULT_MODULES = (
 )
 
 def git(arg, output=False):
-    if isinstance(arg, basestring):
+    if isinstance(arg, (bytes, str)):
         args = arg.split()
     else:
         args = arg
@@ -228,8 +224,16 @@ def main(argv=None):
             mayaBin += '.exe'
         newArgs.insert(0, mayaBin)
 
-        pyCmd = 'import sys; sys.argv = {!r}; execfile({!r})'.format(newArgs,
-                                                                     THIS_FILE)
+        pyCmd = ('import sys;\n'
+                 'import inspect;\n'
+                 'sys.argv = {!r};\n'
+                 'caller_frame = inspect.stack()[1]\n'
+                 'myglobals = caller_frame[0].f_globals\n'
+                 'mylocals = caller_frame[0].f_locals\n'
+                 'with open({!r}, "rb") as fin:\n'
+                 '    source = fin.read()\n'
+                 'code = compile(source, filename, "exec")\n'
+                 'exec(code, myglobals, mylocals)').format(newArgs, THIS_FILE)
         melCmd = 'python("{}")'.format(pyCmd.replace('\\', '\\\\')
                                        .replace('"', r'\"'))
         mayaArgs = [mayaBin, '-command', melCmd]

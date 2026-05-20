@@ -1,10 +1,6 @@
 """
 A generic n-dimensionnal Array class serving as base for arbitrary length VectorN and MatrixN classes
 """
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
-
 # NOTE: modified and added some methods that are closer to how Numpy works, as some people pointed out
 # they didn't want non-Python dependencies.
 # For instance implemented partially the neat multi index slicing, __getitem__ and __setitem__ as well
@@ -20,7 +16,6 @@ from __future__ import division
 from builtins import zip
 from builtins import range
 from builtins import object
-from future.utils import PY2, with_metaclass
 
 import operator
 import itertools
@@ -1002,7 +997,7 @@ class ArrayIter(object):
 
 # A generic multi dimensional Array class
 # NOTE : Numpy Array class could be used instead, just implemented the bare minimum inspired from it
-class Array(with_metaclass(metaReadOnlyAttr, object)):
+class Array(object, metaclass=metaReadOnlyAttr):
 
     """ A generic n-dimensional array class using nested lists for storage.
 
@@ -1680,16 +1675,10 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
 
         cls_size = getattr(cls, 'size', None)
         # for new default size to 0 if not specified or class constant
-        if PY2:
-            if size is None and not shape and (not cls_size or
-                                               inspect.ismethod(cls_size) or
-                                               inspect.isdatadescriptor(cls_size)):
-                size = 0
-        else:
-            if size is None and not shape and (not cls_size or
-                                               inspect.isfunction(cls_size) or
-                                               inspect.isdatadescriptor(cls_size)):
-                size = 0
+        if size is None and not shape and (not cls_size or
+                                           inspect.isfunction(cls_size) or
+                                           inspect.isdatadescriptor(cls_size)):
+            size = 0
 
         shape, ndim, size = cls._expandshape(shape, ndim, size)
 
@@ -2993,9 +2982,6 @@ class Array(with_metaclass(metaReadOnlyAttr, object)):
     def __str__(self):
         return "[%s]" % ", ".join(str(x) for x in self)
 
-    if PY2:
-        def __unicode__(self):
-            return u"[%s]" % u", ".join(unicode(x) for x in self)
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, str(self))

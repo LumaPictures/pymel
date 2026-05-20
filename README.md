@@ -21,11 +21,11 @@ Supported Maya Versions
 
 PyMEL supports four major versions of Maya:
 
-- 2022
-- 2023
 - 2024
 - 2025
-
+- 2026
+- 2027
+ 
 See the full [changelog](https://github.com/LumaPictures/pymel/blob/master/CHANGELOG.rst).
 
 Production Proven
@@ -331,7 +331,7 @@ sudo /usr/autodesk/maya<Version>/bin/mayapy -m pip install pymel
 (from a command window running as Administrator)
 
 ```
-/Applications/Autodesk/maya<Version>/Maya.app/Contents/bin/mayapy -m pip install pymel
+C:\Program Files\Autodesk\Maya<VersionNumber>\bin\mayapy -m pip install pymel
 ```
 
 ### Installing into your user's site-packages directory

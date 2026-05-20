@@ -1,14 +1,9 @@
 """Utilities for getting Maya resource directories, sourcing scripts, and executing deferred.
 
 These do not require initialization of maya.standalone"""
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
-from past.builtins import execfile
 from builtins import next
 from builtins import str
-from past.builtins import basestring
+import inspect
 import os
 import sys
 import re
@@ -29,8 +24,8 @@ def source(file, searchPath=None, recurse=False):
     """
     Execute a python script.
 
-    Search for a python script in the specified path and execute it using
-    ``execfile``.
+    Search for a python script in the specified path and execute it with current global and local context using
+    ``exec``.
 
     Parameters
     ----------
@@ -46,7 +41,7 @@ def source(file, searchPath=None, recurse=False):
 
     if searchPath is None:
         searchPath = sys.path
-    if isinstance(searchPath, basestring):
+    if isinstance(searchPath, (bytes, str)):
         searchPath = [searchPath]
     itpath = iter(searchPath)
     _logger.debug("looking for file as: " + filepath)
@@ -72,7 +67,13 @@ def source(file, searchPath=None, recurse=False):
         except:
             raise ValueError("File '" + filename + "' not found in path")
     # _logger.debug("Executing: "+filepath)
-    return execfile(filepath)
+    caller_frame = inspect.stack()[1]
+    myglobals = caller_frame[0].f_globals
+    mylocals = caller_frame[0].f_locals
+    with open(filename, "rb") as fin:
+        source = fin.read()
+    code = compile(source, filename, "exec")
+    return exec(code, myglobals, mylocals)
 
 
 def getMayaLocation(version=None):
@@ -219,7 +220,7 @@ def executeDeferred(func, *args, **kwargs):
     if maya.OpenMaya.MGlobal.mayaState() == maya.OpenMaya.MGlobal.kInteractive:
         maya.utils.executeDeferred(func, *args, **kwargs)
     else:
-        if isinstance(func, basestring):
+        if isinstance(func, (bytes, str)):
             if args or kwargs:
                 raise ValueError('if passing a string to be executed, no '
                                  'additional args may be passed')
@@ -254,7 +255,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None,
     regex = '[.]|(obsolete)'
 
     if excludeRegex:
-        assert isinstance(excludeRegex, basestring), \
+        assert isinstance(excludeRegex, (bytes, str)), \
             "please pass a regular expression as a string"
         regex = regex + '|' + excludeRegex
 

@@ -1,9 +1,6 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 from builtins import zip
 from builtins import range
-from past.builtins import basestring
+
 import sys
 import os
 import types
@@ -343,7 +340,7 @@ class SuiteFromModule(TestSuite):
         super(SuiteFromModule, self).__init__()
         self._importError = None
 
-        if isinstance(module, basestring):
+        if isinstance(module, (bytes, str)):
             self.moduleName = module
             self.module = self._importTestModule()
         elif isinstance(module, types.ModuleType):

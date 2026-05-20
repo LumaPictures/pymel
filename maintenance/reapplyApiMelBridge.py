@@ -1,6 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 #!/usr/bin/env mayapy
 import inspect
 import os

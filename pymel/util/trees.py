@@ -42,15 +42,11 @@ We do NOT recommend using it in external code...
 <BLANKLINE>
 -: 3
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 # Python implementation inspired from Gonzalo Rodrigues "Trees and more trees"
 # in ASPN cookbook
 
 # removed as it's 2.5 only
 # import functools as ftools
-from past.builtins import cmp
 from builtins import next
 from builtins import range
 from builtins import object
@@ -60,7 +56,6 @@ import warnings
 import weakref as weak
 from copy import *
 from functools import reduce
-from future.utils import PY2, with_metaclass
 
 #import logging
 #_logger = logging.getLogger(__name__)
@@ -523,7 +518,7 @@ class MetaTree(type):
             element._set_parent(parent)
 
         def __cmp__(self, other):
-            return cmp(self.value, other.value)
+            return (self.value > other.value) - (self.value < other.value)
 
         __le__ = lambda self, other: self.__cmp__(other) <= 0
         __lt__ = lambda self, other: self.__cmp__(other) < 0
@@ -1198,26 +1193,6 @@ class MetaTree(type):
             else:
                 return "()"
 
-        if PY2:
-            def _unicodeIter(self):
-                res = u""
-                value = self.value
-                if value:
-                    res = u"'%s'" % unicode(value)
-                temp = [sub._unicodeIter() for sub in self.childs()]
-                if temp:
-                    if res:
-                        res += u", (%s)" % u", ".join(temp)
-                    else:
-                        res = u", ".join(temp)
-                return res
-
-            def __unicode__(self):
-                if self:
-                    return u"(%s)" % (self._unicodeIter())
-                else:
-                    return u"()"
-
         def _reprIter(self):
             res = ""
             value = self.value
@@ -1495,9 +1470,11 @@ class MetaTree(type):
                 if k == '__doc__':
                     newdict[k] = newdict[k] + "\n" + basedict[k]
                 else:
-                    warnings.warn(
-                        "Can't override core method or property %s in Trees "
-                        "(trying to create class '%s')" % (k, classname))
+                    # Python 3.13 add two core attributes, excluding them here to avoid warning message.
+                    if k != '__static_attributes__' and k!= '__firstlineno__':
+                        warnings.warn(
+                            "Can't override core method or property %s in Trees "
+                            "(trying to create class '%s')" % (k, classname))
             else:
                 newdict[k] = basedict[k]
 
@@ -1525,29 +1502,25 @@ class MetaTree(type):
     def __str__(cls):
         return "%s<TreeType:%r>" % (cls.__name__, cls.TreeType)
 
-    if PY2:
-        def __unicode__(cls):
-            return u"%s<TreeType:%r>" % (cls.__name__, cls.TreeType)
-
 # derive from one of these as needed
 
 
-class FrozenTree(with_metaclass(MetaTree, object)):
+class FrozenTree(object, metaclass=MetaTree):
     mutable = False
     indexed = False
 
 
-class Tree(with_metaclass(MetaTree, object)):
+class Tree(object, metaclass=MetaTree):
     mutable = True
     indexed = False
 
 
-class IndexedFrozenTree(with_metaclass(MetaTree, object)):
+class IndexedFrozenTree(object, metaclass=MetaTree):
     mutable = False
     indexed = True
 
 
-class IndexedTree(with_metaclass(MetaTree, object)):
+class IndexedTree(object, metaclass=MetaTree):
     mutable = True
     indexed = True
 

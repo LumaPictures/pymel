@@ -72,19 +72,19 @@ class MetaTree(type):
     def __new__(mcl, classname, bases, classdict): ...
     TreeType: Incomplete
 
-class FrozenTree:
+class FrozenTree(metaclass=MetaTree):
     mutable: bool
     indexed: bool
 
-class Tree:
+class Tree(metaclass=MetaTree):
     mutable: bool
     indexed: bool
 
-class IndexedFrozenTree:
+class IndexedFrozenTree(metaclass=MetaTree):
     mutable: bool
     indexed: bool
 
-class IndexedTree:
+class IndexedTree(metaclass=MetaTree):
     mutable: bool
     indexed: bool
 

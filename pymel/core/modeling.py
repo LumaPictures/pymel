@@ -1,8 +1,4 @@
 """functions related to modeling"""
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 import pymel.internal.factories as _factories
 import pymel.core.general as _general
 if False:
@@ -41,6 +37,7 @@ def surface(*args, **kwargs):
     if name:
         res.getParent().rename(name)
     return res
+
 
 
 # ------ Do not edit below this line --------
@@ -436,6 +433,13 @@ polyAverageNormal = _factories.getCmdFunc('polyAverageNormal')
 @_factories.addCmdDocs
 def polyAverageVertex(*args, **kwargs):
     res = cmds.polyAverageVertex(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, _general.PyNode)
+    return res
+
+@_factories.addCmdDocs
+def polyAxis(*args, **kwargs):
+    res = cmds.polyAxis(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
@@ -978,6 +982,20 @@ def polySewEdge(*args, **kwargs):
 polySlideEdge = _factories.getCmdFunc('polySlideEdge')
 
 @_factories.addCmdDocs
+def polySmartBevel(*args, **kwargs):
+    res = cmds.polySmartBevel(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, _general.PyNode)
+    return res
+
+@_factories.addCmdDocs
+def polySmartExtrude(*args, **kwargs):
+    res = cmds.polySmartExtrude(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, _general.PyNode)
+    return res
+
+@_factories.addCmdDocs
 def polySmooth(*args, **kwargs):
     res = cmds.polySmooth(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -1080,6 +1098,13 @@ polyUVStackSimilarShells = _factories.getCmdFunc('polyUVStackSimilarShells')
 @_factories.addCmdDocs
 def polyUnite(*args, **kwargs):
     res = cmds.polyUnite(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, _general.PyNode)
+    return res
+
+@_factories.addCmdDocs
+def polyUnsmooth(*args, **kwargs):
+    res = cmds.polyUnsmooth(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res

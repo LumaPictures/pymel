@@ -1,7 +1,6 @@
 from _typeshed import Incomplete
 from collections.abc import Generator
 
-STRING_TYPES: Incomplete
 STRING_TYPES = str
 xrange = range
 tokens: Incomplete

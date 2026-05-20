@@ -1,21 +1,13 @@
 """
 Functions and classes related to scripting, including `MelGlobals` and `Mel`
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 from builtins import map
 from builtins import range
-from past.builtins import basestring
-from builtins import object
-from future.utils import PY2
 
-# 2to3: remove switch when python-3 only
-try:
-    from collections.abc import Mapping, MutableMapping
-except ImportError:
-    from collections import Mapping, MutableMapping
+from builtins import object
+
+from collections.abc import Mapping, MutableMapping
+
 import sys
 import os
 import inspect
@@ -227,7 +219,7 @@ def getMelType(pyObj, exactOnly=True, allowBool=False, allowMatrix=False):
 
     if inspect.isclass(pyObj):
 
-        if issubclass(pyObj, basestring):
+        if issubclass(pyObj, (bytes, str)):
             return 'string'
         elif allowBool and issubclass(pyObj, bool):
             return 'bool'
@@ -262,7 +254,7 @@ def getMelType(pyObj, exactOnly=True, allowBool=False, allowMatrix=False):
                 return 'string[]'
             except:
                 return
-        if isinstance(pyObj, basestring):
+        if isinstance(pyObj, (bytes, str)):
             return 'string'
         elif allowBool and isinstance(pyObj, bool):
             return 'bool'
@@ -630,7 +622,7 @@ class OptionVarList(tuple):
         to the Maya optionVar at the key denoted by self.key.
         """
 
-        if isinstance(val, basestring):
+        if isinstance(val, (bytes, str)):
             return cmds.optionVar(stringValueAppend=[self.key, val])
         if isinstance(val, (int, int)):
             return cmds.optionVar(intValueAppend=[self.key, val])
@@ -692,7 +684,7 @@ class OptionVarDict(MutableMapping):
 
     def __setitem__(self, key, val):
         # type: (str, Any) -> None
-        if isinstance(val, basestring):
+        if isinstance(val, (bytes, str)):
             return cmds.optionVar(stringValue=[key, val])
         if isinstance(val, (int, bool, int)):
             return cmds.optionVar(intValue=[key, int(val)])
@@ -702,7 +694,7 @@ class OptionVarDict(MutableMapping):
             if len(val) == 0:
                 return cmds.optionVar(clearArray=key)
             listType = type(val[0])
-            if issubclass(listType, basestring):
+            if issubclass(listType, (bytes, str)):
                 flag = 'stringValue'
             elif issubclass(listType, (int, int)):
                 flag = 'intValue'
@@ -1281,6 +1273,7 @@ def conditionExists(conditionName):
 
 
 
+
 # ------ Do not edit below this line --------
 
 evalEcho = _factories.getCmdFunc('evalEcho')
@@ -1318,6 +1311,8 @@ def scriptJob(*args, **kwargs):
     return res
 
 sortCaseInsensitive = _factories.getCmdFunc('sortCaseInsensitive')
+
+sortStringArray = _factories.getCmdFunc('sortStringArray')
 
 stackTrace = _factories.getCmdFunc('stackTrace')
 

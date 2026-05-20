@@ -46,20 +46,9 @@ original arguments used to create the enumeration:
     >>> shirt_colour.index
     2
 """
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
 
-from past.builtins import cmp
-from future import standard_library
+from collections.abc import Mapping
 
-# 2to3: remove switch when python-3 only
-try:
-    from collections.abc import Mapping
-except ImportError:
-    from collections import Mapping
-standard_library.install_aliases()
-from past.builtins import basestring
 from builtins import object
 __author_name__ = "Ben Finney"
 __author_email__ = "ben+python@benfinney.id.au"
@@ -189,7 +178,7 @@ class EnumValue(object):
         result = NotImplemented
         if isinstance(other, EnumValue) and self.enumtype == other.enumtype:
             result = (self.index, other.index)
-        elif isinstance(other, basestring):
+        elif isinstance(other, (bytes, str)):
             result = (self.key, other)
         elif isinstance(other, int):
             result = (self.index, other)
@@ -307,7 +296,7 @@ class Enum(object):
                 # an iterable would evauluate to a True boolean even if empty -
                 # so redo our empty test
                 raise EnumEmptyError()
-            if isinstance(keys[0], basestring):
+            if isinstance(keys[0], (bytes, str)):
                 keygen = enumerate(keys)
                 values = [None] * len(keys)
             else:
@@ -459,7 +448,7 @@ class Enum(object):
     def __contains__(self, value):
         # type: (Union[str, int]) -> bool
         is_member = False
-        if isinstance(value, basestring):
+        if isinstance(value, (bytes, str)):
             is_member = (value in self._keys)
         else:
             # EnumValueCompareError was never defined...

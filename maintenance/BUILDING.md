@@ -187,6 +187,13 @@ Building an Official PyMEL Release
     ```python
     import sys
     import os
+    import maya.utils as utils
+    
+    # Workaround for missing encoding member in maya.Output when compiling the code.
+    class MayaOutput(utils.Output):
+        encoding = sys.getdefaultencoding()
+    sys.stdout = MayaOutput()
+            
     pymelPath = r'C:\Projects\Dev\pymel'   # ...or wherever YOUR pymel version is installed
     pymelInit = os.path.join(pymelPath, 'pymel', '__init__.py')
     if not os.path.isfile(pymelInit):
@@ -498,58 +505,48 @@ A few notes on rebuilding:
   
         git push origin --tags
 
-  - then, build with poetry
-    - if you've never installed poetry, do:
+  - then, build with uv
+    - if you've never installed uv, check the guide [here](https://docs.astral.sh/uv/getting-started/installation/).
 
       Windows:
 
-          python3 -m venv .venv-build
-          .\.venv-build\Scripts\activate
-          pip install -U pip
-          pip install poetry poetry-dynamic-versioning
+          uv venv .venv-build
+          .\.venv-build\Scripts\activate 
 
-      Linux:
+      Linux/MacOS:
 
           python3 -m venv .venv-build
-          source .venv-build/bin/activate
-          pip install -U pip
-          pip install poetry poetry-dynamic-versioning
+          source .venv-build/bin/activate 
 
     - then:
 
-          poetry build -n -f wheel
+          uv build -n --wheel
 
     - check the dist/ directory.  you should have a single .whl which should not
       have a `dev` suffix.  if it does, you need to make sure you're building
       from a commit that corresponds with a tag. then delete `dist/` and rebuild.
 
-    - if you've never set test.pypi.org as a poetry repo:
+    - publish to testpypi:
 
-          poetry config repositories.testpypi https://test.pypi.org/legacy/
-          poetry config http-basic.testpypi <username> <password>
-
-    - then publish to testpypi:
-
-          poetry publish -r testpypi
+          uv publish --publish-url https://test.pypi.org/simple/ -t <TOKEN>
 
     - then check that your publish worked by installing into a fresh venv.
 
       Windows:
 
-          python -m venv .venv-test
+          uv venv .venv-test
           .\.venv-test\Scripts\activate
-          pip install -i https://test.pypi.org/simple/ pymel
+          uv pip install -i https://test.pypi.org/simple/ pymel
 
       Linux/MacOS:
 
-          python -m venv .venv-test
+          uv venv .venv-test
           source .venv-test/bin/activate
-          pip install -i https://test.pypi.org/simple/ pymel
+          uv pip install -i https://test.pypi.org/simple/ pymel
 
       Inspect the contents of pymel_test_env to ensure everything looks ok
 
     - publish to "real" pypi!
 
-          poetry config http-basic.pypi <username> <password>
-          poetry publish
+          uv publish -t <TOKEN>
 

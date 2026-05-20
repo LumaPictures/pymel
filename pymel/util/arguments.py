@@ -2,23 +2,15 @@
 Defines arguments manipulation utilities, like checking if an argument is iterable, flattening a nested arguments list, etc.
 These utility functions can be used by other util modules and are imported in util's main namespace for use by other pymel modules
 """
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
-
-from future import standard_library
+#from future import standard_library
 import numbers
 
-# 2to3: remove switch when python-3 only
-try:
-    from collections.abc import Mapping, Sequence
-except ImportError:
-    from collections import Mapping, Sequence
-standard_library.install_aliases()
+from collections.abc import Mapping, Sequence
+
+#standard_library.install_aliases()
 from builtins import range
-from past.builtins import basestring
+
 from builtins import object
-from future.utils import PY2
 from collections import deque as _deque
 import sys
 import operator
@@ -43,7 +35,7 @@ def isIterable(obj):
     -------
     bool
     """
-    if isinstance(obj, basestring):
+    if isinstance(obj, (bytes, str)):
         return False
     elif isinstance(obj, ProxyUnicode):
         return False
@@ -530,10 +522,9 @@ class ChangedKey(object):
         return '%s(%r, %r)' % (type(self).__name__, self.oldVal, self.newVal)
 
 
-# 2to3: when we transition to 3-only, get rid of encoding kwarg
-def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
+def compareCascadingDicts(dict1, dict2, useAddedKeys=False,
                           useChangedKeys=False):
-    # type: (Union[dict, list, tuple], Union[dict, list, tuple], Union[str, bool, None], bool, bool) -> Tuple[set, set, set, dict]
+    # type: (Union[dict, list, tuple], Union[dict, list, tuple], bool, bool) -> Tuple[set, set, set, dict]
     '''compares two cascading dicts
 
     Parameters
@@ -542,13 +533,6 @@ def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
         the first object to compare
     dict2 : Union[dict, list, tuple]
         the second object to compare
-    encoding : Union[str, bool, None]
-        controls how comparisons are made when one value is a str, and one is a
-        unicode; if None, then comparisons are simply made with == (so ascii
-        characters will compare equally); if the value False, then unicode and
-        str are ALWAYS considered different - ie, u'foo' and 'foo' would not be
-        considered equal; otherwise, it should be the name of a unicode
-        encoding, which will be applied to the unicode string before comparing
     useAddedKeys : bool
         if True, then similarly to how 'RemovedKey' objects are used in the
         returned diferences object (see the Returns section), 'AddedKey' objects
@@ -608,8 +592,6 @@ def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
         differences.update(RemovedKey(key) for key in only1)
     else:
         recurseTypes = (dict, list, tuple, set)
-        if PY2:
-            strUnicode = set([str, unicode])
         if useAddedKeys:
             differences = dict((key, AddedKey(dict2[key])) for key in only2)
         else:
@@ -627,39 +609,15 @@ def compareCascadingDicts(dict1, dict2, encoding=None, useAddedKeys=False,
                 # compare not equal, or encoding is False (in which case they
                 # may compare python-equal, but could have some str-unicode
                 # equalities, so we need to verify for ourselves):
-                if encoding is False or val1 != val2:
+                if val1 != val2:
                     subDiffs = compareCascadingDicts(val1, val2,
-                                                     encoding=encoding,
                                                      useAddedKeys=useAddedKeys,
                                                      useChangedKeys=useChangedKeys)[-1]
                     if subDiffs:
                         differences[key] = subDiffs
             else:
                 # ok, we're not doing a recursive comparison...
-                if PY2 and set([type(val1), type(val2)]) == strUnicode:
-                    # we have a string and a unicode - decide what to do based on
-                    # encoding setting
-                    if encoding is False:
-                        equal = False
-                    elif encoding is None:
-                        equal = (val1 == val2)
-                    else:
-                        if type(val1) == str:
-                            strVal = val2
-                            unicodeVal = val1
-                        else:
-                            strVal = val1
-                            unicodeVal = val2
-                        try:
-                            encoded = unicodeVal.encode(encoding)
-                        except UnicodeEncodeError:
-                            # if there's an encoding error, consider them
-                            # different
-                            equal = False
-                        else:
-                            equal = (encoded == strVal)
-                else:
-                    equal = (val1 == val2)
+                equal = (val1 == val2)
 
                 if not equal:
                     if useChangedKeys:
@@ -919,8 +877,6 @@ def getImportableObject(importableName):
     else:
         # if no module, it's in builtins
         modulename = 'builtins'
-        if PY2:
-            modulename = '__builtin__'
         objName = importableName
     moduleobj = importlib.import_module(modulename)
     return getattr(moduleobj, objName)
@@ -930,8 +886,6 @@ def getImportableName(obj):
     import inspect
     module = inspect.getmodule(obj)
     import builtins
-    if PY2:
-        import __builtin__ as builtins
     if module == builtins:
         return obj.__name__
     return '{}.{}'.format(module.__name__, obj.__name__)

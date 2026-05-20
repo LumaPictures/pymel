@@ -1,21 +1,17 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 from builtins import object
 import unittest
 from pymel.util.testing import TestCaseExtended, setupUnittestModule, TestCase
 from pymel.util import utilitytypes
 from pymel.util.enum import Enum
-from future.utils import with_metaclass
 
 aDict = {'A':1, 'a':2}
 bDict = {'B':3, 'b':4}
 
-class BasicSingleton(with_metaclass(utilitytypes.Singleton, object)):
+class BasicSingleton(object, metaclass=utilitytypes.Singleton):
     pass
 
 # 2to3: need to use "true" dict object in python-2 to avoid metaclass issue
-class DictSingleton(with_metaclass(utilitytypes.Singleton, __builtins__['dict'])) :
+class DictSingleton(__builtins__['dict'], metaclass=utilitytypes.Singleton) :
     pass
 
 
@@ -200,7 +196,7 @@ class TestFrozenDict(__AbstractTestDict):
 
     def _makeNewFrozenDictClass(self, initialValue=None):
         # 2to3: need to use "true" dict object in python-2 to avoid metaclass issue
-        class FrozenDict(with_metaclass(utilitytypes.metaStatic, __builtins__['dict'])):
+        class FrozenDict(__builtins__['dict'], metaclass=utilitytypes.metaStatic):
             pass
         self.theClass = FrozenDict
 

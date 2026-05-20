@@ -1,8 +1,4 @@
 """Functions related to rendering"""
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
-
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.core.general as _general
@@ -138,6 +134,7 @@ def ambientLight(*args, **kwargs):
 #
 # def createDisplayLayer(*args, **kwargs):
 #    return _general.PyNode( cmds.createDisplayLayer(*args, **kwargs) )
+
 
 
 # ------ Do not edit below this line --------
@@ -382,7 +379,7 @@ def nodeIconButton(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ('c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
+    for key in ('c', 'command', 'dgc', 'dpc', 'dragCallback', 'dropCallback', 'rtc', 'runTimeCommand', 'vcc', 'visibleChangeCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):

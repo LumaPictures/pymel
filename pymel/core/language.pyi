@@ -3,8 +3,7 @@ import pymel.util as _util
 import abc
 import pymel.util as util
 from _typeshed import Incomplete
-from collections import MutableMapping
-from future.utils import PY2 as PY2
+from collections.abc import MutableMapping
 from pymel.core import system as system
 from typing import Any, Callable, List, Optional, Tuple, Union, overload
 
@@ -155,5 +154,6 @@ def resourceManager(*args, nameFilter: _util.ProxyUnicode | str = ..., nf: _util
 def scriptJob(*args, allChildren: bool | int = ..., alc: bool | int = ..., attributeAdded: Tuple[str, str | Callable] = ..., aa: Tuple[str, str | Callable] = ..., attributeChange: Tuple[str, str | Callable] = ..., ac: Tuple[str, str | Callable] = ..., attributeDeleted: Tuple[str, str | Callable] = ..., ad: Tuple[str, str | Callable] = ..., compressUndo: bool | int = ..., cu: bool | int = ..., conditionChange: Tuple[str, str | Callable] = ..., cc: Tuple[str, str | Callable] = ..., conditionFalse: Tuple[str, str | Callable] = ..., cf: Tuple[str, str | Callable] = ..., conditionTrue: Tuple[str, str | Callable] = ..., ct: Tuple[str, str | Callable] = ..., connectionChange: Tuple[str, str | Callable] = ..., con: Tuple[str, str | Callable] = ..., disregardIndex: bool | int = ..., dri: bool | int = ..., event: Tuple[str, str | Callable] = ..., e: Tuple[str, str | Callable] = ..., exists: int = ..., ex: int = ..., force: bool | int = ..., f: bool | int = ..., idleEvent: str | Callable = ..., ie: str | Callable = ..., kill: int | List[int] = ..., k: int | List[int] = ..., killAll: bool | int = ..., ka: bool | int = ..., killWithScene: bool | int = ..., kws: bool | int = ..., listConditions: bool | int = ..., lc: bool | int = ..., listEvents: bool | int = ..., le: bool | int = ..., listJobs: bool | int = ..., lj: bool | int = ..., nodeDeleted: Tuple[str, str | Callable] = ..., nd: Tuple[str, str | Callable] = ..., nodeNameChanged: Tuple[str, str | Callable] = ..., nnc: Tuple[str, str | Callable] = ..., optionVarChanged: Tuple[str, str | Callable] = ..., ovc: Tuple[str, str | Callable] = ..., parent: _util.ProxyUnicode | str = ..., p: _util.ProxyUnicode | str = ..., permanent: bool | int = ..., per: bool | int = ..., protected: bool | int = ..., pro: bool | int = ..., replacePrevious: bool | int = ..., rp: bool | int = ..., runOnce: bool | int = ..., ro: bool | int = ..., timeChange: str | Callable = ..., tc: str | Callable = ..., uiDeleted: Tuple[str, str | Callable] = ..., uid: Tuple[str, str | Callable] = ...): ...
 
 def sortCaseInsensitive(*args) -> Any: ...
+def sortStringArray(*args, ignoreCase: bool | int = ..., ic: bool | int = ..., indexArray: bool | int = ..., ia: bool | int = ..., reverse: bool | int = ..., rev: bool | int = ..., sortOrder: _util.ProxyUnicode | str = ..., ord: _util.ProxyUnicode | str = ..., stable: bool | int = ..., st: bool | int = ...) -> Any: ...
 def stackTrace(*args, dump: bool | int = ..., d: bool | int = ..., parameterCount: int = ..., pc: int = ..., parameterType: Tuple[int, int] = ..., pt: Tuple[int, int] = ..., parameterValue: Tuple[int, int] = ..., pv: Tuple[int, int] = ..., query: bool | int = ..., q: bool | int = ..., state: bool | int = ..., s: bool | int = ...) -> Any: ...
 def waitCursor(*args, query: bool | int = ..., q: bool | int = ..., state: bool | int = ..., st: bool | int = ...) -> Any: ...

@@ -3,8 +3,6 @@ import shutil
 from _typeshed import Incomplete
 from collections.abc import Generator
 
-basestring = str
-getcwdu = os.getcwd
 getcwdu = os.getcwd
 
 class TreeWalkWarning(Warning): ...

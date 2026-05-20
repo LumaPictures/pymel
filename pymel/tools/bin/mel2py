@@ -4,7 +4,6 @@ version of mel2py which is intended to be used as a command-line script.
 
 Symbolic link it to an easier-to-type name (ie, 'mel2py') in a directory on your path
 """
-from __future__ import print_function
 
 # Can't be a submodule of mel2py, because we wish to avoid importing mel2py (which
 # triggers the entire maya-initialization process) if we're just printing usage,

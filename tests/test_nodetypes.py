@@ -1,9 +1,6 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 from builtins import zip
 from builtins import range
-from past.builtins import basestring
+
 from builtins import object
 import sys
 import os
@@ -322,7 +319,7 @@ class testCase_attrSpec(unittest.TestCase):
             self.assertIsInstance(attrSpec, pm.AttributeSpec)
             # make sure this doesn't error
             name = attrSpec.name()
-            self.assertIsInstance(name, basestring)
+            self.assertIsInstance(name, (bytes, str))
             self.assertTrue(name)
             if name == 'objectGroups':
                 objGroups = attrSpec
@@ -368,7 +365,7 @@ class testCase_attrSpec(unittest.TestCase):
             self.assertIsInstance(attrSpec, pm.AttributeSpec)
             # make sure this doesn't error
             name = attrSpec.name()
-            self.assertIsInstance(name, basestring)
+            self.assertIsInstance(name, (bytes, str))
             self.assertTrue(name)
             if name == 'objectGroups':
                 objGroups = attrSpec
@@ -723,16 +720,16 @@ class ComponentData(object):
         self.melCompName = melCompName
         self.indices = indices
         self.ranges = ranges
-        if isinstance(self.indices, (int, float, basestring)):
+        if isinstance(self.indices, (int, float, (bytes, str))):
             self.indices = (self.indices,)
         if pythonIndices is None:
             pythonIndices = []
-        if isinstance(pythonIndices, (int, float, basestring)):
+        if isinstance(pythonIndices, (int, float, (bytes, str))):
             pythonIndices = [pythonIndices]
         self.pythonIndices = pythonIndices
         if melIndices is None:
             melIndices = []
-        if isinstance(melIndices, (int, float, basestring)):
+        if isinstance(melIndices, (int, float, (bytes, str))):
             melIndices = [melIndices]
         self.melIndices = melIndices
         self.neverUnindexed = neverUnindexed
@@ -1277,7 +1274,7 @@ class testCase_components(unittest.TestCase):
         # First, make sure comp1, comp2 are both lists
         bothComps = [comp1, comp2]
         for i, comp in enumerate(bothComps):
-            if isinstance(comp, (pm.Component, basestring)):
+            if isinstance(comp, (pm.Component, (bytes, str))):
                 bothComps[i] = [comp]
             else:
                 # ensure it's a list, so we can modify it
@@ -1298,7 +1295,7 @@ class testCase_components(unittest.TestCase):
                 for i, comp in enumerate(compIterable):
                     # Just worry about strings - the PyNodes
                     # are supposed to handle this bug themselves!
-                    if isinstance(comp, basestring):
+                    if isinstance(comp, (bytes, str)):
                         nodePart, compName, indices = self._compStrSplit(comp)
                         if compName == 'uv':
                             compPart = 'u'
@@ -1644,7 +1641,7 @@ class testCase_components(unittest.TestCase):
         # code here in case it starts crashing things again
         return
         try:
-            if isinstance(comp, basestring):
+            if isinstance(comp, (bytes, str)):
 #                if versions.current() >= versions.v2011:
 #                    # In 2011, MFnNurbsSurface.getKnotDomain will make maya crash,
 #                    # meaning any surf.u/v/uv.__getindex__ will crash

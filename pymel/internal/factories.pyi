@@ -189,7 +189,7 @@ class ApiArgUtil:
     def isStatic(self): ...
     def isDeprecated(self): ...
 
-class ApiUndo:
+class ApiUndo(metaclass=util.Singleton):
     node_name: str
     cb_enabled: bool
     undo_queue: Incomplete

@@ -1,11 +1,7 @@
 """ Imports Maya API methods in the 'api' namespace, and defines various utilities for Python<->API communication """
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
-
 # They will be imported / redefined later in Pymel, but we temporarily need them here
 from builtins import range
-from past.builtins import basestring
+
 from builtins import object
 import inspect
 import os
@@ -727,7 +723,7 @@ class BaseApiClassInfoCache(cachebase.SubItemCache):
         def makeEnumFromRepr(enumRepr):
             return eval(enumRepr, {'Enum': _util.Enum})
 
-        self._modifyEnums(data, lambda x: isinstance(x, basestring),
+        self._modifyEnums(data, lambda x: isinstance(x, (bytes, str)),
                           makeEnumFromRepr)
 
         # convert from tuples to ApiEnum tuples
@@ -765,7 +761,7 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
         '''
         import tokenize
 
-        if isinstance(sourcelines, basestring):
+        if isinstance(sourcelines, (bytes, str)):
             if not sourcelines:
                 sourcelines = []
             else:
@@ -860,7 +856,7 @@ class ApiMelBridgeCache(BaseApiClassInfoCache):
             f.write(origText)
 
         def git(arg, output=False):
-            if isinstance(arg, basestring):
+            if isinstance(arg, (bytes, str)):
                 args = arg.split()
             else:
                 args = arg
@@ -1133,13 +1129,13 @@ class ApiCache(BaseApiClassInfoCache):
 
     def fromRawData(self, data):
         # convert from string class names to class objects
-        self._modifyApiTypes(data, lambda x: isinstance(x, basestring),
+        self._modifyApiTypes(data, lambda x: isinstance(x, (bytes, str)),
                              _util.getImportableObject)
 
         # json automatically converts integer dict keys to strings...
         # we only need to undo this on read
         apiEnumsToApiTypes = data[self.itemIndex('apiEnumsToApiTypes')]
-        if any(isinstance(k, basestring) for k in apiEnumsToApiTypes):
+        if any(isinstance(k, (bytes, str)) for k in apiEnumsToApiTypes):
             # want to modify the dict in place, so make a copy
             newDict = {int(key): val
                        for key, val in apiEnumsToApiTypes.items()}

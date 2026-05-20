@@ -44,9 +44,9 @@ napoleon_use_rtype = True
 # fix for pymel.core.general.SCENE erroring during inspection by napoleon
 SKIP = {'_the_instance'}
 
-# must monkeypatch sphinxcontrib.napoleon because app.connect places our callback after napoleon's
-import sphinxcontrib.napoleon
-_orig_skip_member = sphinxcontrib.napoleon._skip_member
+# must monkeypatch sphinx.ext.napoleon because app.connect places our callback after napoleon's
+import sphinx.ext.napoleon
+_orig_skip_member = sphinx.ext.napoleon._skip_member
 
 import sys
 def skip_unsafe(app, what, name, obj, skip, options):
@@ -56,10 +56,10 @@ def skip_unsafe(app, what, name, obj, skip, options):
         try:
             return _orig_skip_member(app, what, name, obj, skip, options)
         except:
-            print "Errored on attribute %s of %s %s" % (name, what, obj)
+            print ("Errored on attribute %s of %s %s" % (name, what, obj))
             raise
 
-sphinxcontrib.napoleon._skip_member = skip_unsafe
+sphinx.ext.napoleon._skip_member = skip_unsafe
 
 # def setup(app):
 #     import pprint
@@ -77,7 +77,8 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.graphviz',
-    'sphinxcontrib.napoleon',
+    'sphinx.ext.napoleon',
+    'sphinxcontrib.jquery'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -143,9 +144,8 @@ pygments_style = 'sphinx'
 # Options for HTML output
 # -----------------------
 
-import sphinx_rtd_theme
 html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
 
 # html_theme = 'nature'
 
@@ -177,7 +177,7 @@ html_static_path = ['_static']
 
 html_context = {
     'css_files': [
-        '_static/theme_overrides.css',  # overrides for wide tables in RTD theme
+        '_static/css/theme.css',  # overrides for wide tables in RTD theme
         ],
     }
 
@@ -232,8 +232,8 @@ htmlhelp_basename = 'PyMELdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', 'PyMEL.tex', ur'PyMEL Documentation',
-   ur'Chad Dombrova', 'manual'),
+  ('index', 'PyMEL.tex', r'PyMEL Documentation',
+   r'Chad Dombrova', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -262,3 +262,4 @@ inheritance_node_attrs = dict(fontsize=8)
 
 autosummary_generate = True
 
+exclude_patterns =['templates']

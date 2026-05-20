@@ -1,14 +1,10 @@
 """
 Convert python callables into MEL procedures
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future.utils import PY2
 from builtins import filter
 from builtins import zip
 from builtins import range
-from past.builtins import basestring
+
 import inspect
 import re
 import types
@@ -31,7 +27,7 @@ _functionStore = {}
 def _getFunction(function):
     # type: (Union[Callable, str]) -> Callable
     # function is a string, so we must import its module and get the function object
-    if isinstance(function, basestring):
+    if isinstance(function, (bytes, str)):
         buf = function.split()
         funcName = buf.pop(-1)
         moduleName = '.'.join(buf)
@@ -86,56 +82,27 @@ def getMelArgs(function, exactMelType=True):
 
     function = _getFunction(function)
 
-    if PY2:
-        args, varargs, kwargs, defaults = inspect.getargspec(function)
-        if inspect.ismethod(function) and function.__self__ is not None:
-            # remove self/cls
-            args = args[1:]
-        try:
-            ndefaults = len(defaults)
-        except:
-            ndefaults = 0
+    parameters = inspect.signature(function).parameters
 
-        # print args, varargs, kwargs, defaults
+    validParamTypes = [inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                       inspect.Parameter.POSITIONAL_ONLY]
 
-        nargs = len(args)
-        offset = nargs - ndefaults
-        for i, arg in enumerate(args):
-
-            if i >= offset:
-                # keyword args with defaults
-                default = defaults[i - offset]
-                melType = getMelType(default, exactOnly=exactMelType)
-                # a mel type of None means there is no mel analogue for this python object
-                melArgDefaults[arg] = default
-            else:
-                # args without defaults
-                # a mel type of None means there is no mel analogue for this python object
-                melType = parsedTypes.get(arg, None)
-
-            melArgs.append((arg, melType))
-    else:
-        parameters = inspect.signature(function).parameters
-
-        validParamTypes = [inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                           inspect.Parameter.POSITIONAL_ONLY]
-
-        # Note that in python3, the Signature for unbound methods will just be
-        # a normal function (and therefore include self), while the Signature
-        # for a bound method won't include self - so no special handling is
-        # needed
-        for arg, argInfo in parameters.items():
-            if argInfo.kind not in validParamTypes:
-                break
-            if argInfo.default is not inspect.Parameter.empty:
-                melType = getMelType(argInfo.default, exactOnly=exactMelType)
-                # a mel type of None means there is no mel analogue for this python object
-                melArgDefaults[arg] = argInfo.default
-            else:
-                # args without defaults
-                # a mel type of None means there is no mel analogue for this python object
-                melType = parsedTypes.get(arg, None)
-            melArgs.append((arg, melType))
+    # Note that in python3, the Signature for unbound methods will just be
+    # a normal function (and therefore include self), while the Signature
+    # for a bound method won't include self - so no special handling is
+    # needed
+    for arg, argInfo in parameters.items():
+        if argInfo.kind not in validParamTypes:
+            break
+        if argInfo.default is not inspect.Parameter.empty:
+            melType = getMelType(argInfo.default, exactOnly=exactMelType)
+            # a mel type of None means there is no mel analogue for this python object
+            melArgDefaults[arg] = argInfo.default
+        else:
+            # args without defaults
+            # a mel type of None means there is no mel analogue for this python object
+            melType = parsedTypes.get(arg, None)
+        melArgs.append((arg, melType))
 
     return tuple(melArgs), melArgDefaults, parsedDescr
 
@@ -427,32 +394,24 @@ def _getArgInfo(obj, allowExtraKwargs=True, maxVarArgs=MAX_VAR_ARGS,
             canEdit = True
         maxArgs = 1
     else:
-        if PY2:
-            argNames, extraArgs, extraKwargs, defaults = inspect.getargspec(obj)
-            if defaults is None:
-                defaults = {}
-
-            # turn defaults into a dict
-            defaults = dict(zip(argNames[-len(defaults):], defaults))
-        else:
-            defaults = {}
-            parameters = inspect.signature(obj).parameters
-            extraArgs = extraKwargs = False
-            for argName, argInfo in parameters.items():
-                argNames.append(argName)
-                if argInfo.kind == argInfo.VAR_POSITIONAL:
-                    extraArgs = True
-                elif argInfo.kind == argInfo.VAR_KEYWORD:
-                    extraKwargs = True
-                elif argInfo.kind == argInfo.KEYWORD_ONLY or (
-                        argInfo.kind == argInfo.POSITIONAL_OR_KEYWORD
-                        and argInfo.default is not argInfo.empty):
-                    # Note that it's possible to have KEYWORD_ONLY args, that
-                    # have no default; we still add these to defaults, as
-                    # the dict is currently only used to determine whether
-                    # the args should be treated as args or flags (the
-                    # default vaules aren't used).
-                    defaults[argName] = argInfo.default
+        defaults = {}
+        parameters = inspect.signature(obj).parameters
+        extraArgs = extraKwargs = False
+        for argName, argInfo in parameters.items():
+            argNames.append(argName)
+            if argInfo.kind == argInfo.VAR_POSITIONAL:
+                extraArgs = True
+            elif argInfo.kind == argInfo.VAR_KEYWORD:
+                extraKwargs = True
+            elif argInfo.kind == argInfo.KEYWORD_ONLY or (
+                    argInfo.kind == argInfo.POSITIONAL_OR_KEYWORD
+                    and argInfo.default is not argInfo.empty):
+                # Note that it's possible to have KEYWORD_ONLY args, that
+                # have no default; we still add these to defaults, as
+                # the dict is currently only used to determine whether
+                # the args should be treated as args or flags (the
+                # default vaules aren't used).
+                defaults[argName] = argInfo.default
 
         if method:
             # remove the self arg
@@ -713,9 +672,6 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=None,
         def isFlagCovertible(x):
             return inspect.isfunction(x) or isinstance(x, property)
 
-        if PY2:
-            def isFlagCovertible(x):
-                return inspect.ismethod(x) or isinstance(x, property)
 
         for longname, method in inspect.getmembers(pyObj, isFlagCovertible):
             if not goodFlag(longname):

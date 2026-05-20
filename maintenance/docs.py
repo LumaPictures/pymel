@@ -1,6 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 from builtins import object
 import sys
 import os
@@ -36,9 +33,10 @@ SOURCE = 'source'
 BUILD_ROOT = 'build'
 BUILD = os.path.join(BUILD_ROOT, version)
 sourcedir = os.path.join(docsdir, SOURCE)
-gendir = os.path.join(sourcedir, 'generated')
+sourcegendir = os.path.join(sourcedir, 'generated')
 buildrootdir = os.path.join(docsdir, BUILD_ROOT)
 builddir = os.path.join(docsdir, BUILD)
+gendir = os.path.join(buildrootdir, 'generated')
 
 from pymel.internal.cmdcache import fixCodeExamples, getInternalCmds
 
@@ -103,8 +101,8 @@ def generate(clean=True):
         clean_generated()
     os.chdir(sourcedir)
 
-    sphinx_autogen( [''] + '--templates ../templates modules.rst'.split() )
-    sphinx_autogen( [''] + '--templates ../templates'.split() + glob.glob('generated/pymel.*.rst') )
+    sphinx_autogen('modules.rst --templates ../templates --output-dir ../build/generated'.split() )
+    sphinx_autogen(glob.glob('../build/generated/pymel.*.rst') + ' --templates ../templates --output-dir ../build/generated'.split())
     print("...done generating %s - %s" % (docsdir, datetime.datetime.now()))
 
 def clean_build():
@@ -115,9 +113,9 @@ def clean_build():
 
 def clean_generated():
     "delete existing generated directory"
-    if os.path.exists(gendir):
-        print("removing %s - %s" % (gendir, datetime.datetime.now()))
-        shutil.rmtree(gendir)
+    if os.path.exists(sourcegendir):
+        print("removing %s - %s" % (sourcegendir, datetime.datetime.now()))
+        shutil.rmtree(sourcegendir)
 
 def find_dot():
     if os.name == 'posix':
@@ -133,7 +131,7 @@ def find_dot():
 
 def copy_changelog():
     changelog = os.path.join(pymel_root, 'CHANGELOG.rst')
-    whatsnew = os.path.join(pymel_root, 'docs', 'source', 'whats_new.rst')
+    whatsnew = os.path.join(pymel_root, 'docs/source', 'whats_new.rst')
     shutil.copy2(changelog, whatsnew)
 
 class NoSubprocessWindow(object):
@@ -150,10 +148,10 @@ class NoSubprocessWindow(object):
         import inspect
         import subprocess
         if os.name == 'nt':
-            origInit = subprocess.Popen.__init__.__func__
+            origInit = subprocess.Popen.__init__
             self.origInit = origInit
 
-            argspec = inspect.getargspec(self.origInit)
+            argspec = inspect.getfullargspec(self.origInit)
             creationflags_index = argspec.args.index('creationflags')
             CREATE_NO_WINDOW_FLAG = 0x08000000
 
@@ -167,6 +165,7 @@ class NoSubprocessWindow(object):
         else:
             self.origInit = None
 
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         import subprocess
         if self.origInit is not None:
@@ -174,15 +173,14 @@ class NoSubprocessWindow(object):
 
 
 def build(clean=True, opts=None, filenames=None, **kwargs):
-    from sphinx import main as sphinx_build
+    from sphinx.cmd.build import main as sphinx_build
     print("building %s - %s" % (docsdir, datetime.datetime.now()))
 
     if clean or not os.path.isdir(gendir):
         generate(clean=clean)
 
+
     os.chdir( docsdir )
-    if clean:
-        clean_build()
 
     copy_changelog()
 
@@ -190,11 +188,8 @@ def build(clean=True, opts=None, filenames=None, **kwargs):
 
     #import pymel.internal.cmdcache as cmdcache
     #cmdcache.fixCodeExamples()
-    if opts is None:
-        opts = ['']
-    else:
-        opts = [''] + lists(opts)
-    opts += '-b html -d build/doctrees'.split()
+    opts = []
+    opts += '-j 64 -b html -d build/doctrees'.split()
 
     # set some defaults
     dot = kwargs.get('graphviz_dot')
@@ -208,9 +203,11 @@ def build(clean=True, opts=None, filenames=None, **kwargs):
     for key, value in kwargs.items():
         opts.append('-D')
         opts.append( key.strip() + '=' + value.strip() )
-    opts.append('-P')
-    opts.append(SOURCE)
+    opts.append('-T')
+    #opts.append('-vvv')
+    opts.append("./source")
     opts.append(BUILD)
+
     if filenames is not None:
         opts.extend(filenames)
     print("sphinx_build({!r})".format(opts))

@@ -1,16 +1,12 @@
 """
 Contains the wrapping mechanisms that allows pymel to integrate the api and maya.cmds into a unified interface
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 # Built-in imports
 from builtins import zip
 from builtins import range
-from past.builtins import basestring
+
 from builtins import object
-from future.utils import with_metaclass
+
 import re
 import types
 import os
@@ -734,7 +730,7 @@ def _getTimeRangeFlags(cmdName):
     else:
         for flag, data in flagDocs.items():
             args = data['args']
-            if isinstance(args, basestring) and args.lower() == 'timerange':
+            if isinstance(args, (bytes, str)) and args.lower() == 'timerange':
                 commandFlags.update([flag, data['shortname']])
     return commandFlags
 
@@ -921,7 +917,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None):
 def _getSourceFunction(funcNameOrObject, module=None):
     # type: (Union[str, types.FunctionType], Optional[types.ModuleType]) -> Tuple[Optional[types.FunctionType], Optional[str], Optional[bool]]
     inFunc = None
-    if isinstance(funcNameOrObject, basestring):
+    if isinstance(funcNameOrObject, (bytes, str)):
         funcName = funcNameOrObject
 
         # make sure that we import from pmcmds, not cmds
@@ -985,7 +981,7 @@ def convertTimeValues(rawVal):
     """
     if (isinstance(rawVal, (list, tuple))
             and 1 <= len(rawVal) <= 2
-            and all(isinstance(x, (basestring, int, int, float))
+            and all(isinstance(x, ((bytes, str), int, int, float))
                     for x in rawVal)):
         values = list(rawVal)
     else:
@@ -1540,7 +1536,7 @@ class ApiTypeRegister(object):
         """
         pymelType = cls.types.get(apiType)
         if pymelType is not None:
-            if isinstance(pymelType, basestring):
+            if isinstance(pymelType, (bytes, str)):
                 # strip the module
                 return pymelType.rsplit('.', 1)[-1]
             return pymelType
@@ -2246,7 +2242,7 @@ class ApiArgUtil(object):
         return self.methodInfo.get('deprecated', False)
 
 
-class ApiUndo(with_metaclass(util.Singleton, object)):
+class ApiUndo(object, metaclass=util.Singleton):
 
     """
     this is based on a clever prototype that Dean Edmonds posted on python_inside_maya
@@ -3859,13 +3855,13 @@ class VirtualClassManager(object):
         postCreate: Union[str, Callable]
             the function used to modify the PyNode after it is created.
         """
-        if isinstance(isVirtual, basestring):
+        if isinstance(isVirtual, (bytes, str)):
             isVirtual = getattr(vclass, isVirtual, None)
-        if isinstance(preCreate, basestring):
+        if isinstance(preCreate, (bytes, str)):
             preCreate = getattr(vclass, preCreate, None)
-        if isinstance(create, basestring):
+        if isinstance(create, (bytes, str)):
             create = getattr(vclass, create, None)
-        if isinstance(postCreate, basestring):
+        if isinstance(postCreate, (bytes, str)):
             postCreate = getattr(vclass, postCreate, None)
 
         # assert that we are a leaf class
@@ -3966,7 +3962,7 @@ def toApiTypeStr(obj, default=None):
     """
     if isinstance(obj, int):
         return apiEnumsToApiTypes.get(obj, default)
-    elif isinstance(obj, basestring):
+    elif isinstance(obj, (bytes, str)):
         return mayaTypesToApiTypes.get(obj, default)
     elif isinstance(obj, util.ProxyUnicode):
         mayaType = getattr(obj, '__melnode__', None)
@@ -4004,7 +4000,7 @@ def toApiFunctionSet(obj):
     -------
     Optional[Type]
     """
-    if isinstance(obj, basestring):
+    if isinstance(obj, (bytes, str)):
         try:
             return apiTypesToApiClasses[obj]
         except KeyError:

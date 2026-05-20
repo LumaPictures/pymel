@@ -1,5 +1,6 @@
 from pymel.util.arrays import *
 from typing import *
+import pymel.api as _api
 import pymel.internal.factories as _factories
 import pymel.util as _util
 from _typeshed import Incomplete
@@ -9,7 +10,7 @@ from typing import Any, Callable, List, Optional, Tuple, Union, overload
 class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeRegistry):
     def __new__(mcl, classname, bases, classdict): ...
 
-class Vector(VectorN):
+class Vector(VectorN, metaclass=MetaMayaArrayTypeWrapper):
     apicls: Incomplete
     cnames: Incomplete
     shape: Incomplete
@@ -156,7 +157,7 @@ class Color(Vector):
     kOpaqueBlack: Incomplete
     def set(self, colorModel: Color.MColorType, c1: float, c2: float, c3: float, alpha: float = ...) -> bool: ...
 
-class Space:
+class Space(_api.MSpace, metaclass=_factories.MetaMayaTypeRegistry):
     apicls: Incomplete
     Space: Incomplete
 
@@ -164,7 +165,7 @@ Spaces: Incomplete
 
 def equivalentSpace(space1: Union[int, str], space2: Union[int, str], rotationOnly: bool = ...) -> None: ...
 
-class Matrix(MatrixN):
+class Matrix(MatrixN, metaclass=MetaMayaArrayTypeWrapper):
     apicls: Incomplete
     shape: Incomplete
     cnames: Incomplete
@@ -291,7 +292,7 @@ class TransformationMatrix(Matrix):
     def setToRotationAxis(self, axis: Vector, rotation: float) -> None: ...
     def setTranslation(self, vector: Vector, space: Space.Space) -> None: ...
 
-class EulerRotation:
+class EulerRotation(Array, metaclass=MetaMayaArrayTypeWrapper):
     apicls: Incomplete
     shape: Incomplete
     cnames: Incomplete
@@ -393,7 +394,7 @@ class Angle(Unit):
     def asAngSeconds(self): ...
     Unit: Incomplete
 
-class BoundingBox:
+class BoundingBox(_api.MBoundingBox, metaclass=_factories.MetaMayaTypeRegistry):
     apicls: Incomplete
     def __init__(self, *args) -> None: ...
     def __getitem__(self, item): ...

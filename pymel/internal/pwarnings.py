@@ -4,11 +4,7 @@ and define a UserWarning class that does only print it's message (no line or mod
 
 
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future.utils import PY2
-from past.builtins import basestring
+
 import warnings
 
 
@@ -111,18 +107,6 @@ def deprecated(funcOrMessage=None, className=None,
                 isMethod = True
         return isClassMethod, isMethod
 
-    if PY2:
-        def isClassMethodOrMethod(test_func):
-            isClassMethod = False
-            isMethod = False
-            args = inspect.getargspec(test_func).args
-            if args:
-                if args[0] == 'cls':
-                    isClassMethod = True
-                elif args[0] == 'self':
-                    isMethod = True
-            return isClassMethod, isMethod
-
     #@decorator
     def deprecated2(func):
         useClassName = False
@@ -166,7 +150,7 @@ def deprecated(funcOrMessage=None, className=None,
     if funcOrMessage is None:
         message = baseMessage
         return deprecated2
-    elif isinstance(funcOrMessage, basestring):
+    elif isinstance(funcOrMessage, (bytes, str)):
         if baseMessage is None:
             message = funcOrMessage
         else:

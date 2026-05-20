@@ -5,14 +5,10 @@
 Created from the ansi c example included with ply, which is based on the grammar in K&R, 2nd Ed.
 
 """
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
-
 from builtins import filter
 from builtins import range
 from builtins import str
-from past.builtins import basestring
+
 from builtins import object
 import sys
 import os
@@ -21,8 +17,6 @@ import os.path
 import tempfile
 import string
 from . import mellex
-
-from future.utils import with_metaclass
 
 TYPE_CHECKING = False
 
@@ -218,7 +212,7 @@ def format_command(command, args, t):
         except KeyError:
             # Mel procedures and commands without help documentation
             # if flags is None:
-            strArgs = [repr(x) if isinstance(x, basestring) and FLAG_RE.match(x)
+            strArgs = [repr(x) if isinstance(x, (bytes, str)) and FLAG_RE.match(x)
                     else x for x in args]
             argsStr = ', '.join(strArgs)
 
@@ -452,7 +446,7 @@ def format_command(command, args, t):
             # remove string encapsulation
             subCmd = eval(args.pop(0))
             # in rare cases this might end up bing -e or -pi, which evaluate to numbers
-            assert isinstance(subCmd, basestring)
+            assert isinstance(subCmd, (bytes, str))
 
             formattedSubCmd = format_command(subCmd, args, t)
             return '%s(%s)' % (command, formattedSubCmd)
@@ -907,7 +901,7 @@ def hasNonCommentPyCode(pyCode):
     '''Returns True if the given chunk of python code has any lines that contain
     something other than a comment or whitespace
     '''
-    if isinstance(pyCode, basestring):
+    if isinstance(pyCode, (bytes, str)):
         return bool(NON_COMMENT_LINE_RE.search(pyCode))
     else:
         return any(hasNonCommentPyCode(x) for x in pyCode)
@@ -1128,7 +1122,7 @@ class ArrayToken(Token):
 #  BatchData -------------------------------------------------------------------
 
 
-class BatchData(with_metaclass(util.Singleton, object)):
+class BatchData(object, metaclass=util.Singleton):
     def __init__(self, **kwargs):
         self.currentModules = TwoWayDict()
         self.proc_to_module = {}

@@ -1,8 +1,6 @@
 """
 Wraps mypy.stubgen to improve signature generation with info from pymel caches.
 """
-from __future__ import absolute_import, print_function
-
 import textwrap
 from typing import List, Optional, Tuple
 
@@ -71,12 +69,14 @@ class PyMelStubGenerator(BaseStubGenerator):
             self._import_as('pymel.util', '_util')
 
     def get_base_types(self, cdef: mypy.nodes.ClassDef) -> List[str]:
-        result = super(PyMelStubGenerator, self).get_base_types(cdef)
+        return super(PyMelStubGenerator, self).get_base_types(cdef)
+        """ We shouldn't need this since we are moving to Python3 metaclass, let's keep it for now 
         # workaround stubgen failure to understand with_metaclass()
         if cdef.fullname in METACLASS_BASE_FIXES:
             assert result == [], result
             result.append(METACLASS_BASE_FIXES[cdef.fullname])
         return result
+        """
 
     def get_func_args(self, o: mypy.nodes.FuncDef) -> List[str]:
         deco_args = self._decorator_sigs.pop(o.fullname, None)

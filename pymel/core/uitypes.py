@@ -1,6 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
 from builtins import range
 from builtins import str
 from past.builtins import basestring
@@ -23,7 +20,6 @@ from pymel.core import other
 from pymel.core import rendering
 from pymel.core import system
 from pymel.core import windows
-from future.utils import with_metaclass
 
 if False:
     from typing import *
@@ -839,6 +835,11 @@ class Layout(PyUIContainer):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.layout, kwargs, 'dropCallback', val)
 
+    @_f.addMelDocs('layout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.layout, kwargs, 'generalSpacing', val)
+
     @_f.addMelDocs('layout', 'annotation')
     def getAnnotation(self, **kwargs):
         # type: (...) -> str
@@ -952,6 +953,16 @@ class Layout(PyUIContainer):
         # type: (...) -> int
         res = _f.asQuery(self, windows.layout, kwargs, 'width')
         return res
+
+    @_f.addMelDocs('layout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.layout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('layout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.layout, kwargs, 'margins4', val)
 
     @_f.addMelDocs('layout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
@@ -1093,6 +1104,11 @@ class Window(PyUIContainer):
     def closeCommand(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.window, kwargs, 'closeCommand', val)
+
+    @_f.addMelDocs('window', 'customSceneName')
+    def customSceneName(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, windows.window, kwargs, 'customSceneName', val)
 
     @_f.addMelDocs('window', 'docTag')
     def getDocTag(self, **kwargs):
@@ -1276,6 +1292,11 @@ class Window(PyUIContainer):
     def minimizeCommand(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.window, kwargs, 'minimizeCommand', val)
+
+    @_f.addMelDocs('window', 'modal')
+    def modal(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.window, kwargs, 'modal', val)
 
     @_f.addMelDocs('window', 'restoreCommand')
     def restoreCommand(self, val=True, **kwargs):
@@ -1540,6 +1561,11 @@ class FormLayout(Layout):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.formLayout, kwargs, 'dropCallback', val)
 
+    @_f.addMelDocs('formLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.formLayout, kwargs, 'generalSpacing', val)
+
     @_f.addMelDocs('formLayout', 'annotation')
     def getAnnotation(self, **kwargs):
         # type: (...) -> str
@@ -1660,6 +1686,16 @@ class FormLayout(Layout):
         res = _f.asQuery(self, windows.formLayout, kwargs, 'width')
         return res
 
+    @_f.addMelDocs('formLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.formLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('formLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.formLayout, kwargs, 'margins4', val)
+
     @_f.addMelDocs('formLayout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -1765,7 +1801,7 @@ class RowLayout(Layout):
 
     @_f.addMelDocs('rowLayout', 'adjustableColumn')
     def adjustableColumn(self, val=True, **kwargs):
-        # type: (int, **Any) -> None
+        # type: (int | List[int], **Any) -> None
         return _f.asEdit(self, windows.rowLayout, kwargs, 'adjustableColumn', val)
 
     @_f.addMelDocs('rowLayout', 'columnAlign')
@@ -1792,6 +1828,11 @@ class RowLayout(Layout):
     def dropCallback(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.rowLayout, kwargs, 'dropCallback', val)
+
+    @_f.addMelDocs('rowLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'generalSpacing', val)
 
     @_f.addMelDocs('rowLayout', 'annotation')
     def getAnnotation(self, **kwargs):
@@ -1912,6 +1953,16 @@ class RowLayout(Layout):
         # type: (...) -> int
         res = _f.asQuery(self, windows.rowLayout, kwargs, 'width')
         return res
+
+    @_f.addMelDocs('rowLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('rowLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.rowLayout, kwargs, 'margins4', val)
 
     @_f.addMelDocs('rowLayout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
@@ -2069,10 +2120,36 @@ class TextScrollList(PyUI):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.textScrollList, kwargs, 'dropCallback', val)
 
+    @_f.addMelDocs('textScrollList', 'enableAll')
+    def enableAll(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.textScrollList, kwargs, 'enableAll', val)
+
+    @_f.addMelDocs('textScrollList', 'enableIndexedItem')
+    def enableIndexedItem(self, val=True, **kwargs):
+        # type: (Tuple[int, bool | int] | List[Tuple[int, bool | int]], **Any) -> None
+        return _f.asEdit(self, windows.textScrollList, kwargs, 'enableIndexedItem', val)
+
+    @_f.addMelDocs('textScrollList', 'enableItem')
+    def enableItem(self, val=True, **kwargs):
+        # type: (Tuple[str, bool | int] | List[Tuple[str, bool | int]], **Any) -> None
+        return _f.asEdit(self, windows.textScrollList, kwargs, 'enableItem', val)
+
+    @_f.addMelDocs('textScrollList', 'enableUniqueTagItem')
+    def enableUniqueTagItem(self, val=True, **kwargs):
+        # type: (Tuple[str, bool | int] | List[Tuple[str, bool | int]], **Any) -> None
+        return _f.asEdit(self, windows.textScrollList, kwargs, 'enableUniqueTagItem', val)
+
     @_f.addMelDocs('textScrollList', 'allItems')
     def getAllItems(self, **kwargs):
         # type: (...) -> Any
         res = _f.asQuery(self, windows.textScrollList, kwargs, 'allItems')
+        return res
+
+    @_f.addMelDocs('textScrollList', 'allItemsUniqueTags')
+    def getAllItemsUniqueTags(self, **kwargs):
+        # type: (...) -> Any
+        res = _f.asQuery(self, windows.textScrollList, kwargs, 'allItemsUniqueTags')
         return res
 
     @_f.addMelDocs('textScrollList', 'allowAutomaticSelection')
@@ -2103,6 +2180,12 @@ class TextScrollList(PyUI):
     def getDocTag(self, **kwargs):
         # type: (...) -> str
         res = _f.asQuery(self, windows.textScrollList, kwargs, 'docTag')
+        return res
+
+    @_f.addMelDocs('textScrollList', 'emptyLabel')
+    def getEmptyLabel(self, **kwargs):
+        # type: (...) -> str
+        res = _f.asQuery(self, windows.textScrollList, kwargs, 'emptyLabel')
         return res
 
     @_f.addMelDocs('textScrollList', 'enable')
@@ -2286,6 +2369,11 @@ class TextScrollList(PyUI):
         # type: (_util.ProxyUnicode | str, **Any) -> None
         return _f.asEdit(self, windows.textScrollList, kwargs, 'docTag', val)
 
+    @_f.addMelDocs('textScrollList', 'emptyLabel')
+    def setEmptyLabel(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, windows.textScrollList, kwargs, 'emptyLabel', val)
+
     @_f.addMelDocs('textScrollList', 'enable')
     def setEnable(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -2466,12 +2554,6 @@ class Menu(PyUI):
         res = _f.asQuery(self, windows.menu, kwargs, 'label')
         return res
 
-    @_f.addMelDocs('menu', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, windows.menu, kwargs, 'ltVersion')
-        return res
-
     @_f.addMelDocs('menu', 'mnemonic')
     def getMnemonic(self, **kwargs):
         # type: (...) -> str
@@ -2537,11 +2619,6 @@ class Menu(PyUI):
     def setLabel(self, val=True, **kwargs):
         # type: (_util.ProxyUnicode | str, **Any) -> None
         return _f.asEdit(self, windows.menu, kwargs, 'label', val)
-
-    @_f.addMelDocs('menu', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.menu, kwargs, 'ltVersion', val)
 
     @_f.addMelDocs('menu', 'mnemonic')
     def setMnemonic(self, val=True, **kwargs):
@@ -3555,6 +3632,12 @@ class CommandMenuItem(PyUI):
         res = _f.asQuery(self, windows.menuItem, kwargs, 'familyImage')
         return res
 
+    @_f.addMelDocs('menuItem', 'header')
+    def getHeader(self, **kwargs):
+        # type: (...) -> Any
+        res = _f.asQuery(self, windows.menuItem, kwargs, 'header')
+        return res
+
     @_f.addMelDocs('menuItem', 'image')
     def getImage(self, **kwargs):
         # type: (...) -> str
@@ -3601,12 +3684,6 @@ class CommandMenuItem(PyUI):
     def getLongDivider(self, **kwargs):
         # type: (...) -> bool
         res = _f.asQuery(self, windows.menuItem, kwargs, 'longDivider')
-        return res
-
-    @_f.addMelDocs('menuItem', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, windows.menuItem, kwargs, 'ltVersion')
         return res
 
     @_f.addMelDocs('menuItem', 'optionBox')
@@ -3754,11 +3831,6 @@ class CommandMenuItem(PyUI):
     def setLongDivider(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.menuItem, kwargs, 'longDivider', val)
-
-    @_f.addMelDocs('menuItem', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.menuItem, kwargs, 'ltVersion', val)
 
     @_f.addMelDocs('menuItem', 'optionBoxIcon')
     def setOptionBoxIcon(self, val=True, **kwargs):
@@ -3937,7 +4009,7 @@ class AELoader(type):
 
     @staticmethod
     def load(modname, classname, nodename):
-        mod = __import__(modname, globals(), locals(), [classname], -1)
+        mod = __import__(modname, globals(), locals(), [classname], 0)
         try:
             cls = getattr(mod, classname)
             cls(nodename)
@@ -3952,7 +4024,7 @@ class AELoader(type):
         return cls._loaded
 
 
-class AETemplate(with_metaclass(AELoader, object)):
+class AETemplate(object, metaclass=AELoader):
 
     """
     To create an Attribute Editor template using python, do the following:
@@ -5084,6 +5156,11 @@ class ProgressBar(PyUI):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.progressBar, kwargs, 'beginProgress', val)
 
+    @_f.addMelDocs('progressBar', 'color')
+    def color(self, val=True, **kwargs):
+        # type: (Tuple[float, float, float], **Any) -> None
+        return _f.asEdit(self, windows.progressBar, kwargs, 'color', val)
+
     @_f.addMelDocs('progressBar', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
@@ -5219,6 +5296,12 @@ class ProgressBar(PyUI):
         res = _f.asQuery(self, windows.progressBar, kwargs, 'progress')
         return res
 
+    @_f.addMelDocs('progressBar', 'showPercentText')
+    def getShowPercentText(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.progressBar, kwargs, 'showPercentText')
+        return res
+
     @_f.addMelDocs('progressBar', 'status')
     def getStatus(self, **kwargs):
         # type: (...) -> str
@@ -5322,6 +5405,11 @@ class ProgressBar(PyUI):
     def setProgress(self, val=True, **kwargs):
         # type: (int, **Any) -> None
         return _f.asEdit(self, windows.progressBar, kwargs, 'progress', val)
+
+    @_f.addMelDocs('progressBar', 'showPercentText')
+    def setShowPercentText(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.progressBar, kwargs, 'showPercentText', val)
 
     @_f.addMelDocs('progressBar', 'status')
     def setStatus(self, val=True, **kwargs):
@@ -5634,6 +5722,12 @@ class AnimCurveEditor(PyUI):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'keyingTime')
         return res
 
+    @_f.addMelDocs('animCurveEditor', 'limitToSelectedCurves')
+    def getLimitToSelectedCurves(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'limitToSelectedCurves')
+        return res
+
     @_f.addMelDocs('animCurveEditor', 'lockPlayRangeShades')
     def getLockPlayRangeShades(self, **kwargs):
         # type: (...) -> str
@@ -5682,6 +5776,12 @@ class AnimCurveEditor(PyUI):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'resultUpdate')
         return res
 
+    @_f.addMelDocs('animCurveEditor', 'selectedAttributes')
+    def getSelectedAttributes(self, **kwargs):
+        # type: (...) -> Any
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'selectedAttributes')
+        return res
+
     @_f.addMelDocs('animCurveEditor', 'selectionConnection')
     def getSelectionConnection(self, **kwargs):
         # type: (...) -> str
@@ -5700,10 +5800,22 @@ class AnimCurveEditor(PyUI):
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'showBufferCurves')
         return res
 
+    @_f.addMelDocs('animCurveEditor', 'showChannelSets')
+    def getShowChannelSets(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'showChannelSets')
+        return res
+
     @_f.addMelDocs('animCurveEditor', 'showCurveNames')
     def getShowCurveNames(self, **kwargs):
         # type: (...) -> bool
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'showCurveNames')
+        return res
+
+    @_f.addMelDocs('animCurveEditor', 'showPins')
+    def getShowPins(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'showPins')
         return res
 
     @_f.addMelDocs('animCurveEditor', 'showPlayRangeShades')
@@ -5776,6 +5888,18 @@ class AnimCurveEditor(PyUI):
     def getStateString(self, **kwargs):
         # type: (...) -> Any
         res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'stateString')
+        return res
+
+    @_f.addMelDocs('animCurveEditor', 'tangentLineThickness')
+    def getTangentLineThickness(self, **kwargs):
+        # type: (...) -> float
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'tangentLineThickness')
+        return res
+
+    @_f.addMelDocs('animCurveEditor', 'tangentScale')
+    def getTangentScale(self, **kwargs):
+        # type: (...) -> float
+        res = _f.asQuery(self, animation.animCurveEditor, kwargs, 'tangentScale')
         return res
 
     @_f.addMelDocs('animCurveEditor', 'timelinePositionTop')
@@ -5869,6 +5993,11 @@ class AnimCurveEditor(PyUI):
         # type: (float, **Any) -> None
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'keyScale', val)
 
+    @_f.addMelDocs('animCurveEditor', 'limitToSelectedCurves')
+    def setLimitToSelectedCurves(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'limitToSelectedCurves', val)
+
     @_f.addMelDocs('animCurveEditor', 'lockPlayRangeShades')
     def setLockPlayRangeShades(self, val=True, **kwargs):
         # type: (_util.ProxyUnicode | str, **Any) -> None
@@ -5924,10 +6053,20 @@ class AnimCurveEditor(PyUI):
         # type: (_util.ProxyUnicode | str, **Any) -> None
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'showBufferCurves', val)
 
+    @_f.addMelDocs('animCurveEditor', 'showChannelSets')
+    def setShowChannelSets(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'showChannelSets', val)
+
     @_f.addMelDocs('animCurveEditor', 'showCurveNames')
     def setShowCurveNames(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'showCurveNames', val)
+
+    @_f.addMelDocs('animCurveEditor', 'showPins')
+    def setShowPins(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'showPins', val)
 
     @_f.addMelDocs('animCurveEditor', 'showPlayRangeShades')
     def setShowPlayRangeShades(self, val=True, **kwargs):
@@ -5983,6 +6122,16 @@ class AnimCurveEditor(PyUI):
     def setStackedCurvesSpace(self, val=True, **kwargs):
         # type: (float, **Any) -> None
         return _f.asEdit(self, animation.animCurveEditor, kwargs, 'stackedCurvesSpace', val)
+
+    @_f.addMelDocs('animCurveEditor', 'tangentLineThickness')
+    def setTangentLineThickness(self, val=True, **kwargs):
+        # type: (float, **Any) -> None
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'tangentLineThickness', val)
+
+    @_f.addMelDocs('animCurveEditor', 'tangentScale')
+    def setTangentScale(self, val=True, **kwargs):
+        # type: (float, **Any) -> None
+        return _f.asEdit(self, animation.animCurveEditor, kwargs, 'tangentScale', val)
 
     @_f.addMelDocs('animCurveEditor', 'timelinePositionTop')
     def setTimelinePositionTop(self, val=True, **kwargs):
@@ -7153,6 +7302,12 @@ class ChannelBox(PyUI):
         res = _f.asQuery(self, windows.channelBox, kwargs, 'preventOverride')
         return res
 
+    @_f.addMelDocs('channelBox', 'rebuildCommand')
+    def getRebuildCommand(self, **kwargs):
+        # type: (...) -> str | Callable
+        res = _f.asQuery(self, windows.channelBox, kwargs, 'rebuildCommand')
+        return res
+
     @_f.addMelDocs('channelBox', 'selectedHistoryAttributes')
     def getSelectedHistoryAttributes(self, **kwargs):
         # type: (...) -> Any
@@ -7205,6 +7360,12 @@ class ChannelBox(PyUI):
     def getSpeed(self, **kwargs):
         # type: (...) -> float
         res = _f.asQuery(self, windows.channelBox, kwargs, 'speed')
+        return res
+
+    @_f.addMelDocs('channelBox', 'ufeFixedAttrList')
+    def getUfeFixedAttrList(self, **kwargs):
+        # type: (...) -> Tuple[str, str]
+        res = _f.asQuery(self, windows.channelBox, kwargs, 'ufeFixedAttrList')
         return res
 
     @_f.addMelDocs('channelBox', 'useManips')
@@ -7381,6 +7542,11 @@ class ChannelBox(PyUI):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.channelBox, kwargs, 'preventOverride', val)
 
+    @_f.addMelDocs('channelBox', 'rebuildCommand')
+    def setRebuildCommand(self, val=True, **kwargs):
+        # type: (str | Callable, **Any) -> None
+        return _f.asEdit(self, windows.channelBox, kwargs, 'rebuildCommand', val)
+
     @_f.addMelDocs('channelBox', 'showNamespace')
     def setShowNamespace(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -7395,6 +7561,11 @@ class ChannelBox(PyUI):
     def setSpeed(self, val=True, **kwargs):
         # type: (float, **Any) -> None
         return _f.asEdit(self, windows.channelBox, kwargs, 'speed', val)
+
+    @_f.addMelDocs('channelBox', 'ufeFixedAttrList')
+    def setUfeFixedAttrList(self, val=True, **kwargs):
+        # type: (Tuple[str, str], **Any) -> None
+        return _f.asEdit(self, windows.channelBox, kwargs, 'ufeFixedAttrList', val)
 
     @_f.addMelDocs('channelBox', 'useManips')
     def setUseManips(self, val=True, **kwargs):
@@ -8458,6 +8629,12 @@ class CmdScrollFieldExecuter(PyUI):
         res = _f.asQuery(self, windows.cmdScrollFieldExecuter, kwargs, 'showLineNumbers')
         return res
 
+    @_f.addMelDocs('cmdScrollFieldExecuter', 'showTabsAndSpaces')
+    def getShowTabsAndSpaces(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.cmdScrollFieldExecuter, kwargs, 'showTabsAndSpaces')
+        return res
+
     @_f.addMelDocs('cmdScrollFieldExecuter', 'showTooltipHelp')
     def getShowTooltipHelp(self, **kwargs):
         # type: (...) -> bool
@@ -8691,6 +8868,11 @@ class CmdScrollFieldExecuter(PyUI):
     def setShowLineNumbers(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.cmdScrollFieldExecuter, kwargs, 'showLineNumbers', val)
+
+    @_f.addMelDocs('cmdScrollFieldExecuter', 'showTabsAndSpaces')
+    def setShowTabsAndSpaces(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.cmdScrollFieldExecuter, kwargs, 'showTabsAndSpaces', val)
 
     @_f.addMelDocs('cmdScrollFieldExecuter', 'showTooltipHelp')
     def setShowTooltipHelp(self, val=True, **kwargs):
@@ -11898,6 +12080,11 @@ class GradientControl(PyUI):
     __melui__ = 'gradientControl'
     __slots__ = ()
 
+    @_f.addMelDocs('gradientControl', 'clearAttribute')
+    def clearAttribute(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.gradientControl, kwargs, 'clearAttribute', val)
+
     @_f.addMelDocs('gradientControl', 'dragCallback')
     def dragCallback(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
@@ -11924,6 +12111,12 @@ class GradientControl(PyUI):
     def getBackgroundColor(self, **kwargs):
         # type: (...) -> Tuple[float, float, float]
         res = _f.asQuery(self, windows.gradientControl, kwargs, 'backgroundColor')
+        return res
+
+    @_f.addMelDocs('gradientControl', 'displayKeyInfo')
+    def getDisplayKeyInfo(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.gradientControl, kwargs, 'displayKeyInfo')
         return res
 
     @_f.addMelDocs('gradientControl', 'docTag')
@@ -11968,6 +12161,12 @@ class GradientControl(PyUI):
         res = _f.asQuery(self, windows.gradientControl, kwargs, 'highlightColor')
         return res
 
+    @_f.addMelDocs('gradientControl', 'highlightMode')
+    def getHighlightMode(self, **kwargs):
+        # type: (...) -> str
+        res = _f.asQuery(self, windows.gradientControl, kwargs, 'highlightMode')
+        return res
+
     @_f.addMelDocs('gradientControl', 'isObscured')
     def getIsObscured(self, **kwargs):
         # type: (...) -> Any
@@ -12002,6 +12201,12 @@ class GradientControl(PyUI):
     def getPreventOverride(self, **kwargs):
         # type: (...) -> bool
         res = _f.asQuery(self, windows.gradientControl, kwargs, 'preventOverride')
+        return res
+
+    @_f.addMelDocs('gradientControl', 'readOnly')
+    def getReadOnly(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.gradientControl, kwargs, 'readOnly')
         return res
 
     @_f.addMelDocs('gradientControl', 'refreshOnRelease')
@@ -12087,6 +12292,11 @@ class GradientControl(PyUI):
         # type: (Tuple[float, float, float], **Any) -> None
         return _f.asEdit(self, windows.gradientControl, kwargs, 'backgroundColor', val)
 
+    @_f.addMelDocs('gradientControl', 'displayKeyInfo')
+    def setDisplayKeyInfo(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.gradientControl, kwargs, 'displayKeyInfo', val)
+
     @_f.addMelDocs('gradientControl', 'docTag')
     def setDocTag(self, val=True, **kwargs):
         # type: (_util.ProxyUnicode | str, **Any) -> None
@@ -12117,6 +12327,11 @@ class GradientControl(PyUI):
         # type: (Tuple[float, float, float], **Any) -> None
         return _f.asEdit(self, windows.gradientControl, kwargs, 'highlightColor', val)
 
+    @_f.addMelDocs('gradientControl', 'highlightMode')
+    def setHighlightMode(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, windows.gradientControl, kwargs, 'highlightMode', val)
+
     @_f.addMelDocs('gradientControl', 'manage')
     def setManage(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -12126,6 +12341,11 @@ class GradientControl(PyUI):
     def setPreventOverride(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.gradientControl, kwargs, 'preventOverride', val)
+
+    @_f.addMelDocs('gradientControl', 'readOnly')
+    def setReadOnly(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.gradientControl, kwargs, 'readOnly', val)
 
     @_f.addMelDocs('gradientControl', 'refreshOnRelease')
     def setRefreshOnRelease(self, val=True, **kwargs):
@@ -12179,6 +12399,11 @@ class GradientControlNoAttr(PyUI):
     __melcmdname__ = 'gradientControlNoAttr'
     __melui__ = 'gradientControlNoAttr'
     __slots__ = ()
+
+    @_f.addMelDocs('gradientControlNoAttr', 'addEntry')
+    def addEntry(self, val=True, **kwargs):
+        # type: (Tuple[float, float, float, float, int], **Any) -> None
+        return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'addEntry', val)
 
     @_f.addMelDocs('gradientControlNoAttr', 'changeCommand')
     def changeCommand(self, val=True, **kwargs):
@@ -12247,6 +12472,12 @@ class GradientControlNoAttr(PyUI):
         res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'currentKeyInterpValue')
         return res
 
+    @_f.addMelDocs('gradientControlNoAttr', 'displayKeyInfo')
+    def getDisplayKeyInfo(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'displayKeyInfo')
+        return res
+
     @_f.addMelDocs('gradientControlNoAttr', 'docTag')
     def getDocTag(self, **kwargs):
         # type: (...) -> str
@@ -12289,6 +12520,12 @@ class GradientControlNoAttr(PyUI):
         res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'highlightColor')
         return res
 
+    @_f.addMelDocs('gradientControlNoAttr', 'highlightMode')
+    def getHighlightMode(self, **kwargs):
+        # type: (...) -> str
+        res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'highlightMode')
+        return res
+
     @_f.addMelDocs('gradientControlNoAttr', 'isObscured')
     def getIsObscured(self, **kwargs):
         # type: (...) -> Any
@@ -12329,6 +12566,18 @@ class GradientControlNoAttr(PyUI):
     def getRampAsColor(self, **kwargs):
         # type: (...) -> bool
         res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'rampAsColor')
+        return res
+
+    @_f.addMelDocs('gradientControlNoAttr', 'readOnly')
+    def getReadOnly(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'readOnly')
+        return res
+
+    @_f.addMelDocs('gradientControlNoAttr', 'staticNumberOfControls')
+    def getStaticNumberOfControls(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.gradientControlNoAttr, kwargs, 'staticNumberOfControls')
         return res
 
     @_f.addMelDocs('gradientControlNoAttr', 'valueAtPoint')
@@ -12395,6 +12644,11 @@ class GradientControlNoAttr(PyUI):
         # type: (int, **Any) -> None
         return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'currentKeyInterpValue', val)
 
+    @_f.addMelDocs('gradientControlNoAttr', 'displayKeyInfo')
+    def setDisplayKeyInfo(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'displayKeyInfo', val)
+
     @_f.addMelDocs('gradientControlNoAttr', 'docTag')
     def setDocTag(self, val=True, **kwargs):
         # type: (_util.ProxyUnicode | str, **Any) -> None
@@ -12425,6 +12679,11 @@ class GradientControlNoAttr(PyUI):
         # type: (Tuple[float, float, float], **Any) -> None
         return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'highlightColor', val)
 
+    @_f.addMelDocs('gradientControlNoAttr', 'highlightMode')
+    def setHighlightMode(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'highlightMode', val)
+
     @_f.addMelDocs('gradientControlNoAttr', 'manage')
     def setManage(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -12444,6 +12703,16 @@ class GradientControlNoAttr(PyUI):
     def setRampAsColor(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'rampAsColor', val)
+
+    @_f.addMelDocs('gradientControlNoAttr', 'readOnly')
+    def setReadOnly(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'readOnly', val)
+
+    @_f.addMelDocs('gradientControlNoAttr', 'staticNumberOfControls')
+    def setStaticNumberOfControls(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.gradientControlNoAttr, kwargs, 'staticNumberOfControls', val)
 
     @_f.addMelDocs('gradientControlNoAttr', 'visible')
     def setVisible(self, val=True, **kwargs):
@@ -13085,6 +13354,12 @@ class HyperGraph(PyUI):
         res = _f.asQuery(self, windows.hyperGraph, kwargs, 'showInvisible')
         return res
 
+    @_f.addMelDocs('hyperGraph', 'showNamespace')
+    def getShowNamespace(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.hyperGraph, kwargs, 'showNamespace')
+        return res
+
     @_f.addMelDocs('hyperGraph', 'showRelationships')
     def getShowRelationships(self, **kwargs):
         # type: (...) -> bool
@@ -13436,6 +13711,11 @@ class HyperGraph(PyUI):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.hyperGraph, kwargs, 'showInvisible', val)
 
+    @_f.addMelDocs('hyperGraph', 'showNamespace')
+    def setShowNamespace(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.hyperGraph, kwargs, 'showNamespace', val)
+
     @_f.addMelDocs('hyperGraph', 'showRelationships')
     def setShowRelationships(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -13729,12 +14009,6 @@ class IconTextButton(PyUI):
         res = _f.asQuery(self, windows.iconTextButton, kwargs, 'labelOffset')
         return res
 
-    @_f.addMelDocs('iconTextButton', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, windows.iconTextButton, kwargs, 'ltVersion')
-        return res
-
     @_f.addMelDocs('iconTextButton', 'manage')
     def getManage(self, **kwargs):
         # type: (...) -> bool
@@ -13851,6 +14125,11 @@ class IconTextButton(PyUI):
     def noBackground(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.iconTextButton, kwargs, 'noBackground', val)
+
+    @_f.addMelDocs('iconTextButton', 'runTimeCommand')
+    def runTimeCommand(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, windows.iconTextButton, kwargs, 'runTimeCommand', val)
 
     @_f.addMelDocs('iconTextButton', 'scaleIcon')
     def scaleIcon(self, val=True, **kwargs):
@@ -13981,11 +14260,6 @@ class IconTextButton(PyUI):
     def setLabelOffset(self, val=True, **kwargs):
         # type: (int, **Any) -> None
         return _f.asEdit(self, windows.iconTextButton, kwargs, 'labelOffset', val)
-
-    @_f.addMelDocs('iconTextButton', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.iconTextButton, kwargs, 'ltVersion', val)
 
     @_f.addMelDocs('iconTextButton', 'manage')
     def setManage(self, val=True, **kwargs):
@@ -14235,12 +14509,6 @@ class IconTextCheckBox(PyUI):
         res = _f.asQuery(self, windows.iconTextCheckBox, kwargs, 'labelOffset')
         return res
 
-    @_f.addMelDocs('iconTextCheckBox', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, windows.iconTextCheckBox, kwargs, 'ltVersion')
-        return res
-
     @_f.addMelDocs('iconTextCheckBox', 'manage')
     def getManage(self, **kwargs):
         # type: (...) -> bool
@@ -14366,6 +14634,11 @@ class IconTextCheckBox(PyUI):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.iconTextCheckBox, kwargs, 'noBackground', val)
 
+    @_f.addMelDocs('iconTextCheckBox', 'runTimeCommand')
+    def runTimeCommand(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, windows.iconTextCheckBox, kwargs, 'runTimeCommand', val)
+
     @_f.addMelDocs('iconTextCheckBox', 'align')
     def setAlign(self, val=True, **kwargs):
         # type: (_util.ProxyUnicode | str, **Any) -> None
@@ -14480,11 +14753,6 @@ class IconTextCheckBox(PyUI):
     def setLabelOffset(self, val=True, **kwargs):
         # type: (int, **Any) -> None
         return _f.asEdit(self, windows.iconTextCheckBox, kwargs, 'labelOffset', val)
-
-    @_f.addMelDocs('iconTextCheckBox', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.iconTextCheckBox, kwargs, 'ltVersion', val)
 
     @_f.addMelDocs('iconTextCheckBox', 'manage')
     def setManage(self, val=True, **kwargs):
@@ -14749,12 +15017,6 @@ class IconTextRadioButton(PyUI):
         res = _f.asQuery(self, windows.iconTextRadioButton, kwargs, 'labelOffset')
         return res
 
-    @_f.addMelDocs('iconTextRadioButton', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, windows.iconTextRadioButton, kwargs, 'ltVersion')
-        return res
-
     @_f.addMelDocs('iconTextRadioButton', 'manage')
     def getManage(self, **kwargs):
         # type: (...) -> bool
@@ -14880,6 +15142,11 @@ class IconTextRadioButton(PyUI):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.iconTextRadioButton, kwargs, 'noBackground', val)
 
+    @_f.addMelDocs('iconTextRadioButton', 'runTimeCommand')
+    def runTimeCommand(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, windows.iconTextRadioButton, kwargs, 'runTimeCommand', val)
+
     @_f.addMelDocs('iconTextRadioButton', 'align')
     def setAlign(self, val=True, **kwargs):
         # type: (_util.ProxyUnicode | str, **Any) -> None
@@ -14994,11 +15261,6 @@ class IconTextRadioButton(PyUI):
     def setLabelOffset(self, val=True, **kwargs):
         # type: (int, **Any) -> None
         return _f.asEdit(self, windows.iconTextRadioButton, kwargs, 'labelOffset', val)
-
-    @_f.addMelDocs('iconTextRadioButton', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.iconTextRadioButton, kwargs, 'ltVersion', val)
 
     @_f.addMelDocs('iconTextRadioButton', 'manage')
     def setManage(self, val=True, **kwargs):
@@ -15594,12 +15856,6 @@ class IconTextStaticLabel(PyUI):
         res = _f.asQuery(self, windows.iconTextStaticLabel, kwargs, 'labelOffset')
         return res
 
-    @_f.addMelDocs('iconTextStaticLabel', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, windows.iconTextStaticLabel, kwargs, 'ltVersion')
-        return res
-
     @_f.addMelDocs('iconTextStaticLabel', 'manage')
     def getManage(self, **kwargs):
         # type: (...) -> bool
@@ -15694,6 +15950,11 @@ class IconTextStaticLabel(PyUI):
     def noBackground(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.iconTextStaticLabel, kwargs, 'noBackground', val)
+
+    @_f.addMelDocs('iconTextStaticLabel', 'runTimeCommand')
+    def runTimeCommand(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, windows.iconTextStaticLabel, kwargs, 'runTimeCommand', val)
 
     @_f.addMelDocs('iconTextStaticLabel', 'align')
     def setAlign(self, val=True, **kwargs):
@@ -15794,11 +16055,6 @@ class IconTextStaticLabel(PyUI):
     def setLabelOffset(self, val=True, **kwargs):
         # type: (int, **Any) -> None
         return _f.asEdit(self, windows.iconTextStaticLabel, kwargs, 'labelOffset', val)
-
-    @_f.addMelDocs('iconTextStaticLabel', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.iconTextStaticLabel, kwargs, 'ltVersion', val)
 
     @_f.addMelDocs('iconTextStaticLabel', 'manage')
     def setManage(self, val=True, **kwargs):
@@ -17258,16 +17514,16 @@ class KeyframeStats(PyUI):
         res = _f.asQuery(self, animation.keyframeStats, kwargs, 'annotation')
         return res
 
+    @_f.addMelDocs('keyframeStats', 'autoUnitWidth')
+    def getAutoUnitWidth(self, **kwargs):
+        # type: (...) -> int
+        res = _f.asQuery(self, animation.keyframeStats, kwargs, 'autoUnitWidth')
+        return res
+
     @_f.addMelDocs('keyframeStats', 'backgroundColor')
     def getBackgroundColor(self, **kwargs):
         # type: (...) -> Tuple[float, float, float]
         res = _f.asQuery(self, animation.keyframeStats, kwargs, 'backgroundColor')
-        return res
-
-    @_f.addMelDocs('keyframeStats', 'classicMode')
-    def getClassicMode(self, **kwargs):
-        # type: (...) -> bool
-        res = _f.asQuery(self, animation.keyframeStats, kwargs, 'classicMode')
         return res
 
     @_f.addMelDocs('keyframeStats', 'docTag')
@@ -17398,15 +17654,15 @@ class KeyframeStats(PyUI):
         # type: (_util.ProxyUnicode | str, **Any) -> None
         return _f.asEdit(self, animation.keyframeStats, kwargs, 'annotation', val)
 
+    @_f.addMelDocs('keyframeStats', 'autoUnitWidth')
+    def setAutoUnitWidth(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, animation.keyframeStats, kwargs, 'autoUnitWidth', val)
+
     @_f.addMelDocs('keyframeStats', 'backgroundColor')
     def setBackgroundColor(self, val=True, **kwargs):
         # type: (Tuple[float, float, float], **Any) -> None
         return _f.asEdit(self, animation.keyframeStats, kwargs, 'backgroundColor', val)
-
-    @_f.addMelDocs('keyframeStats', 'classicMode')
-    def setClassicMode(self, val=True, **kwargs):
-        # type: (bool | int, **Any) -> None
-        return _f.asEdit(self, animation.keyframeStats, kwargs, 'classicMode', val)
 
     @_f.addMelDocs('keyframeStats', 'docTag')
     def setDocTag(self, val=True, **kwargs):
@@ -17974,6 +18230,12 @@ class AttrColorSliderGrp(Layout):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.attrColorSliderGrp, kwargs, 'dropCallback', val)
 
+    @_f.addMelDocs('attrColorSliderGrp', 'alphaValue')
+    def getAlphaValue(self, **kwargs):
+        # type: (...) -> float
+        res = _f.asQuery(self, windows.attrColorSliderGrp, kwargs, 'alphaValue')
+        return res
+
     @_f.addMelDocs('attrColorSliderGrp', 'annotation')
     def getAnnotation(self, **kwargs):
         # type: (...) -> str
@@ -18121,6 +18383,11 @@ class AttrColorSliderGrp(Layout):
     def rowAttach(self, val=True, **kwargs):
         # type: (Tuple[int, str, int] | List[Tuple[int, str, int]], **Any) -> None
         return _f.asEdit(self, windows.attrColorSliderGrp, kwargs, 'rowAttach', val)
+
+    @_f.addMelDocs('attrColorSliderGrp', 'alphaValue')
+    def setAlphaValue(self, val=True, **kwargs):
+        # type: (float, **Any) -> None
+        return _f.asEdit(self, windows.attrColorSliderGrp, kwargs, 'alphaValue', val)
 
     @_f.addMelDocs('attrColorSliderGrp', 'annotation')
     def setAnnotation(self, val=True, **kwargs):
@@ -21430,6 +21697,12 @@ class ColorSliderButtonGrp(Layout):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.colorSliderButtonGrp, kwargs, 'dropCallback', val)
 
+    @_f.addMelDocs('colorSliderButtonGrp', 'alphaValue')
+    def getAlphaValue(self, **kwargs):
+        # type: (...) -> float
+        res = _f.asQuery(self, windows.colorSliderButtonGrp, kwargs, 'alphaValue')
+        return res
+
     @_f.addMelDocs('colorSliderButtonGrp', 'annotation')
     def getAnnotation(self, **kwargs):
         # type: (...) -> str
@@ -21556,6 +21829,12 @@ class ColorSliderButtonGrp(Layout):
         res = _f.asQuery(self, windows.colorSliderButtonGrp, kwargs, 'symbolButtonDisplay')
         return res
 
+    @_f.addMelDocs('colorSliderButtonGrp', 'useDisplaySpace')
+    def getUseDisplaySpace(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.colorSliderButtonGrp, kwargs, 'useDisplaySpace')
+        return res
+
     @_f.addMelDocs('colorSliderButtonGrp', 'visible')
     def getVisible(self, **kwargs):
         # type: (...) -> bool
@@ -21583,6 +21862,11 @@ class ColorSliderButtonGrp(Layout):
     def rowAttach(self, val=True, **kwargs):
         # type: (Tuple[int, str, int] | List[Tuple[int, str, int]], **Any) -> None
         return _f.asEdit(self, windows.colorSliderButtonGrp, kwargs, 'rowAttach', val)
+
+    @_f.addMelDocs('colorSliderButtonGrp', 'alphaValue')
+    def setAlphaValue(self, val=True, **kwargs):
+        # type: (float, **Any) -> None
+        return _f.asEdit(self, windows.colorSliderButtonGrp, kwargs, 'alphaValue', val)
 
     @_f.addMelDocs('colorSliderButtonGrp', 'annotation')
     def setAnnotation(self, val=True, **kwargs):
@@ -21669,6 +21953,11 @@ class ColorSliderButtonGrp(Layout):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.colorSliderButtonGrp, kwargs, 'symbolButtonDisplay', val)
 
+    @_f.addMelDocs('colorSliderButtonGrp', 'useDisplaySpace')
+    def setUseDisplaySpace(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.colorSliderButtonGrp, kwargs, 'useDisplaySpace', val)
+
     @_f.addMelDocs('colorSliderButtonGrp', 'visible')
     def setVisible(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -21693,6 +21982,11 @@ class ColorSliderButtonGrp(Layout):
     def symbolButtonCommand(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.colorSliderButtonGrp, kwargs, 'symbolButtonCommand', val)
+
+    @_f.addMelDocs('colorSliderButtonGrp', 'useVpColorPicker')
+    def useVpColorPicker(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.colorSliderButtonGrp, kwargs, 'useVpColorPicker', val)
 
 
 class ColorSliderGrp(Layout):
@@ -21872,6 +22166,12 @@ class ColorSliderGrp(Layout):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.colorSliderGrp, kwargs, 'dropCallback', val)
 
+    @_f.addMelDocs('colorSliderGrp', 'alphaValue')
+    def getAlphaValue(self, **kwargs):
+        # type: (...) -> float
+        res = _f.asQuery(self, windows.colorSliderGrp, kwargs, 'alphaValue')
+        return res
+
     @_f.addMelDocs('colorSliderGrp', 'annotation')
     def getAnnotation(self, **kwargs):
         # type: (...) -> str
@@ -21980,6 +22280,12 @@ class ColorSliderGrp(Layout):
         res = _f.asQuery(self, windows.colorSliderGrp, kwargs, 'rgbValue')
         return res
 
+    @_f.addMelDocs('colorSliderGrp', 'useDisplaySpace')
+    def getUseDisplaySpace(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.colorSliderGrp, kwargs, 'useDisplaySpace')
+        return res
+
     @_f.addMelDocs('colorSliderGrp', 'visible')
     def getVisible(self, **kwargs):
         # type: (...) -> bool
@@ -22007,6 +22313,11 @@ class ColorSliderGrp(Layout):
     def rowAttach(self, val=True, **kwargs):
         # type: (Tuple[int, str, int] | List[Tuple[int, str, int]], **Any) -> None
         return _f.asEdit(self, windows.colorSliderGrp, kwargs, 'rowAttach', val)
+
+    @_f.addMelDocs('colorSliderGrp', 'alphaValue')
+    def setAlphaValue(self, val=True, **kwargs):
+        # type: (float, **Any) -> None
+        return _f.asEdit(self, windows.colorSliderGrp, kwargs, 'alphaValue', val)
 
     @_f.addMelDocs('colorSliderGrp', 'annotation')
     def setAnnotation(self, val=True, **kwargs):
@@ -22078,6 +22389,11 @@ class ColorSliderGrp(Layout):
         # type: (Tuple[float, float, float], **Any) -> None
         return _f.asEdit(self, windows.colorSliderGrp, kwargs, 'rgbValue', val)
 
+    @_f.addMelDocs('colorSliderGrp', 'useDisplaySpace')
+    def setUseDisplaySpace(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.colorSliderGrp, kwargs, 'useDisplaySpace', val)
+
     @_f.addMelDocs('colorSliderGrp', 'visible')
     def setVisible(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -22097,6 +22413,11 @@ class ColorSliderGrp(Layout):
     def statusBarMessage(self, val=True, **kwargs):
         # type: (_util.ProxyUnicode | str, **Any) -> None
         return _f.asEdit(self, windows.colorSliderGrp, kwargs, 'statusBarMessage', val)
+
+    @_f.addMelDocs('colorSliderGrp', 'useVpColorPicker')
+    def useVpColorPicker(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.colorSliderGrp, kwargs, 'useVpColorPicker', val)
 
 
 class ColumnLayout(Layout):
@@ -22135,6 +22456,11 @@ class ColumnLayout(Layout):
     def dropCallback(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.columnLayout, kwargs, 'dropCallback', val)
+
+    @_f.addMelDocs('columnLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.columnLayout, kwargs, 'generalSpacing', val)
 
     @_f.addMelDocs('columnLayout', 'annotation')
     def getAnnotation(self, **kwargs):
@@ -22261,6 +22587,16 @@ class ColumnLayout(Layout):
         # type: (...) -> int
         res = _f.asQuery(self, windows.columnLayout, kwargs, 'width')
         return res
+
+    @_f.addMelDocs('columnLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.columnLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('columnLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.columnLayout, kwargs, 'margins4', val)
 
     @_f.addMelDocs('columnLayout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
@@ -23368,6 +23704,11 @@ class FrameLayout(Layout):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.frameLayout, kwargs, 'expandCommand', val)
 
+    @_f.addMelDocs('frameLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.frameLayout, kwargs, 'generalSpacing', val)
+
     @_f.addMelDocs('frameLayout', 'annotation')
     def getAnnotation(self, **kwargs):
         # type: (...) -> str
@@ -23560,6 +23901,16 @@ class FrameLayout(Layout):
         res = _f.asQuery(self, windows.frameLayout, kwargs, 'width')
         return res
 
+    @_f.addMelDocs('frameLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.frameLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('frameLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.frameLayout, kwargs, 'margins4', val)
+
     @_f.addMelDocs('frameLayout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -23733,6 +24084,11 @@ class GridLayout(Layout):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.gridLayout, kwargs, 'dropCallback', val)
 
+    @_f.addMelDocs('gridLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'generalSpacing', val)
+
     @_f.addMelDocs('gridLayout', 'allowEmptyCells')
     def getAllowEmptyCells(self, **kwargs):
         # type: (...) -> Any
@@ -23894,6 +24250,16 @@ class GridLayout(Layout):
         # type: (...) -> int
         res = _f.asQuery(self, windows.gridLayout, kwargs, 'width')
         return res
+
+    @_f.addMelDocs('gridLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('gridLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.gridLayout, kwargs, 'margins4', val)
 
     @_f.addMelDocs('gridLayout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
@@ -24969,6 +25335,11 @@ class MenuBarLayout(Layout):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.menuBarLayout, kwargs, 'dropCallback', val)
 
+    @_f.addMelDocs('menuBarLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.menuBarLayout, kwargs, 'generalSpacing', val)
+
     @_f.addMelDocs('menuBarLayout', 'annotation')
     def getAnnotation(self, **kwargs):
         # type: (...) -> str
@@ -25101,6 +25472,16 @@ class MenuBarLayout(Layout):
         res = _f.asQuery(self, windows.menuBarLayout, kwargs, 'width')
         return res
 
+    @_f.addMelDocs('menuBarLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.menuBarLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('menuBarLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.menuBarLayout, kwargs, 'margins4', val)
+
     @_f.addMelDocs('menuBarLayout', 'menuIndex')
     def menuIndex(self, val=True, **kwargs):
         # type: (Tuple[str, int], **Any) -> None
@@ -25203,6 +25584,11 @@ class PaneLayout(Layout):
     def dropCallback(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.paneLayout, kwargs, 'dropCallback', val)
+
+    @_f.addMelDocs('paneLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.paneLayout, kwargs, 'generalSpacing', val)
 
     @_f.addMelDocs('paneLayout', 'activeFrameThickness')
     def getActiveFrameThickness(self, **kwargs):
@@ -25389,6 +25775,16 @@ class PaneLayout(Layout):
         # type: (...) -> int
         res = _f.asQuery(self, windows.paneLayout, kwargs, 'width')
         return res
+
+    @_f.addMelDocs('paneLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.paneLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('paneLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.paneLayout, kwargs, 'margins4', val)
 
     @_f.addMelDocs('paneLayout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
@@ -25912,6 +26308,12 @@ class RadioButtonGrp(Layout):
         res = _f.asQuery(self, windows.radioButtonGrp, kwargs, 'numberOfPopupMenus')
         return res
 
+    @_f.addMelDocs('radioButtonGrp', 'numberOfRadioButtons')
+    def getNumberOfRadioButtons(self, **kwargs):
+        # type: (...) -> Any
+        res = _f.asQuery(self, windows.radioButtonGrp, kwargs, 'numberOfRadioButtons')
+        return res
+
     @_f.addMelDocs('radioButtonGrp', 'popupMenuArray')
     def getPopupMenuArray(self, **kwargs):
         # type: (...) -> Any
@@ -26247,6 +26649,11 @@ class RowColumnLayout(Layout):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'dropCallback', val)
 
+    @_f.addMelDocs('rowColumnLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'generalSpacing', val)
+
     @_f.addMelDocs('rowColumnLayout', 'annotation')
     def getAnnotation(self, **kwargs):
         # type: (...) -> str
@@ -26373,6 +26780,16 @@ class RowColumnLayout(Layout):
         res = _f.asQuery(self, windows.rowColumnLayout, kwargs, 'width')
         return res
 
+    @_f.addMelDocs('rowColumnLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('rowColumnLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.rowColumnLayout, kwargs, 'margins4', val)
+
     @_f.addMelDocs('rowColumnLayout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -26490,6 +26907,11 @@ class ScrollLayout(Layout):
     def dropCallback(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.scrollLayout, kwargs, 'dropCallback', val)
+
+    @_f.addMelDocs('scrollLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.scrollLayout, kwargs, 'generalSpacing', val)
 
     @_f.addMelDocs('scrollLayout', 'annotation')
     def getAnnotation(self, **kwargs):
@@ -26652,6 +27074,16 @@ class ScrollLayout(Layout):
         # type: (int, **Any) -> None
         return _f.asEdit(self, windows.scrollLayout, kwargs, 'horizontalScrollBarThickness', val)
 
+    @_f.addMelDocs('scrollLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.scrollLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('scrollLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.scrollLayout, kwargs, 'margins4', val)
+
     @_f.addMelDocs('scrollLayout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -26775,6 +27207,11 @@ class ShelfLayout(Layout):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.shelfLayout, kwargs, 'dropCallback', val)
 
+    @_f.addMelDocs('shelfLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.shelfLayout, kwargs, 'generalSpacing', val)
+
     @_f.addMelDocs('shelfLayout', 'alignment')
     def getAlignment(self, **kwargs):
         # type: (...) -> str
@@ -26871,12 +27308,6 @@ class ShelfLayout(Layout):
         res = _f.asQuery(self, windows.shelfLayout, kwargs, 'isObscured')
         return res
 
-    @_f.addMelDocs('shelfLayout', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, windows.shelfLayout, kwargs, 'ltVersion')
-        return res
-
     @_f.addMelDocs('shelfLayout', 'manage')
     def getManage(self, **kwargs):
         # type: (...) -> bool
@@ -26942,6 +27373,16 @@ class ShelfLayout(Layout):
         # type: (...) -> int
         res = _f.asQuery(self, windows.shelfLayout, kwargs, 'width')
         return res
+
+    @_f.addMelDocs('shelfLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.shelfLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('shelfLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.shelfLayout, kwargs, 'margins4', val)
 
     @_f.addMelDocs('shelfLayout', 'noBackground')
     def noBackground(self, val=True, **kwargs):
@@ -27017,11 +27458,6 @@ class ShelfLayout(Layout):
     def setHorizontal(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.shelfLayout, kwargs, 'horizontal', val)
-
-    @_f.addMelDocs('shelfLayout', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.shelfLayout, kwargs, 'ltVersion', val)
 
     @_f.addMelDocs('shelfLayout', 'manage')
     def setManage(self, val=True, **kwargs):
@@ -27105,6 +27541,11 @@ class ShelfTabLayout(Layout):
     def dropCallback(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'dropCallback', val)
+
+    @_f.addMelDocs('shelfTabLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'generalSpacing', val)
 
     @_f.addMelDocs('shelfTabLayout', 'annotation')
     def getAnnotation(self, **kwargs):
@@ -27357,6 +27798,16 @@ class ShelfTabLayout(Layout):
         # type: (int, **Any) -> None
         return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'horizontalScrollBarThickness', val)
 
+    @_f.addMelDocs('shelfTabLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('shelfTabLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.shelfTabLayout, kwargs, 'margins4', val)
+
     @_f.addMelDocs('shelfTabLayout', 'moveTab')
     def moveTab(self, val=True, **kwargs):
         # type: (Tuple[int, int], **Any) -> None
@@ -27574,6 +28025,11 @@ class TabLayout(Layout):
     def dropCallback(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.tabLayout, kwargs, 'dropCallback', val)
+
+    @_f.addMelDocs('tabLayout', 'generalSpacing')
+    def generalSpacing(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.tabLayout, kwargs, 'generalSpacing', val)
 
     @_f.addMelDocs('tabLayout', 'annotation')
     def getAnnotation(self, **kwargs):
@@ -27825,6 +28281,16 @@ class TabLayout(Layout):
     def horizontalScrollBarThickness(self, val=True, **kwargs):
         # type: (int, **Any) -> None
         return _f.asEdit(self, windows.tabLayout, kwargs, 'horizontalScrollBarThickness', val)
+
+    @_f.addMelDocs('tabLayout', 'margins')
+    def margins(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.tabLayout, kwargs, 'margins', val)
+
+    @_f.addMelDocs('tabLayout', 'margins4')
+    def margins4(self, val=True, **kwargs):
+        # type: (Tuple[int, int, int, int], **Any) -> None
+        return _f.asEdit(self, windows.tabLayout, kwargs, 'margins4', val)
 
     @_f.addMelDocs('tabLayout', 'moveTab')
     def moveTab(self, val=True, **kwargs):
@@ -28509,15 +28975,9 @@ class MenuEditor(PyUI):
         res = _f.asQuery(self, windows.menuEditor, kwargs, 'checkBoxState')
         return res
 
-    @_f.addMelDocs('menuEditor', 'childArray')
-    def getChildArray(self, **kwargs):
-        # type: (...) -> Any
-        res = _f.asQuery(self, windows.menuEditor, kwargs, 'childArray')
-        return res
-
     @_f.addMelDocs('menuEditor', 'command')
     def getCommand(self, **kwargs):
-        # type: (...) -> Tuple[str, str, int]
+        # type: (...) -> Tuple[str, str, int, bool]
         res = _f.asQuery(self, windows.menuEditor, kwargs, 'command')
         return res
 
@@ -28569,6 +29029,12 @@ class MenuEditor(PyUI):
         res = _f.asQuery(self, windows.menuEditor, kwargs, 'image')
         return res
 
+    @_f.addMelDocs('menuEditor', 'isLanguageMel')
+    def getIsLanguageMel(self, **kwargs):
+        # type: (...) -> Any
+        res = _f.asQuery(self, windows.menuEditor, kwargs, 'isLanguageMel')
+        return res
+
     @_f.addMelDocs('menuEditor', 'isObscured')
     def getIsObscured(self, **kwargs):
         # type: (...) -> Any
@@ -28591,12 +29057,6 @@ class MenuEditor(PyUI):
     def getMenuItemTypes(self, **kwargs):
         # type: (...) -> Any
         res = _f.asQuery(self, windows.menuEditor, kwargs, 'menuItemTypes')
-        return res
-
-    @_f.addMelDocs('menuEditor', 'numberOfChildren')
-    def getNumberOfChildren(self, **kwargs):
-        # type: (...) -> Any
-        res = _f.asQuery(self, windows.menuEditor, kwargs, 'numberOfChildren')
         return res
 
     @_f.addMelDocs('menuEditor', 'numberOfPopupMenus')
@@ -28720,7 +29180,7 @@ class MenuEditor(PyUI):
 
     @_f.addMelDocs('menuEditor', 'command')
     def setCommand(self, val=True, **kwargs):
-        # type: (Tuple[str, str, int], **Any) -> None
+        # type: (Tuple[str, str, int, bool | int], **Any) -> None
         return _f.asEdit(self, windows.menuEditor, kwargs, 'command', val)
 
     @_f.addMelDocs('menuEditor', 'docTag')
@@ -29140,10 +29600,10 @@ class ModelEditor(PyUI):
         res = _f.asQuery(self, windows.modelEditor, kwargs, 'activeCustomGeometry')
         return res
 
-    @_f.addMelDocs('modelEditor', 'activeCustomLighSet')
-    def getActiveCustomLighSet(self, **kwargs):
+    @_f.addMelDocs('modelEditor', 'activeCustomLightSet')
+    def getActiveCustomLightSet(self, **kwargs):
         # type: (...) -> str
-        res = _f.asQuery(self, windows.modelEditor, kwargs, 'activeCustomLighSet')
+        res = _f.asQuery(self, windows.modelEditor, kwargs, 'activeCustomLightSet')
         return res
 
     @_f.addMelDocs('modelEditor', 'activeCustomOverrideGeometry')
@@ -29186,6 +29646,12 @@ class ModelEditor(PyUI):
     def getBackfaceCulling(self, **kwargs):
         # type: (...) -> bool
         res = _f.asQuery(self, windows.modelEditor, kwargs, 'backfaceCulling')
+        return res
+
+    @_f.addMelDocs('modelEditor', 'bluePencil')
+    def getBluePencil(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.modelEditor, kwargs, 'bluePencil')
         return res
 
     @_f.addMelDocs('modelEditor', 'bufferMode')
@@ -29336,6 +29802,24 @@ class ModelEditor(PyUI):
     def getEditorChanged(self, **kwargs):
         # type: (...) -> str | Callable
         res = _f.asQuery(self, windows.modelEditor, kwargs, 'editorChanged')
+        return res
+
+    @_f.addMelDocs('modelEditor', 'excludeObjectMask')
+    def getExcludeObjectMask(self, **kwargs):
+        # type: (...) -> int
+        res = _f.asQuery(self, windows.modelEditor, kwargs, 'excludeObjectMask')
+        return res
+
+    @_f.addMelDocs('modelEditor', 'excludeObjectPreset')
+    def getExcludeObjectPreset(self, **kwargs):
+        # type: (...) -> str
+        res = _f.asQuery(self, windows.modelEditor, kwargs, 'excludeObjectPreset')
+        return res
+
+    @_f.addMelDocs('modelEditor', 'excludePluginList')
+    def getExcludePluginList(self, **kwargs):
+        # type: (...) -> str
+        res = _f.asQuery(self, windows.modelEditor, kwargs, 'excludePluginList')
         return res
 
     @_f.addMelDocs('modelEditor', 'exposure')
@@ -30002,10 +30486,10 @@ class ModelEditor(PyUI):
         # type: (_util.ProxyUnicode | str, **Any) -> None
         return _f.asEdit(self, windows.modelEditor, kwargs, 'activeCustomGeometry', val)
 
-    @_f.addMelDocs('modelEditor', 'activeCustomLighSet')
-    def setActiveCustomLighSet(self, val=True, **kwargs):
+    @_f.addMelDocs('modelEditor', 'activeCustomLightSet')
+    def setActiveCustomLightSet(self, val=True, **kwargs):
         # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.modelEditor, kwargs, 'activeCustomLighSet', val)
+        return _f.asEdit(self, windows.modelEditor, kwargs, 'activeCustomLightSet', val)
 
     @_f.addMelDocs('modelEditor', 'activeCustomOverrideGeometry')
     def setActiveCustomOverrideGeometry(self, val=True, **kwargs):
@@ -30041,6 +30525,11 @@ class ModelEditor(PyUI):
     def setBackfaceCulling(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.modelEditor, kwargs, 'backfaceCulling', val)
+
+    @_f.addMelDocs('modelEditor', 'bluePencil')
+    def setBluePencil(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.modelEditor, kwargs, 'bluePencil', val)
 
     @_f.addMelDocs('modelEditor', 'bufferMode')
     def setBufferMode(self, val=True, **kwargs):
@@ -30151,6 +30640,21 @@ class ModelEditor(PyUI):
     def setEditorChanged(self, val=True, **kwargs):
         # type: (str | Callable, **Any) -> None
         return _f.asEdit(self, windows.modelEditor, kwargs, 'editorChanged', val)
+
+    @_f.addMelDocs('modelEditor', 'excludeObjectMask')
+    def setExcludeObjectMask(self, val=True, **kwargs):
+        # type: (int, **Any) -> None
+        return _f.asEdit(self, windows.modelEditor, kwargs, 'excludeObjectMask', val)
+
+    @_f.addMelDocs('modelEditor', 'excludeObjectPreset')
+    def setExcludeObjectPreset(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, windows.modelEditor, kwargs, 'excludeObjectPreset', val)
+
+    @_f.addMelDocs('modelEditor', 'excludePluginList')
+    def setExcludePluginList(self, val=True, **kwargs):
+        # type: (str | List[str], **Any) -> None
+        return _f.asEdit(self, windows.modelEditor, kwargs, 'excludePluginList', val)
 
     @_f.addMelDocs('modelEditor', 'exposure')
     def setExposure(self, val=True, **kwargs):
@@ -31028,12 +31532,6 @@ class NodeIconButton(PyUI):
         res = _f.asQuery(self, rendering.nodeIconButton, kwargs, 'labelOffset')
         return res
 
-    @_f.addMelDocs('nodeIconButton', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, rendering.nodeIconButton, kwargs, 'ltVersion')
-        return res
-
     @_f.addMelDocs('nodeIconButton', 'manage')
     def getManage(self, **kwargs):
         # type: (...) -> bool
@@ -31128,6 +31626,11 @@ class NodeIconButton(PyUI):
     def noBackground(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, rendering.nodeIconButton, kwargs, 'noBackground', val)
+
+    @_f.addMelDocs('nodeIconButton', 'runTimeCommand')
+    def runTimeCommand(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, rendering.nodeIconButton, kwargs, 'runTimeCommand', val)
 
     @_f.addMelDocs('nodeIconButton', 'align')
     def setAlign(self, val=True, **kwargs):
@@ -31234,11 +31737,6 @@ class NodeIconButton(PyUI):
         # type: (int, **Any) -> None
         return _f.asEdit(self, rendering.nodeIconButton, kwargs, 'labelOffset', val)
 
-    @_f.addMelDocs('nodeIconButton', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, rendering.nodeIconButton, kwargs, 'ltVersion', val)
-
     @_f.addMelDocs('nodeIconButton', 'manage')
     def setManage(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -31332,6 +31830,11 @@ class OutlinerEditor(PyUI):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.outlinerEditor, kwargs, 'directSelect', val)
 
+    @_f.addMelDocs('outlinerEditor', 'expandAllAttributes')
+    def expandAllAttributes(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.outlinerEditor, kwargs, 'expandAllAttributes', val)
+
     @_f.addMelDocs('outlinerEditor', 'expandAllItems')
     def expandAllItems(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -31369,6 +31872,12 @@ class OutlinerEditor(PyUI):
     def getAutoExpand(self, **kwargs):
         # type: (...) -> bool
         res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'autoExpand')
+        return res
+
+    @_f.addMelDocs('outlinerEditor', 'autoExpandAllAnimatedShapes')
+    def getAutoExpandAllAnimatedShapes(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'autoExpandAllAnimatedShapes')
         return res
 
     @_f.addMelDocs('outlinerEditor', 'autoExpandAnimatedShapes')
@@ -31791,6 +32300,12 @@ class OutlinerEditor(PyUI):
         res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'showUVAttrsOnly')
         return res
 
+    @_f.addMelDocs('outlinerEditor', 'showUfeItems')
+    def getShowUfeItems(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.outlinerEditor, kwargs, 'showUfeItems')
+        return res
+
     @_f.addMelDocs('outlinerEditor', 'showUnitlessCurves')
     def getShowUnitlessCurves(self, **kwargs):
         # type: (...) -> bool
@@ -31882,6 +32397,11 @@ class OutlinerEditor(PyUI):
     def setAutoExpand(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.outlinerEditor, kwargs, 'autoExpand', val)
+
+    @_f.addMelDocs('outlinerEditor', 'autoExpandAllAnimatedShapes')
+    def setAutoExpandAllAnimatedShapes(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.outlinerEditor, kwargs, 'autoExpandAllAnimatedShapes', val)
 
     @_f.addMelDocs('outlinerEditor', 'autoExpandAnimatedShapes')
     def setAutoExpandAnimatedShapes(self, val=True, **kwargs):
@@ -32177,6 +32697,11 @@ class OutlinerEditor(PyUI):
     def setShowUVAttrsOnly(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.outlinerEditor, kwargs, 'showUVAttrsOnly', val)
+
+    @_f.addMelDocs('outlinerEditor', 'showUfeItems')
+    def setShowUfeItems(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.outlinerEditor, kwargs, 'showUfeItems', val)
 
     @_f.addMelDocs('outlinerEditor', 'showUnitlessCurves')
     def setShowUnitlessCurves(self, val=True, **kwargs):
@@ -35406,7 +35931,7 @@ class Separator(PyUI):
 
     @_f.addMelDocs('separator', 'horizontal')
     def getHorizontal(self, **kwargs):
-        # type: (...) -> Any
+        # type: (...) -> bool
         res = _f.asQuery(self, windows.separator, kwargs, 'horizontal')
         return res
 
@@ -35508,6 +36033,11 @@ class Separator(PyUI):
     def setHighlightColor(self, val=True, **kwargs):
         # type: (Tuple[float, float, float], **Any) -> None
         return _f.asEdit(self, windows.separator, kwargs, 'highlightColor', val)
+
+    @_f.addMelDocs('separator', 'horizontal')
+    def setHorizontal(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.separator, kwargs, 'horizontal', val)
 
     @_f.addMelDocs('separator', 'manage')
     def setManage(self, val=True, **kwargs):
@@ -35742,12 +36272,6 @@ class ShelfButton(PyUI):
         res = _f.asQuery(self, windows.shelfButton, kwargs, 'labelOffset')
         return res
 
-    @_f.addMelDocs('shelfButton', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, windows.shelfButton, kwargs, 'ltVersion')
-        return res
-
     @_f.addMelDocs('shelfButton', 'manage')
     def getManage(self, **kwargs):
         # type: (...) -> bool
@@ -35870,10 +36394,20 @@ class ShelfButton(PyUI):
         # type: (int | List[int], **Any) -> None
         return _f.asEdit(self, windows.shelfButton, kwargs, 'menuItemPython', val)
 
+    @_f.addMelDocs('shelfButton', 'menuItemWithOptionBox')
+    def menuItemWithOptionBox(self, val=True, **kwargs):
+        # type: (Tuple[str, str, str] | List[Tuple[str, str, str]], **Any) -> None
+        return _f.asEdit(self, windows.shelfButton, kwargs, 'menuItemWithOptionBox', val)
+
     @_f.addMelDocs('shelfButton', 'noBackground')
     def noBackground(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.shelfButton, kwargs, 'noBackground', val)
+
+    @_f.addMelDocs('shelfButton', 'runTimeCommand')
+    def runTimeCommand(self, val=True, **kwargs):
+        # type: (_util.ProxyUnicode | str, **Any) -> None
+        return _f.asEdit(self, windows.shelfButton, kwargs, 'runTimeCommand', val)
 
     @_f.addMelDocs('shelfButton', 'scaleIcon')
     def scaleIcon(self, val=True, **kwargs):
@@ -36019,11 +36553,6 @@ class ShelfButton(PyUI):
     def setLabelOffset(self, val=True, **kwargs):
         # type: (int, **Any) -> None
         return _f.asEdit(self, windows.shelfButton, kwargs, 'labelOffset', val)
-
-    @_f.addMelDocs('shelfButton', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.shelfButton, kwargs, 'ltVersion', val)
 
     @_f.addMelDocs('shelfButton', 'manage')
     def setManage(self, val=True, **kwargs):
@@ -36434,12 +36963,6 @@ class SymbolCheckBox(PyUI):
         res = _f.asQuery(self, windows.symbolCheckBox, kwargs, 'isObscured')
         return res
 
-    @_f.addMelDocs('symbolCheckBox', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, windows.symbolCheckBox, kwargs, 'ltVersion')
-        return res
-
     @_f.addMelDocs('symbolCheckBox', 'manage')
     def getManage(self, **kwargs):
         # type: (...) -> bool
@@ -36580,11 +37103,6 @@ class SymbolCheckBox(PyUI):
     def setInnerMargin(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.symbolCheckBox, kwargs, 'innerMargin', val)
-
-    @_f.addMelDocs('symbolCheckBox', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.symbolCheckBox, kwargs, 'ltVersion', val)
 
     @_f.addMelDocs('symbolCheckBox', 'manage')
     def setManage(self, val=True, **kwargs):
@@ -37369,12 +37887,6 @@ class ToolButton(PyUI):
         res = _f.asQuery(self, windows.toolButton, kwargs, 'isObscured')
         return res
 
-    @_f.addMelDocs('toolButton', 'ltVersion')
-    def getLtVersion(self, **kwargs):
-        # type: (...) -> str
-        res = _f.asQuery(self, windows.toolButton, kwargs, 'ltVersion')
-        return res
-
     @_f.addMelDocs('toolButton', 'manage')
     def getManage(self, **kwargs):
         # type: (...) -> bool
@@ -37403,6 +37915,12 @@ class ToolButton(PyUI):
     def getPreventOverride(self, **kwargs):
         # type: (...) -> bool
         res = _f.asQuery(self, windows.toolButton, kwargs, 'preventOverride')
+        return res
+
+    @_f.addMelDocs('toolButton', 'stateSelfManaged')
+    def getStateSelfManaged(self, **kwargs):
+        # type: (...) -> bool
+        res = _f.asQuery(self, windows.toolButton, kwargs, 'stateSelfManaged')
         return res
 
     @_f.addMelDocs('toolButton', 'tool')
@@ -37545,11 +38063,6 @@ class ToolButton(PyUI):
         # type: (_util.ProxyUnicode | str, **Any) -> None
         return _f.asEdit(self, windows.toolButton, kwargs, 'imageOverlayLabel', val)
 
-    @_f.addMelDocs('toolButton', 'ltVersion')
-    def setLtVersion(self, val=True, **kwargs):
-        # type: (_util.ProxyUnicode | str, **Any) -> None
-        return _f.asEdit(self, windows.toolButton, kwargs, 'ltVersion', val)
-
     @_f.addMelDocs('toolButton', 'manage')
     def setManage(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
@@ -37564,6 +38077,11 @@ class ToolButton(PyUI):
     def setPreventOverride(self, val=True, **kwargs):
         # type: (bool | int, **Any) -> None
         return _f.asEdit(self, windows.toolButton, kwargs, 'preventOverride', val)
+
+    @_f.addMelDocs('toolButton', 'stateSelfManaged')
+    def setStateSelfManaged(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.toolButton, kwargs, 'stateSelfManaged', val)
 
     @_f.addMelDocs('toolButton', 'tool')
     def setTool(self, val=True, **kwargs):
@@ -37622,6 +38140,11 @@ class ToolCollection(PyUI):
     __melcmdname__ = 'toolCollection'
     __melui__ = 'toolCollection'
     __slots__ = ()
+
+    @_f.addMelDocs('toolCollection', 'clear')
+    def clear(self, val=True, **kwargs):
+        # type: (bool | int, **Any) -> None
+        return _f.asEdit(self, windows.toolCollection, kwargs, 'clear', val)
 
     @_f.addMelDocs('toolCollection', 'collectionItemArray')
     def getCollectionItemArray(self, **kwargs):

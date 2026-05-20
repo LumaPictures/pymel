@@ -2,11 +2,6 @@
 Functions which are not listed in the maya documentation, such as commands created by plugins,
 as well as the name parsing classes `DependNodeName`, `DagNodeName`, and `AttributeName`.
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future.utils import PY2
-
 from builtins import str
 import re
 import inspect
@@ -234,10 +229,6 @@ class AttributeName(NameParser):
         'spangle.banner'
 
         """
-        if PY2:
-            # just to get this method returning a builtins.str object, like
-            # nearly everything else here does...
-            return str('.').join(str(self).split('.')[1:])
         return '.'.join(str(self).split('.')[1:])
 
     def lastPlugAttr(self):
@@ -550,13 +541,21 @@ def _getParserClass(strObj):
     return newcls
 
 
+
+
 # ------ Do not edit below this line --------
 
 TanimLayer = _factories.getCmdFunc('TanimLayer')
 
 TrenderSetupStates = _factories.getCmdFunc('TrenderSetupStates')
 
+UfeCommandObject = _factories.getCmdFunc('UfeCommandObject')
+
 adpAnalyticsDialog = _factories.getCmdFunc('adpAnalyticsDialog')
+
+adpAssistant = _factories.getCmdFunc('adpAssistant')
+
+adpWaypoint = _factories.getCmdFunc('adpWaypoint')
 
 adskAsset = _factories.getCmdFunc('adskAsset')
 
@@ -584,6 +583,8 @@ agFormatIn = _factories.getCmdFunc('agFormatIn')
 
 agFormatOut = _factories.getCmdFunc('agFormatOut')
 
+animContextManager = _factories.getCmdFunc('animContextManager')
+
 artAttr = _factories.getCmdFunc('artAttr')
 
 artAttrSkinPaint = _factories.getCmdFunc('artAttrSkinPaint')
@@ -607,6 +608,22 @@ clearShear = _factories.getCmdFunc('clearShear')
 copyNode = _factories.getCmdFunc('copyNode')
 
 crashInfoCmd = _factories.getCmdFunc('crashInfoCmd')
+
+@_factories.addCmdDocs
+def cutView(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.cutView(*args, **kwargs)
+    return res
 
 dagCommandWrapper = _factories.getCmdFunc('dagCommandWrapper')
 
@@ -754,7 +771,7 @@ def repeatLast(*args, **kwargs):
         doPassSelf = kwargs.pop('passSelf', False)
     else:
         doPassSelf = False
-    for key in ('ac', 'acl', 'addCommand', 'addCommandLabel', 'cl', 'cnl', 'commandList', 'commandNameList'):
+    for key in ('ac', 'acl', 'addCommand', 'addCommandLabel', 'cl', 'cnl', 'commandList', 'commandNameList', 'pyc', 'pythonCommand'):
         try:
             cb = kwargs[key]
             if callable(cb):
@@ -809,3 +826,5 @@ def timeRangeInfo(*args, **kwargs):
 timeSliderCustomDraw = _factories.getCmdFunc('timeSliderCustomDraw')
 
 warnUserDialog = _factories.getCmdFunc('warnUserDialog')
+
+workspacePanel = _factories.getCmdFunc('workspacePanel')

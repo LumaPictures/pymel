@@ -135,11 +135,6 @@ and seek(1, -1), since then I can reliably do a ungetch-like thing.
 scanf("%s") can be dangerous in a hostile environment, since it's very
 possible for something to pass in a huge string without spaces.  So use
 an explicit width instead if you can help it."""
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
-
 from builtins import next
 from builtins import object
 import sys

@@ -1,7 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 from builtins import zip
 from builtins import object
 import string
@@ -245,6 +241,7 @@ class PyDocstringBuilder(DocstringBuilder):
             ['    ' + x for x in textwrap.wrap(descr, self.DOC_WIDTH)])
         # add trailing newline
         descr = descr + '\n' if descr else ''
+        shortname = shortname if shortname is not None else ''
         return '- %s %s [%s]\n%s\n' % (
             (flag + ' : ' + shortname).ljust(30),
             ('(' + typ + ')').ljust(15),

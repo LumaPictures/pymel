@@ -1,8 +1,4 @@
 """Imports all of pymel into one namespace, for use during interactive scripting"""
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
-
 import sys
 import pymel as _pymel
 _pymel.all = sys.modules[__name__]

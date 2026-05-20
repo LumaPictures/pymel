@@ -1,6 +1,6 @@
 
 ==================================================
-Seting Up PyMEL Debugging in Eclipse
+Setting Up PyMEL Debugging in Eclipse
 ==================================================
 
 (VERY rough instructions still - need to refine)

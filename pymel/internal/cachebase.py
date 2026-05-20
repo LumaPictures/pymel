@@ -1,8 +1,3 @@
-from __future__ import absolute_import, print_function
-
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
 from builtins import zip
 from builtins import object
 import os.path
@@ -10,12 +5,10 @@ import sys
 import pprint
 
 import pymel.util
-import pymel.util.py2to3 as util2to3
+
 
 from pymel.util import picklezip, universalmethod
 from collections import namedtuple
-
-from future.utils import PY2
 
 from . import plogging
 
@@ -92,17 +85,10 @@ class NoStringWrappingPrettyPrinter(pprint.PrettyPrinter):
 
 py_pformat = NoStringWrappingPrettyPrinter().pformat
 
-if PY2:
-    # just use the normal PrettyPrinter
-    py_pformat = pprint.pformat
-
 
 def _pyformatdump(data):
     strdata = 'version = {!r}\n\ndata = {}'.format(PY_CACHE_FORMAT_VERSION,
                                                    py_pformat(data))
-    if PY2:
-        if not isinstance(strdata, unicode):
-            return strdata
     return strdata.encode('utf-8')
 
 
@@ -207,13 +193,7 @@ class PymelCache(object):
     def toRawData(self, data):
         '''If a subclass needs to modify data before it is written to the cache
         on disk, do it here'''
-        if PY2:
-            # the written out .py cache will not include 'u' prefixes, which
-            # makes it easier to diff to python-3-built caches; initially, just
-            # using this is caches where we think it's unlikely to affect client
-            # code
-            isUnicode = lambda x: isinstance(x, unicode)
-            data = pymel.util.deepPatch(data, isUnicode, util2to3.trystr)
+        # ToDo: No need for toRawData
         return data
 
     def read(self, path=None, ext=None, ignoreError=False):

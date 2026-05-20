@@ -4,6 +4,86 @@
 What's New
 **********
 
+==================================
+Version 1.7.1
+==================================
+
+Additions
+----------------------------------
+- Added support for Maya 2027.1
+
+----------------------------------
+Misc
+----------------------------------
+- Bumping package versions according to dependabot alerts
+- Use UV as main tool for building commands
+
+
+
+==================================
+Version 1.7.0
+==================================
+
+----------------------------------
+Fixes
+----------------------------------
+- Update building script for Python 3.13
+
+Additions
+----------------------------------
+- Added support for Maya 2027
+- Enabled override methods for following commands:
+    'MFnBlendShapeDeformer.setWeight' / ('BlendShape', 'getWeight')
+    'MFnDependencyNode.findAlias' / ('PolySeparate', 'findAlias')
+    'MFnDependencyNode.getAffectedAttributes' / ('PolySeparate', 'getAffectedAttributes')
+    'MFnDependencyNode.getAffectedByAttributes' / ('PolySeparate', 'getAffectedByAttributes')
+    'MFnDependencyNode.getAliasList' / ('PolySeparate', 'getAliasList')
+    'MFnDependencyNode.getConnections' / ('PolySeparate', 'getConnections')
+    'MFnDependencyNode.plugsAlias' / ('PolySeparate', 'plugsAlias')
+    'MFnDependencyNode.setAlias' / ('PolySeparate', 'setAlias')
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- Dropped support for Maya 2023
+
+
+==================================
+Version 1.6.0
+==================================
+
+----------------------------------
+Fixes
+----------------------------------
+Some of the open issues with easy fixes.
+
+- readme lists Mac install path in for "on Windows" (issue #479)
+- __import__ called with illegal value of level (issue #473)
+- Multiple removeCallback calls in pymel (issue #463)
+- Fixing supports for command flags without shortname(e.g., affects)
+- Make some of anonymous enums constants(e.g., MFnDagNode.kNextPos, MGeometryList.kAll, etc...)
+- Added an encoding workaround for building step 3.
+- Now also check .mayaDocs for internalCmds.txt/internalCommandList.txt
+
+Additions
+----------------------------------
+- Added support for Maya 2026
+
+----------------------------------
+Non-Backward Compatible Changes
+----------------------------------
+- Dropped support for maya 2022
+- Removed support for Python 2
+
+----------------------------------
+Open issues
+----------------------------------
+- It's able to process version baseline class now, but no real usage has been implemented for it.
+- GUI Tests currently is redirected to script editor.
+- Step3 will create an extra empty line at the beginning of generated codes.
+- pm.core.newFile will return True in doctest in Maya 2026.3 gui test,
+  but I couldn't reproduce it with test code in script editor.
+  Current use ellipsis(...) in the doctest to get around of it.
 
 ==================================
 Version 1.5.0
@@ -27,19 +107,6 @@ Non-Backward Compatible Changes
 - Dropped support for maya-2020
 - Dropped support for PySide and shiboken
 
-==================================
-Version 1.5.0
-==================================
-
-----------------------------------
-Additions
-----------------------------------
-- Added support for maya 2025 and python 3.11
-
-----------------------------------
-Non-Backward Compatible Changes
-----------------------------------
-- Dropped support for maya-2020
 
 ==================================
 Version 1.4.0

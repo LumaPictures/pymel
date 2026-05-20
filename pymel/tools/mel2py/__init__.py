@@ -163,10 +163,6 @@ over non-sequence'. just email me with commands that are giving you problems and
 quickly as i can.
 
 """
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
-
 from . import melparse
 try:
     from pymel.util.external.ply.lex import LexError

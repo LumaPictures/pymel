@@ -14,8 +14,7 @@ from pprint import pprint
 from pymel.util.enum import Enum
 from pymel.util.arguments import AddedKey, ChangedKey, RemovedKey
 
-from future.utils import PY2
-from past.builtins import basestring, unicode
+
 
 THIS_FILE = inspect.getsourcefile(lambda: None)
 THIS_DIR = os.path.dirname(THIS_FILE)
@@ -249,14 +248,11 @@ for multiKey, overloadDiff in iterOverloadDiffs(onlyDicts=True):
 # ...also strip out any "\\li " or <b>/</b> items
 # ...or whitespace length...
 ASCII_PUNCTUATION = """;-'"`,."""
-UNICODE_PUNCTUATION = (unicode(ASCII_PUNCTUATION) \
+UNICODE_PUNCTUATION = (str(ASCII_PUNCTUATION) \
                       # single left/right quote
                       + u'\u2018\u2019')
 PUNCTUATION_TABLE = {ord(x): None for x in UNICODE_PUNCTUATION}
 def strip_punctuation(input):
-    if PY2:
-        if isinstance(input, str):
-            return input.translate(None, ASCII_PUNCTUATION)
     return input.translate(PUNCTUATION_TABLE)
 
 
@@ -274,7 +270,7 @@ def normalize_str(input):
 def same_after_normalize(input):
     if not isinstance(input, ChangedKey):
         return False
-    if not isinstance(input.oldVal, basestring) or not isinstance(input.newVal, basestring):
+    if not isinstance(input.oldVal, (bytes, str)) or not isinstance(input.newVal, (bytes, str)):
         return False
     return normalize_str(input.oldVal) == normalize_str(input.newVal)
 

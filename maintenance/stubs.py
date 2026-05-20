@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 from builtins import range
 import pydoc, sys, pprint   #@Reimport
 import builtins
@@ -15,11 +11,6 @@ import keyword
 import re
 import types
 import json
-
-from future.utils import PY2
-
-if PY2:
-    ast.Try = ast.TryExcept
 
 OBJ = 0
 OBJTYPE = 1
@@ -37,13 +28,6 @@ def _hashable(x):
     return True
 
 builtin_objs = set(x for x in builtins.__dict__.values() if _hashable(x))
-if PY2:
-    import __builtin__
-    builtin_objs.update(x[0] for x in inspect.getmembers(__builtin__,
-                                                         _hashable))
-    bytes = str
-else:
-    basestring = str
 
 verbose = False
 
@@ -158,8 +142,6 @@ def get_source_module(obj, default):
     mod = inspect.getmodule(obj)
     if mod == builtins and obj in builtin_objs:
         return mod
-    if PY2 and mod == __builtins__ and obj in builtin_objs:
-        return mod
     if (not mod or inspect.isbuiltin(obj) or pydoc.isdata(obj)
             or not mod.__name__ or mod.__name__.startswith('_')):
         mod = default
@@ -185,6 +167,7 @@ def get_unique_name(basename=None, all_names=()):
     return name
 
 
+# Todo: Remove this, py2 legacy function
 def get_class(obj):
     '''Retrieves the class of the given object.
 
@@ -193,10 +176,8 @@ def get_class(obj):
     `re.Pattern` instances, and type() doesn't work on old-style
     classes...
     '''
-    cls = type(obj)
-    if PY2 and cls is types.InstanceType:
-        cls = obj.__class__
-    return cls
+    return type(obj)
+
 
 
 def has_default_constructor(cls):
@@ -269,7 +250,7 @@ def is_named_tuple(cls):
     if not isinstance(fields, tuple):
         # print "no fields"
         return False
-    if not all(isinstance(f, basestring) for f in fields):
+    if not all(isinstance(f, (bytes, str)) for f in fields):
         # print "non-string fields"
         return False
 
@@ -311,7 +292,7 @@ class ModuleNamesVisitor(ast.NodeVisitor):
     def add_names(self, obj):
         # print "add_names: %r" % obj
         # string... add it!
-        if isinstance(obj, basestring):
+        if isinstance(obj, (bytes, str)):
             self.names.add(obj)
 
         # A name node... add if the context is right
@@ -462,8 +443,7 @@ class StubDoc(pydoc.Doc):
     }
 
     SIMPLE_TYPES = (str, bytes, bool, int, float, complex)
-    if PY2:
-        SIMPLE_TYPES += (unicode,)
+
     PASS = 'pass'
     UNKNOWN_SIGNATURE = '(*args, **kwargs)'
 
@@ -999,7 +979,7 @@ class StubDoc(pydoc.Doc):
             return
 
     def _module_has_static_name(self, module, name):
-        if isinstance(module, basestring):
+        if isinstance(module, (bytes, str)):
             module = sys.modules[module]
         elif not isinstance(module, types.ModuleType):
             raise TypeError(module)

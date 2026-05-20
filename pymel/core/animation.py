@@ -1,9 +1,5 @@
 """functions related to animation"""
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
 
-from past.builtins import basestring
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.core.general as _general
@@ -157,7 +153,7 @@ def ikHandle(*args, **kwargs):
             res = _factories.toPyNodeList(res)
     elif (not kwargs.get('edit', kwargs.get('e', False))
             and isinstance(res, list) and len(res) == 2
-            and all(isinstance(x, basestring) for x in res)):
+            and all(isinstance(x, (bytes, str)) for x in res)):
         handleName, effectorName = res
         # ikHandle doesn't support a parent kwarg, so result should always be
         # grouped under the world...
@@ -173,6 +169,7 @@ def ikHandle(*args, **kwargs):
                 "which did not match returned effector name %r"
                 % (handleName, effectorNode.shortName(), effectorName))
     return res
+
 
 
 # ------ Do not edit below this line --------
@@ -329,6 +326,8 @@ buildBookmarkMenu = _factories.getCmdFunc('buildBookmarkMenu')
 
 buildKeyframeMenu = _factories.getCmdFunc('buildKeyframeMenu')
 
+cameraSequencer = _factories.getCmdFunc('cameraSequencer')
+
 @_factories.addCmdDocs
 def character(*args, **kwargs):
     res = cmds.character(*args, **kwargs)
@@ -389,6 +388,8 @@ def combinationShape(*args, **kwargs):
     if not kwargs.get('query', kwargs.get('q', False)):
         res = _factories.maybeConvert(res, _general.PyNode)
     return res
+
+componentTag = _factories.getCmdFunc('componentTag')
 
 connectJoint = _factories.getCmdFunc('connectJoint')
 
@@ -670,6 +671,22 @@ def keyframeStats(*args, **kwargs):
     return res
 
 @_factories.addCmdDocs
+def keyframeTangentControl(*args, **kwargs):
+    if len(args):
+        doPassSelf = kwargs.pop('passSelf', False)
+    else:
+        doPassSelf = False
+    for key in ('dgc', 'dpc', 'dragCallback', 'dropCallback', 'vcc', 'visibleChangeCommand'):
+        try:
+            cb = kwargs[key]
+            if callable(cb):
+                kwargs[key] = _factories.makeUICallback(cb, args, doPassSelf)
+        except KeyError:
+            pass
+    res = cmds.keyframeTangentControl(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
 def keyingGroup(*args, **kwargs):
     res = cmds.keyingGroup(*args, **kwargs)
     if not kwargs.get('query', kwargs.get('q', False)):
@@ -840,6 +857,16 @@ def posePanel(*args, **kwargs):
         except KeyError:
             pass
     res = cmds.posePanel(*args, **kwargs)
+    return res
+
+@_factories.addCmdDocs
+def proximityWrap(*args, **kwargs):
+    res = cmds.proximityWrap(*args, **kwargs)
+    if not kwargs.get('query', kwargs.get('q', False)):
+        res = _factories.maybeConvert(res, _general.PyNode)
+    # unpack create/edit list result
+    if isinstance(res, list) and len(res) == 1 and not kwargs.get('query', kwargs.get('q', False)):
+        res = res[0]
     return res
 
 readTake = _factories.getCmdFunc('readTake')

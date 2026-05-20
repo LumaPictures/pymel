@@ -2,17 +2,7 @@
 Defines common types and type related utilities:  Singleton, etc.
 These types can be shared by other utils modules and imported into util main namespace for use by other pymel modules
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
-from future.utils import PY2, with_metaclass
-
-# 2to3: remove switch when python-3 only
-if PY2:
-    from collections import Mapping
-else:
-    from collections.abc import Mapping
+from collections.abc import Mapping
 from builtins import object
 import inspect
 import types
@@ -31,7 +21,7 @@ class Singleton(type):
 
     """ Metaclass for Singleton classes.
 
-        >>> class DictSingleton(with_metaclass(Singleton, dict)) :
+        >>> class DictSingleton(dict, metaclass=Singleton) :
         ...     pass
         ...
         >>> DictSingleton({'A':1})
@@ -45,7 +35,7 @@ class Singleton(type):
         >>> a is b and a is DictSingleton()
         True
 
-        >>> class StringSingleton(with_metaclass(Singleton, str)) :
+        >>> class StringSingleton(str, metaclass=Singleton) :
         ...    pass
         ...
         >>> StringSingleton("first")
@@ -106,7 +96,7 @@ class metaStatic(Singleton):
     """ A static (immutable) Singleton metaclass to quickly build classes
         holding predefined immutable dicts
 
-        >>> class FrozenDictSingleton(with_metaclass(metaStatic, dict)) :
+        >>> class FrozenDictSingleton(dict, metaclass=metaStatic) :
         ...    pass
         ...
         >>> FrozenDictSingleton({'A':1})
@@ -618,10 +608,7 @@ if TYPE_CHECKING:
             pass
 
 else:
-    if PY2:
-        _proxyStrBase = unicode
-    else:
-        _proxyStrBase = str
+    _proxyStrBase = str
     ProxyUnicode = proxyClass(
         _proxyStrBase, 'ProxyUnicode',
         module=__name__, dataFuncName='name',
@@ -931,7 +918,7 @@ class LazyDocString(object):
     >>> # In order to alter the doc of a class, we need to use a metaclass
     >>> class TestMetaClass(type): pass
     >>>
-    >>> class TestClass(with_metaclass(TestMetaClass, object)):
+    >>> class TestClass(object, metaclass=TestMetaClass):
     ...     def aMethod(self):
     ...         pass
     ...
@@ -1316,7 +1303,8 @@ def alias(origAttrName):
 
 class propertycache(object):
 
-    '''Class for creating properties where the value is initially calculated then stored.
+    """
+    Class for creating properties where the value is initially calculated then stored.
 
     Intended for use as a descriptor, ie:
 
@@ -1326,8 +1314,8 @@ class propertycache(object):
             return calcValue()
     c = MyClass()
     c.aValue
+    """
 
-    '''
 
     def __init__(self, func):
         self.func = func

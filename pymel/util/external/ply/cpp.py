@@ -7,16 +7,12 @@
 #
 # This module implements an ANSI-C style lexical preprocessor for PLY.
 # -----------------------------------------------------------------------------
-from __future__ import generators
+
 
 import sys
 
-# Some Python 3 compatibility shims
-if sys.version_info.major < 3:
-    STRING_TYPES = (str, unicode)
-else:
-    STRING_TYPES = str
-    xrange = range
+STRING_TYPES = str
+xrange = range
 
 # -----------------------------------------------------------------------------
 # Default preprocessor lexer definitions.   These tokens are enough to get

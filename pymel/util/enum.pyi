@@ -1,7 +1,6 @@
 from typing import *
 from . import utilitytypes as utilitytypes
 from _typeshed import Incomplete
-from past.builtins import cmp as cmp
 from typing import Any
 
 __author_name__: str

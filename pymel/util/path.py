@@ -44,13 +44,9 @@ Example::
 
 path.py requires Python 2.5 or later.
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 from builtins import oct
 from builtins import zip
-from past.builtins import basestring
+
 from builtins import object
 import sys
 import warnings
@@ -82,24 +78,7 @@ try:
 except ImportError:
     pass
 
-################################
-# Monkey patchy python 3 support
-try:
-    basestring
-except NameError:
-    basestring = str
-
-try:
-    getcwdu = os.getcwd
-except AttributeError:
-    getcwdu = os.getcwd
-
-if sys.version < '3':
-    def u(x):
-        return codecs.unicode_escape_decode(x)[0]
-else:
-    def u(x):
-        return x
+getcwdu = os.getcwd
 
 from pymel.util.py2to3 import RePattern
 
@@ -202,7 +181,7 @@ class path(str):
             return NotImplemented
 
     def __radd__(self, other):
-        if not isinstance(other, basestring):
+        if not isinstance(other, (bytes, str)):
             return NotImplemented
         return self._next_class(other.__add__(self))
 
@@ -844,11 +823,11 @@ class path(str):
                 # (Note - Can't use 'U' mode here, since codecs.open
                 # doesn't support 'U' mode.)
                 t = f.read()
-            return (t.replace(u('\r\n'), u('\n'))
-                     .replace(u('\r\x85'), u('\n'))
-                     .replace(u('\r'), u('\n'))
-                     .replace(u('\x85'), u('\n'))
-                     .replace(u('\u2028'), u('\n')))
+            return (t.replace('\r\n', '\n')
+                     .replace(('\r\x85'), '\n')
+                     .replace('\r', '\n')
+                     .replace('\x85', '\n')
+                     .replace('\u2028', '\n'))
 
     def write_text(self, text, encoding=None, errors='strict',
                    linesep=os.linesep, append=False):
@@ -919,12 +898,12 @@ class path(str):
             if linesep is not None:
                 # Convert all standard end-of-line sequences to
                 # ordinary newline characters.
-                text = (text.replace(u('\r\n'), u('\n'))
-                            .replace(u('\r\x85'), u('\n'))
-                            .replace(u('\r'), u('\n'))
-                            .replace(u('\x85'), u('\n'))
-                            .replace(u('\u2028'), u('\n')))
-                text = text.replace(u('\n'), linesep)
+                text = (text.replace('\r\n', '\n')
+                            .replace('\r\x85', '\n')
+                            .replace('\r', '\n')
+                            .replace('\x85', '\n')
+                            .replace('\u2028', '\n'))
+                text = text.replace('\n', linesep)
             if encoding is None:
                 encoding = sys.getdefaultencoding()
             bytes = text.encode(encoding, errors)
@@ -1011,10 +990,10 @@ class path(str):
                     # Strip off any existing line-end and add the
                     # specified linesep string.
                     if isUnicode:
-                        if line[-2:] in (u('\r\n'), u('\x0d\x85')):
+                        if line[-2:] in ('\r\n', '\x0d\x85'):
                             line = line[:-2]
-                        elif line[-1:] in (u('\r'), u('\n'),
-                                           u('\x85'), u('\u2028')):
+                        elif line[-1:] in ('\r', '\n',
+                                           '\x85', '\u2028'):
                             line = line[:-1]
                     else:
                         if line[-2:] == '\r\n':
@@ -1222,7 +1201,7 @@ class path(str):
             self, win32security.OWNER_SECURITY_INFORMATION)
         sid = desc.GetSecurityDescriptorOwner()
         account, domain, typecode = win32security.LookupAccountSid(None, sid)
-        return domain + u('\\') + account
+        return domain + '\\' + account
 
     def __get_owner_unix(self):
         """
@@ -1294,7 +1273,7 @@ class path(str):
 
             .. seealso:: :func:`os.chown`
             """
-            if isinstance(group, basestring):
+            if isinstance(group, (bytes, str)):
                 group = grp.getgrnam(group).gr_gid
             os.chown(self, -1, group)
 

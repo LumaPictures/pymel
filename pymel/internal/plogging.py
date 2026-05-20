@@ -1,9 +1,5 @@
 "pymel logging functions"
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 from builtins import range
-from future.utils import PY2
 import sys
 import os
 
@@ -13,13 +9,9 @@ from logging import *
 # The python 2.6 version of 'logging' hides these functions, so we need to import explcitly
 from logging import getLevelName, root, info, debug, warning, error, critical
 
-# 2to3: remove switch when python-3 only
 # We can't use future-provided configparser in 2.7, because we need the version
 # that logging.config._create_formatters will work with...
-if PY2:
-    from ConfigParser import ConfigParser
-else:
-    from configparser import ConfigParser
+from configparser import ConfigParser
 
 import pymel.util as util
 
@@ -145,36 +137,38 @@ def pymelLogFileConfig(fname, defaults=None, disable_existing_loggers=False):
             oldLogHandlers[loggerName] = logger.handlers[:]
 
     # critical section
-    logging._acquireLock()
-    try:
-        # Handlers add themselves to logging._handlers
-        handlers = logging.config._install_handlers(cp, formatters)
+    with logging._lock:
+        try:
+            # Handlers add themselves to logging._handlers
+            handlers = logging.config._install_handlers(cp, formatters)
 
-        logging.config._install_loggers(cp, handlers, 0)
+            logging.config._install_loggers(cp, handlers, 0)
 
-        # Now re-add any removed handlers, if needed
-        secNames = cp.get('loggers', 'keys').split(',')
-        secNames = ['logger_' + x.strip() for x in secNames]
-        _addOldHandlers(root, rootHandlers, 'logger_root', cp)
-        for secName in secNames:
-            if secName == 'logger_root':
-                logger = root
-                oldHandlers = rootHandlers
-            else:
-                logName = cp.get(secName, 'qualname')
-                logger = logging.getLogger(logName)
-                oldHandlers = oldLogHandlers.get(logName)
-            if oldHandlers:
-                _addOldHandlers(logger, oldHandlers, secName, cp)
+            # Now re-add any removed handlers, if needed
+            secNames = cp.get('loggers', 'keys').split(',')
+            secNames = ['logger_' + x.strip() for x in secNames]
+            _addOldHandlers(root, rootHandlers, 'logger_root', cp)
+            for secName in secNames:
+                if secName == 'logger_root':
+                    logger = root
+                    oldHandlers = rootHandlers
+                else:
+                    logName = cp.get(secName, 'qualname')
+                    logger = logging.getLogger(logName)
+                    oldHandlers = oldLogHandlers.get(logName)
+                if oldHandlers:
+                    _addOldHandlers(logger, oldHandlers, secName, cp)
 
-        # if root logger level not explicitly set in the pymel.conf file,
-        # then set it back to the original value.  The root logger always
-        # has to have a level.
-        if logging.root.level == logging.NOTSET:
-            logging.root.setLevel(root_logger_level)
+            # if root logger level not explicitly set in the pymel.conf file,
+            # then set it back to the original value.  The root logger always
+            # has to have a level.
+            if logging.root.level == logging.NOTSET:
+                logging.root.setLevel(root_logger_level)
+        finally:
+            None
 
-    finally:
-        logging._releaseLock()
+
+
 
 
 def _addOldHandlers(logger, oldHandlers, secName, configParser):

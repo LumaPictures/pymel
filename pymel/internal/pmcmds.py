@@ -13,11 +13,7 @@ simply add a __melobject__ function that returns a mel-friendly result and pass 
 The wrapped commands in this module are the starting point for any other pymel customizations.
 
 '''
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 
-from past.builtins import basestring
 import inspect
 import sys
 import re
@@ -58,7 +54,7 @@ def getCmdName(inFunc):
     cmdName = inFunc.__name__
     if cmdName == 'stubFunc':
         sourceFile = inspect.getsourcefile(inFunc)
-        if (isinstance(sourceFile, basestring) and
+        if (isinstance(sourceFile, (bytes, str)) and
                 os.path.join('maya', 'app', 'commands') in sourceFile):
             # Here's where it gets tricky... this is a fairly big hack, highly
             # dependent on the exact implementation of maya.app.commands.stubFunc...
@@ -147,8 +143,7 @@ def _createFunction(func, oldname, newname):
             old_code.co_freevars,
             old_code.co_cellvars,
         )
-    # 2to3: remove switch when python-3 only
-    elif sys.version_info[0] >= 3:
+    else:
         # Python 3 supports co_kwonlyargcount
         new_code = types.CodeType(
             old_code.co_argcount,
@@ -167,24 +162,6 @@ def _createFunction(func, oldname, newname):
             old_code.co_freevars,
             old_code.co_cellvars,
         )
-    else:
-        new_code = types.CodeType(
-            old_code.co_argcount,
-            old_code.co_nlocals,
-            old_code.co_stacksize,
-            old_code.co_flags,
-            old_code.co_code,
-            old_code.co_consts,
-            old_code.co_names,
-            old_code.co_varnames,
-            old_code.co_filename,
-            str(codeNewname),  # unicode no good in py2
-            old_code.co_firstlineno,
-            old_code.co_lnotab,
-            old_code.co_freevars,
-            old_code.co_cellvars,
-        )
-        newname = str(newname)  # unicode no good in py2
 
     return types.FunctionType(new_code,
                               func.__globals__,
@@ -240,7 +217,7 @@ def addWrappedCmd(cmdname, cmd=None):
         return res
 
     oldname = getattr(cmd, '__name__', None)
-    if isinstance(oldname, basestring):
+    if isinstance(oldname, (bytes, str)):
         # Don't use cmd.__name__, as this could be 'stubFunc'
         newname = getCmdName(cmd)
     else:

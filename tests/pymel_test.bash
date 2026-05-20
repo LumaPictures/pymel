@@ -12,7 +12,6 @@ fi
 print_python_module_dir() {
     module="$1"
     $mayapy_name -c '
-from __future__ import print_function
 try:
     import '$module' as test_mod
 except ImportError:

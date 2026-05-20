@@ -2,7 +2,6 @@ import types
 from _typeshed import Incomplete
 from builtins import object
 from collections import defaultdict as defaultdict
-from future.utils import with_metaclass as with_metaclass
 from typing import Any, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 TYPE_CHECKING: bool

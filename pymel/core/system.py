@@ -38,15 +38,10 @@ so you can use object-oriented path methods with the results::
     Path('...test.ma')
 
 """
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
-
-from past.builtins import cmp
 from builtins import zip
 from builtins import range
 from builtins import str
-from past.builtins import basestring
+
 from builtins import object
 import sys
 import os
@@ -62,17 +57,8 @@ import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
 import pymel.versions as versions
-from future.utils import PY2, with_metaclass
 
-if PY2:
-    # formerly made a dummy namespace, collections.abc, and added
-    # collections.abc.MutableMapping; unfortunately, other python packages (ie,
-    # jinja) tried to do "from collections import abc", and ended up using
-    # our (useless) dummy module. So just doing an if/else, which shouldn't
-    # have other side effects...
-    from collections import MutableMapping
-else:
-    from collections.abc import MutableMapping
+from collections.abc import MutableMapping
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -289,7 +275,9 @@ class Namespace(str):
         return "%s:%s" % (self.rstrip(':'), other.lstrip(":"))
 
     def __cmp__(self, other):
-        return cmp(self.strip(":"), str(other).strip(":"))
+        a = self.split(":")
+        b = other.split(":")
+        return (a > b) - (a < b)
 
     __eq__ = lambda self, other: self.__cmp__(other) == 0
     __ne__ = lambda self, other: self.__cmp__(other) != 0
@@ -762,7 +750,7 @@ class WorkspaceEntryDict(object):
     has_key = __contains__
 
 
-class Workspace(with_metaclass(_util.Singleton, object)):
+class Workspace(object, metaclass=_util.Singleton):
 
     """
     This class is designed to lend more readability to the often confusing workspace command.
@@ -884,7 +872,7 @@ class SingletonABCMeta(_util.Singleton, abc.ABCMeta):
     pass
 
 
-class FileInfo(with_metaclass(SingletonABCMeta, MutableMapping)):
+class FileInfo(MutableMapping, metaclass=SingletonABCMeta):
 
     """
     store and get custom data specific to this file:
@@ -916,15 +904,7 @@ class FileInfo(with_metaclass(SingletonABCMeta, MutableMapping)):
             raise RuntimeError("error getting fileInfo for key %r - "
                                "more than one value returned" % item)
         else:
-            value = result[0]
-            if PY2:
-                if isinstance(value, bytes):
-                    return value.decode('string_escape')
-                else:
-                    # unicode
-                    return value.decode('unicode_escape')
-            else:
-                return value
+            return result[0]
 
     def __setitem__(self, item, value):
         cmds.fileInfo(item, value)
@@ -1515,7 +1495,7 @@ class FileReference(object):
         import maya.cmds as mcmds
         self._refNode = None
         if pathOrRefNode:
-            if isinstance(pathOrRefNode, (basestring, Path)):
+            if isinstance(pathOrRefNode, ((bytes, str), Path)):
                 try:
                     self._refNode = general.PyNode(
                         mcmds.referenceQuery(str(pathOrRefNode), referenceNode=1))
@@ -2378,6 +2358,7 @@ def saveAs(newname, **kwargs):
 
 def isModified():
     return cmds.file(q=True, modified=True)
+
 
 
 # ------ Do not edit below this line --------

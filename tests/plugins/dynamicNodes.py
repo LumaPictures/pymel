@@ -3,11 +3,6 @@ call of a plugin, there is actually no requirement that this is the case.
 Pymel therefore needs to be able to handle nodes created at any time - at least
 for pymel.nodetypes.MyNodeType style access - so this plugin allows dynamic
 node creation at any time, to test this.'''
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future.utils import PY2
-
 import pymel.api.plugins as plugins
 import maya.OpenMaya as om
 import maya.OpenMayaMPx as mpx
@@ -32,9 +27,6 @@ class addDynamicNodeCommand(plugins.Command):
 
 
 def createNode(nodeName, plugin=None):
-    if PY2 and isinstance(nodeName, unicode):
-        nodeName = nodeName.encode('ascii')
-
     class NewNode(plugins.DependNode):
         _name = nodeName
 

@@ -1,7 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 # this is segregated into it's own, separate test file from test_api both
 # because I'd like to start standardzing on one test-file per python module,
 # and because this test requires maya.standalone to be initialized

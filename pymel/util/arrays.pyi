@@ -43,7 +43,7 @@ class ArrayIter:
     def __delitem__(self, index) -> None: ...
     def __setitem__(self, index, value) -> None: ...
 
-class Array:
+class Array(metaclass=metaReadOnlyAttr):
     __readonly__: Incomplete
     apicls = list
     shape: Incomplete

@@ -4,11 +4,10 @@ Code shared between build and buildstubs.
 buildstubs is designed to run outside of mayapy, so do not import maya modules
 here.
 """
-from __future__ import absolute_import, print_function
 from typing import List, Optional
 import pymel.internal.cmdcache
 
-pymel.internal.cmdcache.CmdCache.version = '2023'
+pymel.internal.cmdcache.CmdCache.version = '2027'
 cmdcache = pymel.internal.cmdcache.CmdCache()
 data = cmdcache.load()
 datamap = dict(zip(cmdcache.cacheNames(), data))

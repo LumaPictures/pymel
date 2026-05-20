@@ -1,8 +1,5 @@
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
 from builtins import range
-from past.builtins import basestring
+
 import sys
 import unittest
 import traceback
@@ -158,7 +155,7 @@ class TestTimeRange(testing.TestCaseExtended):
                              "Wrong value for %s=%r - expected %r, got %r" % (flag, val, expected, result))
 
         # name the test...
-        if isinstance(val, basestring):
+        if isinstance(val, (bytes, str)):
             valPieces = val.split(':')
         elif isinstance(val, slice):
             valPieces = (val.start, val.stop)

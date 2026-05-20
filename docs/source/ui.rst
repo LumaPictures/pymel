@@ -250,7 +250,7 @@ Layouts
 ----------------------------------
 
 Automatic Form Layouts
-======================
+~~~~~~~~~~~~~~~~~~~~~~
 
 One major pain in designing GUIs is the placing of controls in layouts. 
 Maya provides the formLayout command which lets controls resize and keep their relationship with other controls, however the use of this command is somewhat cumbersome and unintuitive.
@@ -289,7 +289,7 @@ Finally, just for fun, you can also reset, flip and reverse the layout::
 
 
 Streamlined GUI Creation with Context Managers
-==============================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Anyone who has coded GUIs in Maya using both MEL and python will tell you that if there is one thing they miss about MEL (and only one thing), it is the use of indentation to organize layout hierarchy. this is not possible in python because tabs are a syntactical element, indicating code blocks. In this release, PyMEL harnesses python's ``with`` statement to use indentation to streamlines the process of GUI creation.
 

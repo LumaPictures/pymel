@@ -1,14 +1,10 @@
 '''
 Regenerate the core modules using parsed data and templates
 '''
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 from builtins import zip
 from builtins import range
 from builtins import open
-from past.builtins import basestring
+
 from builtins import object
 import compileall
 import inspect
@@ -18,7 +14,6 @@ import re
 import sys
 import types
 from collections import defaultdict, OrderedDict
-from future.utils import PY2
 
 from jinja2 import Environment, PackageLoader
 
@@ -51,10 +46,16 @@ env = Environment(loader=PackageLoader('maintenance', 'templates'),
 def makeTypeComment(signature):
     # type: (factories.Annotations) -> str
     args = signature.get('args')
+    argSig = '...'
     if args is not None:
-        argSig = ', '.join(args)
-    else:
-        argSig = '...'
+        valid_args = []
+        for arg in args:
+            if arg is not None:
+                valid_args.append(arg)
+            else:
+                valid_args.append('...')
+        if len(valid_args) > 0:
+            argSig = ', '.join(valid_args)
     comment = '# type: (%s)' % argSig
     result = signature.get('result')
     if result is None:
@@ -90,7 +91,7 @@ class NewOverrideError(RuntimeError):
 
 def underscoreSortKey(val):
     '''Sort key to make underscores come before numbers / letters'''
-    if isinstance(val, basestring):
+    if isinstance(val, (bytes, str)):
         # 07 is the "bell" character - shouldn't generally be in strings!
         return val.replace('_', '\x07')
     return val
@@ -122,20 +123,12 @@ def methodNames(cls, apicls=None):
             if base is apicls:
                 continue
             for attr, obj in base.__dict__.items():
-                if PY2:
-                    if inspect.ismethod(obj):
-                        herited.add(attr)
-                else:
-                    if inspect.function(obj):
-                        herited.add(attr)
+                if inspect.function(obj):
+                    herited.add(attr)
         return herited
     else:
-        if PY2:
-            return set([name for name, obj in inspect.getmembers(cls)
-                        if inspect.ismethod(obj)])
-        else:
-            return set([name for name, obj in inspect.getmembers(cls)
-                        if inspect.isfunction(obj)])
+        return set([name for name, obj in inspect.getmembers(cls)
+                    if inspect.isfunction(obj)])
 
 
 def importableName(func, module=None, moduleMap=None):
@@ -148,8 +141,6 @@ def importableName(func, module=None, moduleMap=None):
         raise ValueError("received lambda function")
 
     builtin_mod_name = 'builtins'
-    if PY2:
-        builtin_mod_name = '__builtin__'
     if func.__module__ == builtin_mod_name:
         path = name
     else:
@@ -297,8 +288,6 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
             simpleWraps=isWrapped,
             callbackFlags=callbackFlags,
             uiWidget=uiWidget)
-        if PY2:
-            rendered = rendered.encode()
         return result + rendered
     else:
         if existing:
@@ -355,7 +344,7 @@ def functionTemplateFactory(funcName, module, returnFunc=None,
 
 
 def _getModulePath(module):
-    if isinstance(module, basestring):
+    if isinstance(module, (bytes, str)):
         this = sys.modules[__name__]
         root = os.path.dirname(os.path.dirname(this.__file__))
         return os.path.join(root, *module.split('.')) + '.py'
@@ -403,7 +392,7 @@ class VersionedCaches(object):
     @classmethod
     def apiVersion(cls, version):
         # type: (Union[str, int]) -> int
-        if isinstance(version, basestring):
+        if isinstance(version, (bytes, str)):
             return cls.strVersionToApi(version)
         elif isinstance(version, int) and version > 200000:
             return version
@@ -1741,7 +1730,7 @@ class ApiMethodsGenerator(BaseGenerator):
                         wasEnabled = self.methodWasFormerlyEnabled(basePymelName)
                         if wasEnabled:
                             deprecationCall = "@_f.deprecated"
-                            if isinstance(wasEnabled, basestring):
+                            if isinstance(wasEnabled, (bytes, str)):
                                 deprecationCall += "({!r})".format(wasEnabled)
                             _logger.info(
                                 "{}.{}: Adding disabled method as deprecated."

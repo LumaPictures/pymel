@@ -1,9 +1,6 @@
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
 from builtins import zip
 from builtins import chr, range
-from past.builtins import basestring
+
 from builtins import object
 import builtins
 import functools
@@ -20,7 +17,7 @@ import pymel.util as util
 import pymel.versions as versions
 from . import plogging
 from pymel.mayautils import getMayaLocation
-from future.utils import PY2, with_metaclass
+from ..versions import shortName
 
 try:
     from bs4 import BeautifulSoup, NavigableString
@@ -114,8 +111,11 @@ def mayaDocsLocation(version=None):
         else:
             short_version = versions.shortName()
         docLocation = os.path.join(docBaseDir, 'Maya%s' % short_version, 'en_US')
-
-    return os.path.realpath(docLocation)
+    # Maya is no longer ship with documents, let's also check .mayaDocs
+    result = os.path.realpath(docLocation)
+    if not os.path.exists(result):
+        result = os.path.normpath(os.path.dirname(os.path.abspath(__file__)) + "/../../.mayaDocs")
+    return result
 
 
 # The docs sometime contain entities as tags, like <lsquo />, instead of &lsquo;
@@ -132,7 +132,7 @@ def iterXmlTextAndElem(element):
     Also handles entity-refs-as-tags, like <lsquo />
     '''
     tag = element.tag
-    if not isinstance(tag, basestring) and tag is not None:
+    if not isinstance(tag, (bytes, str)) and tag is not None:
         return
     if len(element) == 0 and not element.text:
         # If this is an empty element - no text, no children - check if it's an
@@ -215,11 +215,6 @@ class MLStripper(HTMLParser):
     def __init__(self):
         self.reset()
         self.fed = []
-        if PY2:
-            # python-2 won't error if we skip the init, while python-3 will
-            # However, in python-2, we can't call super, because HTMLParser
-            # is an "old-style" class
-            return
         super(MLStripper, self).__init__()
 
     def handle_data(self, d):
@@ -239,11 +234,7 @@ def strip_tags(html):
     s.feed(html)
     return s.get_data()
 
-# This is mostly because python-2 doctest doesn't deal with unicode
 def standardizeUnicodeChars(input):
-    if PY2:
-        if isinstance(input, str):
-            return input
     return input.translate({
         0xb6: ord('\n'),  # the paragraph mark
         0x2018: ord("'"),  # single left quote
@@ -251,7 +242,6 @@ def standardizeUnicodeChars(input):
         0x201C: ord('"'),  # double left quote
         0x201D: ord('"'),  # double right quote
     })
-
 
 def standardizeDoc(input):
     return standardizeWhitespace(standardizeUnicodeChars(strip_tags(input)))
@@ -278,6 +268,7 @@ class CommandDocParser(HTMLParser):
         self.example = ''
         self.emptyModeFlags = []  # when flags are in a sequence ( lable1, label2, label3 ), only the last flag has queryedit modes. we must gather them up and fill them when the last one ends
         self.internal = False  # True if this is marked as in the internal category
+        self.baseline = None
         HTMLParser.__init__(self)
 
     def __repr__(self):
@@ -288,20 +279,17 @@ class CommandDocParser(HTMLParser):
         #assert data == self.currFlag
         self.iData = 0
         self.flags[self.currFlag] = {'longname': self.currFlag, 'shortname': None, 'args': None,
-                                     'numArgs': None, 'docstring': '', 'modes': []}
+                                     'numArgs': None, 'baseline': None, 'docstring': '', 'modes': []}
 
     def addFlagData(self, data):
-        if PY2:
-            # encode our non-unicode 'data' string to unicode
-            data = data.decode('utf-8')
-            # now saftely encode it to non-unicode ascii, ignoring unknown characters
-            data = data.encode('ascii', 'ignore')
         # Shortname
         if self.iData == 0:
-            self.flags[self.currFlag]['shortname'] = data.lstrip('-\r\n')
+            shortname = data.lstrip('-\r\n')
+            self.flags[self.currFlag]['shortname'] = shortname
 
         # Arguments
         elif self.iData == 1:
+            #print(self.iData, data)
             typemap = {
                 'string': str,
                 'float': float,
@@ -339,6 +327,7 @@ class CommandDocParser(HTMLParser):
 
             self.flags[self.currFlag]['args'] = args
             self.flags[self.currFlag]['numArgs'] = numArgs
+            self.iData += 1
 
         # Docstring
         else:
@@ -352,7 +341,7 @@ class CommandDocParser(HTMLParser):
             data = data.strip('{}\t')
             data = data.replace('*', r'\*')  # for reStructuredText
             self.flags[self.currFlag]['docstring'] += data
-        self.iData += 1
+            self.iData += 1
 
     def endFlag(self):
         # cleanup last flag
@@ -379,7 +368,7 @@ class CommandDocParser(HTMLParser):
             #_logger.debug(self.currFlag, msg)
 
     def handle_starttag(self, tag, attrs):
-        from future.moves.urllib.parse import urlparse
+        from urllib.parse import urlparse
 
         #_logger.debug("begin: %s tag: %s" % (tag, attrs))
         attrmap = dict(attrs)
@@ -413,6 +402,10 @@ class CommandDocParser(HTMLParser):
                 self.flags[self.currFlag]['modes'].append(mode)
         elif tag == 'h2':
             self.active = False
+        elif tag == 'div':
+            div_class = attrmap.get('class', None)
+            if div_class == 'version baseline':
+                self.active = 'baseline'
 
     def handle_endtag(self, tag):
         #if tag == 'p' and self.active == 'command': self.active = False
@@ -426,29 +419,6 @@ class CommandDocParser(HTMLParser):
         elif self.active == 'examples' and tag == 'pre':
             self.active = False
 
-    if PY2:
-        # Python-3 has a new convert_charrefs arg, which handles this much more
-        # elegantly...
-        def handle_entityref(self, name):
-            appendFunc = None
-
-            if self.active == 'examples':
-                def appendFunc(decodedEntity):
-                    self.example += decodedEntity
-            elif self.active == 'flag':
-                if self.currFlag and self.currFlag in self.flags and self.iData > 1:
-                    # we're decoding a flag docstring
-                    def appendFunc(decodedEntity):
-                        self.flags[self.currFlag]['docstring'] += decodedEntity
-
-            if appendFunc is not None:
-                result = self.unescape("&" + name + ";")
-                if isinstance(result, unicode):
-                    try:
-                        result = result.encode("ascii")
-                    except UnicodeEncodeError:
-                        pass
-                appendFunc(result)
 
     def handle_data(self, data):
         if not self.active:
@@ -462,11 +432,14 @@ class CommandDocParser(HTMLParser):
 
                 if data and stripped and stripped not in ['(', ')', '=', '], [']:
                     #_logger.debug("DATA", data)
-
                     if self.currFlag in self.flags:
                         self.addFlagData(data)
                     else:
                         self.startFlag(data)
+                # cxli: Since there could be commands without shortname, use right bracket to put into next stage instead.
+                if data and stripped and stripped == ')':
+                    self.iData += 1
+
         elif self.active == 'command':
             data = data.replace('\r\n', ' ')
             data = data.replace('\n', ' ')
@@ -483,6 +456,18 @@ class CommandDocParser(HTMLParser):
             data = data.replace('\r\n', '\n')
             self.example += data
             #self.active = False
+        elif self.active == 'baseline':
+            # cxli: add support for version baseline, we'll need to restore to flag state after processing it.
+            # cxli: store it for now, may use it later.
+            if self.currFlag:
+                stripped = data.strip()
+                version_strs = stripped.split('.')
+                version = int(version_strs[0]) * 10000
+                if len(version_strs) > 1:
+                    version += int(version_strs[1]) * 100
+                self.flags[self.currFlag]['baseline'] = version
+                self.baseline = version
+                self.active = 'flag'
 
 
 # TODO : cache doc location or it's evaluated for each getCmdInfo !
@@ -680,7 +665,7 @@ class ParamInfo(object):
         return ''.join(parts)
 
 
-class ApiDocParser(with_metaclass(ABCMeta, object)):
+class ApiDocParser(object, metaclass=ABCMeta):
     NO_PYTHON_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated', 'Obsolete -']
 
@@ -955,8 +940,9 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
 
         return pymelNames, sorted(pairsList)
 
-    def getClassFilename(self):
-        filename = 'class'
+    # Try to add struct
+    def getClassFilename(self, is_class = True):
+        filename = 'class' if is_class else 'struct'
         for tok in self._capitalizedRe.split(self.apiClassName):
             if tok:
                 if tok[0].isupper():
@@ -1124,7 +1110,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
                 return int(rawValue.rstrip('UuLl'))
             elif valueType in ['float', 'double']:
                 # '1.0 / 24.0'
-                if isinstance(rawValue, basestring) and rawValue.count('/') == 1:
+                if isinstance(rawValue, (bytes, str)) and rawValue.count('/') == 1:
                     numerator, divisor = rawValue.split('/')
                     return (self.parseValue(numerator, valueType)
                             / self.parseValue(divisor, valueType))
@@ -1332,6 +1318,9 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         self.apiClassName = apiClassName
         self.apiClass = getattr(self.apiModule, self.apiClassName)
         self.docfile = self.getClassPath()
+        if not os.path.exists(self.docfile):
+            _logger.info("class file %s doesn't exist, try struct", self.docfile)
+            self.docfile = self.getClassPath(False)
 
         _logger.info("parsing file %s", self.docfile)
 
@@ -1394,7 +1383,7 @@ class ApiDocParser(with_metaclass(ABCMeta, object)):
         raise NotImplementedError()
 
     @abstractmethod
-    def getClassPath(self):
+    def getClassPath(self, is_class = True):
         raise NotImplementedError()
 
     @abstractmethod
@@ -1422,6 +1411,8 @@ class XmlApiDocParser(ApiDocParser):
         self.tree = ET.parse(self.docfile)
         self.root = self.tree.getroot()
         self.cdef = self.root.find(".//compounddef[@kind='class'][@id='{}']".format(self.baseFilename))
+        if self.cdef is None:
+            self.cdef = self.root.find(".//compounddef[@kind='struct'][@id='{}']".format(self.baseFilename))
         self.numAnonymousEnums = 0
 
     def parseArgTypes(self):
@@ -1488,7 +1479,8 @@ class XmlApiDocParser(ApiDocParser):
         if not results['values']:
             return
 
-        if self._anonymousEnumRe.match(results['name']):
+        # Not working MFnDagNode.kNextPos
+        if self._anonymousEnumRe.match(results['name']) or results['name'] is None or results['name'].strip() == "":
             # for an example of an anonymous enum, see MFnDagNode.kNextPos
             for key, value in results['values'].items():
                 self.constants[key] = value
@@ -2021,8 +2013,8 @@ class XmlApiDocParser(ApiDocParser):
 
         return methodName, returnInfo
 
-    def getClassPath(self):
-        self.baseFilename = self.getClassFilename()
+    def getClassPath(self, is_class = True):
+        self.baseFilename = self.getClassFilename(is_class)
         filename = self.baseFilename + '.xml'
         apiBase = os.path.join(self.docloc, 'xml')
         return os.path.join(apiBase, filename)
@@ -2366,8 +2358,8 @@ class HtmlApiDocParser(ApiDocParser):
         verStr = match.group(1)
         return tuple(int(x) for x in verStr.split('.'))
 
-    def getClassPath(self):
-        filename = self.getClassFilename() + '.html'
+    def getClassPath(self, is_class = True):
+        filename = self.getClassFilename(is_class) + '.html'
         apiBase = os.path.join(self.docloc, 'API')
         path = os.path.join(apiBase, filename)
         if not os.path.isfile(path):
