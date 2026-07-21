@@ -569,7 +569,7 @@ def MItNodes(*args, **kwargs):
             typeIntM = MIntArray()
             MScriptUtil.createIntArrayFromList(args, typeIntM)
             typeFilter.setFilterList(typeIntM)
-        # we will iterate on dependancy nodes, not dagPaths or plugs
+        # we will iterate on dependency nodes, not dagPaths or plugs
         typeFilter.setObjectType(MIteratorType.kMObject)
     # create iterator with (possibly empty) typeFilter
     iterObj = MItDependencyNodes(typeFilter)
